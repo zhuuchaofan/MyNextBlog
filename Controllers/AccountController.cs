@@ -1,51 +1,118 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MyTechBlog.Data;
+using MyTechBlog.Models;
+using BCrypt.Net;
 
 namespace MyTechBlog.Controllers;
 
 public class AccountController : Controller
 {
-    // GET: /Account/Login
+    private readonly AppDbContext _context;
+
+    public AccountController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    // =====================
+    // 注册部分
+    // =====================
+
+    // 1. 显示注册页面 (GET) <--- 之前可能丢了这个
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    // 2. 处理注册提交 (POST)
+    [HttpPost]
+    public async Task<IActionResult> Register(string username, string password)
+    {
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            ViewBag.Error = "用户名和密码不能为空";
+            return View();
+        }
+
+        if (await _context.Users.AnyAsync(u => u.Username == username))
+        {
+            ViewBag.Error = "用户名已被占用";
+            return View();
+        }
+
+        // 第一个注册的是 Admin，后续是 User
+        bool isFirstUser = !await _context.Users.AnyAsync();
+        string role = isFirstUser ? "Admin" : "User";
+
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+        var user = new User
+        {
+            Username = username,
+            PasswordHash = passwordHash,
+            Role = role
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Login");
+    }
+
+    // =====================
+    // 登录部分
+    // =====================
+
+    // 3. 显示登录页面 (GET) <--- 导致 405 错误就是因为缺了这个！
+    [HttpGet]
     public IActionResult Login()
     {
         return View();
     }
 
-    // POST: /Account/Login
+    // 4. 处理登录提交 (POST)
     [HttpPost]
     public async Task<IActionResult> Login(string username, string password, string returnUrl = "/")
     {
-        // 这里先用“硬编码”校验，后期我们可以改成查 Users 表
-        // 账号: admin, 密码: 123456
-        if (username == "admin" && password == "123456")
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
-            // 1. 创建身份证 (Claims)
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-
-            // 2. 创建证件照 (Identity)
-            var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
-
-            // 3. 签发 Cookie (SignIn)
-            await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(claimsIdentity));
-
-            // 4. 登录成功，跳回之前的页面
-            return LocalRedirect(returnUrl);
+            ViewBag.Error = "请输入用户名和密码";
+            return View();
         }
 
-        // 登录失败
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
+
+        if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
+            await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(claimsIdentity));
+
+            // 防止重定向攻击，或者默认跳回首页
+            if (Url.IsLocalUrl(returnUrl))
+                return LocalRedirect(returnUrl);
+            else
+                return RedirectToAction("Index", "Home");
+        }
+
         ViewBag.Error = "用户名或密码错误";
         return View();
     }
 
-    // GET: /Account/Logout
+    // =====================
+    // 注销部分
+    // =====================
     public async Task<IActionResult> Logout()
     {
-        // 销毁 Cookie
         await HttpContext.SignOutAsync("MyCookieAuth");
         return RedirectToAction("Index", "Home");
     }
