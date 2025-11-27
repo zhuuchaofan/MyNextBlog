@@ -38,8 +38,10 @@ public class PostsController : Controller
 
     // GET: Posts/Create
     [Authorize(Roles = "Admin")]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        // 获取所有分类，存进 ViewBag
+        ViewBag.Categories = await _postService.GetCategoriesAsync();
         return View();
     }
 
@@ -47,7 +49,7 @@ public class PostsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create([Bind("Title,Content")] Post post)
+    public async Task<IActionResult> Create([Bind("Title,Content,CategoryId")] Post post)
     {
         if (ModelState.IsValid)
         {
@@ -67,7 +69,7 @@ public class PostsController : Controller
 
         var post = await _postService.GetPostByIdAsync(id.Value);
         if (post == null) return NotFound();
-
+        ViewBag.Categories = await _postService.GetCategoriesAsync(); // 获取所有分类
         return View(post);
     }
 
@@ -75,7 +77,7 @@ public class PostsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreateTime")] Post post)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreateTime,CategoryId")] Post post)
     {
         if (id != post.Id) return NotFound();
 

@@ -9,8 +9,13 @@ public class AppDbContext : DbContext
     {
     }
 
-    // 告诉管家我们要管这三张表
+    // DbSet 代表数据库中的一张表
+    // 每个实体类对应一张表
+    // 比如 Post 实体类对应 Posts 表
+    // Comment 实体类对应 Comments 表
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<User> Users { get; set; }
+    
+    public DbSet<Category> Categories { get; set; }
 }

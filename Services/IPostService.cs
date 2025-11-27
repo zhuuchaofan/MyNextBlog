@@ -11,4 +11,5 @@ public interface IPostService
     Task UpdatePostAsync(Post post);
     Task DeletePostAsync(int id);
     Task AddCommentAsync(Comment comment);
+    Task<List<Category>> GetCategoriesAsync(); // 获取所有分类
 }
