@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyTechBlog.Data;
 using MyTechBlog.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MyTechBlog.Controllers
 {
@@ -45,6 +46,7 @@ namespace MyTechBlog.Controllers
         }
 
         // GET: Posts/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -67,6 +69,7 @@ namespace MyTechBlog.Controllers
         }
 
         // GET: Posts/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +90,7 @@ namespace MyTechBlog.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreateTime")] Post post)
         {
             if (id != post.Id)
@@ -118,6 +122,7 @@ namespace MyTechBlog.Controllers
         }
 
         // GET: Posts/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -138,6 +143,7 @@ namespace MyTechBlog.Controllers
         // POST: Posts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var post = await _context.Posts.FindAsync(id);

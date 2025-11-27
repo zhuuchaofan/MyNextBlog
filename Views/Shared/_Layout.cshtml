@@ -24,15 +24,32 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">关于我</a>
-                        </li>
-
-                        <li class="nav-item">
                             <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Posts" asp-action="Index">
                                 <i class="bi bi-journal-code me-1"></i> 技术博客
                             </a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">关于我</a>
+                        </li>
+
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-muted">你好, 管理员</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" asp-controller="Account" asp-action="Logout">注销</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">登录</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

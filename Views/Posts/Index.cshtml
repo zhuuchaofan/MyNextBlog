@@ -6,9 +6,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
     <h4 class="fw-bold text-dark mb-0">最新文章</h4>
+    @if (User.Identity.IsAuthenticated)
+{
     <a asp-action="Create" class="btn btn-primary btn-sm rounded-pill px-3">
         <i class="bi bi-pencil-fill me-1"></i> 写新文章
     </a>
+}
 </div>
 
 <div class="row">
@@ -37,22 +40,24 @@
                                 <i class="bi bi-chat-dots me-1"></i> @(item.Comments?.Count ?? 0) 评论
                             </div>
                         </div>
-
-                        <div class="col-md-3 text-end position-relative" style="z-index: 2;">
-                            <div class="btn-group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm" title="编辑">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button type="button"
-                                        class="btn btn-outline-danger btn-sm"
-                                        title="删除"
-                                        onclick="openDeleteModal(@item.Id, '@item.Title')"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div class="col-md-3 text-end position-relative" style="z-index: 2;">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm" title="编辑">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    title="删除"
+                                    onclick="openDeleteModal(@item.Id, '@item.Title')"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
                 </div>
             </div>

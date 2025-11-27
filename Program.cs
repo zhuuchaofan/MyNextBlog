@@ -10,6 +10,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// 添加认证服务
+builder.Services.AddAuthentication("MyCookieAuth")
+    .AddCookie("MyCookieAuth", options =>
+    {
+        options.LoginPath = "/Account/Login"; // 如果没登录就踢到这个页面
+        options.AccessDeniedPath = "/Account/Login";
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,7 +33,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
+// --- 2. 启用中间件 ---
+app.UseAuthentication(); // 问：你是谁？(查身份证)
+app.UseAuthorization();  // 问：你能干什么？(查权限)
 
 app.MapControllerRoute(
     name: "default",
