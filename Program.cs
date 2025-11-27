@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using MyTechBlog.Data;
+using MyTechBlog.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 配置数据库上下文，使用 SQLite 数据库
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 注册我们的业务服务 (Scoped 表示每个 HTTP 请求创建一个新的实例)
+builder.Services.AddScoped<IPostService, PostService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
