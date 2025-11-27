@@ -1,0 +1,89 @@
+@model MyTechBlog.Models.Post
+@using MyTechBlog.Helpers
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="mb-3 mt-3">
+    <a asp-action="Index" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left"></i> 返回列表
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <article class="blog-post">
+            <header class="mb-4 pb-3 border-bottom">
+                <h1 class="fw-bold text-dark mb-2">@Model.Title</h1>
+
+                <div class="text-muted small d-flex align-items-center">
+                    <span class="me-3">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        @Model.CreateTime.ToString("yyyy/MM/dd HH:mm")
+                    </span>
+                    <span class="me-3">
+                        <i class="bi bi-chat-left-text me-1"></i>
+                        @(Model.Comments?.Count ?? 0) 评论
+                    </span>
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none text-secondary">
+                        <i class="bi bi-pencil-square"></i> 编辑
+                    </a>
+                </div>
+            </header>
+
+            <div class="blog-content lh-lg mb-5 text-break">
+                @Html.Raw(MarkdownHelper.Parse(Model.Content))
+            </div>
+        </article>
+    </div>
+</div>
+
+<div class="bg-light bg-opacity-50 rounded-3 p-4 mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="fw-bold mb-3 small text-uppercase text-muted">
+                评论区 (@(Model.Comments?.Count ?? 0))
+            </h5>
+
+            <div class="mb-4">
+                @if (Model.Comments != null && Model.Comments.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var comment in Model.Comments.OrderBy(c => c.CreateTime))
+                        {
+                            <li class="border-bottom py-2">
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <strong class="text-dark small">@comment.GuestName</strong>
+                                    <small class="text-muted" style="font-size: 0.75rem;">@comment.CreateTime.ToString("yyyy/MM/dd HH:mm")</small>
+                                </div>
+                                <p class="mb-0 mt-1 small text-secondary">@comment.Content</p>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">暂无评论。</p>
+                }
+            </div>
+
+            <form asp-action="AddComment">
+                <input type="hidden" name="postId" value="@Model.Id" />
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="guestName" class="form-control form-control-sm" placeholder="昵称 (选填)">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="content" class="form-control form-control-sm" placeholder="写下你的想法..." required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            发送
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

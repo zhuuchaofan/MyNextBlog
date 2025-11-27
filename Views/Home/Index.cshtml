@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "主页";
+}
+
+<div class="px-4 py-5 my-5 text-center">
+    <div class="mb-4">
+        <i class="bi bi-code-slash display-1 text-primary"></i>
+    </div>
+    
+    <h1 class="display-5 fw-bold text-body-emphasis">你好，我是 .NET 开发者</h1>
+    
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4 text-muted">
+            欢迎来到我的数字花园。这里记录了我在 Web 开发、架构设计以及 AI 交互领域的学习与思考。
+            我相信代码不仅是工具，更是与世界沟通的桥梁。
+        </p>
+        
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a asp-controller="Posts" asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3">
+                阅读我的博客
+            </a>
+            <a href="https://github.com/你的Github用户名" target="_blank" class="btn btn-outline-secondary btn-lg px-4">
+                访问 GitHub
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 py-5 row-cols-1 row-cols-lg-3 text-center border-top">
+    <div class="col">
+        <div class="fs-1 text-primary mb-3"><i class="bi bi-cpu"></i></div>
+        <h3 class="fs-4 text-body-emphasis">后端架构</h3>
+        <p>精通 C# / .NET Core，熟悉 Clean Architecture 与高性能 API 设计。</p>
+    </div>
+    <div class="col">
+        <div class="fs-1 text-primary mb-3"><i class="bi bi-window-stack"></i></div>
+        <h3 class="fs-4 text-body-emphasis">全栈开发</h3>
+        <p>能够使用 MVC, Bootstrap 构建现代化的响应式 Web 应用。</p>
+    </div>
+    <div class="col">
+        <div class="fs-1 text-primary mb-3"><i class="bi bi-robot"></i></div>
+        <h3 class="fs-4 text-body-emphasis">AI 探索</h3>
+        <p>致力于将 LLM 集成到工作流中，探索人机协作的新模式。</p>
+    </div>
+</div>
