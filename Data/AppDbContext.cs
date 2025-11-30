@@ -14,4 +14,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users { get; set; }
     
     public DbSet<Category> Categories { get; set; }
+    public DbSet<ImageAsset> ImageAssets { get; set; }
 }

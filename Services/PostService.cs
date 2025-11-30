@@ -4,7 +4,7 @@ using MyTechBlog.Models;
 
 namespace MyTechBlog.Services;
 
-public class PostService(AppDbContext context) : IPostService
+public class PostService(AppDbContext context, IImageService imageService) : IPostService
 {
     // 数据库上下文
 
@@ -33,12 +33,18 @@ public class PostService(AppDbContext context) : IPostService
     {
         context.Add(post);
         await context.SaveChangesAsync();
+        
+        // 关联图片
+        await imageService.AssociateImagesAsync(post.Id, post.Content);
     }
     // 更新文章
     public async Task UpdatePostAsync(Post post)
     {
         context.Update(post);
         await context.SaveChangesAsync();
+
+        // 重新关联图片 (防止文章内容修改后，引入了新的无主图片)
+        await imageService.AssociateImagesAsync(post.Id, post.Content);
     }
     // 删除文章
     public async Task DeletePostAsync(int id)
@@ -46,6 +52,10 @@ public class PostService(AppDbContext context) : IPostService
         var post = await context.Posts.FindAsync(id);
         if (post != null)
         {
+            // 1. 先删除关联的图片 (云端文件 + 数据库记录)
+            await imageService.DeleteImagesForPostAsync(id);
+
+            // 2. 再删除文章本身
             context.Posts.Remove(post);
             await context.SaveChangesAsync();
         }

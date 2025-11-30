@@ -23,7 +23,7 @@ public class R2StorageService : IStorageService
         _publicDomain = r2Config["PublicDomain"] ?? ""; // 允许为空，但在实际使用中需要配置
     }
 
-    public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType)
+    public async Task<ImageUploadResult> UploadAsync(Stream fileStream, string fileName, string contentType)
     {
         var config = new AmazonS3Config
         {
@@ -48,15 +48,42 @@ public class R2StorageService : IStorageService
 
         await client.PutObjectAsync(putRequest);
 
+        string fileUrl;
         // 构造返回的 URL
         // 如果 PublicDomain 未配置，这是一个提示
         if (string.IsNullOrEmpty(_publicDomain) || _publicDomain.Contains("your-public-r2-domain"))
         {
-             return $"/error/configure-public-domain/{keyName}"; 
+             fileUrl = $"/error/configure-public-domain/{keyName}"; 
+        }
+        else
+        {
+            // 确保域名末尾没有斜杠，避免双斜杠
+            var baseUrl = _publicDomain.TrimEnd('/');
+            fileUrl = $"{baseUrl}/{keyName}";
         }
 
-        // 确保域名末尾没有斜杠，避免双斜杠
-        var baseUrl = _publicDomain.TrimEnd('/');
-        return $"{baseUrl}/{keyName}";
+        return new ImageUploadResult
+        {
+            Url = fileUrl,
+            StorageKey = keyName
+        };
+    }
+
+    public async Task DeleteAsync(string storageKey)
+    {
+        var config = new AmazonS3Config
+        {
+            ServiceURL = _serviceUrl,
+        };
+
+        using var client = new AmazonS3Client(_accessKey, _secretKey, config);
+
+        var deleteRequest = new DeleteObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = storageKey
+        };
+
+        await client.DeleteObjectAsync(deleteRequest);
     }
 }

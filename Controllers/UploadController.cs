@@ -7,7 +7,7 @@ namespace MyTechBlog.Controllers;
 [Authorize(Roles = "Admin")] // 只有管理员能上传图片
 [Route("api/[controller]")] // 访问路径是 /api/upload
 [ApiController] // 这是一个 API 控制器，不是返回页面的
-public class UploadController(IStorageService storageService) : ControllerBase
+public class UploadController(IStorageService storageService, IImageService imageService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
@@ -27,9 +27,23 @@ public class UploadController(IStorageService storageService) : ControllerBase
 
         // 3. 上传到 R2
         using var stream = file.OpenReadStream();
-        var fileUrl = await storageService.UploadAsync(stream, fileName, file.ContentType);
+        var result = await storageService.UploadAsync(stream, fileName, file.ContentType);
 
-        // 4. 返回图片的访问 URL
-        return Ok(new { url = fileUrl });
+        // 4. 在数据库中记录这张图片 (此时 PostId 为 null)
+        await imageService.RecordImageAsync(result.Url, result.StorageKey);
+
+        // 5. 返回图片的访问 URL
+        return Ok(new { url = result.Url });
+    }
+
+    /// <summary>
+    /// 手动触发清理僵尸图片 (24小时前的无主图片)
+    /// 访问地址: POST /api/upload/cleanup
+    /// </summary>
+    [HttpPost("cleanup")]
+    public async Task<IActionResult> Cleanup()
+    {
+        int count = await imageService.CleanupOrphanedImagesAsync();
+        return Ok(new { message = $"清理完成，共删除了 {count} 张僵尸图片。" });
     }
 }

@@ -16,6 +16,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IPostService, PostService>();
 // 注册 R2存储服务
 builder.Services.AddScoped<IStorageService, R2StorageService>();
+// 注册 ImageService
+builder.Services.AddScoped<IImageService, ImageService>();
 
 // 配置数据库 context
 builder.Services.AddDbContext<AppDbContext>(options =>
