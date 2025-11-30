@@ -42,9 +42,17 @@
             <div class="fixed-bottom bg-white bg-opacity-75 border-top py-3">
                 <div class="container-md" style="max-width: 800px;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="bi bi-markdown me-1"></i>支持 Markdown
-                        </small>
+                        <div class="d-flex align-items-center gap-3">
+                            <small class="text-muted">
+                                <i class="bi bi-markdown me-1"></i>支持 Markdown
+                            </small>
+                            <!-- 隐藏的文件选择框 -->
+                            <input type="file" id="imageUploadInput" accept="image/*" style="display: none;">
+                            <!-- 可见的上传按钮 -->
+                            <button type="button" class="btn btn-link text-decoration-none text-secondary p-0" id="uploadBtn" title="插入图片">
+                                <i class="bi bi-image"></i> 插入图片
+                            </button>
+                        </div>
                         <div>
                             <a href="javascript:history.back()" class="btn btn-light btn-sm me-2">取消</a>
                             <button type="submit" class="btn btn-primary btn-sm px-4 rounded-pill">
