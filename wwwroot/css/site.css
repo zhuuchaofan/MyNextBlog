@@ -18,7 +18,15 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  /* margin-bottom: 60px;  <-- 删除这行 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 视口高度 */
+}
+
+/* 确保 footer 不会浮动覆盖，而是正常的文档流 */
+footer {
+    margin-top: auto; /* 这行会自动把 footer 推到最下面 */
 }
 
 /* === 优化博客文章正文排版 === */

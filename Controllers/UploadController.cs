@@ -6,14 +6,9 @@ namespace MyTechBlog.Controllers;
 [Authorize(Roles = "Admin")] // 只有管理员能上传图片
 [Route("api/[controller]")] // 访问路径是 /api/upload
 [ApiController] // 这是一个 API 控制器，不是返回页面的
-public class UploadController : ControllerBase
+public class UploadController(IWebHostEnvironment env) : ControllerBase
 {
-    private readonly IWebHostEnvironment _env;
-
-    public UploadController(IWebHostEnvironment env)
-    {
-        _env = env; // 获取网站的根目录路径
-    }
+    // 获取网站的根目录路径
 
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
@@ -29,7 +24,7 @@ public class UploadController : ControllerBase
             return BadRequest("只支持上传图片格式");
 
         // 2. 准备保存路径: wwwroot/uploads
-        var webRootPath = _env.WebRootPath;
+        var webRootPath = env.WebRootPath;
         var uploadPath = Path.Combine(webRootPath, "uploads");
 
         if (!Directory.Exists(uploadPath))

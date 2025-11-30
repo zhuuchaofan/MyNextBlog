@@ -8,15 +8,8 @@ using BCrypt.Net;
 
 namespace MyTechBlog.Controllers;
 
-public class AccountController : Controller
+public class AccountController(AppDbContext context) : Controller
 {
-    private readonly AppDbContext _context;
-
-    public AccountController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     // =====================
     // 注册部分
     // =====================
@@ -38,14 +31,14 @@ public class AccountController : Controller
             return View();
         }
 
-        if (await _context.Users.AnyAsync(u => u.Username == username))
+        if (await context.Users.AnyAsync(u => u.Username == username))
         {
             ViewBag.Error = "用户名已被占用";
             return View();
         }
 
         // 第一个注册的是 Admin，后续是 User
-        bool isFirstUser = !await _context.Users.AnyAsync();
+        bool isFirstUser = !await context.Users.AnyAsync();
         string role = isFirstUser ? "Admin" : "User";
 
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
@@ -57,8 +50,8 @@ public class AccountController : Controller
             Role = role
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
 
         return RedirectToAction("Login");
     }
@@ -84,7 +77,7 @@ public class AccountController : Controller
             return View();
         }
 
-        var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
+        var user = await context.Users.SingleOrDefaultAsync(u => u.Username == username);
 
         if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {

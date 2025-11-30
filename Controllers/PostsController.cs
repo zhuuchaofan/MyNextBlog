@@ -5,21 +5,15 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MyTechBlog.Controllers;
 
-public class PostsController : Controller
+public class PostsController(IPostService postService) : Controller
 {
     // 1. 只有这一位“厨师”，没有 _context 了
-    private readonly IPostService _postService;
-
-    public PostsController(IPostService postService)
-    {
-        _postService = postService;
-    }
 
     // GET: Posts
     public async Task<IActionResult> Index()
     {
         // 吩咐厨师：把所有菜端上来
-        var posts = await _postService.GetAllPostsAsync();
+        var posts = await postService.GetAllPostsAsync();
         return View(posts);
     }
 
@@ -29,7 +23,7 @@ public class PostsController : Controller
         if (id == null) return NotFound();
 
         // 吩咐厨师：按 ID 查这道菜
-        var post = await _postService.GetPostByIdAsync(id.Value);
+        var post = await postService.GetPostByIdAsync(id.Value);
 
         if (post == null) return NotFound();
 
@@ -41,7 +35,7 @@ public class PostsController : Controller
     public async Task<IActionResult> Create()
     {
         // 获取所有分类，存进 ViewBag
-        ViewBag.Categories = await _postService.GetCategoriesAsync();
+        ViewBag.Categories = await postService.GetCategoriesAsync();
         return View();
     }
 
@@ -55,7 +49,7 @@ public class PostsController : Controller
         {
             post.CreateTime = DateTime.Now;
             // 吩咐厨师：做一道新菜
-            await _postService.AddPostAsync(post);
+            await postService.AddPostAsync(post);
             return RedirectToAction(nameof(Index));
         }
         return View(post);
@@ -67,9 +61,9 @@ public class PostsController : Controller
     {
         if (id == null) return NotFound();
 
-        var post = await _postService.GetPostByIdAsync(id.Value);
+        var post = await postService.GetPostByIdAsync(id.Value);
         if (post == null) return NotFound();
-        ViewBag.Categories = await _postService.GetCategoriesAsync(); // 获取所有分类
+        ViewBag.Categories = await postService.GetCategoriesAsync(); // 获取所有分类
         return View(post);
     }
 
@@ -84,7 +78,7 @@ public class PostsController : Controller
         if (ModelState.IsValid)
         {
             // 吩咐厨师：修改这道菜
-            await _postService.UpdatePostAsync(post);
+            await postService.UpdatePostAsync(post);
             return RedirectToAction(nameof(Index)); // 这里通常回列表，或者回 Details
         }
         return View(post);
@@ -97,7 +91,7 @@ public class PostsController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         // 吩咐厨师：倒掉这道菜
-        await _postService.DeletePostAsync(id);
+        await postService.DeletePostAsync(id);
         return RedirectToAction(nameof(Index));
     }
 
@@ -117,7 +111,7 @@ public class PostsController : Controller
         };
 
         // 吩咐厨师：加个配菜（评论）
-        await _postService.AddCommentAsync(comment);
+        await postService.AddCommentAsync(comment);
 
         return RedirectToAction("Details", new { id = postId });
     }

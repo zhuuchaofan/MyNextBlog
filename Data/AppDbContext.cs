@@ -3,12 +3,8 @@ using MyTechBlog.Models;
 
 namespace MyTechBlog.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-
     // DbSet 代表数据库中的一张表
     // 每个实体类对应一张表
     // 比如 Post 实体类对应 Posts 表
