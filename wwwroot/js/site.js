@@ -1,3 +1,32 @@
+// === 批量上传状态管理 ===
+const uploadBatch = {
+    total: 0,
+    processed: 0,
+    success: 0,
+    fail: 0
+};
+
+function initBatch(count) {
+    uploadBatch.total = count;
+    uploadBatch.processed = 0;
+    uploadBatch.success = 0;
+    uploadBatch.fail = 0;
+    showToast(`开始处理 ${count} 张图片...`, 'loading');
+}
+
+function updateBatch(isSuccess) {
+    uploadBatch.processed++;
+    if (isSuccess) uploadBatch.success++;
+    else uploadBatch.fail++;
+
+    // 检查是否全部完成
+    if (uploadBatch.processed === uploadBatch.total) {
+        const msg = `上传完成：成功 ${uploadBatch.success} 张，失败 ${uploadBatch.fail} 张`;
+        const type = uploadBatch.fail === 0 ? 'success' : 'error'; // 如果有失败的，用红色提示
+        showToast(msg, type);
+    }
+}
+
 // 等待页面加载完成
 document.addEventListener("DOMContentLoaded", function () {
     const editors = document.querySelectorAll('.markdown-editor');
@@ -8,27 +37,34 @@ document.addEventListener("DOMContentLoaded", function () {
         // === 1. 粘贴上传 ===
         editor.addEventListener('paste', function (e) {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            const imageItems = [];
             for (let index in items) {
                 const item = items[index];
                 if (item.kind === 'file' && item.type.indexOf('image/') !== -1) {
-                    const blob = item.getAsFile();
-                    e.preventDefault();
-                    handleImageUpload(blob, editor);
+                    imageItems.push(item);
                 }
+            }
+            
+            if (imageItems.length > 0) {
+                e.preventDefault();
+                initBatch(imageItems.length); // 初始化批次
+                imageItems.forEach(item => {
+                    handleImageUpload(item.getAsFile(), editor);
+                });
             }
         });
 
         // === 2. 拖拽上传 ===
         editor.addEventListener('dragover', function (e) {
-            e.preventDefault(); // 必须阻止默认行为才能触发 drop
+            e.preventDefault();
             e.stopPropagation();
-            editor.style.border = "2px dashed #0d6efd"; // 给点视觉反馈
+            editor.style.border = "2px dashed #0d6efd";
         });
 
         editor.addEventListener('dragleave', function(e) {
              e.preventDefault();
              e.stopPropagation();
-             editor.style.border = "none"; // 恢复原样
+             editor.style.border = "none";
         });
 
         editor.addEventListener('drop', function (e) {
@@ -37,13 +73,19 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.style.border = "none";
 
             const files = e.dataTransfer.files;
+            const imageFiles = [];
             if (files && files.length > 0) {
-                // 处理所有拖入的文件（如果是图片）
                 for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if (file.type.indexOf('image/') !== -1) {
-                        handleImageUpload(file, editor);
+                    if (files[i].type.indexOf('image/') !== -1) {
+                        imageFiles.push(files[i]);
                     }
+                }
+                
+                if (imageFiles.length > 0) {
+                    initBatch(imageFiles.length); // 初始化批次
+                    imageFiles.forEach(file => {
+                        handleImageUpload(file, editor);
+                    });
                 }
             }
         });
@@ -51,21 +93,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // === 3. 按钮点击上传 ===
     if (uploadBtn && fileInput) {
-        // 点击按钮 -> 触发 input 点击
         uploadBtn.addEventListener('click', () => {
             fileInput.click();
         });
 
-        // 监听文件选择
         fileInput.addEventListener('change', function () {
             if (this.files && this.files.length > 0) {
-                const file = this.files[0];
-                // 假设只有一个编辑器，或者取第一个
-                const editor = document.querySelector('.markdown-editor'); 
-                if (editor) {
-                     handleImageUpload(file, editor);
-                }
-                // 清空 input，确保下次选同一个文件也能触发 change
+                initBatch(1); // 按钮选择通常是单张，但也复用逻辑
+                handleImageUpload(this.files[0], document.querySelector('.markdown-editor'));
                 this.value = ''; 
             }
         });
@@ -89,34 +124,29 @@ function showToast(message, type = 'info') {
     
     toastBody.innerHTML = `${icon}${message}`;
     
-    // 显示 Toast
-    const toast = new bootstrap.Toast(toastEl);
+    const toast = new bootstrap.Toast(toastEl); // 默认 5000ms
     toast.show();
 }
 
 // 通用：压缩并上传处理函数
 function handleImageUpload(blob, editor) {
-    showToast('正在压缩图片...', 'loading'); // 提示开始压缩
-
     // 使用 compressorjs 压缩图片
     new Compressor(blob, {
-        quality: 0.8, // 压缩质量
-        mimeType: 'image/webp', // 转为 WebP
+        quality: 0.8,
+        mimeType: 'image/webp',
         success(result) {
             uploadFile(result, editor);
         },
         error(err) {
             console.error('压缩失败:', err);
-            showToast('压缩失败，尝试直接上传...', 'error');
-            uploadFile(blob, editor); // 失败则传原图
+            // 压缩失败也尝试传原图，不算业务失败，除非原图也传不上去
+            uploadFile(blob, editor); 
         },
     });
 }
 
 // 核心上传请求函数
 function uploadFile(file, textarea) {
-    showToast('正在上传图片到云端...', 'loading'); // 提示开始上传
-
     const formData = new FormData();
     const fileName = file.name || "image.webp"; 
     formData.append('file', file, fileName);
@@ -137,12 +167,12 @@ function uploadFile(file, textarea) {
         .then(data => {
             const markdownImage = `![](${data.url})`;
             textarea.value = textarea.value.replace(placeholder, markdownImage);
-            showToast('图片上传成功！', 'success'); // 提示成功
+            updateBatch(true); // 标记成功
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('图片上传失败，请重试', 'error'); // 提示失败
             textarea.value = textarea.value.replace(placeholder, `![上传失败]()`);
+            updateBatch(false); // 标记失败
         });
 }
 
