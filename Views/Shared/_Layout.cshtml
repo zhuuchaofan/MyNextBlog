@@ -66,37 +66,24 @@
         </main>
     </div>
 
-    <footer class="border-top text-muted bg-light mt-auto">
-        <div class="container py-3">
-            <div class="row align-items-center">
-
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">
-                        &copy; 2025 - <strong>MyTechBlog</strong>
-                        <span class="mx-2">|</span>
-                        <small>Powered by .NET 10 and ASP.NET Core</small>
-                    </p>
-                </div>
-
-                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
-                    <a href="https://github.com/" target="_blank" class="text-secondary text-decoration-none me-3"
-                        title="GitHub">
-                        <i class="bi bi-github fs-5"></i>
-                    </a>
-
-                    <a href="mailto:zhuuchaofan@gmail.com" class="text-secondary text-decoration-none me-3"
-                        title="联系我">
-                        <i class="bi bi-envelope-fill fs-5"></i>
-                    </a>
-
-                    <a asp-controller="Posts" asp-action="Index" class="text-secondary text-decoration-none"
-                        title="阅读博客">
-                        <i class="bi bi-rss-fill fs-5"></i>
-                    </a>
-                </div>
-            </div>
+    <footer class="border-top footer text-muted">
+        <div class="container text-center">
+            &copy; 2025 - MyTechBlog - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
+        <div id="liveToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-bold">
+                    <!-- Message will be injected here -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <!-- 图片压缩库 -->

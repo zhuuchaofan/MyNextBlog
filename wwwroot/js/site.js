@@ -72,8 +72,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// 显示 Toast 消息
+function showToast(message, type = 'info') {
+    const toastEl = document.getElementById('liveToast');
+    const toastBody = toastEl.querySelector('.toast-body');
+    
+    // 设置消息内容
+    let icon = '';
+    if (type === 'loading') {
+        icon = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>';
+    } else if (type === 'success') {
+        icon = '<i class="bi bi-check-circle-fill text-success me-2"></i>';
+    } else if (type === 'error') {
+        icon = '<i class="bi bi-x-circle-fill text-danger me-2"></i>';
+    }
+    
+    toastBody.innerHTML = `${icon}${message}`;
+    
+    // 显示 Toast
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+}
+
 // 通用：压缩并上传处理函数
 function handleImageUpload(blob, editor) {
+    showToast('正在压缩图片...', 'loading'); // 提示开始压缩
+
     // 使用 compressorjs 压缩图片
     new Compressor(blob, {
         quality: 0.8, // 压缩质量
@@ -83,6 +107,7 @@ function handleImageUpload(blob, editor) {
         },
         error(err) {
             console.error('压缩失败:', err);
+            showToast('压缩失败，尝试直接上传...', 'error');
             uploadFile(blob, editor); // 失败则传原图
         },
     });
@@ -90,6 +115,8 @@ function handleImageUpload(blob, editor) {
 
 // 核心上传请求函数
 function uploadFile(file, textarea) {
+    showToast('正在上传图片到云端...', 'loading'); // 提示开始上传
+
     const formData = new FormData();
     const fileName = file.name || "image.webp"; 
     formData.append('file', file, fileName);
@@ -110,10 +137,11 @@ function uploadFile(file, textarea) {
         .then(data => {
             const markdownImage = `![](${data.url})`;
             textarea.value = textarea.value.replace(placeholder, markdownImage);
+            showToast('图片上传成功！', 'success'); // 提示成功
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('图片上传失败，请重试');
+            showToast('图片上传失败，请重试', 'error'); // 提示失败
             textarea.value = textarea.value.replace(placeholder, `![上传失败]()`);
         });
 }
