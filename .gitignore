@@ -366,5 +366,9 @@ FodyWeavers.xsd
 # Custom additions
 # Ignore SQLite database files
 *.db
+*.db-shm
+*.db-wal
 # Ignore IntelliJ IDEA files
 .idea/
+# MacOS
+.DS_Store

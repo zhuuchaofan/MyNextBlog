@@ -24,7 +24,7 @@
 
 这是一个轻量级的个人博客，主要功能包括：
 *   **文章浏览**：访客可以查看博客文章列表和详情。
-*   **内容创作**：支持 **Markdown** 语法写作，并实现了**“截图直接粘贴上传”**的丝滑体验。
+*   **内容创作**：支持 **Markdown** 语法写作，支持 **Mermaid** 图表渲染，并实现了**“截图直接粘贴上传”**的丝滑体验（图片自动上传至 Cloudflare R2 云存储）。
 *   **用户系统**：注册、登录、注销。系统会自动将**第一位注册的用户**设为**管理员**。
 *   **评论互动**：支持匿名评论。
 
@@ -61,14 +61,17 @@
 cd MyTechBlog
 ```
 
-### 第三步：初始化数据库 (关键！)
+### 第三步：配置云存储 (Cloudflare R2)
+本项目使用 Cloudflare R2 存储图片。你需要打开 `appsettings.json` 文件，找到 `CloudflareR2` 配置节，填入你的 R2 凭证和公开访问域名 (`PublicDomain`)。
+
+### 第四步：初始化数据库 (关键！)
 因为数据库文件通常不上传到代码仓库，你需要自己在本地生成它。运行：
 ```bash
 dotnet ef database update
 ```
 *成功后，你会看到项目根目录多了一个 `blog.db` 文件。*
 
-### 第四步：启动项目
+### 第五步：启动项目
 ```bash
 dotnet run
 ```
@@ -87,7 +90,7 @@ dotnet run
     *   `HomeController.cs`: 处理首页请求。
     *   `PostsController.cs`: 处理文章的增删改查。
     *   `AccountController.cs`: 处理登录注册。
-    *   `UploadController.cs`: **(重点)** 专门用来接收上传图片的 API。
+    *   `UploadController.cs`: **(重点)** 接收上传图片请求，并调用存储服务将文件上传至云端。
 *   **`Models/`**:
     *   `Post.cs`, `Comment.cs`, `User.cs`: 定义了数据库表的结构。
 *   **`Views/`**:
@@ -95,9 +98,10 @@ dotnet run
     *   `Shared/_Layout.cshtml`: **布局页**。就像网页的“模板”，包含导航栏和页脚，所有页面都套用这个壳子。
 *   **`wwwroot/`**: **静态资源库**。
     *   `css/`, `js/`: 存放样式和脚本。
-    *   `uploads/`: 存放用户上传的图片文件。
+    *   `uploads/`: (旧版功能残留) 存放本地上传的图片文件。新版已迁移至 R2 云存储。
 *   **`Services/`**:
-    *   `PostService.cs`: **业务逻辑层**。为了不让 Controller 太臃肿，我们将复杂的数据库操作都搬到了这里。
+    *   `PostService.cs`: **业务逻辑层**。封装文章相关的数据库操作。
+    *   `IStorageService.cs` / `R2StorageService.cs`: **存储服务**。定义了文件上传的接口，并实现了对接 Cloudflare R2 的逻辑。
 
 ---
 
@@ -105,17 +109,29 @@ dotnet run
 
 这里为你拆解项目中几个最值得学习的技术亮点。
 
-### 1. 特色的“粘贴即上传”图片功能
-这通常是商业级编辑器的功能，我们用最简单的代码实现了它。
+### 1. 特色的“粘贴即上传”图片功能 (云端版)
+这通常是商业级编辑器的功能，我们通过前后端配合实现了它，并将图片安全地存储在云端。
 
 *   **原理**：
     1.  **前端 (`wwwroot/js/site.js`)**: 监听输入框的 `paste` (粘贴) 事件。
     2.  **拦截**: 发现剪贴板里是图片，就阻止默认粘贴行为。
-    3.  **发送**: 使用 JavaScript 的 `fetch` 把图片数据发给后端。
-    4.  **后端 (`Controllers/UploadController.cs`)**: 接收文件 -> 存入 `wwwroot/uploads` -> 返回图片 URL。
+    3.  **发送**: 使用 JavaScript 的 `fetch` 把图片数据发给后端 API。
+    4.  **后端 (`Controllers/UploadController.cs`)**: 
+        *   接收文件流。
+        *   通过依赖注入调用 `IStorageService` (实际是 `R2StorageService`)。
+        *   服务使用 AWS S3 SDK 将文件上传到 Cloudflare R2。
+        *   返回图片的公开访问 URL。
     5.  **回填**: 前端收到 URL，把 `![](/uploads/xxx.jpg)` 插入到你光标的位置。
 
-### 2. 自动管理员权限系统
+### 2. Mermaid 图表渲染
+如何在博客中画流程图、时序图？我们采用了标准化的渲染方案。
+
+*   **后端 (Markdig)**: 虽然我们可以在后端配置 `MarkdownPipeline` 来支持 Mermaid，但为了灵活性，我们主要依赖前端渲染。
+*   **前端 (Mermaid.js)**: 在 `Views/Posts/Details.cshtml` 中，我们引入了 `mermaid.js` 库。
+    *   脚本自动扫描页面中标记为 `language-mermaid` 的代码块。
+    *   将它们动态替换为 SVG 图形，从而实现图表的渲染。
+
+### 3. 自动管理员权限系统
 如何在这个简单的系统中区分“管理员”和“普通用户”？看 `Controllers/AccountController.cs` 中的注册逻辑：
 
 ```csharp
@@ -126,7 +142,7 @@ string role = isFirstUser ? "Admin" : "User";
 ```
 这种设计让你在本地测试时，注册的第一个号自动拥有所有权限，非常方便。
 
-### 3. 数据库交互流程
+### 4. 数据库交互流程
 以“显示文章列表”为例，数据是如何流动的？
 
 1.  **浏览器**请求 `/Posts/Index`。
