@@ -80,3 +80,28 @@ footer {
     border-radius: 6px;
     border: 1px solid #e1e4e8;
 }
+
+/* 5. 优化表格样式 */
+.blog-content table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    vertical-align: top;
+    border-color: #dee2e6;
+    border-collapse: collapse; /* 边框合并 */
+}
+
+.blog-content table th,
+.blog-content table td {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6; /* 添加边框 */
+}
+
+.blog-content table th {
+    background-color: #f8f9fa; /* 表头浅灰背景 */
+    font-weight: 600;
+}
+
+.blog-content table tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02); /* 斑马纹 */
+}

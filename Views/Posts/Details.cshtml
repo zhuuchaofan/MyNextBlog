@@ -22,7 +22,9 @@
                 <!-- 分类标签 -->
                 @if (Model.Category != null)
                 {
-                    <span class="badge rounded-pill bg-primary mb-2">@Model.Category.Name</span>
+                    <a asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="text-decoration-none">
+                        <span class="badge rounded-pill bg-primary mb-2">@Model.Category.Name</span>
+                    </a>
                 }
                 
                 <!-- 元数据：日期、评论数、编辑按钮 -->

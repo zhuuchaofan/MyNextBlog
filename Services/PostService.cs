@@ -10,7 +10,7 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
 
     // 构造函数注入数据库上下文
     // 获取所有文章
-    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false)
+    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null)
     {
         // 对应之前的 Index 逻辑
         var query = context.Posts.AsQueryable();
@@ -18,6 +18,11 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         if (!includeHidden)
         {
             query = query.Where(p => !p.IsHidden);
+        }
+        
+        if (categoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == categoryId.Value);
         }
 
         return await query
