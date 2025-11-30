@@ -118,6 +118,14 @@
 </div>
 
 <!-- === Mermaid & Image Optimization Script === -->
+<style>
+    /* 强制 Mermaid SVG 不受容器宽度限制，保持原始尺寸 */
+    /* 这对于触发 overflow-x: auto 滚动条至关重要，尤其是甘特图 */
+    .mermaid svg {
+        max-width: none !important;
+        height: auto;
+    }
+</style>
 <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 
