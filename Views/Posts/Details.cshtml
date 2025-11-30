@@ -104,44 +104,66 @@
     </div>
 </div>
 
-<!-- === Mermaid 标准渲染脚本 === -->
+<!-- 5. 图片放大模态框 (Lightbox) -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl"> <!-- modal-xl 让图片尽可能大 -->
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-body p-0 text-center position-relative">
+        <!-- 关闭按钮 -->
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <img src="" id="imageModalSrc" class="img-fluid rounded shadow-lg" alt="Zoomed Image">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === Mermaid & Image Optimization Script === -->
 <script type="module">
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 
-      mermaid.initialize({
-          startOnLoad: false,
-          theme: 'default'
-      });
+    mermaid.initialize({ 
+        startOnLoad: false,
+        theme: 'default'
+    });
 
-      document.addEventListener("DOMContentLoaded", async function () {
-          // 1. 查找所有带有 language-mermaid 类的代码块
-          // 这是 Markdig 渲染  `mermaid 的标准输出
-          const mermaidBlocks = document.querySelectorAll('code.language-mermaid');
+    document.addEventListener("DOMContentLoaded", async function () {
+        // === A. Mermaid 渲染逻辑 ===
+        const mermaidBlocks = document.querySelectorAll('code.language-mermaid');
+        for (const block of mermaidBlocks) {
+            const pre = block.parentElement;
+            if (pre && pre.tagName === 'PRE') {
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.style.textAlign = 'center';
+                div.textContent = block.textContent;
+                pre.replaceWith(div);
+            }
+        }
 
-          for (const block of mermaidBlocks) {
-              // 获取父级 <pre> 元素
-              const pre = block.parentElement;
-              if (pre && pre.tagName === 'PRE') {
-                  // 创建一个新的 div 容器
-                  const div = document.createElement('div');
-                  div.className = 'mermaid';
-                  div.style.textAlign = 'center'; // 居中美化
+        try {
+            if (document.querySelector('.mermaid')) {
+                await mermaid.run({ querySelector: '.mermaid' });
+            }
+        } catch (err) {
+            console.error('Mermaid 渲染失败:', err);
+        }
 
-                  // 把代码内容放进去
-                  div.textContent = block.textContent;
+        // === B. 图片优化逻辑 (懒加载 + 点击放大) ===
+        const contentImages = document.querySelectorAll('.blog-content img');
+        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+        const modalImg = document.getElementById('imageModalSrc');
 
-                  // 用新的 div 替换掉原来的 <pre>
-                  pre.replaceWith(div);
-              }
-          }
-
-          // 2. 让 Mermaid 库渲染所有 .mermaid 容器
-          try {
-              await mermaid.run({
-                  querySelector: '.mermaid'
-              });
-          } catch (err) {
-              console.error('Mermaid 渲染失败:', err);
-          }
-      });
-  </script>
+        contentImages.forEach(img => {
+            // 1. 启用懒加载
+            img.setAttribute('loading', 'lazy');
+            // 添加样式类，提示可点击
+            img.style.cursor = 'zoom-in';
+            
+            // 2. 绑定点击事件
+            img.addEventListener('click', function() {
+                modalImg.src = this.src; // 设置大图路径
+                imageModal.show(); // 显示模态框
+            });
+        });
+    });
+</script>
