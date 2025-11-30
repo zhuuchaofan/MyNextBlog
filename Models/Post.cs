@@ -18,4 +18,6 @@ public class Post
     // 允许为空 (int?)，这样旧文章即使没有分类也不会报错
     public int? CategoryId { get; set; }
     public Category? Category { get; set; }
+
+    public bool IsHidden { get; set; } = false;
 }

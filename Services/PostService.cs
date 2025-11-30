@@ -10,10 +10,17 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
 
     // 构造函数注入数据库上下文
     // 获取所有文章
-    public async Task<List<Post>> GetAllPostsAsync()
+    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false)
     {
         // 对应之前的 Index 逻辑
-        return await context.Posts
+        var query = context.Posts.AsQueryable();
+
+        if (!includeHidden)
+        {
+            query = query.Where(p => !p.IsHidden);
+        }
+
+        return await query
                 .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
                 .Include(m => m.Comments)
                 .OrderByDescending(p => p.CreateTime)

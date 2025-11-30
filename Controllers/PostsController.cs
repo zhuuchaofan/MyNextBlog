@@ -12,8 +12,11 @@ public class PostsController(IPostService postService) : Controller
     // GET: Posts
     public async Task<IActionResult> Index()
     {
+        // 只有管理员能看到隐藏文章
+        bool isAdmin = User.IsInRole("Admin");
+        
         // 吩咐厨师：把所有菜端上来
-        var posts = await postService.GetAllPostsAsync();
+        var posts = await postService.GetAllPostsAsync(includeHidden: isAdmin);
         return View(posts);
     }
 
@@ -26,6 +29,12 @@ public class PostsController(IPostService postService) : Controller
         var post = await postService.GetPostByIdAsync(id.Value);
 
         if (post == null) return NotFound();
+        
+        // 如果文章被隐藏，且当前用户不是管理员，则拒绝访问
+        if (post.IsHidden && !User.IsInRole("Admin"))
+        {
+            return NotFound();
+        }
 
         return View(post);
     }
@@ -43,7 +52,7 @@ public class PostsController(IPostService postService) : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create([Bind("Title,Content,CategoryId")] Post post)
+    public async Task<IActionResult> Create([Bind("Title,Content,CategoryId,IsHidden")] Post post)
     {
         if (ModelState.IsValid)
         {
@@ -71,7 +80,7 @@ public class PostsController(IPostService postService) : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreateTime,CategoryId")] Post post)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreateTime,CategoryId,IsHidden")] Post post)
     {
         if (id != post.Id) return NotFound();
 

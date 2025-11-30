@@ -26,6 +26,16 @@
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+            
+            <div class="form-group mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" asp-for="IsHidden" id="flexSwitchCheckDefault">
+                    <label class="form-check-label text-muted small" for="flexSwitchCheckDefault">
+                        <i class="bi bi-eye-slash me-1"></i> 隐藏此文章 (仅管理员可见)
+                    </label>
+                </div>
+            </div>
+
             <div class="text-muted small mb-4 pb-3 border-bottom">
                 <i class="bi bi-pen me-1"></i> 新文章草稿
             </div>

@@ -24,6 +24,10 @@
                         <div class="col-md-9">
                             <h5 class="card-title fw-bold mb-1">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="text-dark text-decoration-none stretched-link">
+                                    @if (item.IsHidden)
+                                    {
+                                        <span class="badge bg-secondary me-1 small" style="font-size: 0.6rem; vertical-align: middle;">已隐藏</span>
+                                    }
                                     @item.Title
                                 </a>
                             </h5>

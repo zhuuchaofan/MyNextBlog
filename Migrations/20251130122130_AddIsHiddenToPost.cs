@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace MyTechBlog.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddIsHiddenToPost : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<bool>(
+                name: "IsHidden",
+                table: "Posts",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: false);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "IsHidden",
+                table: "Posts");
+        }
+    }
+}
