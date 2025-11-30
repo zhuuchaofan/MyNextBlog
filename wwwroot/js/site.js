@@ -46,6 +46,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             
             if (imageItems.length > 0) {
+                // 限制单次上传数量
+                if (imageItems.length > 50) {
+                    showToast('单次最多允许上传 50 张图片', 'error');
+                    return;
+                }
+                
                 e.preventDefault();
                 initBatch(imageItems.length); // 初始化批次
                 imageItems.forEach(item => {
@@ -82,6 +88,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 
                 if (imageFiles.length > 0) {
+                    // 限制单次上传数量
+                    if (imageFiles.length > 50) {
+                        showToast('单次最多允许上传 50 张图片', 'error');
+                        return;
+                    }
+
                     initBatch(imageFiles.length); // 初始化批次
                     imageFiles.forEach(file => {
                         handleImageUpload(file, editor);
@@ -99,8 +111,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         fileInput.addEventListener('change', function () {
             if (this.files && this.files.length > 0) {
-                initBatch(1); // 按钮选择通常是单张，但也复用逻辑
-                handleImageUpload(this.files[0], document.querySelector('.markdown-editor'));
+                // input 多选也需要限制（虽然通常不会选那么多）
+                if (this.files.length > 50) {
+                    showToast('单次最多允许上传 50 张图片', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                initBatch(this.files.length); 
+                Array.from(this.files).forEach(file => {
+                    handleImageUpload(file, document.querySelector('.markdown-editor'));
+                });
                 this.value = ''; 
             }
         });
@@ -171,7 +192,7 @@ function uploadFile(file, textarea) {
         })
         .catch(error => {
             console.error('Error:', error);
-            textarea.value = textarea.value.replace(placeholder, `![上传失败]()`);
+            textarea.value = textarea.value.replace(placeholder, `![上传失败 - 请重试]()`);
             updateBatch(false); // 标记失败
         });
 }
