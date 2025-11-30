@@ -9,18 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 // 就像餐厅开业前，先把厨师、服务员、食材、餐具都准备好。
 // ==================================================================
 
-// 1. 连接“数据库仓库” (AppDbContext)
-// 系统会去 appsettings.json 找 "DefaultConnection" 来连接 SQLite 数据库。
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+// 注册 PostService
+builder.Services.AddScoped<IPostService, PostService>();
+// 注册 R2存储服务
+builder.Services.AddScoped<IStorageService, R2StorageService>();
+
+// 配置数据库 context
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// 2. 招募“文章大厨” (注册自定义业务服务)
-// AddScoped: “一次请求用同一个实例”。比如一个用户访问页面，全过程用同一个 PostService 对象。
-builder.Services.AddScoped<IPostService, PostService>();
-
-// 3. 招募“视图渲染员” (MVC 控制器和视图)
-// 告诉系统我们要用 Controller 处理逻辑，用 View 显示页面。
-builder.Services.AddControllersWithViews();
 
 // 4. 招募“保安” (身份认证服务)
 // 开启 Cookie 认证。如果没登录，就踢到登录页。

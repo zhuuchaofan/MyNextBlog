@@ -5,6 +5,7 @@
     ViewData["Title"] = Model.Title;
 }
 
+<!-- 1. 顶部返回按钮 -->
 <div class="mb-3 mt-3">
     <a asp-action="Index" class="text-decoration-none text-muted small">
         <i class="bi bi-arrow-left"></i> 返回列表
@@ -14,12 +15,17 @@
 <div class="row">
     <div class="col-lg-12">
         <article class="blog-post">
+            <!-- 2. 文章头部信息 -->
             <header class="mb-4 pb-3 border-bottom">
                 <h1 class="fw-bold text-dark mb-2">@Model.Title</h1>
+                
+                <!-- 分类标签 -->
                 @if (Model.Category != null)
                 {
                     <span class="badge rounded-pill bg-primary mb-2">@Model.Category.Name</span>
                 }
+                
+                <!-- 元数据：日期、评论数、编辑按钮 -->
                 <div class="text-muted small d-flex align-items-center">
                     <span class="me-3">
                         <i class="bi bi-calendar3 me-1"></i>
@@ -29,15 +35,18 @@
                         <i class="bi bi-chat-left-text me-1"></i>
                         @(Model.Comments?.Count ?? 0) 评论
                     </span>
+                    
+                    <!-- 只有管理员能看到编辑按钮 -->
                     @if (User.IsInRole("Admin"))
                     {
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none text-secondary">
-                        <i class="bi bi-pencil-square"></i> 编辑
-                    </a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none text-secondary">
+                            <i class="bi bi-pencil-square"></i> 编辑
+                        </a>
                     }
                 </div>
             </header>
 
+            <!-- 3. 文章正文 (Markdown 渲染区) -->
             <div class="blog-content lh-lg mb-5 text-break">
                 @Html.Raw(MarkdownHelper.Parse(Model.Content))
             </div>
@@ -45,6 +54,7 @@
     </div>
 </div>
 
+<!-- 4. 评论区 -->
 <div class="bg-light bg-opacity-50 rounded-3 p-4 mt-4">
     <div class="row">
         <div class="col-md-12">
@@ -93,3 +103,67 @@
         </div>
     </div>
 </div>
+
+<!-- === Mermaid 自动渲染脚本 (暴力通用版) === -->
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    
+    mermaid.initialize({ 
+        startOnLoad: false,
+        theme: 'default'
+    });
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        // 1. 找到页面上所有的代码块 (不管有没有 mermaid 标签)
+        const allCodeBlocks = document.querySelectorAll('pre code');
+        
+        // 定义 Mermaid 的关键字，只要代码以这些词开头，就认为是图表
+        const mermaidKeywords = ['graph', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'gantt', 'pie', 'erDiagram', 'journey', 'mindmap', 'timeline'];
+
+        // 2. 遍历检查
+        for (const codeBlock of allCodeBlocks) {
+            let isMermaid = false;
+            const textContent = codeBlock.textContent.trim();
+
+            // 检查 A: 是否有官方类名
+            if (codeBlock.classList.contains('language-mermaid')) {
+                isMermaid = true;
+            } 
+            // 检查 B: 暴力内容检测 (如果代码以 graph TD; 开头，那肯定就是图)
+            else {
+                const firstLine = textContent.split('\n')[0].trim();
+                const firstWord = firstLine.split(' ')[0]; // 获取第一个单词
+                
+                // 如果第一个单词是关键字 (比如 graph)，就认为是 mermaid
+                if (mermaidKeywords.includes(firstWord) || firstLine.startsWith('graph')) {
+                    isMermaid = true;
+                }
+            }
+
+            // 3. 如果判定是 Mermaid，就进行替换
+            if (isMermaid) {
+                const preElement = codeBlock.parentElement;
+                
+                // 只替换 <pre> 包裹的代码块
+                if (preElement && preElement.tagName === 'PRE') {
+                    const div = document.createElement('div');
+                    div.className = 'mermaid';
+                    // 居中显示，看起来更专业
+                    div.style.textAlign = 'center'; 
+                    div.textContent = textContent;
+                    
+                    preElement.replaceWith(div);
+                }
+            }
+        }
+
+        // 4. 让 Mermaid 渲染所有 .mermaid 容器
+        try {
+            await mermaid.run({
+                querySelector: '.mermaid'
+            });
+        } catch (err) {
+            console.error('Mermaid 渲染失败:', err);
+        }
+    });
+</script>

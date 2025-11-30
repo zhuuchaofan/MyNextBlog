@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyTechBlog.Services;
 
 namespace MyTechBlog.Controllers;
 
 [Authorize(Roles = "Admin")] // 只有管理员能上传图片
 [Route("api/[controller]")] // 访问路径是 /api/upload
 [ApiController] // 这是一个 API 控制器，不是返回页面的
-public class UploadController(IWebHostEnvironment env) : ControllerBase
+public class UploadController(IStorageService storageService) : ControllerBase
 {
-    // 获取网站的根目录路径
-
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
     {
@@ -23,25 +22,14 @@ public class UploadController(IWebHostEnvironment env) : ControllerBase
         if (!allowedExtensions.Contains(extension))
             return BadRequest("只支持上传图片格式");
 
-        // 2. 准备保存路径: wwwroot/uploads
-        var webRootPath = env.WebRootPath;
-        var uploadPath = Path.Combine(webRootPath, "uploads");
-
-        if (!Directory.Exists(uploadPath))
-            Directory.CreateDirectory(uploadPath); // 如果文件夹不存在，就创建一个
-
-        // 3. 生成随机文件名 (防止重名覆盖)
+        // 2. 生成随机文件名 (防止重名覆盖)
         var fileName = Guid.NewGuid().ToString() + extension;
-        var filePath = Path.Combine(uploadPath, fileName);
 
-        // 4. 保存文件到硬盘
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
+        // 3. 上传到 R2
+        using var stream = file.OpenReadStream();
+        var fileUrl = await storageService.UploadAsync(stream, fileName, file.ContentType);
 
-        // 5. 返回图片的访问 URL
-        // 例如: /uploads/abc-123.png
-        return Ok(new { url = $"/uploads/{fileName}" });
+        // 4. 返回图片的访问 URL
+        return Ok(new { url = fileUrl });
     }
 }
