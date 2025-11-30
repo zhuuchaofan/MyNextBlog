@@ -111,9 +111,14 @@ namespace MyTechBlog.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Posts");
                 });
@@ -167,7 +172,13 @@ namespace MyTechBlog.Migrations
                         .WithMany("Posts")
                         .HasForeignKey("CategoryId");
 
+                    b.HasOne("MyTechBlog.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MyTechBlog.Models.Category", b =>

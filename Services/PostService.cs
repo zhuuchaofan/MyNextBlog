@@ -22,6 +22,7 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
 
         return await query
                 .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
+                .Include(p => p.User)     // <--- 把作者也查出来
                 .Include(m => m.Comments)
                 .OrderByDescending(p => p.CreateTime)
                 .ToListAsync();
@@ -33,6 +34,7 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         return await context.Posts
             .Include(m => m.Comments) // <--- 把评论也查出来
             .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
+            .Include(p => p.User)     // <--- 把作者也查出来
             .FirstOrDefaultAsync(m => m.Id == id);
     }
     // 添加文章

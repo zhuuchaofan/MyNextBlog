@@ -56,6 +56,13 @@ public class PostsController(IPostService postService) : Controller
     {
         if (ModelState.IsValid)
         {
+            // 从 Claims 中获取当前登录用户的 ID
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                post.UserId = userId;
+            }
+
             post.CreateTime = DateTime.Now;
             // 吩咐厨师：做一道新菜
             await postService.AddPostAsync(post);

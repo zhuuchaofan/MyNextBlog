@@ -20,4 +20,8 @@ public class Post
     public Category? Category { get; set; }
 
     public bool IsHidden { get; set; } = false;
+
+    // 作者信息 (可空，兼容旧数据)
+    public int? UserId { get; set; }
+    public User? User { get; set; }
 }
