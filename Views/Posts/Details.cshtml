@@ -123,7 +123,18 @@
 
     mermaid.initialize({ 
         startOnLoad: false,
-        theme: 'default'
+        theme: 'default',
+        // 禁用自动缩放，防止在移动端挤压变形，配合 overflow-x: auto 实现滚动
+        securityLevel: 'loose',
+        gantt: { useMaxWidth: false },
+        flowchart: { useMaxWidth: false },
+        sequence: { useMaxWidth: false },
+        journey: { useMaxWidth: false },
+        timeline: { useMaxWidth: false },
+        class: { useMaxWidth: false },
+        state: { useMaxWidth: false },
+        er: { useMaxWidth: false },
+        pie: { useMaxWidth: false }
     });
 
     document.addEventListener("DOMContentLoaded", async function () {
@@ -132,11 +143,18 @@
         for (const block of mermaidBlocks) {
             const pre = block.parentElement;
             if (pre && pre.tagName === 'PRE') {
+                // 创建滚动容器
+                const wrapper = document.createElement('div');
+                wrapper.style.overflowX = 'auto';
+                wrapper.style.marginBottom = '1.5rem';
+                
                 const div = document.createElement('div');
                 div.className = 'mermaid';
                 div.style.textAlign = 'center';
                 div.textContent = block.textContent;
-                pre.replaceWith(div);
+                
+                wrapper.appendChild(div);
+                pre.replaceWith(wrapper);
             }
         }
 
