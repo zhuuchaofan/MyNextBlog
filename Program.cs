@@ -70,6 +70,39 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // ==================================================================
+// 3.5. 数据播种 (Data Seeding)
+// 确保数据库已创建，并且有一些默认数据
+// ==================================================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        
+        // 自动应用最新的迁移 (这就不用在 Debian 上手动运行 update database 了)
+        context.Database.Migrate();
+
+        // 如果没有分类，就添加默认分类
+        if (!context.Categories.Any())
+        {
+            context.Categories.AddRange(
+                new MyTechBlog.Models.Category { Name = ".NET 技术" },
+                new MyTechBlog.Models.Category { Name = "架构心得" },
+                new MyTechBlog.Models.Category { Name = "前端开发" },
+                new MyTechBlog.Models.Category { Name = "生活随笔" }
+            );
+            context.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating the DB.");
+    }
+}
+
+// ==================================================================
 // 第四阶段：正式营业 (Run)
 // 程序进入死循环，监听端口，等待请求。
 // ==================================================================
