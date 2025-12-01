@@ -48,15 +48,15 @@
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">关于铲屎官</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="About">关于铲屎官</a>
                         </li>
 
                     </ul>
                     
-                    <form class="d-flex mx-3" role="search" action="#" method="get">
+                    <form class="d-flex mx-3" role="search" asp-controller="Posts" asp-action="Index" method="get">
                         <div class="input-group">
-                            <input class="form-control border-end-0" type="search" placeholder="搜索..." aria-label="Search">
-                            <button class="btn btn-outline-secondary border-start-0 bg-white" type="button">
+                            <input class="form-control" type="search" name="search" placeholder="搜索..." aria-label="Search" value="@ViewData["CurrentSearch"]">
+                            <button class="btn btn-outline-secondary" type="submit">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>

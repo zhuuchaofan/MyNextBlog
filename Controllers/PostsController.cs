@@ -10,13 +10,13 @@ public class PostsController(IPostService postService) : Controller
     // 1. 只有这一位“厨师”，没有 _context 了
 
     // GET: Posts
-    public async Task<IActionResult> Index(int? categoryId)
+    public async Task<IActionResult> Index(int? categoryId, string? search)
     {
         // 只有管理员能看到隐藏文章
         bool isAdmin = User.IsInRole("Admin");
         
         // 吩咐厨师：把所有菜端上来 (带过滤)
-        var posts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId);
+        var posts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search);
 
         // 如果选了分类，把分类名字查出来放在 ViewData 里，方便页面显示
         if (categoryId.HasValue)
@@ -26,6 +26,9 @@ public class PostsController(IPostService postService) : Controller
             ViewData["CurrentCategory"] = currentCategory?.Name;
             ViewData["CurrentCategoryId"] = categoryId;
         }
+        
+        // 如果有搜索词，传回前端
+        ViewData["CurrentSearch"] = search;
 
         return View(posts);
     }
