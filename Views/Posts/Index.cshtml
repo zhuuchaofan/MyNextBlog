@@ -34,62 +34,95 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10 mx-auto"> <!-- 限制最大宽度，增加留白 -->
         @foreach (var item in Model.OrderByDescending(p => p.CreateTime))
         {
-            <div class="card mb-3 border-0 shadow-sm rounded-3 bg-light bg-opacity-25">
-                <div class="card-body p-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-9">
-                            <h5 class="card-title fw-bold mb-1">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="text-dark text-decoration-none stretched-link">
+            // 尝试提取第一张图片作为封面
+            string coverImage = null;
+            if (!string.IsNullOrEmpty(item.Content))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(item.Content, @"!\[.*?\]\((.*?)\)");
+                if (match.Success)
+                {
+                    coverImage = match.Groups[1].Value;
+                }
+            }
+            // 随机渐变色类
+            var gradientClass = "gradient-" + ((item.Id % 4) + 1);
+            
+            <div class="card card-modern mb-5"> <!-- 增加垂直间距 mb-5 -->
+                <div class="row g-0">
+                    <!-- 缩略图区域：移动端在顶部，桌面端在右侧 -->
+                    <div class="col-md-4 order-md-2">
+                        @if (!string.IsNullOrEmpty(coverImage))
+                        {
+                            <div style="background-image: url('@coverImage'); background-size: cover; background-position: center; height: 100%; min-height: 240px;" class="d-none d-md-block"></div>
+                            <div style="background-image: url('@coverImage'); background-size: cover; background-position: center; height: 200px;" class="d-md-none"></div>
+                        }
+                        else
+                        {
+                            <div class="post-thumbnail-placeholder @gradientClass" style="height: 100%; min-height: 240px;">
+                                <i class="bi bi-flower1 text-white opacity-50 display-1"></i>
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- 内容区域 -->
+                    <div class="col-md-8 order-md-1">
+                        <div class="card-body p-4 p-md-5 d-flex flex-column h-100 justify-content-center">
+                            
+                            <!-- 分类标签 -->
+                            <div class="mb-3">
+                                @if (item.Category != null)
+                                {
+                                    <a asp-action="Index" asp-route-categoryId="@item.CategoryId" class="badge-pill-soft text-decoration-none small position-relative" style="z-index: 2;">
+                                        @item.Category.Name
+                                    </a>
+                                }
+                                <span class="text-muted small ms-2">
+                                    <i class="bi bi-calendar3 me-1"></i> @item.CreateTime.ToString("MMM dd, yyyy")
+                                </span>
+                            </div>
+
+                            <h2 class="card-title h3 mb-3">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none stretched-link">
                                     @if (item.IsHidden)
                                     {
-                                        <span class="badge bg-secondary me-1 small" style="font-size: 0.6rem; vertical-align: middle;">已隐藏</span>
+                                        <span class="badge bg-secondary me-2 fs-6 align-middle">Hidden</span>
                                     }
                                     @item.Title
                                 </a>
-                            </h5>
-                            <p class="card-text text-muted small mb-2 text-truncate">
+                            </h2>
+                            
+                            <p class="card-text text-secondary mb-4" style="line-height: 1.7;">
                                 @if (!string.IsNullOrEmpty(item.Content))
                                 {
                                     var plainText = System.Text.RegularExpressions.Regex.Replace(item.Content, "[#*`>]", "");
-                                    @(plainText.Length > 80 ? plainText.Substring(0, 80) + "..." : plainText)
+                                    @(plainText.Length > 120 ? plainText.Substring(0, 120) + "..." : plainText)
                                 }
                             </p>
-                            <div class="text-muted" style="font-size: 0.75rem;">
-                                @if (item.Category != null)
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div class="small text-muted">
+                                    <span class="me-3"><i class="bi bi-person-circle me-1"></i> @(item.User?.Username ?? "Unknown")</span>
+                                    <span><i class="bi bi-chat-dots me-1"></i> @(item.Comments?.Count ?? 0) 评论</span>
+                                </div>
+                                
+                                @if (User.IsInRole("Admin"))
                                 {
-                                    <a asp-action="Index" asp-route-categoryId="@item.CategoryId" class="text-decoration-none position-relative" style="z-index: 2;">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary me-2">
-                                            @item.Category.Name
-                                        </span>
-                                    </a>
+                                    <div class="position-relative" style="z-index: 2;">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-link text-muted p-0 me-3" title="编辑">
+                                            <i class="bi bi-pencil-square fs-5"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-link text-danger p-0" 
+                                                onclick="openDeleteModal(@item.Id, '@item.Title')"
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal" title="删除">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                    </div>
                                 }
-                                <span class="me-2"><i class="bi bi-person"></i> @(item.User?.Username ?? "Unknown")</span>
-                                <i class="bi bi-calendar3 me-1"></i> @item.CreateTime.ToString("yyyy/MM/dd")
-                                <span class="mx-2">|</span>
-                                <i class="bi bi-chat-dots me-1"></i> @(item.Comments?.Count ?? 0) 评论
                             </div>
                         </div>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <div class="col-md-3 text-end position-relative" style="z-index: 2;">
-                                <div class="btn-group">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm" title="编辑">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button type="button"
-                                    class="btn btn-outline-danger btn-sm"
-                                    title="删除"
-                                    onclick="openDeleteModal(@item.Id, '@item.Title')"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        }
                     </div>
                 </div>
             </div>
