@@ -6,30 +6,33 @@
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
-        <div class="card border-0 shadow-lg">
-            <div class="card-header bg-danger text-white text-center py-3">
-                <h4 class="mb-0 fw-bold">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> 删除确认
-                </h4>
+        <div class="card card-modern p-4 text-center">
+            <div class="mb-4">
+                <i class="bi bi-exclamation-circle text-danger display-1 opacity-25"></i>
             </div>
             
-            <div class="card-body p-5 text-center">
-                <p class="lead mb-4">你确定要永久删除这篇文章吗？<br><span class="text-muted fs-6">此操作无法撤销。</span></p>
-                
-                <div class="alert alert-light border mb-4">
-                    <h5 class="fw-bold text-dark mb-2">@Model.Title</h5>
-                    <small class="text-muted">发布于: @Model.CreateTime.ToString("yyyy-MM-dd HH:mm")</small>
-                </div>
-
-                <form asp-action="Delete">
-                    <input type="hidden" asp-for="Id" />
-                    
-                    <div class="d-grid gap-2">
-                        <input type="submit" value="确认删除" class="btn btn-danger btn-lg" />
-                        <a asp-action="Index" class="btn btn-outline-secondary">取消，留着它</a>
-                    </div>
-                </form>
+            <h3 class="fw-bold mb-3">确认删除?</h3>
+            <p class="text-secondary mb-4">
+                你确定要永久删除文章 <strong class="text-dark">@Model.Title</strong> 吗？
+                <br>此操作无法撤销，所有评论也将一并删除。
+            </p>
+            
+            <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning small mb-4 rounded-3">
+                <i class="bi bi-calendar3 me-1"></i> 发布于: @Model.CreateTime.ToString("yyyy-MM-dd HH:mm")
             </div>
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
+                        <i class="bi bi-trash-fill me-1"></i> 确认删除
+                    </button>
+                    <a asp-action="Index" class="btn btn-light btn-lg rounded-pill text-muted">
+                        再考虑一下
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
