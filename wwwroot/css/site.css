@@ -194,6 +194,15 @@ footer {
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* 文本多行截断工具类 */
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* 不同的渐变色类，可以通过 JS 随机或者后端循环分配 */
 .gradient-1 {
   background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);

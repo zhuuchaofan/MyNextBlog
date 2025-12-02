@@ -4,7 +4,7 @@
     ViewData["Title"] = "最新文章";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3 flex-wrap gap-2">
     <h4 class="fw-bold text-dark mb-0">
         @if (ViewData["CurrentSearch"] != null)
         {
@@ -94,11 +94,11 @@
                                 </a>
                             </h2>
                             
-                            <p class="card-text text-secondary mb-4" style="line-height: 1.7;">
+                            <p class="card-text text-secondary mb-4 text-clamp-3" style="line-height: 1.7;">
                                 @if (!string.IsNullOrEmpty(item.Content))
                                 {
                                     var plainText = System.Text.RegularExpressions.Regex.Replace(item.Content, "[#*`>]", "");
-                                    @(plainText.Length > 120 ? plainText.Substring(0, 120) + "..." : plainText)
+                                    @(plainText.Length > 200 ? plainText.Substring(0, 200) : plainText)
                                 }
                             </p>
                             
