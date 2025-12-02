@@ -105,7 +105,13 @@ public class PostsController(IPostService postService) : Controller
         if (id != post.Id) return NotFound();
 
         if (ModelState.IsValid)
-        {
+        {            // 从 Claims 中获取当前登录用户的 ID
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                post.UserId = userId;
+            }
+            // post.EditTime =  DateTime.Now;  之后加一个修改时间
             // 吩咐厨师：修改这道菜
             await postService.UpdatePostAsync(post);
             return RedirectToAction(nameof(Index)); // 这里通常回列表，或者回 Details
