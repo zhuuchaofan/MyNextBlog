@@ -2,11 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Home, BookOpen, Camera, Info, Search } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, User } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-lg transition-all shadow-sm">
@@ -33,9 +44,48 @@ export default function Navbar() {
              <Button variant="ghost" size="icon" className="rounded-full hover:bg-orange-50 text-gray-500">
                 <Search className="w-5 h-5" />
              </Button>
-             <Button variant="outline" className="hidden sm:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700">
-               登录
-             </Button>
+             
+             {user ? (
+               <DropdownMenu>
+                 <DropdownMenuTrigger asChild>
+                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                     <Avatar className="h-8 w-8">
+                       <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} />
+                       <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                     </Avatar>
+                   </Button>
+                 </DropdownMenuTrigger>
+                 <DropdownMenuContent className="w-56" align="end" forceMount>
+                   <DropdownMenuLabel className="font-normal">
+                     <div className="flex flex-col space-y-1">
+                       <p className="text-sm font-medium leading-none">{user.username}</p>
+                       <p className="text-xs leading-none text-muted-foreground">
+                         {user.role === 'Admin' ? '管理员' : '普通用户'}
+                       </p>
+                     </div>
+                   </DropdownMenuLabel>
+                   <DropdownMenuSeparator />
+                   {user.role === 'Admin' && (
+                     <Link href="/admin">
+                        <DropdownMenuItem className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <span>管理后台</span>
+                        </DropdownMenuItem>
+                     </Link>
+                   )}
+                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600">
+                     <LogOut className="mr-2 h-4 w-4" />
+                     <span>退出登录</span>
+                   </DropdownMenuItem>
+                 </DropdownMenuContent>
+               </DropdownMenu>
+             ) : (
+               <Link href="/login">
+                 <Button variant="outline" className="hidden sm:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700">
+                   登录
+                 </Button>
+               </Link>
+             )}
           </div>
         </div>
       </div>
