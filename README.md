@@ -21,6 +21,21 @@
     *   **即时分类创建**: 在文章编辑器中新增了“快速添加分类”功能。采用现代化的前后端分离架构：
         *   **后端**: 新增 `CategoryService` 与 `CategoriesController` (API)，遵循 Service-Repository 模式。
         *   **前端**: 集成 **SweetAlert2** 实现优雅的弹窗交互，利用 Fetch API 实现无刷新数据提交与下拉框动态更新。
+    *   **评论系统升级**: 重构了评论功能，从传统的表单提交升级为 **AJAX 无刷新提交**，并实现了**分页加载 (Load More)** 机制，显著提升了用户体验和服务器性能。
+    *   **登录持久化**: 修复了登录状态无法保存的问题，新增了 **"记住我"** 功能（Cookie 持久化），提升了管理员的使用便利性。
+
+### 2025-12-03 (晚间): 架构升级 - 迈向前后端分离 (Phase 2 Kick-off)
+为了实现 **"Hybrid to Headless"** 的演进目标，我们完成了后端基础设施的关键改造：
+*   **双重认证体系 (Dual Auth)**: 
+    *   **Cookie**: 继续服务于现有的 MVC 页面（浏览器端）。
+    *   **JWT (JSON Web Token)**: 新增了 JWT 认证支持，并实现了 `POST /api/auth/login` 接口。这为未来独立的 **Next.js 前端** 或 **移动端 App** 提供了标准的身份验证入口。
+*   **API 文档化 (Swagger)**: 引入并配置了 **Swagger UI**。现在访问 `/swagger` 即可查看自动生成的 API 文档，极大地方便了接口调试和前端开发。
+*   **API 标准化**: 确立了 "Service + Controller (API) + DTO" 的开发规范，逐步将业务逻辑从 MVC 控制器剥离。
+*   **内容 API (Posts API)**: 完成了最后一块拼图 —— `PostsApiController`。
+    *   实现了 `GET /api/posts` (列表) 和 `GET /api/posts/{id}` (详情) 接口。
+    *   支持分页、搜索、分类过滤。
+    *   **智能 DTO**: 列表接口自动提取 Markdown 纯文本摘要和首图作为封面，实现轻量化传输。
+    *   **Headless Ready**: 至此，后端已具备完全独立服务于第三方前端（React/Vue/App）的能力。
 
 ### 2025-12-01: 品牌重塑与功能增强
 *   **品牌升级**: 将博客名称从 "MyTechBlog" 正式更名为 **"球球布丁的后花园"**，融入了猫咪元素（球球&布丁），打造温馨的技术生活空间。
