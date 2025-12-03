@@ -21,7 +21,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
   const { token } = useAuth();
 
   // 插入文本辅助函数
-  const insertText = (before: string, after: '' = '') => {
+  const insertText = (before: string, after: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
