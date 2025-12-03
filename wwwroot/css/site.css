@@ -216,3 +216,23 @@ footer {
 .gradient-4 {
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
 }
+
+/* === 修复移动端 Offcanvas 在 Navbar 内部时的高度截断问题 === */
+@media (max-width: 991.98px) {
+  .navbar .offcanvas {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: 100vh; /* 强制全屏高度 */
+    z-index: 1050; /* 确保在 Navbar 之上 */
+    overflow-y: auto; /* 允许内部滚动 */
+    visibility: hidden; /* 默认隐藏，等待 JS 切换 */
+    transform: translateX(100%); /* 默认移出屏幕 */
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .navbar .offcanvas.show {
+    visibility: visible;
+    transform: none;
+  }
+}
