@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, Clock, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
+import CommentsSection from '@/components/CommentsSection';
 
 // 引入 github 风格的代码高亮样式 (需要在 globals.css 或这里引入，这里为了简单直接用 CDN 或者假定全局已引入)
 // 也可以在 layout.tsx 里 import 'github-markdown-css/github-markdown.css'
@@ -114,10 +115,8 @@ export default async function PostPage({ params }: { params: { id: string } }) {
         </ReactMarkdown>
       </article>
       
-      {/* 底部评论区占位 */}
-      <div className="mt-16 pt-10 border-t border-gray-200 text-center text-gray-400">
-        <p>（评论功能正在从 MVC 搬运中... 🚚）</p>
-      </div>
+      {/* 评论区 */}
+      <CommentsSection postId={post.id} />
     </div>
   );
 }
