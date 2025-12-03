@@ -2,85 +2,65 @@
 
 ## Project Overview
 
-This is a .NET 10 web application that functions as a personal tech blog. The project is built using ASP.NET Core MVC, Entity Framework Core for database interaction, and is configured to use a SQLite database. It includes features for managing blog posts, categories, and user authentication. The frontend is built with Bootstrap.
+This is a modern, full-stack personal tech blog built with a **Headless Architecture**. 
+It consists of a **.NET 10 Web API** backend and a **Next.js 15** frontend.
 
 ### Key Technologies:
 
-*   **Backend:** C# with .NET 10, ASP.NET Core MVC
-*   **Database:** Entity Framework Core with SQLite
-*   **Authentication:** Cookie-based authentication
-*   **Frontend:** Bootstrap, Razor Views
-*   **Other Libraries:**
-    *   `Markdig`: For rendering Markdown content.
-    *   `BCrypt.Net-Next`: For password hashing.
+*   **Backend:** .NET 10, ASP.NET Core Web API, Entity Framework Core (SQLite), Cloudflare R2 Storage.
+*   **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui.
+*   **Authentication:** JWT (JSON Web Tokens) for API/Client, BCrypt for hashing.
 
-### Architecture:
+## Architecture Status: Headless (Separated)
 
-*   **MVC Pattern:** The application follows the Model-View-Controller (MVC) pattern.
-*   **Repository/Service Pattern:** A `PostService` is used to abstract the data access logic from the controllers.
-*   **Database Context:** `AppDbContext` manages the connection to the database and the mapping of models to tables.
-*   **Models:** The `Post`, `Comment`, `User`, and `Category` models define the data structure.
+The project has successfully migrated from a traditional MVC architecture to a Headless architecture.
 
-## Detailed Feature Specifications
+### 1. Backend (.NET API)
+*   **Role**: Pure API provider. Serves JSON data to the Next.js frontend.
+*   **Port**: Default `5095` (http) / `7153` (https).
+*   **Auth**: Validates JWT tokens via `[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]`.
+*   **Key Controllers**:
+    *   `PostsApiController`: CRUD for posts. Supports pagination, filtering, and hidden posts (for admins).
+    *   `AuthController`: Handles login and JWT generation.
+    *   `UploadController`: Handles image uploads to R2. Supports JWT auth.
+    *   `CommentsController` & `CategoriesController`.
+*   **CORS**: Configured to allow `http://localhost:3000`.
 
-### 1. User System & Authentication
-*   **Registration Logic**:
-    *   Open to public registration.
-    *   **Role Assignment**: The **first registered user** is automatically assigned the **"Admin"** role. All subsequent users are assigned the **"User"** role.
-    *   **Security**: Passwords are hashed using `BCrypt.Net-Next` before storage.
-*   **Login/Logout**: 
-    *   Uses Cookie-based authentication (`MyCookieAuth` scheme).
-    *   Supports `returnUrl` to redirect users back to their previous page after login.
+### 2. Frontend (Next.js Client)
+*   **Location**: `/client` directory.
+*   **Role**: Handles all UI, routing, and user interaction (Public & Admin).
+*   **Port**: `3000`.
+*   **Proxy**: Uses `next.config.ts` rewrites (`/api/backend/*` -> `http://localhost:5095/api/*`) to allow cross-device access (e.g., mobile testing) and avoid CORS issues in some scenarios.
+*   **State Management**: `AuthContext` manages user session and JWT token in `localStorage`.
+*   **Key Features**:
+    *   **Public**: Home, Post Detail (SSR + Markdown), Archive, About, Category Filter.
+    *   **Admin**: Protected Dashboard (`/admin`), Markdown Editor (with Paste-to-Upload), Post Management (Edit/Delete with Dialogs).
+    *   **UI Libs**: `shadcn/ui` (Components), `sonner` (Toast), `lucide-react` (Icons).
 
-### 2. Blog Post Management (Admin Only)
-*   **CRUD Operations**: Admin users can Create, Read, Update, and Delete blog posts.
-*   **Writing Experience**:
-    *   **Markdown Editor**: Post content is written in Markdown and rendered using `Markdig` (with Advanced Extensions).
-    *   **Paste-to-Upload**: The editor supports pasting image data directly from the clipboard. The system intercepts the paste event, uploads the image to `wwwroot/uploads` via an API, and inserts the corresponding Markdown image syntax (`![](/uploads/...)`) at the cursor position.
-*   **Organization**: Posts can be categorized. Categories are managed via the database seeded or created (currently read-only in UI based on `PostService` methods seen).
+## Development Workflows
 
-### 3. Public Interactions
-*   **Viewing Posts**: 
-    *   The Index page displays a list of posts, sorted by creation time (newest first).
-    *   Detail pages show the full rendered Markdown content.
-*   **Comments**: 
-    *   The system supports a commenting feature on post detail pages.
-    *   Guest commenting is allowed; if no name is provided, it defaults to "匿名访客" (Anonymous Visitor).
+### Running the Project
+1.  Start Backend: `dotnet run`
+2.  Start Frontend: `cd client && npm run dev`
 
-### 4. Technical Architecture Details
-*   **Service Layer**: Business logic is encapsulated in `PostService` (Scoped lifetime), which handles all interactions with `AppDbContext`.
-*   **API Endpoints**: `UploadController` provides a RESTful API endpoint (`POST /api/upload`) specifically for handling async image uploads from the frontend.
-*   **Frontend Logic**: `site.js` contains the custom logic for handling the clipboard paste events and performing the Fetch API calls for image uploading.
-*   **Next.js Frontend (Client)**:
-    *   Located in `/client` directory.
-    *   Tech Stack: Next.js 15 (App Router), Tailwind CSS v4, shadcn/ui.
-    *   **Proxy Configuration**: Uses `next.config.ts` rewrites (`/api/backend/*` -> `http://localhost:5095/api/*`) to solve localhost connectivity issues for external devices (mobile/Safari).
-    *   **SSR/ISR**: Uses Server Components for data fetching.
+### Adding New Features
+1.  **Backend**: Create/Update Controller & Service -> Restart .NET.
+2.  **Frontend**: Create/Update React Component -> Auto Hot Reload.
 
-## Building and Running the Project
+### Authentication Logic
+*   **Login**: `POST /api/backend/auth/login` -> Get Token -> Store in Context/LocalStorage.
+*   **API Calls**: Attach `Authorization: Bearer <token>` header.
+*   **Protection**:
+    *   **Backend**: `[Authorize(Roles = "Admin")]` on critical endpoints.
+    *   **Frontend**: `useAuth()` hook checks user role; redirects to `/login` if unauthorized.
 
-To build and run this project, you will need the .NET 10 SDK installed.
+## Recent Major Changes
+*   **2025-12-04**: Completed Admin Dashboard in Next.js. Implemented Post CRUD, Markdown Editor with image upload, and full JWT integration. Replaced native alerts with `sonner` toasts and `alert-dialog`.
+*   **2025-12-03**: Initialized Next.js project. Implemented Public views (Home, Post, Comments). Configured API Proxy.
 
-1.  **Restore Dependencies:**
-    ```bash
-    dotnet restore
-    ```
-
-2.  **Apply Migrations:**
-    This project uses Entity Framework Core migrations to manage the database schema. To create or update the database, run the following command:
-    ```bash
-    dotnet ef database update
-    ```
-
-3.  **Run the Application:**
-    ```bash
-    dotnet run
-    ```
-    The application will be available at `https://localhost:5001` or `http://localhost:5000` by default.
-
-## Development Conventions
-
-*   **Routing:** The application uses the default MVC routing convention: `{controller=Home}/{action=Index}/{id?}`.
-*   **Authentication:** Access to certain actions may require authentication. The application is configured to redirect unauthenticated users to the `/Account/Login` page.
-*   **Styling:** The project uses Bootstrap for styling. Custom styles can be added to `wwwroot/css/site.css`.
-*   **Database:** The application is configured to use a SQLite database named `blog.db` in the project root. The connection string can be modified in `appsettings.json`.
+## Database Schema
+*   **Post**: `Id`, `Title`, `Content`, `CategoryId` (nullable), `UserId`, `IsHidden`, `CreateTime`.
+*   **Category**: `Id`, `Name`.
+*   **User**: `Id`, `Username`, `PasswordHash`, `Role` ("Admin" or "User").
+*   **Comment**: `Id`, `PostId`, `Content`, `GuestName`, `CreateTime`.
+*   **ImageAsset**: `Id`, `Url`, `StorageKey`, `PostId` (for GC).
