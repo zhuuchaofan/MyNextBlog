@@ -12,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// 注册 Swagger 服务 (API 文档生成器)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // 注册 PostService
 builder.Services.AddScoped<IPostService, PostService>();
 // 注册 R2存储服务
@@ -49,6 +53,12 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error"); // 生产环境显示友好的错误页
     app.UseHsts(); // 强制使用安全协议
+}
+else
+{
+    // 开发环境启用 Swagger UI
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 // 2. 启用 HTTPS 跳转 (把客人从后门带到正门)
