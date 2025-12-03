@@ -50,7 +50,7 @@
             // 随机渐变色类
             var gradientClass = "gradient-" + ((item.Id % 4) + 1);
             
-            <div class="card card-modern mb-5"> <!-- 增加垂直间距 mb-5 -->
+            <div class="card card-modern mb-5" id="post-card-@item.Id"> <!-- 增加垂直间距 mb-5 -->
                 <div class="row g-0">
                     <!-- 缩略图区域：移动端在顶部，桌面端在右侧 -->
                     <div class="col-md-4 order-md-2">
@@ -115,8 +115,8 @@
                                             <i class="bi bi-pencil-square fs-5"></i>
                                         </a>
                                         <button type="button" class="btn btn-link text-danger p-0" 
-                                                onclick="openDeleteModal(@item.Id, '@item.Title')"
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal" title="删除">
+                                                onclick="confirmDelete(@item.Id, '@item.Title')"
+                                                title="删除">
                                             <i class="bi bi-trash fs-5"></i>
                                         </button>
                                     </div>
@@ -130,34 +130,47 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>确认删除</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="mb-0">你确定要删除文章 <strong id="deletePostTitle" class="text-danger"></strong> 吗？</p>
-                <p class="text-muted small mt-2">此操作无法撤销，评论也会一并被删除。</p>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
-
-                <form asp-action="Delete" method="post">
-                    <input type="hidden" name="id" id="deletePostId" />
-                    <button type="submit" class="btn btn-danger">确认删除</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-    function openDeleteModal(id, title) {
-        // 1. 把 ID 填入隐藏的 input 框
-        document.getElementById('deletePostId').value = id;
-        // 2. 把 标题 填入提示文字里
-        document.getElementById('deletePostTitle').innerText = title;
+    async function confirmDelete(id, title) {
+        const result = await Swal.fire({
+            title: '确认删除?',
+            text: `你确定要永久删除 "${title}" 吗？`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: '是的，删除它!',
+            cancelButtonText: '取消'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/posts/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    Swal.fire(
+                        '已删除!',
+                        '文章已被放入回收站(实际上是物理删除了).',
+                        'success'
+                    );
+                    
+                    // 视觉移除：淡出动画
+                    const card = document.getElementById(`post-card-${id}`);
+                    if (card) {
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateX(100px)'; // 向右滑出
+                        setTimeout(() => card.remove(), 500);
+                    }
+                } else {
+                    Swal.fire('错误', '删除失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                Swal.fire('错误', '网络请求失败', 'error');
+            }
+        }
     }
 </script>

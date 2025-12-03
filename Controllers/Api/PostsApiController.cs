@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Models;
 using MyTechBlog.Services;
@@ -78,6 +79,22 @@ public class PostsApiController(IPostService postService) : ControllerBase
                 post.Comments?.Count ?? 0
             )
         });
+    }
+
+    // DELETE: api/posts/5
+    // 删除文章
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePost(int id)
+    {
+        var post = await postService.GetPostByIdAsync(id);
+        if (post == null)
+        {
+            return NotFound(new { success = false, message = "文章不存在" });
+        }
+
+        await postService.DeletePostAsync(id);
+        return Ok(new { success = true, message = "删除成功" });
     }
 
     // === 辅助方法 ===
