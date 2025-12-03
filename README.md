@@ -168,4 +168,35 @@ dotnet run
 *   **归档**: 实现按 `年份-月份` 折叠的文章列表。
 *   **标签**: 引入多对多 (Many-to-Many) 的标签系统，补充现有的单一分类系统，方便按技术栈（如 `.NET`, `Azure`, `React`）检索文章。
 
+---
+
+## 🎨 设计哲学与技术演进 (Design & Architecture Manifesto)
+
+本项目不仅仅是一个代码仓库，它遵循一套严谨的设计语言与技术演进路线，旨在从传统的 MVC 应用平滑过渡到现代化的前后端分离架构。
+
+### 1. 设计基调：Cozy Modernism (温馨现代主义)
+*技术是硬核的，但体验是柔软的。*
+
+*   **视觉语言**:
+    *   **胶囊与圆角**: 拒绝尖锐直角，所有交互元素（按钮、输入框、标签）均采用 `rounded-pill` 或大圆角，隐喻猫咪肉垫般的友好触感。
+    *   **功能性毛玻璃**: 仅在层级叠加处（导航栏、侧滑菜单、底部工具栏）使用高斯模糊 (`backdrop-filter`)，营造轻盈的悬浮感与空间感。
+    *   **温暖科技色**: 以 `#e67e22` (焦糖色) 为主色调，配合 `#f8f9fa` (Off-white) 柔和背景，打造纸质阅读体验。
+*   **交互原则**:
+    *   **无刷新优先 (No-Refresh First)**: 也就是 AJAX/Fetch 优先。能弹窗解决的不跳转，能局部更新的不刷新。
+    *   **即时反馈**: 任何操作（上传、保存、创建）都必须伴随 Toast 提示或视觉状态变更。
+
+### 2. 技术架构路线：Hybrid to Headless (从混合到分离)
+我们采用 **"绞杀植物模式" (Strangler Fig Pattern)**，在现有 MVC 架构上逐步生长出 API 架构。
+
+*   **阶段 1: 现代化 MVC (Current Phase)**
+    *   **API First**: 新增的写操作（如 `Create Category`）必须开发独立的 API 接口，MVC Controller 仅作为视图外壳。
+    *   **Service 核心化**: 严禁在 Controller 中直接操作数据库，所有逻辑下沉至 Service 层 (`CategoryService`, `PostService`)。
+    *   **瘦客户端增强**: 逐步剥离 jQuery，引入现代 JS 逻辑处理复杂交互。
+*   **阶段 2: 混合架构 (Next Step)**
+    *   引入 **JWT 认证**，为未来的多端访问做准备。
+    *   标准化 API 的 Request/Response DTO。
+*   **阶段 3: 彻底分离 (Future Goal)**
+    *   后端演变为纯 **.NET WebAPI**。
+    *   前端独立为 **Next.js/React** 项目，通过 API 驱动。
+
 Enjoy coding! 🚀
