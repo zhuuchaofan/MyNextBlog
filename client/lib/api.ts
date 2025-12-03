@@ -58,6 +58,12 @@ export async function updatePost(token: string, id: number, postData: { title: s
     },
     body: JSON.stringify(postData)
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
+  }
+
   return res.json();
 }
 
@@ -68,6 +74,12 @@ export async function deletePost(token: string, id: number) {
       'Authorization': `Bearer ${token}`
     }
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
+  }
+
   return res.json();
 }
 

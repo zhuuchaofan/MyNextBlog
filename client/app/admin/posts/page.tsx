@@ -7,7 +7,17 @@ import { useAuth } from '@/context/AuthContext';
 import { fetchPostsWithAuth, deletePost } from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Edit, Trash2, Plus, ChevronLeft, ExternalLink } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -20,10 +30,14 @@ interface Post {
 }
 
 export default function AdminPostsPage() {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // 控制删除弹窗的状态
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 加载文章
   useEffect(() => {
@@ -44,22 +58,24 @@ export default function AdminPostsPage() {
       });
   };
 
-  const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`确定要删除文章 "${title}" 吗？此操作不可恢复！`)) return;
+  // 真正执行删除的函数
+  const executeDelete = async () => {
+    if (!postToDelete || !token) return;
 
-    const loadingToast = toast.loading('删除中...');
+    setIsDeleting(true);
     try {
-      const res = await deletePost(token!, id);
+      const res = await deletePost(token, postToDelete.id);
       if (res.success) {
         toast.success('删除成功');
-        setPosts(posts.filter(p => p.id !== id));
+        setPosts(posts.filter(p => p.id !== postToDelete.id));
       } else {
         toast.error('删除失败: ' + res.message);
       }
     } catch (error) {
       toast.error('网络错误');
     } finally {
-      toast.dismiss(loadingToast);
+      setIsDeleting(false);
+      setPostToDelete(null); // 关闭弹窗
     }
   };
 
@@ -119,7 +135,7 @@ export default function AdminPostsPage() {
                       variant="destructive" 
                       size="sm" 
                       className="h-8 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:text-red-700"
-                      onClick={() => handleDelete(post.id, post.title)}
+                      onClick={() => setPostToDelete(post)} // 点击时只设置状态，不执行逻辑
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -130,6 +146,31 @@ export default function AdminPostsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* 删除确认弹窗 */}
+      <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定要删除这篇文章吗？</AlertDialogTitle>
+            <AlertDialogDescription>
+              文章 <span className="font-bold text-gray-900">“{postToDelete?.title}”</span> 将被永久删除，且无法恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault(); // 阻止默认关闭，直到异步操作完成
+                executeDelete();
+              }} 
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? '删除中...' : '确认删除'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

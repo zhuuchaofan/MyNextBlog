@@ -89,7 +89,7 @@ public class PostsApiController(IPostService postService) : ControllerBase
     // DELETE: api/posts/5
     // 删除文章
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> DeletePost(int id)
     {
         var post = await postService.GetPostByIdAsync(id);
