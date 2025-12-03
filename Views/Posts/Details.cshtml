@@ -37,7 +37,7 @@
                         <i class="bi bi-calendar3 me-1"></i>
                         @Model.CreateTime.ToString("yyyy/MM/dd HH:mm")
                     </span>
-                    <span class="me-3">
+                    <span class="me-3" id="postCommentCount">
                         <i class="bi bi-chat-left-text me-1"></i>
                         @(Model.Comments?.Count ?? 0) 评论
                     </span>
@@ -68,7 +68,7 @@
                 评论区 (@(Model.Comments?.Count ?? 0))
             </h5>
 
-            <div class="mb-4">
+            <div class="mb-4" id="commentsListWrapper">
                 @if (Model.Comments != null && Model.Comments.Any())
                 {
                     <ul class="list-unstyled mb-0">
@@ -193,20 +193,22 @@
 
                     if (response.ok && result.success) {
                         // 4. 成功：动态插入新评论
-                        const commentList = document.querySelector('.list-unstyled');
-                        const emptyTip = document.querySelector('.text-muted.small.mb-0'); // "暂无评论" 提示
+                        const wrapper = document.getElementById('commentsListWrapper');
+                        // 查找列表容器（如果存在）
+                        let listContainer = wrapper.querySelector('.list-unstyled');
+                        // 查找暂无评论提示（如果存在）
+                        const emptyTip = wrapper.querySelector('p.text-muted');
 
                         // 如果之前是暂无评论，先隐藏它
-                        if (emptyTip && emptyTip.textContent.includes('暂无评论')) {
+                        if (emptyTip) {
                             emptyTip.style.display = 'none';
                         }
                         
-                        // 如果列表不存在（第一条评论），先创建列表容器
-                        let listContainer = commentList;
+                        // 如果列表不存在（第一条评论），先创建列表容器并加入到 wrapper 中
                         if (!listContainer) {
                             listContainer = document.createElement('ul');
                             listContainer.className = 'list-unstyled mb-0';
-                            document.querySelector('.mb-4').appendChild(listContainer);
+                            wrapper.appendChild(listContainer);
                         }
 
                         // 构建 HTML
@@ -239,11 +241,20 @@
                             title: '评论发布成功'
                         });
                         
-                        // 更新评论计数 (可选优化)
+                        // 更新评论计数 (底部标题)
                         const countBadge = document.querySelector('h5.text-uppercase');
                         if(countBadge) {
                              const currentCount = parseInt(countBadge.textContent.match(/\d+/) || 0);
                              countBadge.textContent = `评论区 (${currentCount + 1})`;
+                        }
+                        
+                        // 更新评论计数 (顶部元数据)
+                        const metaCount = document.getElementById('postCommentCount');
+                        if (metaCount) {
+                            // 提取当前数字 (例如 " 0 评论" -> 0)
+                            const currentVal = parseInt(metaCount.innerText.replace(/\D/g, '') || 0);
+                            // 保留图标，只更新文字
+                            metaCount.innerHTML = `<i class="bi bi-chat-left-text me-1"></i> ${currentVal + 1} 评论`;
                         }
 
                     } else {
