@@ -41,6 +41,30 @@ public class CommentsController(IPostService postService) : ControllerBase
         });
     }
 
+    // 获取分页评论
+    [HttpGet]
+    public async Task<IActionResult> GetComments(int postId, int page = 1, int pageSize = 5)
+    {
+        var comments = await postService.GetCommentsAsync(postId, page, pageSize);
+        var totalCount = await postService.GetCommentCountAsync(postId);
+        
+        // 是否还有更多？
+        bool hasMore = (page * pageSize) < totalCount;
+
+        return Ok(new
+        {
+            success = true,
+            comments = comments.Select(c => new 
+            {
+                c.Id,
+                c.GuestName,
+                c.Content,
+                CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm")
+            }),
+            hasMore
+        });
+    }
+
     // 定义 DTO，确保 API 入参干净纯粹
     public record CreateCommentDto(int PostId, string Content, string? GuestName);
 }

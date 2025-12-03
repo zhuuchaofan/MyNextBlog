@@ -39,7 +39,7 @@
                     </span>
                     <span class="me-3" id="postCommentCount">
                         <i class="bi bi-chat-left-text me-1"></i>
-                        @(Model.Comments?.Count ?? 0) 评论
+                        @(ViewData["TotalCommentCount"] ?? 0) 评论
                     </span>
                     
                     <!-- 只有管理员能看到编辑按钮 -->
@@ -65,7 +65,7 @@
     <div class="row">
         <div class="col-md-12">
             <h5 class="fw-bold mb-3 small text-uppercase text-muted">
-                评论区 (@(Model.Comments?.Count ?? 0))
+                评论区 (@(ViewData["TotalCommentCount"] ?? 0))
             </h5>
 
             <div class="mb-4" id="commentsListWrapper">
@@ -88,6 +88,14 @@
                 {
                     <p class="text-muted small mb-0">暂无评论。</p>
                 }
+            </div>
+            
+            <!-- 加载更多按钮 -->
+            <div class="text-center mb-4">
+                <button id="btnLoadMore" class="btn btn-sm btn-outline-secondary rounded-pill px-4 d-none">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                    加载更多评论
+                </button>
             </div>
 
             <form id="commentForm">
@@ -161,6 +169,64 @@
         // ... (图片逻辑保持不变) ...
         
         // === C. 评论区 AJAX 提交逻辑 (新增) ===
+        let currentPage = 1;
+        const pageSize = 5;
+        const totalComments = @(ViewData["TotalCommentCount"] ?? 0);
+        const postId = @Model.Id;
+        
+        const btnLoadMore = document.getElementById('btnLoadMore');
+        
+        // 初始化按钮状态
+        if (totalComments > pageSize) {
+            btnLoadMore.classList.remove('d-none');
+        }
+
+        // 加载更多点击事件
+        if (btnLoadMore) {
+            btnLoadMore.addEventListener('click', async function() {
+                const spinner = this.querySelector('.spinner-border');
+                this.disabled = true;
+                spinner.classList.remove('d-none');
+
+                try {
+                    const nextPage = currentPage + 1;
+                    const response = await fetch(`/api/comments?postId=${postId}&page=${nextPage}&pageSize=${pageSize}`);
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        const wrapper = document.getElementById('commentsListWrapper');
+                        let listContainer = wrapper.querySelector('.list-unstyled');
+
+                        // 遍历并插入新评论
+                        result.comments.forEach(comment => {
+                            const html = `
+                                <li class="border-bottom py-2 animate__animated animate__fadeIn">
+                                    <div class="d-flex justify-content-between align-items-baseline">
+                                        <strong class="text-dark small">${comment.guestName}</strong>
+                                        <small class="text-muted" style="font-size: 0.75rem;">${comment.createTime}</small>
+                                    </div>
+                                    <p class="mb-0 mt-1 small text-secondary">${comment.content}</p>
+                                </li>
+                            `;
+                            listContainer.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        // 更新状态
+                        currentPage = nextPage;
+                        if (!result.hasMore) {
+                            btnLoadMore.classList.add('d-none');
+                        }
+                    }
+                } catch (error) {
+                    console.error('加载更多失败:', error);
+                    Swal.fire('错误', '加载评论失败', 'error');
+                } finally {
+                    this.disabled = false;
+                    spinner.classList.add('d-none');
+                }
+            });
+        }
+
         const commentForm = document.getElementById('commentForm');
         if (commentForm) {
             commentForm.addEventListener('submit', async function(e) {

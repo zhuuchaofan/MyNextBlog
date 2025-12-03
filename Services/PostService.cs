@@ -42,11 +42,29 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     {
         // 对应之前的 Details/Edit/Delete 查找逻辑
         return await context.Posts
-            .Include(m => m.Comments) // <--- 把评论也查出来
+            //.Include(m => m.Comments) // <--- 移除：不再一次性加载所有评论，改为分页加载
             .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
             .Include(p => p.User)     // <--- 把作者也查出来
             .FirstOrDefaultAsync(m => m.Id == id);
     }
+
+    // 分页获取评论
+    public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
+    {
+        return await context.Comments
+            .Where(c => c.PostId == postId)
+            .OrderBy(c => c.CreateTime) // 按时间正序排列 (楼层顺序)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    // 获取评论总数
+    public async Task<int> GetCommentCountAsync(int postId)
+    {
+        return await context.Comments.CountAsync(c => c.PostId == postId);
+    }
+
     // 添加文章
     public async Task AddPostAsync(Post post)
     {

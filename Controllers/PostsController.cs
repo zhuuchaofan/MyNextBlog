@@ -38,7 +38,7 @@ public class PostsController(IPostService postService) : Controller
     {
         if (id == null) return NotFound();
 
-        // 吩咐厨师：按 ID 查这道菜
+        // 吩咐厨师：按 ID 查这道菜 (此时没有评论数据)
         var post = await postService.GetPostByIdAsync(id.Value);
 
         if (post == null) return NotFound();
@@ -48,6 +48,12 @@ public class PostsController(IPostService postService) : Controller
         {
             return NotFound();
         }
+
+        // 手动加载第一页评论 (5条)
+        post.Comments = await postService.GetCommentsAsync(post.Id, 1, 5);
+        
+        // 查总数，传给 View 用于显示 "X 评论"
+        ViewData["TotalCommentCount"] = await postService.GetCommentCountAsync(post.Id);
 
         return View(post);
     }

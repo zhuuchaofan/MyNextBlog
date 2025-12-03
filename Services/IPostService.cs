@@ -11,5 +11,9 @@ public interface IPostService
     Task UpdatePostAsync(Post post);
     Task DeletePostAsync(int id);
     Task AddCommentAsync(Comment comment);
+    // 分页获取评论
+    Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize);
+    // 获取评论总数
+    Task<int> GetCommentCountAsync(int postId);
     Task<List<Category>> GetCategoriesAsync(); // 获取所有分类
 }
