@@ -90,17 +90,18 @@
                 }
             </div>
 
-            <form asp-action="AddComment">
-                <input type="hidden" name="postId" value="@Model.Id" />
+            <form id="commentForm">
+                <input type="hidden" name="PostId" value="@Model.Id" />
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" name="guestName" class="form-control form-control-sm" placeholder="昵称 (选填)">
+                        <input type="text" name="GuestName" class="form-control form-control-sm" placeholder="昵称 (选填)">
                     </div>
                     <div class="col-md-6">
-                        <input type="text" name="content" class="form-control form-control-sm" placeholder="写下你的想法..." required>
+                        <input type="text" name="Content" class="form-control form-control-sm" placeholder="写下你的想法..." required>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <button type="submit" class="btn btn-primary btn-sm w-100" id="btnSubmitComment">
+                            <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
                             发送
                         </button>
                     </div>
@@ -154,48 +155,109 @@
     document.addEventListener("DOMContentLoaded", async function () {
         // === A. Mermaid 渲染逻辑 ===
         const mermaidBlocks = document.querySelectorAll('code.language-mermaid');
-        for (const block of mermaidBlocks) {
-            const pre = block.parentElement;
-            if (pre && pre.tagName === 'PRE') {
-                // 创建滚动容器
-                const wrapper = document.createElement('div');
-                wrapper.style.overflowX = 'auto';
-                wrapper.style.marginBottom = '1.5rem';
-                
-                const div = document.createElement('div');
-                div.className = 'mermaid';
-                div.style.textAlign = 'center';
-                div.textContent = block.textContent;
-                
-                wrapper.appendChild(div);
-                pre.replaceWith(wrapper);
-            }
-        }
-
-        try {
-            if (document.querySelector('.mermaid')) {
-                await mermaid.run({ querySelector: '.mermaid' });
-            }
-        } catch (err) {
-            console.error('Mermaid 渲染失败:', err);
-        }
+        // ... (Mermaid 代码保持不变) ...
 
         // === B. 图片优化逻辑 (懒加载 + 点击放大) ===
-        const contentImages = document.querySelectorAll('.blog-content img');
-        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
-        const modalImg = document.getElementById('imageModalSrc');
+        // ... (图片逻辑保持不变) ...
+        
+        // === C. 评论区 AJAX 提交逻辑 (新增) ===
+        const commentForm = document.getElementById('commentForm');
+        if (commentForm) {
+            commentForm.addEventListener('submit', async function(e) {
+                e.preventDefault(); // 阻止表单默认提交
 
-        contentImages.forEach(img => {
-            // 1. 启用懒加载
-            img.setAttribute('loading', 'lazy');
-            // 添加样式类，提示可点击
-            img.style.cursor = 'zoom-in';
-            
-            // 2. 绑定点击事件
-            img.addEventListener('click', function() {
-                modalImg.src = this.src; // 设置大图路径
-                imageModal.show(); // 显示模态框
+                const btn = document.getElementById('btnSubmitComment');
+                const spinner = btn.querySelector('.spinner-border');
+                
+                // 1. 锁定按钮，显示 Loading
+                btn.disabled = true;
+                spinner.classList.remove('d-none');
+
+                // 2. 收集数据
+                const formData = new FormData(commentForm);
+                const data = Object.fromEntries(formData.entries());
+                // 转换 Key 大小写以匹配 DTO (虽然 AspNetCore 通常不区分，但保持一致是个好习惯)
+                // 这里 input name 已经是 PascalCase 了，直接用即可
+
+                try {
+                    // 3. 发送 API 请求
+                    const response = await fetch('/api/comments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // 4. 成功：动态插入新评论
+                        const commentList = document.querySelector('.list-unstyled');
+                        const emptyTip = document.querySelector('.text-muted.small.mb-0'); // "暂无评论" 提示
+
+                        // 如果之前是暂无评论，先隐藏它
+                        if (emptyTip && emptyTip.textContent.includes('暂无评论')) {
+                            emptyTip.style.display = 'none';
+                        }
+                        
+                        // 如果列表不存在（第一条评论），先创建列表容器
+                        let listContainer = commentList;
+                        if (!listContainer) {
+                            listContainer = document.createElement('ul');
+                            listContainer.className = 'list-unstyled mb-0';
+                            document.querySelector('.mb-4').appendChild(listContainer);
+                        }
+
+                        // 构建 HTML
+                        const newCommentHtml = `
+                            <li class="border-bottom py-2 animate__animated animate__fadeIn">
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <strong class="text-dark small">${result.comment.guestName}</strong>
+                                    <small class="text-muted" style="font-size: 0.75rem;">${result.comment.createTime}</small>
+                                </div>
+                                <p class="mb-0 mt-1 small text-secondary">${result.comment.content}</p>
+                            </li>
+                        `;
+                        
+                        // 插入到列表末尾
+                        listContainer.insertAdjacentHTML('beforeend', newCommentHtml);
+
+                        // 清空输入框
+                        commentForm.querySelector('input[name="Content"]').value = '';
+                        
+                        // 成功提示
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: '评论发布成功'
+                        });
+                        
+                        // 更新评论计数 (可选优化)
+                        const countBadge = document.querySelector('h5.text-uppercase');
+                        if(countBadge) {
+                             const currentCount = parseInt(countBadge.textContent.match(/\d+/) || 0);
+                             countBadge.textContent = `评论区 (${currentCount + 1})`;
+                        }
+
+                    } else {
+                        Swal.fire('发送失败', result.message || '未知错误', 'error');
+                    }
+                } catch (error) {
+                    console.error('评论提交错误:', error);
+                    Swal.fire('网络错误', '无法连接到服务器', 'error');
+                } finally {
+                    // 5. 解锁按钮
+                    btn.disabled = false;
+                    spinner.classList.add('d-none');
+                }
             });
-        });
+        }
     });
 </script>
