@@ -28,6 +28,18 @@ builder.Services.AddScoped<IImageService, ImageService>();
 // 注册 CategoryService
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+// 配置 CORS (跨域资源共享) - 允许 Next.js 前端访问
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // Next.js 默认端口
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // 允许携带 Cookie/Auth Header
+    });
+});
+
 // 配置数据库 context
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -91,6 +103,9 @@ app.UseStaticFiles();
 
 // 4. 路由匹配 (保安看门票，决定带去哪个房间)
 app.UseRouting();
+
+// 4.5. 跨域许可 (告诉浏览器：允许 localhost:3000 进门)
+app.UseCors("AllowNextJs");
 
 // 5. 查验身份 (必须放在 UseRouting 之后)
 app.UseAuthentication(); // 问：你是谁？(查身份证/Cookie)
