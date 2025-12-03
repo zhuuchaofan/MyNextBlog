@@ -22,7 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5095/api/posts')
+    fetch('/api/backend/posts')
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setPosts(data.data);
