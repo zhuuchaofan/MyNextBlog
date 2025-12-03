@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Services;
@@ -6,7 +7,8 @@ namespace MyTechBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize] // 只有登录用户(包括Admin)才能上传图片
+// 支持 Cookie (用于MVC页面粘贴) 和 JWT (用于Next.js上传)
+[Authorize(AuthenticationSchemes = "MyCookieAuth," + JwtBearerDefaults.AuthenticationScheme)] 
 public class UploadController(IStorageService storageService, IImageService imageService) : ControllerBase
 {
     [HttpPost]

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Models;
@@ -99,6 +100,29 @@ public class PostsApiController(IPostService postService) : ControllerBase
         return Ok(new { success = true, message = "删除成功" });
     }
 
+    // POST: api/posts
+    // 创建文章
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // <--- Removed Roles="Admin"
+    public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Title))
+            return BadRequest(new { success = false, message = "标题不能为空" });
+
+        var post = new Post
+        {
+            Title = dto.Title,
+            Content = dto.Content ?? "",
+            CategoryId = dto.CategoryId == 0 ? null : dto.CategoryId, // 0 表示未分类
+            CreateTime = DateTime.Now,
+            UserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")
+        };
+
+        await postService.AddPostAsync(post);
+
+        return Ok(new { success = true, message = "发布成功", postId = post.Id });
+    }
+
     // === 辅助方法 ===
 
     // 从 Markdown 提取纯文本摘要
@@ -122,4 +146,6 @@ public class PostsApiController(IPostService postService) : ControllerBase
     public record PostSummaryDto(int Id, string Title, string Excerpt, DateTime CreateTime, int CategoryId, string? Category, string? Author, string? CoverImage);
     
     public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount);
+
+    public record CreatePostDto(string Title, string Content, int? CategoryId);
 }

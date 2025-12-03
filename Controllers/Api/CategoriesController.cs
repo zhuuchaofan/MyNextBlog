@@ -26,6 +26,14 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(new { success = true, category = newCategory });
     }
 
+    [HttpGet]
+    [AllowAnonymous] // 允许所有人获取分类列表
+    public async Task<IActionResult> GetAll()
+    {
+        var categories = await categoryService.GetAllCategoriesAsync();
+        return Ok(new { success = true, data = categories });
+    }
+
     // DTO (Data Transfer Object) 用于接收前端数据
     public record CreateCategoryDto(string Name);
 }
