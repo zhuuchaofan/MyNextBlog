@@ -18,6 +18,8 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IStorageService, R2StorageService>();
 // 注册 ImageService
 builder.Services.AddScoped<IImageService, ImageService>();
+// 注册 CategoryService
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // 配置数据库 context
 builder.Services.AddDbContext<AppDbContext>(options =>
