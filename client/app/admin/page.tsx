@@ -46,17 +46,19 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">文章管理</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Manage Content</div>
-            <p className="text-xs text-muted-foreground mt-1">修改、隐藏或删除现有文章</p>
-            <Button variant="outline" className="w-full mt-4 pointer-events-none">查看列表</Button>
-          </CardContent>
-        </Card>
+        <Link href="/admin/posts" className="block h-full">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">文章管理</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Manage Content</div>
+              <p className="text-xs text-muted-foreground mt-1">修改、隐藏或删除现有文章</p>
+              <Button variant="outline" className="w-full mt-4 pointer-events-none">查看列表</Button>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

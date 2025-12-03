@@ -19,9 +19,11 @@ public class PostsApiController(IPostService postService) : ControllerBase
         [FromQuery] string? search = null,
         [FromQuery] int? categoryId = null)
     {
-        // 1. 获取所有符合条件的文章 (目前 Service 层还没做专门的分页查询，先查出来再内存分页)
-        // 优化建议：将来在 IPostService 里加一个 GetPostsPagedAsync 方法直接数据库分页
-        var allPosts = await postService.GetAllPostsAsync(includeHidden: false, categoryId: categoryId, searchTerm: search);
+        // 管理员可以看到隐藏文章
+        bool isAdmin = User.IsInRole("Admin");
+        
+        // 1. 获取所有符合条件的文章
+        var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search);
 
         var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -121,6 +123,24 @@ public class PostsApiController(IPostService postService) : ControllerBase
         await postService.AddPostAsync(post);
 
         return Ok(new { success = true, message = "发布成功", postId = post.Id });
+    }
+
+    // PUT: api/posts/5
+    // 更新文章
+    [HttpPut("{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> UpdatePost(int id, [FromBody] CreatePostDto dto)
+    {
+        var post = await postService.GetPostByIdAsync(id);
+        if (post == null) return NotFound(new { success = false, message = "文章不存在" });
+
+        post.Title = dto.Title;
+        post.Content = dto.Content ?? "";
+        post.CategoryId = dto.CategoryId == 0 ? null : dto.CategoryId;
+        // post.FinalEditTime = DateTime.Now; // 如果模型里有这个字段
+
+        await postService.UpdatePostAsync(post);
+        return Ok(new { success = true, message = "更新成功" });
     }
 
     // === 辅助方法 ===
