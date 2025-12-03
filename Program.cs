@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using MyTechBlog.Data;
 using MyTechBlog.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,12 +33,30 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 4. 招募“保安” (身份认证服务)
-// 开启 Cookie 认证。如果没登录，就踢到登录页。
-builder.Services.AddAuthentication("MyCookieAuth")
+// 开启 Cookie 认证 (用于浏览器) 和 JWT 认证 (用于 API/App)
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = "MyCookieAuth"; // 默认还是 Cookie，保证 MVC 页面正常
+        options.DefaultChallengeScheme = "MyCookieAuth";
+    })
     .AddCookie("MyCookieAuth", options =>
     {
         options.LoginPath = "/Account/Login"; 
         options.AccessDeniedPath = "/Account/Login";
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]))
+        };
     });
 
 // ==================================================================
