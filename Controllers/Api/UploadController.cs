@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Services;
 
-namespace MyTechBlog.Controllers;
+namespace MyTechBlog.Controllers.Api;
 
-[Authorize(Roles = "Admin")] // 只有管理员能上传图片
-[Route("api/[controller]")] // 访问路径是 /api/upload
-[ApiController] // 这是一个 API 控制器，不是返回页面的
+[Route("api/[controller]")]
+[ApiController]
+[Authorize] // 只有登录用户(包括Admin)才能上传图片
 public class UploadController(IStorageService storageService, IImageService imageService) : ControllerBase
 {
     [HttpPost]

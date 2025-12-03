@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Services;
 
-namespace MyTechBlog.Controllers;
+namespace MyTechBlog.Controllers.Api;
 
 [Authorize(Roles = "Admin")] // 只有管理员能添加分类
 [Route("api/[controller]")]

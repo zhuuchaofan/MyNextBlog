@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Models;
 using MyTechBlog.Services;
 
-namespace MyTechBlog.Controllers;
+namespace MyTechBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]

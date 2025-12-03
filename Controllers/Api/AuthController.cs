@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyTechBlog.Data;
 
-namespace MyTechBlog.Controllers;
+namespace MyTechBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]

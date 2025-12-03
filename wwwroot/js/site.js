@@ -151,7 +151,7 @@ function showToast(message, type = 'info') {
 
 // 通用：压缩并上传处理函数
 function handleImageUpload(blob, editor) {
-    // 使用 compressorjs 压缩图片
+    // 使用 compressors 压缩图片
     new Compressor(blob, {
         quality: 0.8,
         mimeType: 'image/webp',
@@ -199,9 +199,9 @@ function uploadFile(file, textarea) {
 
 // 辅助函数：在光标位置插入文字
 function insertAtCursor(myField, myValue) {
-    if (myField.selectionStart || myField.selectionStart == '0') {
-        var startPos = myField.selectionStart;
-        var endPos = myField.selectionEnd;
+    if (myField.selectionStart || myField.selectionStart === '0') {
+        const startPos = myField.selectionStart;
+        const endPos = myField.selectionEnd;
         myField.value = myField.value.substring(0, startPos)
             + myValue
             + myField.value.substring(endPos, myField.value.length);
