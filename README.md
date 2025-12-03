@@ -6,6 +6,13 @@
 
 ## 📅 更新日志 (Update Log)
 
+### 2025-12-03 (深夜): Phase 2 完美收官 - 混合架构就绪
+*   **API 覆盖率达到 90%**: 完成了核心的 **只读 API** (文章列表、详情、评论浏览) 和 **认证 API**。
+*   **架构状态**: 项目正式进入 "Hybrid State"（混合态）。
+    *   **MVC 端**: 继续负责完整的后台管理（写文章、传图片）。
+    *   **API 端**: 已准备好为即将启动的 Next.js 前端提供数据服务。
+*   **下一步**: 启动 Phase 3，初始化 Next.js 项目，优先构建只读版的前端体验。
+
 ### 2025-12-03: 前端布局优化与修复
 *   **UI 结构性修复**:
     *   **移动端导航菜单 (Offcanvas)**: 修复了移动端侧滑菜单的嵌套错误，将其从导航栏中移出，确保全屏高度显示。同时优化了其样式（背景、圆角、阴影），解决了内容溢出和视觉不协调的问题。
@@ -207,11 +214,20 @@ dotnet run
     *   **API First**: 新增的写操作（如 `Create Category`）必须开发独立的 API 接口，MVC Controller 仅作为视图外壳。
     *   **Service 核心化**: 严禁在 Controller 中直接操作数据库，所有逻辑下沉至 Service 层 (`CategoryService`, `PostService`)。
     *   **瘦客户端增强**: 逐步剥离 jQuery，引入现代 JS 逻辑处理复杂交互。
-*   **阶段 2: 混合架构 (Next Step)**
-    *   引入 **JWT 认证**，为未来的多端访问做准备。
-    *   标准化 API 的 Request/Response DTO。
-*   **阶段 3: 彻底分离 (Future Goal)**
-    *   后端演变为纯 **.NET WebAPI**。
-    *   前端独立为 **Next.js/React** 项目，通过 API 驱动。
+*   **阶段 2: 混合架构 (已完成 ✅)**
+    *   **API 文档化**: 集成 Swagger，实现接口可视化调试。
+    *   **双重认证 (Dual Auth)**: 实现 Cookie + JWT 并存，打通了独立客户端的访问通道。
+    *   **Headless Ready**: 完成了核心的只读 API (Posts, Comments, Auth)，后端已准备好被“无头”调用。
+
+*   **阶段 3: 彻底分离 (Headless Evolution - 进行中 🚧)**
+    *   **Stage 3.1: 只读前端 (MVP)**
+        *   初始化 **Next.js** 项目。
+        *   基于 React 重写首页、文章列表与详情页，实现极致的加载速度 (SSG/ISR)。
+    *   **Stage 3.2: 写操作 API 补全**
+        *   补全 `Create/Update Post` API。
+        *   改造 `UploadController` 以支持 JWT 验证。
+    *   **Stage 3.3: 管理后台迁移**
+        *   在 Next.js 中实现基于 JWT 的登录与权限管理。
+        *   移植 Markdown 编辑器，彻底告别 MVC 视图层，实现 100% 前后端分离。
 
 Enjoy coding! 🚀
