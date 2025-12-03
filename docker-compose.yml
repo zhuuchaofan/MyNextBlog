@@ -1,0 +1,36 @@
+services:
+  # === 后端服务 (.NET API) ===
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: myblog-backend
+    restart: always
+    environment:
+      # 监听 8080 端口
+      - ASPNETCORE_URLS=http://+:8080
+      # 覆盖连接字符串，指向挂载的 data 目录
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/blog.db
+      # 如果您的 R2 配置在环境变量里，也可以在这里加
+      # - CloudflareR2__AccessKey=...
+    volumes:
+      # 挂载数据库文件，保证重启不丢数据 (宿主机 ./data -> 容器 /app/data)
+      - ./data:/app/data
+      # 挂载上传目录 (可选)
+      - ./wwwroot/uploads:/app/wwwroot/uploads
+
+  # === 前端服务 (Next.js) ===
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: myblog-frontend
+    restart: always
+    ports:
+      # 将宿主机的 3000 端口映射到容器的 3000
+      - "3000:3000"
+    environment:
+      # 告诉 Next.js 后端在 Docker 网络里的名字叫 'backend'，端口是 8080
+      - BACKEND_URL=http://backend:8080
+    depends_on:
+      - backend
