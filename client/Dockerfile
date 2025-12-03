@@ -3,25 +3,20 @@ FROM node:20-alpine AS base
 
 # === 依赖安装阶段 ===
 FROM base AS deps
-# 安装 libc6-compat 以支持某些原生依赖
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# 复制 package.json
-COPY client/package.json client/package-lock.json* ./
-# 安装依赖
+# 复制 package.json (上下文已是 client 目录)
+COPY package.json package-lock.json* ./
 RUN npm ci
 
 # === 构建阶段 ===
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY client/ .
+COPY . .
 
-# 禁用 Next.js 的遥测
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# 开始构建 (生成 .next/standalone)
 RUN npm run build
 
 # === 运行阶段 ===
@@ -31,21 +26,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# 创建非 root 用户运行 (更安全)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 复制必要的构建产物
 COPY --from=builder /app/public ./public
-
-# 自动生成的 standalone 文件夹包含了运行所需的所有文件
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# 切换用户
 USER nextjs
 
-# 暴露端口
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
