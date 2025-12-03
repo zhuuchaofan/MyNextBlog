@@ -70,6 +70,35 @@ a:hover {
   letter-spacing: -0.5px;
 }
 
+/* === 导航栏搜索框统一化 === */
+.nav-search-group {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50rem; /* 胶囊圆角 */
+    background-color: #fff;
+    transition: all 0.2s ease;
+    padding-left: 0.5rem;
+}
+
+.nav-search-group:hover {
+    border-color: rgba(0, 0, 0, 0.2);
+    background-color: #f8f9fa;
+}
+
+.nav-search-group:focus-within {
+    border-color: var(--brand-color);
+    box-shadow: 0 0 0 0.25rem rgba(230, 126, 34, 0.25); /* 品牌色光晕 */
+    background-color: #fff;
+}
+
+.nav-search-group input::placeholder {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.nav-search-group .btn:hover {
+    color: var(--brand-color) !important; /* 悬停放大镜变色 */
+}
+
 /* === 卡片设计优化 === */
 .card-modern {
   border: none;

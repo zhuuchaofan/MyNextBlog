@@ -60,17 +60,16 @@
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">关于铲屎官</a>
                             </li>
                             
-                            <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-                                <form class="d-flex" role="search" asp-controller="Posts" asp-action="Index" method="get">
-                                    <div class="input-group">
-                                        <input class="form-control border-end-0 rounded-start-pill" type="search" name="search" placeholder="搜索..." aria-label="Search" value="@ViewData["CurrentSearch"]">
-                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-pill" type="submit">
-                                            <i class="bi bi-search"></i>
-                                        </button>
-                                    </div>
-                                </form>
-                            </li>
-
+                                                <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                                                    <form class="d-flex" role="search" asp-controller="Posts" asp-action="Index" method="get">
+                                                        <div class="input-group nav-search-group">
+                                                            <input class="form-control border-0 bg-transparent shadow-none" type="search" name="search" placeholder="搜索..." aria-label="Search" value="@ViewData["CurrentSearch"]">
+                                                            <button class="btn border-0 bg-transparent shadow-none text-secondary" type="submit">
+                                                                <i class="bi bi-search"></i>
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </li>
                             <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
                                 @if (User.Identity.IsAuthenticated)
                                 {
