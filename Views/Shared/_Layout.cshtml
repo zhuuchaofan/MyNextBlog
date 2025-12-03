@@ -22,81 +22,81 @@
                     aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                
-                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-                    <div class="offcanvas-header">
-                        <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel">
-                            <i class="bi bi-flower1 me-2" style="color: var(--brand-color);"></i>导航
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body">
-                        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                            <li class="nav-item">
-                                <a class="nav-link fw-bold" asp-area="" asp-controller="Posts" asp-action="Index">
-                                    <i class="bi bi-journal-code me-1"></i> 技术博客
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="bi bi-images me-1"></i> 猫咪相册
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="bi bi-chat-quote me-1"></i> 碎碎念
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="bi bi-archive me-1"></i> 归档
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">关于铲屎官</a>
-                            </li>
-                            
-                            <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-                                <form class="d-flex" role="search" asp-controller="Posts" asp-action="Index" method="get">
-                                    <div class="input-group">
-                                        <input class="form-control border-end-0 rounded-start-pill" type="search" name="search" placeholder="搜索..." aria-label="Search" value="@ViewData["CurrentSearch"]">
-                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-pill" type="submit">
-                                            <i class="bi bi-search"></i>
-                                        </button>
-                                    </div>
-                                </form>
-                            </li>
-
-                            <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-                                @if (User.Identity.IsAuthenticated)
-                                {
-                                    <div class="dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-person-circle me-1"></i> @User.Identity.Name
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                            @if (User.IsInRole("Admin"))
-                                            {
-                                                <li><span class="dropdown-header">管理员</span></li>
-                                            }
-                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">注销</a></li>
-                                        </ul>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <a class="btn btn-outline-primary rounded-pill px-4" asp-controller="Account" asp-action="Login">登录</a>
-                                }
-                            </li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </nav>
+        
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel">
+                    <i class="bi bi-flower1 me-2" style="color: var(--brand-color);"></i>导航
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" asp-area="" asp-controller="Posts" asp-action="Index">
+                            <i class="bi bi-journal-code me-1"></i> 技术博客
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-images me-1"></i> 猫咪相册
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-chat-quote me-1"></i> 碎碎念
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-archive me-1"></i> 归档
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">关于铲屎官</a>
+                    </li>
+                    
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <form class="d-flex" role="search" asp-controller="Posts" asp-action="Index" method="get">
+                            <div class="input-group">
+                                <input class="form-control border-end-0 rounded-start-pill" type="search" name="search" placeholder="搜索..." aria-label="Search" value="@ViewData["CurrentSearch"]">
+                                <button class="btn btn-outline-secondary border-start-0 rounded-end-pill" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </li>
+
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1"></i> @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><span class="dropdown-header">管理员</span></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">注销</a></li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-primary rounded-pill px-4" asp-controller="Account" asp-action="Login">登录</a>
+                        }
+                    </li>
+                </ul>
+            </div>
+        </div>
     </header>
     
     <!-- 增加顶部内边距，防止内容被 fixed navbar 遮挡 -->
