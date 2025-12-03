@@ -103,7 +103,7 @@ public class PostsApiController(IPostService postService) : ControllerBase
     // POST: api/posts
     // 创建文章
     [HttpPost]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // <--- Removed Roles="Admin"
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
