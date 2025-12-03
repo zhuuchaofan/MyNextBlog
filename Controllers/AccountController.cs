@@ -69,7 +69,7 @@ public class AccountController(AppDbContext context) : Controller
 
     // 4. 处理登录提交 (POST)
     [HttpPost]
-    public async Task<IActionResult> Login(string username, string password, string returnUrl = "/")
+    public async Task<IActionResult> Login(string username, string password, bool rememberMe, string returnUrl = "/")
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
@@ -89,7 +89,15 @@ public class AccountController(AppDbContext context) : Controller
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
-            await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(claimsIdentity));
+            
+            // 配置持久化 Cookie
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = rememberMe, // 如果勾选，Cookie 将持久保存
+                ExpiresUtc = rememberMe ? DateTime.UtcNow.AddDays(30) : null // 设置 30 天过期
+            };
+
+            await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(claimsIdentity), authProperties);
 
             // 防止重定向攻击，或者默认跳回首页
             if (Url.IsLocalUrl(returnUrl))
