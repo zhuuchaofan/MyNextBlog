@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
 import { fetchCategories, createPost, Category } from '@/lib/api';
 import { ChevronLeft, Save } from 'lucide-react';
+import { toast } from "sonner";
 
 export default function NewPostPage() {
   const { token, user } = useAuth();
@@ -34,7 +35,7 @@ export default function NewPostPage() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      alert('请输入标题');
+      toast.warning('请输入文章标题');
       return;
     }
 
@@ -47,14 +48,16 @@ export default function NewPostPage() {
       });
       
       if (res.success) {
-        alert('发布成功！');
-        router.push('/admin'); // 或者跳转到新文章详情
+        toast.success('发布成功！正在跳转...');
+        setTimeout(() => {
+            router.push('/admin'); 
+        }, 1500);
       } else {
-        alert('发布失败：' + res.message);
+        toast.error('发布失败: ' + res.message);
       }
     } catch (error: any) {
       console.error('Create post error:', error);
-      alert('网络错误: ' + (error.message || JSON.stringify(error)));
+      toast.error('网络错误: ' + (error.message || "请检查后端服务"));
     } finally {
       setLoading(false);
     }
