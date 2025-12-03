@@ -18,6 +18,7 @@ interface PostDetail {
   content: string;
   createTime: string;
   category?: string;
+  categoryId: number; // <--- 新增
   author?: string;
   commentCount: number;
 }
@@ -66,9 +67,11 @@ export default async function PostPage({ params }: { params: { id: string } }) {
       {/* 文章头部信息 */}
       <header className="mb-10 text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-            {post.category || '未分类'}
-          </Badge>
+          <Link href={`/categories/${post.categoryId}`}>
+            <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer transition-colors">
+              {post.category || '未分类'}
+            </Badge>
+          </Link>
         </div>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
           {post.title}

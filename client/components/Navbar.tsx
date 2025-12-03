@@ -1,8 +1,13 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Home, BookOpen, Camera, Info, Search } from 'lucide-react';
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-lg transition-all shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,10 +22,10 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-1">
-            <NavLink href="/" icon={<Home className="w-4 h-4" />} label="首页" active />
-            <NavLink href="/archive" icon={<BookOpen className="w-4 h-4" />} label="归档" />
-            <NavLink href="/gallery" icon={<Camera className="w-4 h-4" />} label="猫咪相册" />
-            <NavLink href="/about" icon={<Info className="w-4 h-4" />} label="关于铲屎官" />
+            <NavLink href="/" icon={<Home className="w-4 h-4" />} label="首页" active={pathname === '/'} />
+            <NavLink href="/archive" icon={<BookOpen className="w-4 h-4" />} label="归档" active={pathname === '/archive'} />
+            <NavLink href="/gallery" icon={<Camera className="w-4 h-4" />} label="猫咪相册" active={pathname === '/gallery'} />
+            <NavLink href="/about" icon={<Info className="w-4 h-4" />} label="关于铲屎官" active={pathname === '/about'} />
           </div>
 
           {/* Right Actions */}

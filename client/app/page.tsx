@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import Link from 'next/link';
 
 interface Post {
@@ -14,6 +14,7 @@ interface Post {
   createTime: string;
   author: string;
   category: string;
+  categoryId: number;
   coverImage?: string;
 }
 
@@ -22,6 +23,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 使用代理路径 /api/backend/... 以支持移动端访问
     fetch('/api/backend/posts')
       .then((res) => res.json())
       .then((data) => {
@@ -84,7 +86,11 @@ export default function Home() {
                    <div className="flex-1 flex flex-col">
                       <CardHeader>
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="text-orange-600 border-orange-200">{post.category || '未分类'}</Badge>
+                          <Link href={`/categories/${post.categoryId}`}>
+                             <Badge variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors">
+                                {post.category || '未分类'}
+                             </Badge>
+                          </Link>
                           <span className="text-xs text-gray-400 flex items-center gap-1">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>

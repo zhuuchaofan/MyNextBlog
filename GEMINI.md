@@ -51,6 +51,11 @@ This is a .NET 10 web application that functions as a personal tech blog. The pr
 *   **Service Layer**: Business logic is encapsulated in `PostService` (Scoped lifetime), which handles all interactions with `AppDbContext`.
 *   **API Endpoints**: `UploadController` provides a RESTful API endpoint (`POST /api/upload`) specifically for handling async image uploads from the frontend.
 *   **Frontend Logic**: `site.js` contains the custom logic for handling the clipboard paste events and performing the Fetch API calls for image uploading.
+*   **Next.js Frontend (Client)**:
+    *   Located in `/client` directory.
+    *   Tech Stack: Next.js 15 (App Router), Tailwind CSS v4, shadcn/ui.
+    *   **Proxy Configuration**: Uses `next.config.ts` rewrites (`/api/backend/*` -> `http://localhost:5095/api/*`) to solve localhost connectivity issues for external devices (mobile/Safari).
+    *   **SSR/ISR**: Uses Server Components for data fetching.
 
 ## Building and Running the Project
 
