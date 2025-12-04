@@ -1,9 +1,7 @@
 services:
   # === 后端服务 (.NET API) ===
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    build: ./backend
     container_name: myblog-backend
     restart: always
     environment:
