@@ -41,7 +41,7 @@ export default function Home() {
           <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">
             👋 欢迎光临
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight">
             这里是 <span className="text-orange-500">球球 & 布丁</span> 的<br/>
             技术后花园 🏡
           </h1>

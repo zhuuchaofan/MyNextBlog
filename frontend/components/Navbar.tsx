@@ -13,43 +13,73 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, User } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  const navLinks = [
+    { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },
+    { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
+    { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '猫咪相册' },
+    { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于铲屎官' },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-lg transition-all shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 mr-4">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-800 hover:text-orange-500 transition-colors">
               <span className="text-2xl">🐱</span>
-              <span>球球布丁的后花园</span>
+              <span className="hidden sm:inline">球球布丁的后花园</span>
+              <span className="sm:hidden">球球&布丁</span>
             </Link>
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-1">
-            <NavLink href="/" icon={<Home className="w-4 h-4" />} label="首页" active={pathname === '/'} />
-            <NavLink href="/archive" icon={<BookOpen className="w-4 h-4" />} label="归档" active={pathname === '/archive'} />
-            <NavLink href="/gallery" icon={<Camera className="w-4 h-4" />} label="猫咪相册" active={pathname === '/gallery'} />
-            <NavLink href="/about" icon={<Info className="w-4 h-4" />} label="关于铲屎官" active={pathname === '/about'} />
+          <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
+            {navLinks.map(link => (
+              <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} active={pathname === link.href} />
+            ))}
           </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" className="rounded-full hover:bg-orange-50 text-gray-500">
+             <Button variant="ghost" size="icon" className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex">
                 <Search className="w-5 h-5" />
              </Button>
              
+             {/* Mobile Menu Trigger */}
+             <div className="md:hidden">
+               <DropdownMenu>
+                 <DropdownMenuTrigger asChild>
+                   <Button variant="ghost" size="icon" className="text-gray-600">
+                     <Menu className="w-6 h-6" />
+                   </Button>
+                 </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md">
+                    <DropdownMenuLabel>导航</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {navLinks.map(link => (
+                      <Link key={link.href} href={link.href}>
+                        <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50' : ''}`}>
+                          {link.icon}
+                          <span>{link.label}</span>
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
+                 </DropdownMenuContent>
+               </DropdownMenu>
+             </div>
+
              {user ? (
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                     <Avatar className="h-8 w-8">
+                   <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
+                     <Avatar className="h-8 w-8 border border-orange-100">
                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} />
                        <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                      </Avatar>
@@ -81,7 +111,7 @@ export default function Navbar() {
                </DropdownMenu>
              ) : (
                <Link href="/login">
-                 <Button variant="outline" className="hidden sm:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700">
+                 <Button variant="outline" size="sm" className="rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2">
                    登录
                  </Button>
                </Link>
