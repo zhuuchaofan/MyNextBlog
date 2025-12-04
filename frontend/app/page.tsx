@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, Sparkles, Tag, Github } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Post {
   id: number;
@@ -23,7 +24,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 使用代理路径 /api/backend/... 以支持移动端访问
     fetch('/api/backend/posts')
       .then((res) => res.json())
       .then((data) => {
@@ -34,91 +34,174 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
-      {/* Hero Section */}
-      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-orange-100 mb-10 flex flex-col md:flex-row items-center gap-8">
-        <div className="flex-1 space-y-4">
-          <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">
-            👋 欢迎光临
-          </Badge>
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight">
-            这里是 <span className="text-orange-500">球球 & 布丁</span> 的<br/>
-            技术后花园 🏡
-          </h1>
-          <p className="text-lg text-gray-600 leading-relaxed">
-            记录 .NET Core 开发心得，分享全栈技术实战，偶尔晒晒猫。
-            这是一个用 <code className="bg-gray-100 px-2 py-1 rounded text-sm">Next.js</code> + <code className="bg-gray-100 px-2 py-1 rounded text-sm">.NET 10</code> 构建的混合架构博客。
-          </p>
-        </div>
-        <div className="w-full md:w-1/3 aspect-square bg-orange-50 rounded-2xl flex items-center justify-center text-6xl">
-           🐱
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+      
+      {/* Hero Section - 统一风格 */}
+      <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 overflow-hidden isolate">
+        {/* 背景装饰 */}
+        <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-orange-200 to-pink-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-80 h-80 bg-gradient-to-tr from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1 space-y-6 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-orange-100 text-orange-600 text-sm font-medium shadow-sm">
+              <Sparkles className="w-4 h-4" />
+              <span>探索 • 记录 • 分享</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
+              球球 & 布丁的 <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">
+                技术后花园 🏡
+              </span>
+            </h1>
+            
+            <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
+              这里不仅有 .NET 与 Next.js 的硬核技术干货，还有两只猫主子的软萌日常。
+              在这个数字化的角落，我们用代码构建世界，用猫毛点缀生活。
+            </p>
+            
+            <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
+              <Link href="/archive">
+                <Button className="rounded-full h-12 px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-lg hover:shadow-xl transition-all">
+                  开始阅读
+                </Button>
+              </Link>
+              <Link href="/about">
+                <Button variant="outline" className="rounded-full h-12 px-8 border-gray-200 hover:bg-white hover:border-orange-200 text-gray-700">
+                  认识博主
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Hero Image / Illustration */}
+          <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
+            <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white rounded-full animate-pulse"></div>
+            <div className="relative w-full h-full bg-white/50 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
+               <div className="text-8xl select-none filter drop-shadow-lg">🐱</div>
+               {/* 这里可以用 next/image 放真实照片 */}
+               <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-lg animate-bounce duration-1000">
+                 <span className="text-4xl">🍮</span>
+               </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Post List */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <span className="w-2 h-8 bg-orange-500 rounded-full"></span>
-          最新文章
-        </h2>
-
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-100 animate-pulse rounded-xl"></div>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Main Content: Post List */}
+        <div className="lg:col-span-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <span className="flex w-3 h-3 bg-orange-500 rounded-full ring-4 ring-orange-100"></span>
+              最新发布
+            </h2>
+            <Link href="/archive" className="text-sm text-gray-500 hover:text-orange-600 flex items-center gap-1 transition-colors">
+              查看全部 <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-        ) : (
-          <div className="grid gap-6">
-            {posts.map((post) => (
-              <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 group">
-                <div className="flex flex-col md:flex-row">
-                   {/* Cover Image Placeholder */}
-                   {post.coverImage && (
-                      <div className="md:w-48 h-48 md:h-auto bg-gray-100 relative overflow-hidden group-hover:cursor-pointer">
-                        <Link href={`/posts/${post.id}`} className="block w-full h-full">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                        </Link>
-                      </div>
-                   )}
-                   
-                   <div className="flex-1 flex flex-col">
-                      <CardHeader>
-                        <div className="flex items-center gap-2 mb-2">
+
+          {loading ? (
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-3xl"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <Card key={post.id} className="group overflow-hidden border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white rounded-3xl ring-1 ring-gray-100">
+                  <div className="flex flex-col md:flex-row h-full">
+                     {post.coverImage && (
+                        <div className="md:w-64 h-48 md:h-auto bg-gray-50 relative overflow-hidden">
+                          <Link href={`/posts/${post.id}`} className="block w-full h-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          </Link>
+                        </div>
+                     )}
+                     
+                     <div className="flex-1 flex flex-col p-6 md:p-8">
+                        <div className="flex items-center gap-3 mb-4">
                           <Link href={`/categories/${post.categoryId}`}>
-                             <Badge variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors">
+                             <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg px-3 py-1 transition-colors">
                                 {post.category || '未分类'}
                              </Badge>
                           </Link>
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <span className="text-xs text-gray-400 font-medium flex items-center gap-1">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>
                         </div>
-                        <CardTitle className="text-xl md:text-2xl transition-colors">
-                          <Link href={`/posts/${post.id}`} className="hover:text-orange-600 hover:underline decoration-orange-300 underline-offset-4 cursor-pointer">
+                        
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-orange-600 transition-colors">
+                          <Link href={`/posts/${post.id}`}>
                             {post.title}
                           </Link>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-gray-600 line-clamp-2 md:line-clamp-3">
-                          {post.excerpt}
+                        </h3>
+                        
+                        <p className="text-gray-500 line-clamp-2 mb-6 flex-grow leading-relaxed">
+                          {post.excerpt || '暂无摘要...'}
                         </p>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <Link href={`/posts/${post.id}`}>
-                          <Button variant="ghost" className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 px-0 cursor-pointer">
-                            阅读全文 <ArrowRight className="w-4 h-4 ml-1" />
-                          </Button>
-                        </Link>
-                      </CardFooter>
-                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+                        
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                             <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">👤</div>
+                             <span>{post.author || 'Chaofan'}</span>
+                          </div>
+                          <Link href={`/posts/${post.id}`}>
+                            <span className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors group/btn">
+                              阅读全文 <ArrowRight className="w-4 h-4 ml-1 transform group-hover/btn:translate-x-1 transition-transform" />
+                            </span>
+                          </Link>
+                        </div>
+                     </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar (Desktop Only) */}
+        <div className="hidden lg:block lg:col-span-4 space-y-8">
+           {/* About Widget */}
+           <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-100 to-pink-100 opacity-50"></div>
+              <div className="relative z-10 -mt-4 mb-4">
+                 <div className="w-20 h-20 mx-auto bg-white rounded-full p-1 shadow-lg">
+                    <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=chaofan')] bg-cover"></div>
+                 </div>
+              </div>
+              <h3 className="font-bold text-lg text-gray-900">朱超凡</h3>
+              <p className="text-xs text-gray-500 mb-4">Fullstack Developer</p>
+              <p className="text-sm text-gray-600 leading-relaxed mb-6">
+                写代码，撸猫，记录生活。
+                <br/>
+                这里是我存放思想碎片的地方。
+              </p>
+              <div className="flex justify-center gap-3">
+                 <Button variant="outline" size="icon" className="rounded-full w-8 h-8 border-gray-200">
+                   <Github className="w-4 h-4 text-gray-600" />
+                 </Button>
+                 {/* Add more social icons */}
+              </div>
+           </div>
+
+           {/* Tags Widget */}
+           <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-orange-500" /> 热门话题
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                 {['.NET Core', 'Next.js', 'Docker', 'React', 'CSharp', 'Life', 'Cats'].map(tag => (
+                   <Badge key={tag} variant="secondary" className="bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-orange-600 cursor-pointer transition-colors rounded-lg px-3 py-1.5 font-normal">
+                     # {tag}
+                   </Badge>
+                 ))}
+              </div>
+           </div>
+        </div>
       </div>
     </div>
   );
