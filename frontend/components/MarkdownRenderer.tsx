@@ -82,7 +82,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     // 简单查找匹配的 heading-id，如果找不到就生成一个
     const id = `heading-${text.replace(/\s+/g, '-').toLowerCase()}`;
     
-    const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+    const Tag = `h${level}` as React.ElementType;
     return <Tag id={id} className={`scroll-mt-24 font-bold text-gray-800 ${level === 2 ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100' : 'text-xl mt-6 mb-3'}`}>{children}</Tag>;
   };
 
