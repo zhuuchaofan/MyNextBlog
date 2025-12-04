@@ -372,3 +372,7 @@ FodyWeavers.xsd
 .idea/
 # MacOS
 .DS_Store
+
+# Ignore sensitive application configuration
+appsettings.Development.json
+

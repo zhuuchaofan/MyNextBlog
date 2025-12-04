@@ -28,7 +28,8 @@ interface PostDetail {
 async function getPost(id: string) {
   try {
     // 注意：在服务器端请求 .NET 后端
-    const res = await fetch(`http://localhost:5095/api/posts/${id}`, {
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
+    const res = await fetch(`${baseUrl}/api/posts/${id}`, {
       // cache: 'no-store', // 开发时可以禁用缓存，上线时建议开启 revalidate
       next: { revalidate: 60 } // ISR: 每 60 秒重新生成一次页面
     });

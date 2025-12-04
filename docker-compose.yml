@@ -20,7 +20,7 @@ services:
   # === 前端服务 (Next.js) ===
   frontend:
     build:
-      context: ./client
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: myblog-frontend
     restart: always
