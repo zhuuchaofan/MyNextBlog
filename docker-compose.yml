@@ -4,13 +4,25 @@ services:
     build: ./backend
     container_name: myblog-backend
     restart: always
+    ports:
+      - "8080:8080"
     environment:
       # 监听 8080 端口
       - ASPNETCORE_URLS=http://+:8080
       # 覆盖连接字符串，指向挂载的 data 目录
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/blog.db
-      # 如果您的 R2 配置在环境变量里，也可以在这里加
-      # - CloudflareR2__AccessKey=...
+      
+      # === 敏感配置 (从 .env 读取) ===
+      # Cloudflare R2
+      - CloudflareR2__ServiceUrl=${R2_SERVICE_URL}
+      - CloudflareR2__AccessKey=${R2_ACCESS_KEY}
+      - CloudflareR2__SecretKey=${R2_SECRET_KEY}
+      - CloudflareR2__BucketName=${R2_BUCKET_NAME}
+      - CloudflareR2__PublicDomain=${R2_PUBLIC_DOMAIN}
+      # JWT
+      - JwtSettings__SecretKey=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
     volumes:
       # 挂载数据库文件，保证重启不丢数据 (宿主机 ./data -> 容器 /app/data)
       - ./data:/app/data

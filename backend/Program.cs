@@ -33,7 +33,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // Next.js 默认端口
+        policy.WithOrigins(
+                "http://localhost:3000", 
+                "https://nextblog.zhuchaofan.online",
+                "https://blogapi.zhuchaofan.online"
+              ) 
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // 允许携带 Cookie/Auth Header
@@ -90,12 +94,10 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error"); // 生产环境显示友好的错误页
     app.UseHsts(); // 强制使用安全协议
 }
-else
-{
-    // 开发环境启用 Swagger UI
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+// 总是启用 Swagger (方便远程调试)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // 2. 启用 HTTPS 跳转 (把客人从后门带到正门)
 app.UseHttpsRedirection();
