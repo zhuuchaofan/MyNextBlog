@@ -6,8 +6,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        // 优先读取环境变量 (Docker 内部通信)，本地开发默认用 localhost:5095
-        destination: `${process.env.BACKEND_URL || 'http://localhost:5095'}/api/:path*`,
+        // 优先读取环境变量 (Docker 内部通信)，默认使用 Docker 服务名
+        destination: `${process.env.BACKEND_URL || 'http://backend:8080'}/api/:path*`,
       },
     ];
   },

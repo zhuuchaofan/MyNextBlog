@@ -32,7 +32,15 @@ public class AuthController(AppDbContext context, IConfiguration configuration) 
 
         // 3. 生成 JWT 令牌
         var jwtSettings = configuration.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
+        var secretKey = jwtSettings["SecretKey"];
+        
+        if (string.IsNullOrEmpty(secretKey))
+        {
+            // 生产环境下的防御性检查
+            return StatusCode(500, "Server configuration error: Missing JWT Key");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
