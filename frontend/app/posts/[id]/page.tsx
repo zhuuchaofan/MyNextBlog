@@ -1,17 +1,10 @@
 import { notFound } from 'next/navigation';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, Clock, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
 import CommentsSection from '@/components/CommentsSection';
-
-// 引入 github 风格的代码高亮样式 (需要在 globals.css 或这里引入，这里为了简单直接用 CDN 或者假定全局已引入)
-// 也可以在 layout.tsx 里 import 'github-markdown-css/github-markdown.css'
-// 这里我们用 rehype-highlight 默认会生成的 class，通常需要引入 highlight.js 的 css
-import 'highlight.js/styles/github-dark.css'; 
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 interface PostDetail {
   id: number;
@@ -19,7 +12,7 @@ interface PostDetail {
   content: string;
   createTime: string;
   category?: string;
-  categoryId: number; // <--- 新增
+  categoryId: number;
   author?: string;
   commentCount: number;
 }
@@ -56,7 +49,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-8">
       {/* 顶部导航面包屑 */}
       <div className="mb-8">
         <Link href="/">
@@ -67,7 +60,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
       </div>
 
       {/* 文章头部信息 */}
-      <header className="mb-10 text-center">
+      <header className="mb-10 text-center max-w-4xl mx-auto">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Link href={`/categories/${post.categoryId}`}>
             <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer transition-colors">
@@ -95,29 +88,15 @@ export default async function PostPage({ params }: { params: { id: string } }) {
         </div>
       </header>
 
-      {/* 文章正文 */}
-      <article className="prose prose-lg prose-stone max-w-none mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
-        <ReactMarkdown 
-          remarkPlugins={[remarkGfm]} 
-          rehypePlugins={[rehypeHighlight]}
-          components={{
-            // 自定义图片渲染，支持响应式
-            img: ({node, ...props}) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img {...props} className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50" alt={props.alt || ''} />
-            ),
-            // 自定义链接样式
-            a: ({node, ...props}) => (
-              <a {...props} className="text-orange-600 hover:text-orange-800 underline decoration-orange-300 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />
-            )
-          }}
-        >
-          {post.content}
-        </ReactMarkdown>
-      </article>
+      {/* 文章正文 (包含 TOC) */}
+      <MarkdownRenderer content={post.content} />
       
       {/* 评论区 */}
-      <CommentsSection postId={post.id} />
+      <div className="mt-16 max-w-4xl mx-auto">
+         <div className="bg-orange-50/50 rounded-3xl p-8 border border-orange-100">
+            <CommentsSection postId={post.id} />
+         </div>
+      </div>
     </div>
   );
 }

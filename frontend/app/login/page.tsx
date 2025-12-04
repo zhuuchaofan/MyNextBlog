@@ -44,19 +44,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50/50">
       {/* 背景装饰圆 (Blobs) */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
-      <Card className="w-full max-w-[900px] grid md:grid-cols-2 overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm">
+      <Card className="w-full max-w-[900px] grid md:grid-cols-2 overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm m-4">
         
         {/* 左侧：品牌视觉区 */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-orange-400 to-pink-500 p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="relative z-10 text-center space-y-6">
-             <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto shadow-lg border border-white/30">
+             <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto shadow-lg border border-white/30 animate-float">
                 <span className="text-6xl">🐱</span>
              </div>
              <div>
@@ -95,7 +95,7 @@ export default function LoginPage() {
                 <Input 
                   id="username" 
                   className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
-                  placeholder="Username"
+                  placeholder="您的用户名"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -111,7 +111,7 @@ export default function LoginPage() {
                   id="password" 
                   type="password" 
                   className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
-                  placeholder="Password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

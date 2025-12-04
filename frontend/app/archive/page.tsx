@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Calendar, PawPrint, ArrowRight, Tag } from "lucide-react";
 
 interface Post {
   id: number;
@@ -15,7 +17,6 @@ export default function ArchivePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 获取所有文章 (为了归档，我们可能需要一个获取全部无分页的接口，但暂时先取第一页的 100 条作为演示)
   useEffect(() => {
     fetch('/api/backend/posts?pageSize=100')
       .then(res => res.json())
@@ -37,42 +38,87 @@ export default function ArchivePage() {
   const sortedYears = Object.keys(groupedPosts).map(Number).sort((a, b) => b - a);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl py-12">
-      <header className="mb-12 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">文章归档</h1>
-        <p className="text-gray-500 mt-2">共 {posts.length} 篇好文</p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-12">
+      <header className="mb-16 text-center space-y-4">
+        <div className="inline-block p-3 bg-orange-100 rounded-full mb-2">
+          <PawPrint className="w-8 h-8 text-orange-500" />
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">时光印记</h1>
+        <p className="text-gray-500">
+          共收录 <span className="text-orange-600 font-bold">{posts.length}</span> 篇技术与生活随笔
+        </p>
       </header>
 
       {loading ? (
-        <div className="space-y-4 animate-pulse">
-           <div className="h-8 bg-gray-100 rounded w-32 mx-auto"></div>
-           <div className="h-20 bg-gray-100 rounded-xl"></div>
-           <div className="h-20 bg-gray-100 rounded-xl"></div>
+        <div className="space-y-8 animate-pulse max-w-2xl mx-auto">
+           {[1, 2, 3].map(i => (
+             <div key={i} className="flex gap-4">
+                <div className="w-24 h-6 bg-gray-100 rounded"></div>
+                <div className="flex-1 h-24 bg-gray-100 rounded-xl"></div>
+             </div>
+           ))}
         </div>
       ) : (
-        <div className="relative border-l border-gray-200 ml-4 md:ml-0 pl-8 md:pl-12 space-y-12">
+        <div className="relative space-y-12 max-w-3xl mx-auto">
+          {/* 中轴线 */}
+          <div className="absolute left-4 md:left-1/2 top-4 bottom-0 w-0.5 bg-gradient-to-b from-orange-200 via-orange-100 to-transparent -translate-x-1/2 md:block hidden"></div>
+          
+          {/* 移动端左侧线 */}
+          <div className="absolute left-6 top-4 bottom-0 w-0.5 bg-gray-100 md:hidden"></div>
+
           {sortedYears.map(year => (
-            <div key={year} className="relative">
-              {/* 年份标签 */}
-              <span className="absolute -left-[49px] md:-left-[65px] top-0 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-orange-100 text-orange-600 font-bold rounded-full border-4 border-white text-sm md:text-base">
-                {year}
-              </span>
-              
-              <div className="space-y-6 pt-20"> {/* <--- Added pt-10 here */}
-                {groupedPosts[year].map(post => (
-                  <div key={post.id} className="group relative">
-                    <div className="absolute -left-[41px] md:-left-[57px] top-2 w-3 h-3 bg-gray-200 rounded-full group-hover:bg-orange-400 transition-colors border-2 border-white"></div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <Link href={`/posts/${post.id}`} className="text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors">
-                          {post.title}
-                        </Link>
-                        <div className="flex items-center gap-3 text-sm text-gray-400 flex-shrink-0">
-                           <span>{new Date(post.createTime).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
-                           <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-500">
-                             {post.category}
-                           </Badge>
-                        </div>
+            <div key={year} className="relative z-10">
+              {/* 年份标记 */}
+              <div className="flex md:justify-center items-center mb-8">
+                <div className="bg-white border-2 border-orange-200 text-orange-600 px-4 py-1 rounded-full font-bold text-lg shadow-sm z-20 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> {year}
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                {groupedPosts[year].map((post, index) => (
+                  <div key={post.id} className={`flex flex-col md:flex-row items-center gap-4 md:gap-0 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                    
+                    {/* 1. 日期/元数据 (Desktop: Empty half or Date) */}
+                    <div className="hidden md:flex w-1/2 px-8 justify-end text-right">
+                       <div className={`${index % 2 === 0 ? 'text-left justify-start' : 'text-right justify-end'} w-full flex items-center text-sm text-gray-400 gap-2`}>
+                          <span>{new Date(post.createTime).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</span>
+                       </div>
                     </div>
+
+                    {/* 2. 中轴节点 */}
+                    <div className="absolute left-6 md:left-1/2 w-8 h-8 -translate-x-1/2 flex items-center justify-center bg-white rounded-full border border-orange-100 shadow-sm z-10 group-hover:scale-110 transition-transform">
+                      <div className="w-3 h-3 bg-orange-400 rounded-full group-hover:bg-orange-500"></div>
+                    </div>
+
+                    {/* 3. 文章卡片 */}
+                    <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-8">
+                      <Link href={`/posts/${post.id}`} className="group block">
+                        <Card className="p-5 hover:shadow-lg transition-all duration-300 border-gray-100 group-hover:border-orange-200 bg-white relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-all group-hover:bg-orange-100"></div>
+                          
+                          <div className="relative z-10">
+                             <div className="flex items-center justify-between mb-2">
+                               <Badge variant="outline" className="text-orange-600 bg-orange-50/50 border-orange-100 font-normal flex items-center gap-1">
+                                 <Tag className="w-3 h-3" /> {post.category || '未分类'}
+                               </Badge>
+                               <span className="md:hidden text-xs text-gray-400">
+                                 {new Date(post.createTime).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                               </span>
+                             </div>
+                             
+                             <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors line-clamp-1">
+                               {post.title}
+                             </h3>
+                             
+                             <div className="flex items-center text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
+                               阅读全文 <ArrowRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
+                             </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    </div>
+
                   </div>
                 ))}
               </div>
