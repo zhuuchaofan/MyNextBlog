@@ -1,3 +1,33 @@
+export interface PostDetail {
+  id: number;
+  title: string;
+  content: string;
+  createTime: string;
+  category?: string;
+  categoryId: number;
+  author?: string;
+  commentCount: number;
+  coverImage?: string;
+}
+
+export async function getPost(id: string) {
+  try {
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
+    const res = await fetch(`${baseUrl}/api/posts/${id}`, {
+      next: { revalidate: 60 }
+    });
+
+    if (!res.ok) return undefined;
+    const json = await res.json();
+    if (!json.success) return undefined;
+
+    return json.data as PostDetail;
+  } catch (error) {
+    console.error('Fetch post error:', error);
+    return undefined;
+  }
+}
+
 export interface Comment {
   id: number;
   guestName: string;

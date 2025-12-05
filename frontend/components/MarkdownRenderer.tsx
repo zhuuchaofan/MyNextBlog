@@ -49,8 +49,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     const slugCounts: Record<string, number> = {};
 
     lines.forEach((line) => {
-      // 匹配 ## 或 ### 开头的行
-      const match = line.match(/^(#{2,3})\s+(.+)$/); 
+      // 匹配 ## 或 ### 开头的行，允许行尾有空白字符（处理 \r 等）
+      const match = line.match(/^(#{2,3})\s+(.+?)\s*$/); 
       if (match) {
         const level = match[1].length;
         // 去除 markdown 符号（如 **text** -> text）

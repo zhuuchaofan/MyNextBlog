@@ -2,42 +2,45 @@ import { notFound } from 'next/navigation';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, ChevronLeft, Share2, Heart, MessageSquare } from "lucide-react";
+import { Calendar, Clock, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
+import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import PostInteractions from '@/components/PostInteractions';
+import { getPost } from '@/lib/api';
 
-interface PostDetail {
-  id: number;
-  title: string;
-  content: string;
-  createTime: string;
-  category?: string;
-  categoryId: number;
-  author?: string;
-  commentCount: number;
-  coverImage?: string; // Added from backend update
+interface Props {
+  params: Promise<{ id: string }>;
 }
 
-async function getPost(id: string) {
-  try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
-    const res = await fetch(`${baseUrl}/api/posts/${id}`, {
-      next: { revalidate: 60 }
-    });
+// 1. SEO Metadata Generation
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const post = await getPost(resolvedParams.id);
 
-    if (!res.ok) return undefined;
-    const json = await res.json();
-    if (!json.success) return undefined;
-
-    return json.data as PostDetail;
-  } catch (error) {
-    console.error('Fetch post error:', error);
-    return undefined;
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+    };
   }
+
+  return {
+    title: `${post.title} - MyTechBlog`,
+    description: post.content.substring(0, 160).replace(/[#*`]/g, '') + '...',
+    openGraph: {
+      title: post.title,
+      description: post.content.substring(0, 160),
+      type: 'article',
+      publishedTime: post.createTime,
+      authors: [post.author || 'Admin'],
+      images: post.coverImage ? [post.coverImage] : [],
+    },
+  };
 }
 
-export default async function PostPage({ params }: { params: { id: string } }) {
+export default async function PostPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
@@ -52,11 +55,12 @@ export default async function PostPage({ params }: { params: { id: string } }) {
       {/* 1. Hero Image / Header Background */}
       <div className="relative w-full min-h-[40vh] md:min-h-[50vh] bg-gray-900 overflow-hidden flex flex-col justify-center">
         {post.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img 
-            src={post.coverImage} 
-            alt={post.title} 
-            className="absolute inset-0 w-full h-full object-cover opacity-60 blur-sm scale-105"
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            priority
+            className="object-cover opacity-60 blur-sm scale-105"
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 opacity-80"></div>
@@ -105,19 +109,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
            
            {/* Left Sidebar: Interaction (Desktop) */}
-           <div className="hidden lg:flex lg:col-span-1 flex-col gap-4 items-center pt-32 sticky top-20 self-start">
-              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-pink-500 hover:bg-pink-50">
-                <Heart className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-blue-500 hover:bg-blue-50">
-                <Share2 className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-orange-500 hover:bg-orange-50" asChild>
-                <a href="#comments">
-                  <MessageSquare className="w-5 h-5" />
-                </a>
-              </Button>
-           </div>
+           <PostInteractions />
 
            {/* Main Content */}
            <div className="lg:col-span-11 bg-white rounded-t-3xl md:rounded-3xl shadow-xl p-6 md:p-12 min-h-[500px]">
