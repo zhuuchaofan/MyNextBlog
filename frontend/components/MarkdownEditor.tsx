@@ -106,8 +106,8 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
       {/* 工具栏 */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-gray-50/50">
-        <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-between p-2 border-b border-gray-100 bg-gray-50/50 gap-2">
+        <div className="flex flex-wrap items-center gap-1">
           <ToolbarButton icon={<Bold className="w-4 h-4" />} onClick={() => insertText('**', '**')} title="加粗" />
           <ToolbarButton icon={<Italic className="w-4 h-4" />} onClick={() => insertText('*', '*')} title="斜体" />
           <ToolbarButton icon={<Quote className="w-4 h-4" />} onClick={() => insertText('> ')} title="引用" />

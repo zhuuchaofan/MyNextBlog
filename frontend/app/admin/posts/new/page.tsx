@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
 import TagInput from '@/components/TagInput';
+import CreateCategoryDialog from '@/components/CreateCategoryDialog';
 import { fetchCategories, createPost, Category } from '@/lib/api';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, Plus } from 'lucide-react';
 import { toast } from "sonner";
 
 export default function NewPostPage() {
@@ -22,6 +23,7 @@ export default function NewPostPage() {
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
 
   // 鉴权与加载分类
   useEffect(() => {
@@ -115,9 +117,25 @@ export default function NewPostPage() {
                  {cat.name}
                </Button>
              ))}
-             {categories.length === 0 && <span className="text-gray-400 text-sm">暂无分类</span>}
+             <Button 
+               type="button"
+               variant="outline" 
+               className="rounded-full border-dashed border-gray-300 text-gray-500 hover:border-orange-300 hover:text-orange-500"
+               onClick={() => setIsCreateCategoryOpen(true)}
+             >
+               <Plus className="w-4 h-4 mr-1" /> 新建
+             </Button>
            </div>
         </div>
+
+        <CreateCategoryDialog 
+          open={isCreateCategoryOpen} 
+          onOpenChange={setIsCreateCategoryOpen} 
+          onCreated={(newCat) => {
+            setCategories([...categories, newCat]);
+            setCategoryId(newCat.id);
+          }}
+        />
 
         {/* 标签输入 */}
         <div className="space-y-2">

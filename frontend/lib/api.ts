@@ -31,6 +31,18 @@ export async function fetchCategories() {
   return res.json();
 }
 
+export async function createCategory(token: string, name: string) {
+  const res = await fetch('/api/backend/categories', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ name })
+  });
+  return res.json();
+}
+
 export async function fetchPopularTags() {
   const res = await fetch('/api/backend/tags/popular');
   return res.json();
@@ -88,8 +100,8 @@ export async function deletePost(token: string, id: number) {
   return res.json();
 }
 
-export async function fetchPostsWithAuth(token: string, page = 1) {
-  const res = await fetch(`/api/backend/posts?page=${page}&pageSize=100`, {
+export async function fetchPostsWithAuth(token: string, page = 1, pageSize = 10) {
+  const res = await fetch(`/api/backend/posts?page=${page}&pageSize=${pageSize}`, {
     headers: { 
       'Authorization': `Bearer ${token}` // 带 Token 才能看到隐藏文章
     }

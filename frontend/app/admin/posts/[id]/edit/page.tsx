@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
 import TagInput from '@/components/TagInput';
+import CreateCategoryDialog from '@/components/CreateCategoryDialog';
 import { fetchCategories, updatePost, Category } from '@/lib/api';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, Plus } from 'lucide-react';
 import { toast } from "sonner";
 
 export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,11 +26,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
 
   // 鉴权、加载分类、回显文章
   useEffect(() => {
     if (!token || user?.role !== 'Admin') {
-      // router.push('/login'); // 这里为了防闪烁先注释，或者放在外层 layout 做
+      // router.push('/login'); 
       return;
     }
 
@@ -40,7 +42,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         if (catRes.success) setCategories(catRes.data);
 
         // 2. 加载文章详情
-        // 复用 Public API (注意：这里请求的是 Next.js 代理后的地址，不是 .NET 端口)
+        // 复用 Public API
         const postRes = await fetch(`/api/backend/posts/${id}`);
         const postData = await postRes.json();
         
@@ -121,7 +123,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           <Input 
             id="title" 
             maxLength={50}
-            className="text-2xl py-6 font-bold border-transparent bg-white shadow-sm hover:border-orange-200 focus:border-orange-500 transition-all"
+            className="text-2xl py-6 font-medium border-transparent bg-white shadow-sm hover:border-orange-200 focus:border-orange-500 transition-all"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
@@ -142,8 +144,25 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                  {cat.name}
                </Button>
              ))}
+             <Button 
+               type="button"
+               variant="outline" 
+               className="rounded-full border-dashed border-gray-300 text-gray-500 hover:border-orange-300 hover:text-orange-500"
+               onClick={() => setIsCreateCategoryOpen(true)}
+             >
+               <Plus className="w-4 h-4 mr-1" /> 新建
+             </Button>
            </div>
         </div>
+
+        <CreateCategoryDialog 
+          open={isCreateCategoryOpen} 
+          onOpenChange={setIsCreateCategoryOpen} 
+          onCreated={(newCat) => {
+            setCategories([...categories, newCat]);
+            setCategoryId(newCat.id);
+          }}
+        />
 
         {/* 标签输入 */}
         <div className="space-y-2">
