@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Sparkles, Tag, Github } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { SITE_CONFIG, PETS } from "@/lib/constants";
 
 interface Post {
   id: number;
@@ -50,7 +51,7 @@ export default function Home() {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
-              球球 & 布丁的 <br/>
+              {PETS.qiuqiu.name} & {PETS.pudding.name}的 <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">
                 技术后花园 🏡
               </span>
@@ -78,11 +79,14 @@ export default function Home() {
           {/* Hero Image / Illustration */}
           <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white rounded-full animate-pulse"></div>
-            <div className="relative w-full h-full bg-white/50 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
-               <div className="text-8xl select-none filter drop-shadow-lg">🐱</div>
-               {/* 这里可以用 next/image 放真实照片 */}
-               <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-lg animate-bounce duration-1000">
-                 <span className="text-4xl">🍮</span>
+            <div className="relative w-full h-full bg-white/50 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img src={PETS.qiuqiu.avatar} alt={PETS.qiuqiu.name} className="w-full h-full object-cover" />
+               <div className="absolute -bottom-6 -right-6 bg-white p-2 rounded-2xl shadow-lg animate-bounce duration-1000 border-4 border-white">
+                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">
+                   {/* eslint-disable-next-line @next/next/no-img-element */}
+                   <img src={PETS.pudding.avatar} alt={PETS.pudding.name} className="w-full h-full object-cover" />
+                 </div>
                </div>
             </div>
           </div>
@@ -147,7 +151,7 @@ export default function Home() {
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                           <div className="flex items-center gap-2 text-sm text-gray-400">
                              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">👤</div>
-                             <span>{post.author || 'Chaofan'}</span>
+                             <span>{post.author || SITE_CONFIG.author}</span>
                           </div>
                           <Link href={`/posts/${post.id}`}>
                             <span className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors group/btn">
@@ -170,10 +174,10 @@ export default function Home() {
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-100 to-pink-100 opacity-50"></div>
               <div className="relative z-10 -mt-4 mb-4">
                  <div className="w-20 h-20 mx-auto bg-white rounded-full p-1 shadow-lg">
-                    <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=chaofan')] bg-cover"></div>
+                    <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden bg-cover bg-center" style={{backgroundImage: `url('${SITE_CONFIG.avatar}')`}}></div>
                  </div>
               </div>
-              <h3 className="font-bold text-lg text-gray-900">朱超凡</h3>
+              <h3 className="font-bold text-lg text-gray-900">{SITE_CONFIG.author}</h3>
               <p className="text-xs text-gray-500 mb-4">Fullstack Developer</p>
               <p className="text-sm text-gray-600 leading-relaxed mb-6">
                 写代码，撸猫，记录生活。
@@ -181,8 +185,10 @@ export default function Home() {
                 这里是我存放思想碎片的地方。
               </p>
               <div className="flex justify-center gap-3">
-                 <Button variant="outline" size="icon" className="rounded-full w-8 h-8 border-gray-200">
-                   <Github className="w-4 h-4 text-gray-600" />
+                 <Button variant="outline" size="icon" className="rounded-full w-8 h-8 border-gray-200" asChild>
+                   <Link href={SITE_CONFIG.social.github} target="_blank">
+                     <Github className="w-4 h-4 text-gray-600" />
+                   </Link>
                  </Button>
                  {/* Add more social icons */}
               </div>
