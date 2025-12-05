@@ -108,9 +108,15 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       <div className="grid gap-6">
         {/* 标题输入 */}
         <div className="space-y-2">
-          <Label htmlFor="title" className="text-lg font-semibold">文章标题</Label>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="title" className="text-lg font-semibold">文章标题</Label>
+            <span className={`text-sm ${title.length > 90 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+              {title.length}/100
+            </span>
+          </div>
           <Input 
             id="title" 
+            maxLength={100}
             className="text-2xl py-6 font-bold border-transparent bg-white shadow-sm hover:border-orange-200 focus:border-orange-500 transition-all"
             value={title}
             onChange={e => setTitle(e.target.value)}

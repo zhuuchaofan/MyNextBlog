@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -168,5 +169,10 @@ public class PostsApiController(IPostService postService) : ControllerBase
     
     public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount, string? CoverImage);
 
-    public record CreatePostDto(string Title, string Content, int? CategoryId);
+    public record CreatePostDto(
+        [MaxLength(100, ErrorMessage = "标题不能超过100个字符")]
+        string Title, 
+        string Content, 
+        int? CategoryId
+    );
 }
