@@ -27,6 +27,8 @@ builder.Services.AddScoped<IStorageService, R2StorageService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 // 注册 CategoryService
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+// 注册 TagService
+builder.Services.AddScoped<ITagService, TagService>();
 
 // 配置 CORS (跨域资源共享) - 允许 Next.js 前端访问
 builder.Services.AddCors(options =>

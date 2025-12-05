@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
+import TagInput from '@/components/TagInput';
 import { fetchCategories, updatePost, Category } from '@/lib/api';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           setTitle(p.title);
           setContent(p.content);
           setCategoryId(p.categoryId === 0 ? undefined : p.categoryId);
+          setTags(p.tags || []); // Populate tags
         } else {
           toast.error('文章不存在');
           router.push('/admin/posts');
@@ -72,7 +75,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       const res = await updatePost(token!, parseInt(id), { 
         title, 
         content, 
-        categoryId 
+        categoryId,
+        tags 
       });
       
       if (res.success) {
@@ -139,6 +143,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                </Button>
              ))}
            </div>
+        </div>
+
+        {/* 标签输入 */}
+        <div className="space-y-2">
+           <Label className="font-semibold">文章标签</Label>
+           <TagInput value={tags} onChange={setTags} />
         </div>
 
         {/* Markdown 编辑器 */}

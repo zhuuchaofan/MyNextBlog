@@ -31,7 +31,12 @@ export async function fetchCategories() {
   return res.json();
 }
 
-export async function createPost(token: string, postData: { title: string; content: string; categoryId?: number }) {
+export async function fetchPopularTags() {
+  const res = await fetch('/api/backend/tags/popular');
+  return res.json();
+}
+
+export async function createPost(token: string, postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
   const res = await fetch('/api/backend/posts', {
     method: 'POST',
     headers: { 
@@ -49,7 +54,7 @@ export async function createPost(token: string, postData: { title: string; conte
   return res.json();
 }
 
-export async function updatePost(token: string, id: number, postData: { title: string; content: string; categoryId?: number }) {
+export async function updatePost(token: string, id: number, postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
   const res = await fetch(`/api/backend/posts/${id}`, {
     method: 'PUT',
     headers: { 

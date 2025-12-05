@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
+import TagInput from '@/components/TagInput';
 import { fetchCategories, createPost, Category } from '@/lib/api';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ export default function NewPostPage() {
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export default function NewPostPage() {
   // 鉴权与加载分类
   useEffect(() => {
     if (!token || user?.role !== 'Admin') {
-      router.push('/login');
+      // router.push('/login'); 
       return;
     }
 
@@ -44,13 +46,14 @@ export default function NewPostPage() {
       const res = await createPost(token!, { 
         title, 
         content, 
-        categoryId 
+        categoryId,
+        tags
       });
       
       if (res.success) {
         toast.success('发布成功！正在跳转...');
         setTimeout(() => {
-            router.push('/admin'); 
+            router.push('/admin/posts'); 
         }, 1500);
       } else {
         toast.error('发布失败: ' + res.message);
@@ -114,6 +117,12 @@ export default function NewPostPage() {
              ))}
              {categories.length === 0 && <span className="text-gray-400 text-sm">暂无分类</span>}
            </div>
+        </div>
+
+        {/* 标签输入 */}
+        <div className="space-y-2">
+           <Label className="font-semibold">文章标签</Label>
+           <TagInput value={tags} onChange={setTags} />
         </div>
 
         {/* Markdown 编辑器 */}

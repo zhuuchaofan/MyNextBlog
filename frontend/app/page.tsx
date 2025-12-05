@@ -8,6 +8,7 @@ import { Calendar, ArrowRight, Sparkles, Tag, Github } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_CONFIG, PETS } from "@/lib/constants";
+import { fetchPopularTags } from "@/lib/api";
 
 interface Post {
   id: number;
@@ -22,9 +23,11 @@ interface Post {
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fetch posts
     fetch('/api/backend/posts')
       .then((res) => res.json())
       .then((data) => {
@@ -32,6 +35,13 @@ export default function Home() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Fetch tags
+    fetchPopularTags()
+      .then(data => {
+        if (data.success) setPopularTags(data.data);
+      })
+      .catch(console.error);
   }, []);
 
   return (
@@ -199,11 +209,17 @@ export default function Home() {
                 <Tag className="w-4 h-4 text-orange-500" /> 热门话题
               </h3>
               <div className="flex flex-wrap gap-2">
-                 {['.NET Core', 'Next.js', 'Docker', 'React', 'CSharp', 'Life', 'Cats'].map(tag => (
-                   <Badge key={tag} variant="secondary" className="bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-orange-600 cursor-pointer transition-colors rounded-lg px-3 py-1.5 font-normal">
-                     # {tag}
-                   </Badge>
-                 ))}
+                 {popularTags.length === 0 ? (
+                    <span className="text-sm text-gray-400">暂无标签</span>
+                 ) : (
+                    popularTags.map(tag => (
+                     <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`}>
+                       <Badge variant="secondary" className="bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-orange-600 cursor-pointer transition-colors rounded-lg px-3 py-1.5 font-normal">
+                         # {tag}
+                       </Badge>
+                     </Link>
+                   ))
+                 )}
               </div>
            </div>
         </div>

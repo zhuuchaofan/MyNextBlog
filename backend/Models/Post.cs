@@ -16,6 +16,9 @@ public class Post
     // 关系：一篇文章可以有多个评论
     public List<Comment> Comments { get; set; } = new List<Comment>();
 
+    // 关系：一篇文章可以有多个标签 (多对多)
+    public List<Tag> Tags { get; set; } = new();
+
     // 允许为空 (int?)，这样旧文章即使没有分类也不会报错
     public int? CategoryId { get; set; }
     public Category? Category { get; set; }

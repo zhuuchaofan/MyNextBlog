@@ -9,7 +9,7 @@ namespace MyTechBlog.Controllers.Api;
 
 [Route("api/posts")] // URL: /api/posts
 [ApiController]
-public class PostsApiController(IPostService postService) : ControllerBase
+public class PostsApiController(IPostService postService, ITagService tagService) : ControllerBase
 {
     // GET: api/posts
     // 获取文章列表 (支持分页、搜索、分类)
@@ -40,7 +40,8 @@ public class PostsApiController(IPostService postService) : ControllerBase
                 p.CategoryId ?? 0,  // <--- 修复：处理 null 值
                 p.Category?.Name,
                 p.User?.Username,
-                ExtractCoverImage(p.Content) // 提取封面图
+                ExtractCoverImage(p.Content), // 提取封面图
+                p.Tags.Select(t => t.Name).ToList() // Tags
             ))
             .ToList();
 
@@ -83,7 +84,8 @@ public class PostsApiController(IPostService postService) : ControllerBase
                 post.Category?.Name,
                 post.User?.Username,
                 post.Comments?.Count ?? 0,
-                ExtractCoverImage(post.Content) // <--- 新增：返回封面图
+                ExtractCoverImage(post.Content), // <--- 新增：返回封面图
+                post.Tags.Select(t => t.Name).ToList() // Tags
             )
         });
     }
@@ -122,6 +124,12 @@ public class PostsApiController(IPostService postService) : ControllerBase
             UserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")
         };
 
+        // 处理标签
+        if (dto.Tags != null && dto.Tags.Length > 0)
+        {
+            post.Tags = await tagService.GetOrCreateTagsAsync(dto.Tags);
+        }
+
         await postService.AddPostAsync(post);
 
         return Ok(new { success = true, message = "发布成功", postId = post.Id });
@@ -139,7 +147,14 @@ public class PostsApiController(IPostService postService) : ControllerBase
         post.Title = dto.Title;
         post.Content = dto.Content ?? "";
         post.CategoryId = dto.CategoryId == 0 ? null : dto.CategoryId;
-        // post.FinalEditTime = DateTime.Now; // 如果模型里有这个字段
+        
+        // 更新标签
+        post.Tags.Clear(); // 先清空现有标签
+        if (dto.Tags != null && dto.Tags.Length > 0)
+        {
+            var newTags = await tagService.GetOrCreateTagsAsync(dto.Tags);
+            post.Tags.AddRange(newTags);
+        }
 
         await postService.UpdatePostAsync(post);
         return Ok(new { success = true, message = "更新成功" });
@@ -165,14 +180,15 @@ public class PostsApiController(IPostService postService) : ControllerBase
     }
 
     // === DTO 定义 ===
-    public record PostSummaryDto(int Id, string Title, string Excerpt, DateTime CreateTime, int CategoryId, string? Category, string? Author, string? CoverImage);
+    public record PostSummaryDto(int Id, string Title, string Excerpt, DateTime CreateTime, int CategoryId, string? Category, string? Author, string? CoverImage, List<string> Tags);
     
-    public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount, string? CoverImage);
+    public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount, string? CoverImage, List<string> Tags);
 
     public record CreatePostDto(
         [MaxLength(50, ErrorMessage = "标题不能超过50个字符")]
         string Title, 
         string Content, 
-        int? CategoryId
+        int? CategoryId,
+        string[]? Tags
     );
 }
