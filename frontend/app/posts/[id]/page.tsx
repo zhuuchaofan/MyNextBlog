@@ -50,16 +50,16 @@ export default async function PostPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* 1. Hero Image / Header Background */}
-      <div className="relative w-full h-[40vh] md:h-[50vh] bg-gray-900 overflow-hidden">
+      <div className="relative w-full min-h-[40vh] md:min-h-[50vh] bg-gray-900 overflow-hidden flex flex-col justify-center">
         {post.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img 
             src={post.coverImage} 
             alt={post.title} 
-            className="w-full h-full object-cover opacity-60 blur-sm scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 blur-sm scale-105"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 opacity-80"></div>
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 opacity-80"></div>
         )}
         
         {/* Back Button Overlay */}
@@ -72,7 +72,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Title Overlay */}
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10 mt-8">
+        <div className="relative z-10 flex flex-col items-center text-center px-4 mt-8 pb-32 pt-20">
            <div className="space-y-4 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
              <Link href={`/categories/${post.categoryId}`}>
                 <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none px-3 py-1 mb-4">
