@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer; // Add this
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyTechBlog.Services;
 
 namespace MyTechBlog.Controllers.Api;
 
-[Authorize(Roles = "Admin")] // 只有管理员能添加分类
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")] // Add Scheme
 [Route("api/[controller]")]
 [ApiController]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase

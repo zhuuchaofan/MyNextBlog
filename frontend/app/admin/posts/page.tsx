@@ -77,8 +77,8 @@ export default function AdminPostsPage() {
       const res = await deletePost(token, postToDelete.id);
       if (res.success) {
         toast.success('删除成功');
-        // 重新加载当前页，或者简单过滤
-        setPosts(posts.filter(p => p.id !== postToDelete.id));
+        // 重新加载列表以更新分页状态 (totalCount 等)
+        loadPosts(page); 
       } else {
         toast.error('删除失败: ' + res.message);
       }
