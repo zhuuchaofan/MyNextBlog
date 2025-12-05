@@ -70,10 +70,10 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden">
       
       {/* Hero Section - 统一风格 */}
-      <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 isolate">
+      <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 isolate overflow-hidden">
         {/* 背景装饰 */}
         <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-orange-200 to-pink-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-80 h-80 bg-gradient-to-tr from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>

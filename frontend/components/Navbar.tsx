@@ -157,7 +157,7 @@ export default function Navbar() {
                </DropdownMenu>
              ) : (
                <Link href="/login">
-                 <Button variant="outline" size="sm" className="rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2 whitespace-nowrap">
+                 <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2 whitespace-nowrap">
                    登录
                  </Button>
                </Link>
