@@ -70,7 +70,7 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
       
       {/* Hero Section - 统一风格 */}
       <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 isolate overflow-hidden">
