@@ -127,10 +127,6 @@ export default async function PostPage({ params }: { params: { id: string } }) {
 
               {/* Comments Section */}
               <div id="comments" className="max-w-3xl mx-auto">
-                 <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-                   <MessageSquare className="w-5 h-5 text-orange-500" /> 
-                   评论区
-                 </h3>
                  <div className="bg-gray-50 rounded-3xl p-6 md:p-8">
                     <CommentsSection postId={post.id} />
                  </div>

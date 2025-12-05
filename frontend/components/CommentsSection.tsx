@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { fetchComments, submitComment, Comment } from '@/lib/api';
 import { MessageSquare, User, Send } from 'lucide-react';
+import { toast } from "sonner";
 
 export default function CommentsSection({ postId }: { postId: number }) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -40,19 +41,35 @@ export default function CommentsSection({ postId }: { postId: number }) {
         setComments([data.comment, ...comments]);
         setContent(''); // 清空输入框
         // guestName 不清空，方便连续回复
+        toast.success("评论发表成功！");
       } else {
-        alert('提交失败：' + data.message);
+        toast.error('提交失败：' + data.message);
       }
     } catch (error) {
       console.error(error);
-      alert('网络错误，请稍后重试');
+      toast.error('网络错误，请稍后重试');
     } finally {
       setSubmitting(false);
     }
   };
 
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <div className="max-w-3xl mx-auto mt-16">
+    <div className="max-w-3xl mx-auto">
       <div className="flex items-center gap-2 mb-8">
         <MessageSquare className="w-6 h-6 text-orange-500" />
         <h2 className="text-2xl font-bold text-gray-900">评论区 ({comments.length})</h2>
@@ -103,16 +120,16 @@ export default function CommentsSection({ postId }: { postId: number }) {
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-4 group">
               <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
-                <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName}`} />
-                <AvatarFallback>{comment.guestName[0]}</AvatarFallback>
+                <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} />
+                <AvatarFallback>{(comment.guestName && comment.guestName[0]) || 'G'}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="bg-white p-4 rounded-r-2xl rounded-bl-2xl shadow-sm border border-gray-100 group-hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-800">{comment.guestName}</span>
-                    <span className="text-xs text-gray-400">{comment.createTime}</span>
+                    <span className="font-bold text-gray-800">{comment.guestName || '匿名网友'}</span>
+                    <span className="text-xs text-gray-400">{formatDate(comment.createTime)}</span>
                   </div>
-                  <p className="text-gray-600 leading-relaxed text-sm">{comment.content}</p>
+                  <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">{comment.content}</p>
                 </div>
               </div>
             </div>
