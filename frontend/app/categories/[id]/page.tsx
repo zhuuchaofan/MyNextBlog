@@ -16,32 +16,47 @@ interface Post {
   coverImage?: string;
 }
 
-// 获取分类下的文章
-async function getCategoryPosts(categoryId: string) {
+// 获取分类下的文章和分类详情
+async function getCategoryData(categoryId: string) {
+  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
+  const postsUrl = `${baseUrl}/api/posts?categoryId=${categoryId}`;
+  const categoryUrl = `${baseUrl}/api/categories/${categoryId}`;
+  
   try {
-    // 使用服务端 fetch
-    // 注意：这里用 127.0.0.1:5095 直接请求后端，因为这是 Server Component
-    const res = await fetch(`http://127.0.0.1:5095/api/posts?categoryId=${categoryId}`, {
-      next: { revalidate: 60 } 
-    });
+    const [postsRes, categoryRes] = await Promise.all([
+      fetch(postsUrl, { next: { revalidate: 60 } }),
+      fetch(categoryUrl, { next: { revalidate: 60 } })
+    ]);
     
-    if (!res.ok) return { posts: [], categoryName: 'Unknown' };
-    
-    const json = await res.json();
-    // API 目前没直接返回 Category 详情，只返回了文章列表。
-    // 我们取第一篇文章的 category 字段作为页面标题（如果列表为空，标题就没法显示了，这是个小瑕疵，以后可以加 GetCategoryById API）
-    const posts = json.data as Post[];
-    const categoryName = posts.length > 0 ? posts[0].category : '分类';
+    let posts: Post[] = [];
+    let categoryName = `分类 ${categoryId}`;
+
+    if (postsRes.ok) {
+      const postsJson = await postsRes.json();
+      if (postsJson.success) posts = postsJson.data;
+    } else {
+      console.error(`Fetch posts failed: ${postsRes.status} for URL: ${postsUrl}`);
+    }
+
+    if (categoryRes.ok) {
+      const categoryJson = await categoryRes.json();
+      if (categoryJson.success) categoryName = categoryJson.data.name;
+    } else {
+       // 如果获取分类详情失败，但获取到了文章，尝试从文章中提取分类名
+       if (posts.length > 0) categoryName = posts[0].category;
+       console.error(`Fetch category failed: ${categoryRes.status} for URL: ${categoryUrl}`);
+    }
 
     return { posts, categoryName };
   } catch (error) {
+    console.error(`Fetch category data error`, error);
     return { posts: [], categoryName: 'Unknown' };
   }
 }
 
 export default async function CategoryPage({ params }: { params: { id: string } }) {
   const resolvedParams = await params;
-  const { posts, categoryName } = await getCategoryPosts(resolvedParams.id);
+  const { posts, categoryName } = await getCategoryData(resolvedParams.id);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-8">

@@ -34,6 +34,18 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(new { success = true, data = categories });
     }
 
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var category = await categoryService.GetByIdAsync(id);
+        if (category == null)
+        {
+            return NotFound(new { success = false, message = "分类不存在" });
+        }
+        return Ok(new { success = true, data = category });
+    }
+
     // DTO (Data Transfer Object) 用于接收前端数据
     public record CreateCategoryDto(string Name);
 }

@@ -11,6 +11,11 @@ public class CategoryService(AppDbContext context) : ICategoryService
         return await context.Categories.OrderBy(c => c.Name).ToListAsync();
     }
 
+    public async Task<Category?> GetByIdAsync(int id)
+    {
+        return await context.Categories.FindAsync(id);
+    }
+
     public async Task<Category> AddCategoryAsync(string name)
     {
         var category = new Category { Name = name.Trim() };
