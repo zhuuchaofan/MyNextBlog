@@ -24,17 +24,36 @@ interface Post {
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [popularTags, setPopularTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    // Fetch posts
-    fetch('/api/backend/posts')
+  const loadPosts = (pageNo: number, append: boolean = false) => {
+    setLoading(true);
+    fetch(`/api/backend/posts?page=${pageNo}&pageSize=10`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) setPosts(data.data);
+        if (data.success) {
+          if (append) {
+            setPosts(prev => [...prev, ...data.data]);
+          } else {
+            setPosts(data.data);
+          }
+          
+          if (data.meta) {
+            setHasMore(data.meta.hasMore);
+          } else {
+            setHasMore(data.data.length === 10);
+          }
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    // Initial load
+    loadPosts(1);
 
     // Fetch tags
     fetchPopularTags()
@@ -43,6 +62,12 @@ export default function Home() {
       })
       .catch(console.error);
   }, []);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadPosts(nextPage, true);
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
@@ -115,7 +140,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {loading ? (
+          {loading && posts.length === 0 ? (
             <div className="space-y-6">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-3xl"></div>
@@ -174,6 +199,21 @@ export default function Home() {
                   </div>
                 </Card>
               ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="text-center mt-12">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="rounded-full px-8 border-gray-200 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all shadow-sm"
+                onClick={handleLoadMore}
+                disabled={loading}
+              >
+                {loading ? '加载中...' : '加载更多文章'}
+              </Button>
             </div>
           )}
         </div>
