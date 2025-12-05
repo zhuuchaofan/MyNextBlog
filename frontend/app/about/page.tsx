@@ -3,18 +3,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Github, Mail, Twitter, Code2, Database, Layout, Server, Terminal, Cpu } from "lucide-react";
 import Link from "next/link";
-import { SITE_CONFIG, PETS } from "@/lib/constants";
+import { SITE_CONFIG, PETS, SKILLS, BOOKS } from "@/lib/constants";
+
+const iconMap: Record<string, React.ReactNode> = {
+  Server: <Server className="w-4 h-4" />,
+  Layout: <Layout className="w-4 h-4" />,
+  Cpu: <Cpu className="w-4 h-4" />,
+  Database: <Database className="w-4 h-4" />,
+  Terminal: <Terminal className="w-4 h-4" />,
+  Code2: <Code2 className="w-4 h-4" />,
+};
 
 export default function AboutPage() {
-  const skills = [
-    { name: ".NET Core / C#", level: 95, icon: <Server className="w-4 h-4" /> },
-    { name: "React / Next.js", level: 85, icon: <Layout className="w-4 h-4" /> },
-    { name: "Docker / K8s", level: 80, icon: <Cpu className="w-4 h-4" /> },
-    { name: "SQL / NoSQL", level: 85, icon: <Database className="w-4 h-4" /> },
-    { name: "Linux Ops", level: 75, icon: <Terminal className="w-4 h-4" /> },
-    { name: "TypeScript", level: 90, icon: <Code2 className="w-4 h-4" /> },
-  ];
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-12">
       
@@ -50,8 +50,10 @@ export default function AboutPage() {
                 <Twitter className="w-4 h-4" /> Twitter
               </Link>
             </Button>
-            <Button variant="outline" className="rounded-full gap-2">
-              <Mail className="w-4 h-4" /> 联系我
+            <Button variant="outline" className="rounded-full gap-2" asChild>
+              <Link href={`mailto:${SITE_CONFIG.social.email}`}>
+                <Mail className="w-4 h-4" /> 联系我
+              </Link>
             </Button>
           </div>
         </div>
@@ -67,11 +69,11 @@ export default function AboutPage() {
               技能树
             </h2>
             <div className="space-y-4">
-              {skills.map(skill => (
+              {SKILLS.map(skill => (
                 <div key={skill.name} className="group">
                    <div className="flex justify-between text-sm mb-1">
                      <span className="font-medium text-gray-700 flex items-center gap-2">
-                       {skill.icon} {skill.name}
+                       {iconMap[skill.icon]} {skill.name}
                      </span>
                      <span className="text-gray-400 font-mono">{skill.level}%</span>
                    </div>
@@ -92,7 +94,7 @@ export default function AboutPage() {
               在读/想读
             </h2>
             <div className="flex flex-wrap gap-2">
-               {["重构", "DDD 实战", "高性能 MySQL", "深入理解计算机系统"].map(book => (
+               {BOOKS.map(book => (
                  <Badge key={book} variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-default">
                    📖 {book}
                  </Badge>
