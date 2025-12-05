@@ -170,7 +170,7 @@ public class PostsApiController(IPostService postService) : ControllerBase
     public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount, string? CoverImage);
 
     public record CreatePostDto(
-        [MaxLength(100, ErrorMessage = "标题不能超过100个字符")]
+        [MaxLength(50, ErrorMessage = "标题不能超过50个字符")]
         string Title, 
         string Content, 
         int? CategoryId

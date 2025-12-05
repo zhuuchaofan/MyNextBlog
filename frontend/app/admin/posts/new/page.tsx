@@ -83,13 +83,13 @@ export default function NewPostPage() {
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <Label htmlFor="title" className="text-lg font-semibold">文章标题</Label>
-            <span className={`text-sm ${title.length > 90 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-              {title.length}/100
+            <span className={`text-sm ${title.length > 40 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+              {title.length}/50
             </span>
           </div>
           <Input 
             id="title" 
-            maxLength={100}
+            maxLength={50}
             className="text-2xl py-6 font-medium border-transparent bg-white shadow-sm hover:border-orange-200 focus:border-orange-500 transition-all"
             placeholder="请输入引人入胜的标题..." 
             value={title}
