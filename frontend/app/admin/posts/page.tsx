@@ -97,11 +97,11 @@ export default function AdminPostsPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Desktop View: Table */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50/50">
-              <TableHead className="w-[50px]">ID</TableHead>
               <TableHead>标题</TableHead>
               <TableHead>分类</TableHead>
               <TableHead>作者</TableHead>
@@ -112,7 +112,6 @@ export default function AdminPostsPage() {
           <TableBody>
             {posts.map((post) => (
               <TableRow key={post.id}>
-                <TableCell className="font-medium">{post.id}</TableCell>
                 <TableCell>
                   <Link href={`/posts/${post.id}`} target="_blank" className="hover:text-orange-600 flex items-center gap-2 group">
                     {post.title}
@@ -135,7 +134,7 @@ export default function AdminPostsPage() {
                       variant="destructive" 
                       size="sm" 
                       className="h-8 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:text-red-700"
-                      onClick={() => setPostToDelete(post)} // 点击时只设置状态，不执行逻辑
+                      onClick={() => setPostToDelete(post)} 
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -145,6 +144,41 @@ export default function AdminPostsPage() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile View: Cards */}
+      <div className="grid gap-4 md:hidden">
+        {posts.map((post) => (
+          <div key={post.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
+             <div className="flex justify-between items-start gap-2">
+                <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight flex-1">
+                  <Link href={`/posts/${post.id}`} className="hover:text-orange-600 transition-colors">
+                    {post.title}
+                  </Link>
+                </h3>
+                <Badge variant="secondary" className="shrink-0">{post.category || '未分类'}</Badge>
+             </div>
+             <div className="text-xs text-gray-500 flex items-center justify-between border-b border-gray-50 pb-3">
+                <span>{post.author}</span>
+                <span>{new Date(post.createTime).toLocaleDateString()}</span>
+             </div>
+             <div className="flex gap-3 pt-1">
+                <Link href={`/admin/posts/${post.id}/edit`} className="flex-1">
+                   <Button variant="outline" size="sm" className="w-full h-9">
+                     <Edit className="w-3 h-3 mr-2" /> 编辑
+                   </Button>
+                </Link>
+                <Button 
+                   variant="destructive" 
+                   size="sm" 
+                   className="flex-1 h-9 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:text-red-700"
+                   onClick={() => setPostToDelete(post)}
+                >
+                   <Trash2 className="w-3 h-3 mr-2" /> 删除
+                </Button>
+             </div>
+          </div>
+        ))}
       </div>
 
       {/* 删除确认弹窗 */}
