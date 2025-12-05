@@ -38,7 +38,7 @@ export default function Home() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
       
       {/* Hero Section - 统一风格 */}
-      <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 overflow-hidden isolate">
+      <div className="relative bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 border border-white mb-16 isolate">
         {/* 背景装饰 */}
         <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-orange-200 to-pink-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-80 h-80 bg-gradient-to-tr from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
@@ -53,8 +53,9 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
               {PETS.qiuqiu.name} & {PETS.pudding.name}的 <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">
-                技术后花园 🏡
+                技术后花园
               </span>
+              <span className="ml-2 text-4xl md:text-6xl align-middle">🏡</span>
             </h1>
             
             <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
@@ -81,12 +82,10 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white rounded-full animate-pulse"></div>
             <div className="relative w-full h-full bg-white/50 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden">
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={PETS.qiuqiu.avatar} alt={PETS.qiuqiu.name} className="w-full h-full object-cover" />
-               <div className="absolute -bottom-6 -right-6 bg-white p-2 rounded-2xl shadow-lg animate-bounce duration-1000 border-4 border-white">
-                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">
-                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                   <img src={PETS.pudding.avatar} alt={PETS.pudding.name} className="w-full h-full object-cover" />
-                 </div>
+               <img src={PETS.qiuqiu.avatar} alt={PETS.qiuqiu.name} className="w-full h-full object-cover rounded-3xl" />
+               <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl overflow-hidden shadow-2xl animate-bounce duration-1000">
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img src={PETS.pudding.avatar} alt={PETS.pudding.name} className="w-full h-full object-cover" />
                </div>
             </div>
           </div>
