@@ -1,82 +1,77 @@
 'use client';
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Camera, Heart } from "lucide-react";
+import { useState, useEffect } from 'react';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import { Camera, Image as ImageIcon } from 'lucide-react';
 
-// 模拟相册数据
-const CAT_PHOTOS = [
-  { id: 1, src: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800&auto=format&fit=crop", alt: "好奇的猫猫", title: "暗中观察", likes: 120 },
-  { id: 2, src: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?q=80&w=800&auto=format&fit=crop", alt: "伸懒腰", title: "午后小憩", likes: 89 },
-  { id: 3, src: "https://images.unsplash.com/photo-1495360019602-e05980bf6f90?q=80&w=800&auto=format&fit=crop", alt: "两只猫", title: "形影不离", likes: 234 },
-  { id: 4, src: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?q=80&w=800&auto=format&fit=crop", alt: "墨镜猫", title: "酷盖", likes: 567 },
-  { id: 5, src: "https://images.unsplash.com/photo-1529778873920-4da4926a7071?q=80&w=800&auto=format&fit=crop", alt: "躲猫猫", title: "你看不到我", likes: 45 },
-  { id: 6, src: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=800&auto=format&fit=crop", alt: "橘猫", title: "大橘为重", likes: 888 },
-  { id: 7, src: "https://images.unsplash.com/photo-1506755855567-92ff770e8d00?q=80&w=800&auto=format&fit=crop", alt: "深邃眼神", title: "思考喵生", likes: 123 },
-  { id: 8, src: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?q=80&w=800&auto=format&fit=crop", alt: "小奶猫", title: "还是个宝宝", likes: 321 },
-  { id: 9, src: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?q=80&w=800&auto=format&fit=crop", alt: "黑猫", title: "黑夜骑士", likes: 77 },
-];
+interface GalleryImage {
+  id: number;
+  src: string;
+  alt: string;
+}
 
 export default function GalleryPage() {
-  const [selectedPhoto, setSelectedPhoto] = useState<typeof CAT_PHOTOS[0] | null>(null);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [index, setIndex] = useState(-1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/backend/gallery?pageSize=100')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setImages(data.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-12 space-y-4">
-        <Badge variant="secondary" className="bg-pink-100 text-pink-700 hover:bg-pink-200">
-          📸 喵星人图鉴
-        </Badge>
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
-          球球 & 布丁的<span className="text-pink-500">私房照</span>
-        </h1>
-        <p className="text-gray-500 max-w-2xl mx-auto">
-          记录每一刻的可爱与捣蛋。这里没有技术代码，只有毛茸茸的治愈力量。
-        </p>
-      </div>
-
-      {/* Masonry Layout using CSS Columns */}
-      <div className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6">
-        {CAT_PHOTOS.map((photo) => (
-          <div key={photo.id} className="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
-            <Dialog>
-              <DialogTrigger asChild>
-                <div className="cursor-zoom-in relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={photo.src} 
-                    alt={photo.alt} 
-                    className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                    <h3 className="text-white font-bold text-lg translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      {photo.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-white/80 mt-1 translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-75">
-                      <Heart className="w-4 h-4 fill-white" /> {photo.likes}
-                    </div>
-                  </div>
-                </div>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={photo.src} 
-                  alt={photo.alt} 
-                  className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
-                />
-                <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                   <div className="bg-black/50 backdrop-blur-md text-white px-4 py-2 rounded-full flex items-center gap-2">
-                      <Camera className="w-4 h-4" />
-                      <span>{photo.title}</span>
-                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-12 min-h-screen">
+       <header className="text-center mb-16 space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-orange-600 rounded-full mb-4">
+            <Camera className="w-8 h-8" />
           </div>
-        ))}
-      </div>
+          <h1 className="text-4xl font-bold text-gray-900">猫咪相册</h1>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            这里收集了所有在博客文章中出现过的猫主子照片。每一张照片背后，都有一段关于代码与猫的故事。
+          </p>
+       </header>
+
+       {loading ? (
+         <div className="text-center py-20 text-gray-400">加载中...</div>
+       ) : images.length === 0 ? (
+         <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">暂无照片</p>
+            <p className="text-sm text-gray-400 mt-2">发布文章并打上“猫咪”标签，照片就会出现在这里哦！</p>
+         </div>
+       ) : (
+         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+           {images.map((img, i) => (
+             <div key={img.id} className="break-inside-avoid mb-6 group relative cursor-zoom-in" onClick={() => setIndex(i)}>
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img 
+                 src={img.src} 
+                 alt={img.alt} 
+                 className="w-full rounded-2xl shadow-sm group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1" 
+                 loading="lazy"
+               />
+               {/* Overlay Caption */}
+               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-2xl flex items-end p-4 opacity-0 group-hover:opacity-100">
+                 <p className="text-white text-sm font-medium truncate w-full drop-shadow-md">{img.alt}</p>
+               </div>
+             </div>
+           ))}
+         </div>
+       )}
+
+       <Lightbox
+        open={index >= 0}
+        index={index}
+        close={() => setIndex(-1)}
+        slides={images}
+      />
     </div>
   );
 }

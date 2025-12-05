@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, Image as ImageIcon, Eye, Code, Quote, Link as LinkIcon } from 'lucide-react';
 import 'highlight.js/styles/github-dark.css'; 
 import { useAuth } from '@/context/AuthContext';
+import imageCompression from 'browser-image-compression'; // Import
 
 interface MarkdownEditorProps {
   value: string;
@@ -49,9 +50,25 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
     insertText(placeholder);
 
     try {
+      // 压缩配置
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+
+      // 压缩图片
+      const compressedFile = await imageCompression(file, options);
+      // 创建一个新的 File 对象，保留原名但后缀改为 .webp (如果转换了的话)
+      // browser-image-compression 返回的是 Blob 或 File。
+      // 为了稳妥，我们可以重新包装一下，或者直接传，但要注意文件名后缀。
+      const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+      const uploadFile = new File([compressedFile], newFileName, { type: 'image/webp' });
+
       // 2. 构建 FormData
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', uploadFile);
 
       // 3. 上传
       const res = await fetch('/api/backend/upload', {
@@ -72,6 +89,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
       onChange(newContent);
 
     } catch (error) {
+      console.error(error);
       alert('图片上传失败');
       // 移除占位符
       const newContent = textareaRef.current?.value.replace(placeholder, '') || '';

@@ -18,13 +18,14 @@ public class PostsApiController(IPostService postService, ITagService tagService
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10, 
         [FromQuery] string? search = null,
+        [FromQuery] string? tag = null,
         [FromQuery] int? categoryId = null)
     {
         // 管理员可以看到隐藏文章
         bool isAdmin = User.IsInRole("Admin");
         
         // 1. 获取所有符合条件的文章
-        var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search);
+        var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search, tagName: tag);
 
         var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);

@@ -10,7 +10,7 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
 
     // 构造函数注入数据库上下文
     // 获取所有文章
-    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null)
+    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
         // 对应之前的 Index 逻辑
         var query = context.Posts.AsQueryable();
@@ -28,6 +28,11 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(tagName))
+        {
+            query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
         }
 
         return await query

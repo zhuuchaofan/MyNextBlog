@@ -22,13 +22,21 @@ interface Post {
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
+  const tag = searchParams.get('tag');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    let url = '';
     if (query) {
+      url = `/api/backend/posts?search=${encodeURIComponent(query)}`;
+    } else if (tag) {
+      url = `/api/backend/posts?tag=${encodeURIComponent(tag)}`;
+    }
+
+    if (url) {
       setLoading(true);
-      fetch(`/api/backend/posts?search=${encodeURIComponent(query)}`)
+      fetch(url)
         .then(res => res.json())
         .then(data => {
           if (data.success) setPosts(data.data);
@@ -38,9 +46,9 @@ function SearchResults() {
     } else {
       setPosts([]);
     }
-  }, [query]);
+  }, [query, tag]);
 
-  if (!query) {
+  if (!query && !tag) {
     return (
       <div className="text-center py-20">
         <SearchIcon className="w-16 h-16 text-gray-200 mx-auto mb-4" />
@@ -53,7 +61,11 @@ function SearchResults() {
     <div className="space-y-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          搜索: <span className="text-orange-600">"{query}"</span>
+          {tag ? (
+            <>标签: <span className="text-orange-600">#{tag}</span></>
+          ) : (
+            <>搜索: <span className="text-orange-600">"{query}"</span></>
+          )}
         </h1>
         <p className="text-gray-500 mt-2">找到 {posts.length} 个相关结果</p>
       </header>

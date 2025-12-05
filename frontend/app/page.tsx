@@ -127,11 +127,13 @@ export default function Home() {
                 <Card key={post.id} className="group overflow-hidden border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white rounded-3xl ring-1 ring-gray-100">
                   <div className="flex flex-col md:flex-row h-full">
                      {post.coverImage && (
-                        <div className="md:w-64 h-48 md:h-auto bg-gray-50 relative overflow-hidden">
-                          <Link href={`/posts/${post.id}`} className="block w-full h-full">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                          </Link>
+                        <div className="md:w-64 h-48 md:h-auto relative p-3">
+                          <div className="w-full h-full relative rounded-2xl overflow-hidden">
+                            <Link href={`/posts/${post.id}`} className="block w-full h-full">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            </Link>
+                          </div>
                         </div>
                      )}
                      
@@ -213,7 +215,7 @@ export default function Home() {
                     <span className="text-sm text-gray-400">暂无标签</span>
                  ) : (
                     popularTags.map(tag => (
-                     <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`}>
+                     <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
                        <Badge variant="secondary" className="bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-orange-600 cursor-pointer transition-colors rounded-lg px-3 py-1.5 font-normal">
                          # {tag}
                        </Badge>

@@ -5,7 +5,7 @@ namespace MyTechBlog.Services;
 public interface IPostService
 {
     // 定义这个服务能干什么
-    Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null);
+    Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null);
     Task<Post?> GetPostByIdAsync(int id);
     Task AddPostAsync(Post post);
     Task UpdatePostAsync(Post post);
