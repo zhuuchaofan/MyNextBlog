@@ -21,7 +21,7 @@ export default function AboutPage() {
       <div className="flex flex-col md:flex-row items-center gap-12 mb-20">
         <div className="relative w-48 h-48 md:w-64 md:h-64 flex-shrink-0">
            <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-           <div className="relative w-full h-full bg-white rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-8xl select-none bg-cover bg-center" style={{backgroundImage: 'url("https://api.dicebear.com/7.x/avataaars/svg?seed=chaofan")'}}>
+           <div className="relative w-full h-full bg-white rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-8xl select-none bg-cover bg-center" style={{backgroundImage: 'url("https://picture.zhuchaofan.online/CAT/boy_01.png")'}}>
              {/* Placeholder if image fails */}
            </div>
            <div className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg text-2xl border border-orange-100">
@@ -122,8 +122,9 @@ export default function AboutPage() {
                 {/* QiuQiu */}
                 <div className="bg-white rounded-2xl p-6 border border-orange-100 hover:shadow-md transition-shadow flex gap-4 items-start relative overflow-hidden">
                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full blur-xl"></div>
-                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-4xl flex-shrink-0 border-2 border-white shadow-sm z-10">
-                     🐱
+                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm z-10 overflow-hidden p-1">
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                     <img src="https://picture.zhuchaofan.online/CAT/cat07_moyou_kijitora.png" alt="球球" className="w-full h-full object-contain" />
                    </div>
                    <div className="relative z-10">
                       <h3 className="font-bold text-lg">球球 (QiuQiu)</h3>
@@ -137,8 +138,9 @@ export default function AboutPage() {
                 {/* Pudding */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow flex gap-4 items-start relative overflow-hidden">
                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-gray-50 rounded-full blur-xl"></div>
-                   <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center text-4xl flex-shrink-0 border-2 border-white shadow-sm z-10">
-                     🍮
+                   <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm z-10 overflow-hidden p-1">
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                     <img src="https://picture.zhuchaofan.online/CAT/cat01_moyou_black.png" alt="布丁" className="w-full h-full object-contain" />
                    </div>
                    <div className="relative z-10">
                       <h3 className="font-bold text-lg">布丁 (Pudding)</h3>

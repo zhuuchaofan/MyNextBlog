@@ -88,8 +88,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 relative">
-      {/* 文章正文 */}
-      <article className="flex-1 prose prose-lg prose-stone max-w-none bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+      {/* 文章正文 - 调整字体大小：默认 prose (16px)，移动端保持舒适 */}
+      <article className="flex-1 prose prose-stone max-w-none bg-white p-6 md:p-12 rounded-3xl shadow-sm border border-gray-100">
         <ReactMarkdown 
           remarkPlugins={[remarkGfm]} 
           rehypePlugins={[rehypeHighlight]}

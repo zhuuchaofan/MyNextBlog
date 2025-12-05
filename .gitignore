@@ -376,3 +376,13 @@ FodyWeavers.xsd
 # Ignore sensitive application configuration
 appsettings.Development.json
 
+.env
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# User Uploads
+wwwroot/uploads/

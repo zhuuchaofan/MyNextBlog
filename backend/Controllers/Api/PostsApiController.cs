@@ -81,7 +81,8 @@ public class PostsApiController(IPostService postService) : ControllerBase
                 post.CategoryId ?? 0, // <--- 修复：处理 null 值
                 post.Category?.Name,
                 post.User?.Username,
-                post.Comments?.Count ?? 0
+                post.Comments?.Count ?? 0,
+                ExtractCoverImage(post.Content) // <--- 新增：返回封面图
             )
         });
     }
@@ -165,7 +166,7 @@ public class PostsApiController(IPostService postService) : ControllerBase
     // === DTO 定义 ===
     public record PostSummaryDto(int Id, string Title, string Excerpt, DateTime CreateTime, int CategoryId, string? Category, string? Author, string? CoverImage);
     
-    public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount);
+    public record PostDetailDto(int Id, string Title, string Content, DateTime CreateTime, int CategoryId, string? Category, string? Author, int CommentCount, string? CoverImage);
 
     public record CreatePostDto(string Title, string Content, int? CategoryId);
 }

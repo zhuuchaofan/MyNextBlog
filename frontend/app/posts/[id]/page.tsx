@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Clock, ChevronLeft } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar, Clock, ChevronLeft, Share2, Heart, MessageSquare } from "lucide-react";
 import Link from 'next/link';
 import CommentsSection from '@/components/CommentsSection';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
@@ -15,20 +16,17 @@ interface PostDetail {
   categoryId: number;
   author?: string;
   commentCount: number;
+  coverImage?: string; // Added from backend update
 }
 
-// 获取文章详情数据
 async function getPost(id: string) {
   try {
-    // 注意：在服务器端请求 .NET 后端
     const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
     const res = await fetch(`${baseUrl}/api/posts/${id}`, {
-      // cache: 'no-store', // 开发时可以禁用缓存，上线时建议开启 revalidate
-      next: { revalidate: 60 } // ISR: 每 60 秒重新生成一次页面
+      next: { revalidate: 60 }
     });
 
     if (!res.ok) return undefined;
-
     const json = await res.json();
     if (!json.success) return undefined;
 
@@ -40,7 +38,6 @@ async function getPost(id: string) {
 }
 
 export default async function PostPage({ params }: { params: { id: string } }) {
-  // Next.js 15 中 params 是个 Promise，需要 await
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
@@ -48,54 +45,99 @@ export default async function PostPage({ params }: { params: { id: string } }) {
     notFound();
   }
 
-  return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-8">
-      {/* 顶部导航面包屑 */}
-      <div className="mb-8">
-        <Link href="/">
-          <Button variant="ghost" className="pl-0 text-gray-500 hover:text-orange-600">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回首页
-          </Button>
-        </Link>
-      </div>
+  const readingTime = Math.ceil(post.content.length / 300);
 
-      {/* 文章头部信息 */}
-      <header className="mb-10 text-center max-w-4xl mx-auto">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Link href={`/categories/${post.categoryId}`}>
-            <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer transition-colors">
-              {post.category || '未分类'}
-            </Badge>
+  return (
+    <div className="min-h-screen bg-white pb-20">
+      {/* 1. Hero Image / Header Background */}
+      <div className="relative w-full h-[40vh] md:h-[50vh] bg-gray-900 overflow-hidden">
+        {post.coverImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img 
+            src={post.coverImage} 
+            alt={post.title} 
+            className="w-full h-full object-cover opacity-60 blur-sm scale-105"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 opacity-80"></div>
+        )}
+        
+        {/* Back Button Overlay */}
+        <div className="absolute top-8 left-4 md:left-8 z-20">
+          <Link href="/">
+            <Button variant="secondary" size="sm" className="rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none">
+              <ChevronLeft className="w-4 h-4 mr-1" /> 返回首页
+            </Button>
           </Link>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-          {post.title}
-        </h1>
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <User className="w-4 h-4" />
-            <span>{post.author || '匿名'}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            <span>{new Date(post.createTime).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {/* 简单估算阅读时间：每 300 字 1 分钟 */}
-            <span>{Math.ceil(post.content.length / 300)} 分钟阅读</span>
-          </div>
-        </div>
-      </header>
 
-      {/* 文章正文 (包含 TOC) */}
-      <MarkdownRenderer content={post.content} />
-      
-      {/* 评论区 */}
-      <div className="mt-16 max-w-4xl mx-auto">
-         <div className="bg-orange-50/50 rounded-3xl p-8 border border-orange-100">
-            <CommentsSection postId={post.id} />
-         </div>
+        {/* Title Overlay */}
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10 mt-8">
+           <div className="space-y-4 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+             <Link href={`/categories/${post.categoryId}`}>
+                <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none px-3 py-1 mb-4">
+                  {post.category || '未分类'}
+                </Badge>
+             </Link>
+             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
+               {post.title}
+             </h1>
+             <div className="flex items-center justify-center gap-6 text-white/90 text-sm md:text-base">
+                <div className="flex items-center gap-2">
+                   <Avatar className="w-8 h-8 border-2 border-white/50">
+                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author || 'admin'}`} />
+                     <AvatarFallback>User</AvatarFallback>
+                   </Avatar>
+                   <span className="font-medium">{post.author || '匿名'}</span>
+                </div>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" /> {new Date(post.createTime).toLocaleDateString()}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> {readingTime} min read
+                </span>
+             </div>
+           </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl -mt-20 relative z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+           
+           {/* Left Sidebar: Interaction (Desktop) */}
+           <div className="hidden lg:flex lg:col-span-1 flex-col gap-4 items-center pt-32 sticky top-20 self-start">
+              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-pink-500 hover:bg-pink-50">
+                <Heart className="w-5 h-5" />
+              </Button>
+              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-blue-500 hover:bg-blue-50">
+                <Share2 className="w-5 h-5" />
+              </Button>
+              <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-gray-200 text-gray-500 hover:text-orange-500 hover:bg-orange-50" asChild>
+                <a href="#comments">
+                  <MessageSquare className="w-5 h-5" />
+                </a>
+              </Button>
+           </div>
+
+           {/* Main Content */}
+           <div className="lg:col-span-11 bg-white rounded-t-3xl md:rounded-3xl shadow-xl p-6 md:p-12 min-h-[500px]">
+              <MarkdownRenderer content={post.content} />
+              
+              <div className="border-t border-gray-100 my-12"></div>
+
+              {/* Comments Section */}
+              <div id="comments" className="max-w-3xl mx-auto">
+                 <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+                   <MessageSquare className="w-5 h-5 text-orange-500" /> 
+                   评论区
+                 </h3>
+                 <div className="bg-gray-50 rounded-3xl p-6 md:p-8">
+                    <CommentsSection postId={post.id} />
+                 </div>
+              </div>
+           </div>
+
+        </div>
       </div>
     </div>
   );

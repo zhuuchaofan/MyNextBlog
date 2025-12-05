@@ -140,7 +140,7 @@ export default function Home() {
                           </Link>
                         </h3>
                         
-                        <p className="text-gray-500 line-clamp-2 mb-6 flex-grow leading-relaxed">
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-grow leading-relaxed">
                           {post.excerpt || '暂无摘要...'}
                         </p>
                         
