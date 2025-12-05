@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 
 export default function Navbar() {
@@ -80,6 +80,43 @@ export default function Navbar() {
                         </DropdownMenuItem>
                       </Link>
                     ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => {setIsSearchOpen(true);}}>
+                      <Search className="w-4 h-4" />
+                      <span>搜索</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {user ? (
+                        <>
+                           <DropdownMenuLabel className="font-normal">
+                             <div className="flex flex-col space-y-1">
+                               <p className="text-sm font-medium leading-none">{user.username}</p>
+                               <p className="text-xs leading-none text-muted-foreground">
+                                 {user.role === 'Admin' ? '管理员' : '普通用户'}
+                               </p>
+                             </div>
+                           </DropdownMenuLabel>
+                           {user.role === 'Admin' && (
+                             <Link href="/admin">
+                                <DropdownMenuItem className="cursor-pointer gap-2">
+                                  <LayoutDashboard className="w-4 h-4" />
+                                  <span>管理后台</span>
+                                </DropdownMenuItem>
+                             </Link>
+                           )}
+                           <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-red-600">
+                             <LogOut className="w-4 h-4" />
+                             <span>退出登录</span>
+                           </DropdownMenuItem>
+                        </>
+                    ) : (
+                        <Link href="/login">
+                            <DropdownMenuItem className="cursor-pointer gap-2">
+                                <LogIn className="w-4 h-4" />
+                                <span>登录</span>
+                            </DropdownMenuItem>
+                        </Link>
+                    )}
                  </DropdownMenuContent>
                </DropdownMenu>
              </div>
@@ -120,7 +157,7 @@ export default function Navbar() {
                </DropdownMenu>
              ) : (
                <Link href="/login">
-                 <Button variant="outline" size="sm" className="rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2">
+                 <Button variant="outline" size="sm" className="rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2 whitespace-nowrap">
                    登录
                  </Button>
                </Link>
