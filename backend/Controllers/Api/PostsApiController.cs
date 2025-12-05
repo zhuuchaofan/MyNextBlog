@@ -167,8 +167,31 @@ public class PostsApiController(IPostService postService, ITagService tagService
     private static string GetExcerpt(string content)
     {
         if (string.IsNullOrEmpty(content)) return "";
-        // 简单去除 Markdown 符号
-        var plain = System.Text.RegularExpressions.Regex.Replace(content, "[#*`>]", "");
+
+        // 1. 移除图片 (![alt](url)) -> 空
+        var plain = System.Text.RegularExpressions.Regex.Replace(content, @"!\[.*?\]\(.*?\)", "");
+        
+        // 2. 移除代码块 (```...```) -> 空
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"```[\s\S]*?```", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+        
+        // 3. 移除行内代码 (`code`) -> code
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"`([^`]+)`", "$1");
+
+        // 4. 移除链接 ([text](url)) -> text
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\[([^\]]+)\]\(.*?\)", "$1");
+
+        // 5. 移除标题 (# Title) -> Title
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"^#+\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // 6. 移除粗体/斜体 (**text**, *text*) -> text
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"(\*\*|__|\*|_)(.*?)\1", "$2");
+
+        // 7. 移除引用 (> text) -> text
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"^>\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // 8. 压缩空白字符 (多个换行/空格变一个空格)
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s+", " ").Trim();
+
         return plain.Length > 150 ? plain.Substring(0, 150) + "..." : plain;
     }
 
