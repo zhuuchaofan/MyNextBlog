@@ -7,6 +7,8 @@
 
 **MyTechBlog** 是一个为开发者打造的、基于 **Headless（无头）架构** 的现代化博客系统。它将企业级的 **.NET 10 Web API** 后端与 极速的 **Next.js 15** 前端相结合，提供极致的性能和开发体验。
 
+项目已从传统的 MVC 架构成功迁移至彻底的前后端分离架构，实现了更灵活的扩展和更优的维护性。
+
 > **适合人群**：想搭建个人独立博客的开发者、想学习 .NET/Next.js 全栈开发的初学者、想体验 Headless 架构的极客。
 
 ---
@@ -24,6 +26,7 @@
   - [5. 初始化管理员账号](#5-初始化管理员账号-重要)
 - [💻 使用指南](#-使用指南)
 - [❓ 常见问题排查](#-常见问题排查)
+- [📅 未来规划](#-future-roadmap-未来规划)
 
 ---
 
@@ -32,11 +35,19 @@
 *   **彻底的前后端分离**: 前端只管页面，后端只管数据。结构清晰，易于维护。
 *   **所见即所得的 Markdown 编辑**: 
     *   支持 **Ctrl+V 粘贴图片**，自动上传到云端（R2）。
-    *   支持实时预览。
-*   **优雅的 UI 设计**: 使用 Tailwind CSS v4 和 shadcn/ui，默认支持响应式，手机访问也漂亮。
-*   **基于 JWT 的安全认证**: 只有登录并持有有效 Token 才能发布文章。
-*   **Docker 容器化**: 不用担心环境配置，一行命令跑起来。
-*   **低成本**: 数据库用 SQLite（文件型），图片存 Cloudflare R2（10GB 免费），几乎零成本托管。
+    *   内置预览模式，支持代码高亮。
+*   **优雅的 UI 设计**: 基于 Tailwind CSS v4 和 shadcn/ui 构建，响应式设计完美适配移动端。
+    *   ✅ **移动端适配**: 管理后台自动切换卡片式布局，无横向滚动条。
+*   **基于 JWT 的安全认证**: 
+    *   核心 API 均采用 JWT (Bearer Token) 认证，确保无状态和安全性。
+    *   *注：为了兼容性和部分旧有逻辑，Cookie 认证仍作为默认 Scheme 保留，但 API 交互已全面转向 JWT。*
+*   **功能完善的文章管理**:
+    *   ✅ **分类管理**: 发文时支持直接新建分类。
+    *   ✅ **标签系统**: 动态标签输入，侧边栏热门标签自动统计。
+    *   ✅ **全文搜索**: 支持标题和内容的关键词搜索。
+    *   ✅ **分页加载**: 后台文章管理支持服务端分页，性能无忧。
+*   **Docker 容器化**: 提供完整的 `docker-compose` 配置，一键拉起前后端及数据库。
+*   **低成本托管**: 数据库采用 SQLite（文件型），图片存储集成 Cloudflare R2（10GB 免费），适合个人站长。
 
 ---
 
@@ -45,7 +56,7 @@
 ```mermaid
 graph LR
     User[用户/浏览器] -->|访问 http:3000| Frontend[Next.js 前端容器]
-    Frontend -->|API 请求 http:8080| Backend[.NET API 后端容器]
+    Frontend -->|API 请求 (JWT)| Backend[.NET API 后端容器]
     Backend -->|读写数据| DB[(SQLite 数据库文件)]
     Backend -->|上传/读取图片| R2[Cloudflare R2 对象存储]
     
@@ -94,7 +105,7 @@ cd MyTechBlog
 1.  注册/登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)。
 2.  在左侧菜单点击 **R2**。
 3.  点击 **Create Bucket (创建存储桶)**，起个名字（比如 `my-blog-images`），位置选 `Automatic` 或离你近的，点击创建。
-4.  **获取密钥**：
+4.  **获取密钥**:
     *   回到 R2 主页，右侧点击 **Manage R2 API Tokens (管理 R2 API 令牌)**。
     *   点击 **Create API Token**。
     *   **Permissions**: 选择 **Admin Read & Write**。
@@ -103,7 +114,7 @@ cd MyTechBlog
         *   `Access Key ID`
         *   `Secret Access Key`
         *   `Endpoint` (这是你的 Service URL)
-5.  **设置公开访问**：
+5.  **设置公开访问**:
     *   回到你的存储桶 (`my-blog-images`) -> **Settings** -> **Public Access**。
     *   你可以开启 **R2.dev subdomain** (获得一个临时域名)，或者绑定你自己的自定义域名。
     *   记下这个域名，这是 `R2_PUBLIC_DOMAIN`。
@@ -147,12 +158,12 @@ docker compose up -d
 ### 5. 初始化管理员账号 (重要)
 首次启动后，数据库是空的。你需要注册一个用户并将其手动升级为管理员，才能进入后台写文章。
 
-1.  **注册用户**：
+1.  **注册用户**:
     *   访问 [http://localhost:3000/login](http://localhost:3000/login)。
     *   点击“没有账号？”，注册一个新用户（例如用户名 `admin`，密码 `123456`）。
     *   注册成功后会尝试登录，但此时你只是**普通用户**，看不到后台入口。
 
-2.  **升级为管理员**：
+2.  **升级为管理员**:
     *   我们需要直接修改数据库。由于数据库文件映射在本地 `data/blog.db`。
     *   你需要一个 SQLite 工具（推荐 [DB Browser for SQLite](https://sqlitebrowser.org/) 或 VSCode 插件）。
     *   **小白简单法** (使用 Docker 命令修改):
@@ -161,7 +172,6 @@ docker compose up -d
         # 进入后端容器并执行 SQL 更新命令
         docker exec -it myblog-backend sh -c "apt-get update && apk add sqlite && sqlite3 /app/data/blog.db \"UPDATE Users SET Role = 'Admin' WHERE Username = 'admin';\""
         ```
-        *(注：如果容器内没有 sqlite3，你可能需要先安装或者直接用本地工具打开 data/blog.db 修改)*
     *   **最稳妥法 (推荐)**:
         1. 下载 [DB Browser for SQLite](https://sqlitebrowser.org/)。
         2. 打开项目目录下的 `data/blog.db` 文件。
@@ -176,8 +186,10 @@ docker compose up -d
 ## 💻 使用指南
 
 *   **写文章**: 进入 [http://localhost:3000/admin](http://localhost:3000/admin)，点击右上角“新建文章”。支持 Markdown 语法。
-*   **上传图片**: 在编辑器中，直接 `Ctrl+V` 粘贴截图，或者拖拽图片到编辑区，图片会自动上传到 R2 并生成 Markdown 链接。
-*   **分类管理**: 目前分类是在写文章时自动创建或选择的。
+*   **分类与标签**: 
+    *   分类：点击 "+" 按钮可直接新建分类。
+    *   标签：输入标签名后按回车生成，支持多个标签。
+*   **上传图片**: 在编辑器中，直接 `Ctrl+V` 粘贴截图，或者拖拽图片到编辑区。
 *   **更换头像/猫咪图片**: 修改 `frontend/lib/constants.ts` 文件中的链接，然后重新构建。
 
 ---
@@ -207,13 +219,13 @@ docker compose up -d
 虽然目前系统已具备核心功能，但我们仍有宏大的计划：
 
 - [x] **🔍 全文搜索**: 实现基于关键词的文章搜索功能。
+- [x] **🏷️ 动态标签**: 从文章内容自动提取或统计热门标签。
+- [x] **📱 移动端适配**: 完善的管理后台移动端体验。
 - [ ] **🐱 猫咪相册**: 专属的瀑布流图片墙，展示更多猫片。
 - [ ] **🌙 暗黑模式**: 支持 Light/Dark 主题一键切换。
-- [x] **🏷️ 动态标签**: 从文章内容自动提取或统计热门标签。
 - [ ] **📑 文章目录**: 长文详情页增加悬浮目录 (TOC)。
 - [ ] **📡 RSS 订阅**: 支持 RSS/Atom 订阅源。
 - [ ] **📊 流量统计**: 集成简单的访问量统计功能。
-- [ ] **💖 用户点赞/收藏**: 增加文章互动功能。
 
 ---
 
