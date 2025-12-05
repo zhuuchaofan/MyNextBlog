@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -14,10 +15,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu } from 'lucide-react';
+import SearchDialog from '@/components/SearchDialog';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const navLinks = [
     { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },
@@ -28,6 +31,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-lg transition-all shadow-sm">
+      <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -48,7 +52,12 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex">
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex"
+               onClick={() => setIsSearchOpen(true)}
+             >
                 <Search className="w-5 h-5" />
              </Button>
              
