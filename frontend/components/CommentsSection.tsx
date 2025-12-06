@@ -87,7 +87,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
             <div className="flex-shrink-0">
                {user ? (
                  <Avatar className="w-12 h-12 border border-gray-100">
-                    <AvatarImage src={user.avatarUrl} />
+                    <AvatarImage src={user.avatarUrl} className="object-cover" />
                     <AvatarFallback>{user.username[0]}</AvatarFallback>
                  </Avatar>
                ) : (
@@ -142,7 +142,10 @@ export default function CommentsSection({ postId }: { postId: number }) {
             <div key={comment.id} className="flex gap-4 group">
               <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                 {/* 优先使用用户头像，否则使用 DiceBear */}
-                <AvatarImage src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} />
+                <AvatarImage 
+                  src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} 
+                  className="object-cover"
+                />
                 <AvatarFallback>{(comment.guestName && comment.guestName[0]) || 'G'}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
