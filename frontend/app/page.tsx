@@ -116,11 +116,22 @@ export default function Home() {
           <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white rounded-full animate-pulse"></div>
             <div className="relative w-full h-full bg-white/50 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={PETS.qiuqiu.avatar} alt={PETS.qiuqiu.name} className="w-full h-full object-cover rounded-3xl" />
+               <Image 
+                 src={PETS.qiuqiu.avatar} 
+                 alt={PETS.qiuqiu.name} 
+                 fill 
+                 priority={true} // Marked as LCP element
+                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                 className="object-cover rounded-3xl transition-transform duration-700 group-hover:scale-110" 
+               />
                <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl overflow-hidden shadow-2xl animate-bounce duration-1000">
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img src={PETS.pudding.avatar} alt={PETS.pudding.name} className="w-full h-full object-cover" />
+                 <Image 
+                   src={PETS.pudding.avatar} 
+                   alt={PETS.pudding.name} 
+                   fill 
+                   sizes="20vw" // Smaller image
+                   className="object-cover" 
+                 />
                </div>
             </div>
           </div>
