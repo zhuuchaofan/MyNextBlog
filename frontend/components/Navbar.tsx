@@ -57,6 +57,7 @@ export default function Navbar() {
                size="icon" 
                className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex"
                onClick={() => setIsSearchOpen(true)}
+               aria-label="搜索"
              >
                 <Search className="w-5 h-5" />
              </Button>
@@ -65,7 +66,7 @@ export default function Navbar() {
              <div className="md:hidden">
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" size="icon" className="text-gray-600">
+                   <Button variant="ghost" size="icon" className="text-gray-600" aria-label="打开导航菜单">
                      <Menu className="w-6 h-6" />
                    </Button>
                  </DropdownMenuTrigger>
@@ -156,7 +157,7 @@ export default function Navbar() {
                  </DropdownMenuContent>
                </DropdownMenu>
              ) : (
-               <Link href="/login">
+               <Link href="/login" aria-label="登录账号">
                  <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2 whitespace-nowrap">
                    登录
                  </Button>

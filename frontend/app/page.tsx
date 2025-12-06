@@ -180,7 +180,7 @@ export default function Home() {
                                 {post.category || '未分类'}
                              </Badge>
                           </Link>
-                          <span className="text-xs text-gray-400 font-medium flex items-center gap-1">
+                          <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>
                         </div>
@@ -196,12 +196,12 @@ export default function Home() {
                         </p>
                         
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
                              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">👤</div>
                              <span>{post.author || SITE_CONFIG.author}</span>
                           </div>
                           <Link href={`/posts/${post.id}`}>
-                            <span className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors group/btn">
+                            <span className="inline-flex items-center text-sm font-bold text-orange-700 hover:text-orange-800 transition-colors group/btn">
                               阅读全文 <ArrowRight className="w-4 h-4 ml-1 transform group-hover/btn:translate-x-1 transition-transform" />
                             </span>
                           </Link>
