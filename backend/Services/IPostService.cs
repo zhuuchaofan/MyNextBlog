@@ -1,6 +1,6 @@
-﻿using MyTechBlog.Models;
+﻿using MyNextBlog.Models;
 
-namespace MyTechBlog.Services;
+namespace MyNextBlog.Services;
 
 public interface IPostService
 {

@@ -2,7 +2,8 @@ services:
   # === 后端服务 (.NET API) ===
   backend:
     build: ./backend
-    container_name: myblog-backend
+    image: mynextblog-backend
+    container_name: mynextblog-backend
     restart: always
     ports:
       - "8080:8080"
@@ -34,7 +35,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: myblog-frontend
+    image: mynextblog-frontend
+    container_name: mynextblog-frontend
     restart: always
     ports:
       # 将宿主机的 3000 端口映射到容器的 3000

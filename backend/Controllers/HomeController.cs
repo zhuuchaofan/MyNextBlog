@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Models;
+using MyNextBlog.Models;
 
-namespace MyTechBlog.Controllers;
+namespace MyNextBlog.Controllers;
 
 public class HomeController(ILogger<HomeController> logger) : Controller
 {

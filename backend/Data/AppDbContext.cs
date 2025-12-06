@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using MyTechBlog.Models;
+using MyNextBlog.Models;
 
-namespace MyTechBlog.Data;
+namespace MyNextBlog.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {

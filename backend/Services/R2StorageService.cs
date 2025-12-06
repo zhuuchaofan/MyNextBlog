@@ -2,7 +2,7 @@ using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon.S3.Model;
 
-namespace MyTechBlog.Services;
+namespace MyNextBlog.Services;
 
 public class R2StorageService : IStorageService
 {

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Models;
-using MyTechBlog.Services;
+using MyNextBlog.Models;
+using MyNextBlog.Services;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations; // 引入这个是为了使用 [Required]
 
-namespace MyTechBlog.Models;
+namespace MyNextBlog.Models;
 
 public class Post
 {

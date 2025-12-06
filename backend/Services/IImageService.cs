@@ -1,4 +1,4 @@
-namespace MyTechBlog.Services;
+namespace MyNextBlog.Services;
 
 public interface IImageService
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MyTechBlog.Models;
+namespace MyNextBlog.Models;
 
 public class Comment
 {

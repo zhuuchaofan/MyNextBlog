@@ -1,5 +1,10 @@
 # GEMINI.md
 
+## Core Philosophy
+1.  **Follow Standards**: Adhere to established conventions (e.g., standard Tailwind classes, RESTful API patterns) to ensure maintainability and consistency.
+2.  **Simplicity**: Strive for the simplest code implementation that fully meets the requirement. Avoid over-engineering.
+3.  **Review**: Regularly review code and decisions to remove redundancy and ensure quality (as seen in the mobile layout fix iteration).
+
 ## Project Overview
 
 This is a modern, full-stack personal tech blog built with a **Headless Architecture**. 
@@ -41,9 +46,17 @@ The project has successfully migrated from a traditional MVC architecture to a H
 
 ## Development Workflows
 
-### Running the Project
-1.  Start Backend: `dotnet run`
-2.  Start Frontend: `cd client && npm run dev`
+### Running the Project (Docker)
+**CRITICAL RULE**: Since this project runs in Docker, **every time you modify code**, you must rebuild the containers to see changes. Local `npm run build` or `dotnet build` is not enough for the running service.
+
+1.  **Apply Changes**: `docker compose up -d --build`
+    *   This rebuilds both frontend and backend.
+2.  **View Logs**: `docker compose logs -f`
+
+### Local Development (Optional)
+If running locally without Docker:
+1.  Start Backend: `dotnet run` (Port 5095)
+2.  Start Frontend: `cd client && npm run dev` (Port 3000)
 
 ### Authentication Logic
 *   **Login**: `POST /api/backend/auth/login` -> Get Token -> Store in Context/LocalStorage.

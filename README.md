@@ -1,4 +1,4 @@
-# MyTechBlog - 现代全栈技术博客系统 🚀
+# MyNextBlog - 现代全栈技术博客系统 🚀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Next.js](https://img.shields.io/badge/Frontend-Next.js%2015-black)
@@ -98,8 +98,8 @@ graph LR
 
 克隆项目到本地：
 ```bash
-git clone https://github.com/your-username/MyTechBlog.git
-cd MyTechBlog
+git clone https://github.com/your-username/MyNextBlog.git
+cd MyNextBlog
 ```
 
 ### 2. 关键：配置云存储 (R2)
@@ -141,8 +141,8 @@ R2_PUBLIC_DOMAIN=https://你的公开访问域名.r2.dev
 # === 安全配置 ===
 # 随便乱打一串长字符作为密钥，越长越安全
 JWT_SECRET=MySuperSecretKeyForBlog_ChangeThisToSomethingRandom123!
-JWT_ISSUER=MyTechBlogServer
-JWT_AUDIENCE=MyTechBlogClient
+JWT_ISSUER=MyNextBlogServer
+JWT_AUDIENCE=MyNextBlogClient
 ```
 
 ### 4. 一键启动

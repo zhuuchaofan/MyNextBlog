@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MyTechBlog.Data;
-using MyTechBlog.Services;
+using MyNextBlog.Data;
+using MyNextBlog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -142,10 +142,10 @@ using (var scope = app.Services.CreateScope())
         if (!context.Categories.Any())
         {
             context.Categories.AddRange(
-                new MyTechBlog.Models.Category { Name = ".NET 技术" },
-                new MyTechBlog.Models.Category { Name = "架构心得" },
-                new MyTechBlog.Models.Category { Name = "前端开发" },
-                new MyTechBlog.Models.Category { Name = "生活随笔" }
+                new MyNextBlog.Models.Category { Name = ".NET 技术" },
+                new MyNextBlog.Models.Category { Name = "架构心得" },
+                new MyNextBlog.Models.Category { Name = "前端开发" },
+                new MyNextBlog.Models.Category { Name = "生活随笔" }
             );
             context.SaveChanges();
         }

@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${post.title} - MyTechBlog`,
+    title: `${post.title} - MyNextBlog`,
     description: post.content.substring(0, 160).replace(/[#*`]/g, '') + '...',
     openGraph: {
       title: post.title,

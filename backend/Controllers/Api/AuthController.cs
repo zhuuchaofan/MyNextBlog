@@ -4,9 +4,9 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using MyTechBlog.Data;
+using MyNextBlog.Data;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]

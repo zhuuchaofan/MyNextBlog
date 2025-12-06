@@ -1,5 +1,5 @@
 using Markdig;
-namespace MyTechBlog.Helpers;
+namespace MyNextBlog.Helpers;
 public static class MarkdownHelper
 {
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();

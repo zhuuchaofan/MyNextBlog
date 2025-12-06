@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MyTechBlog.Models;
+namespace MyNextBlog.Models;
 
 public class ImageAsset
 {

@@ -1,4 +1,4 @@
-﻿namespace MyTechBlog.Models;
+﻿namespace MyNextBlog.Models;
 
 public class Category
 {

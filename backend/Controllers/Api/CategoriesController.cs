@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer; // Add this
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Services;
+using MyNextBlog.Services;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")] // Add Scheme
 [Route("api/[controller]")]

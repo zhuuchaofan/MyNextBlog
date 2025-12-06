@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Models;
-using MyTechBlog.Services; // 引用服务层
+using MyNextBlog.Models;
+using MyNextBlog.Services; // 引用服务层
 using Microsoft.AspNetCore.Authorization;
 
-namespace MyTechBlog.Controllers;
+namespace MyNextBlog.Controllers;
 
 public class PostsController(IPostService postService) : Controller
 {

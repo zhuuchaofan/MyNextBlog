@@ -146,7 +146,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-8 text-center text-xs text-gray-400">
-            &copy; 2025 MyTechBlog. All rights reserved.
+            &copy; 2025 MyNextBlog. All rights reserved.
           </div>
         </div>
       </Card>

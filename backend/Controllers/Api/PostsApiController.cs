@@ -2,10 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Models;
-using MyTechBlog.Services;
+using MyNextBlog.Models;
+using MyNextBlog.Services;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Route("api/posts")] // URL: /api/posts
 [ApiController]

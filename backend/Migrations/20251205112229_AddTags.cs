@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MyTechBlog.Migrations
+namespace MyNextBlog.Migrations
 {
     /// <inheritdoc />
     public partial class AddTags : Migration

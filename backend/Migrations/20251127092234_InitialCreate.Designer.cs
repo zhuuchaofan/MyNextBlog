@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MyTechBlog.Data;
+using MyNextBlog.Data;
 
 #nullable disable
 
-namespace MyTechBlog.Migrations
+namespace MyNextBlog.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20251127092234_InitialCreate")]
@@ -20,7 +20,7 @@ namespace MyTechBlog.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
-            modelBuilder.Entity("MyTechBlog.Models.Comment", b =>
+            modelBuilder.Entity("MyNextBlog.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,7 +49,7 @@ namespace MyTechBlog.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("MyTechBlog.Models.Post", b =>
+            modelBuilder.Entity("MyNextBlog.Models.Post", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -71,7 +71,7 @@ namespace MyTechBlog.Migrations
                     b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("MyTechBlog.Models.User", b =>
+            modelBuilder.Entity("MyNextBlog.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -90,9 +90,9 @@ namespace MyTechBlog.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("MyTechBlog.Models.Comment", b =>
+            modelBuilder.Entity("MyNextBlog.Models.Comment", b =>
                 {
-                    b.HasOne("MyTechBlog.Models.Post", "Post")
+                    b.HasOne("MyNextBlog.Models.Post", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -101,7 +101,7 @@ namespace MyTechBlog.Migrations
                     b.Navigation("Post");
                 });
 
-            modelBuilder.Entity("MyTechBlog.Models.Post", b =>
+            modelBuilder.Entity("MyNextBlog.Models.Post", b =>
                 {
                     b.Navigation("Comments");
                 });

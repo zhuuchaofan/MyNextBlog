@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Services;
+using MyNextBlog.Services;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]

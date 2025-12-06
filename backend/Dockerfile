@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # 1. 复制项目文件并还原依赖
-COPY ["MyTechBlog.csproj", "./"]
+COPY ["MyNextBlog.csproj", "./"]
 RUN dotnet restore
 
 # 2. 复制其余源码并发布
@@ -27,4 +27,4 @@ RUN mkdir -p /app/wwwroot/uploads
 EXPOSE 8080
 
 # 5. 启动命令
-ENTRYPOINT ["dotnet", "MyTechBlog.dll"]
+ENTRYPOINT ["dotnet", "MyNextBlog.dll"]

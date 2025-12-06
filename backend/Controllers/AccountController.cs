@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyTechBlog.Data;
-using MyTechBlog.Models;
+using MyNextBlog.Data;
+using MyNextBlog.Models;
 using BCrypt.Net;
 
-namespace MyTechBlog.Controllers;
+namespace MyNextBlog.Controllers;
 
 public class AccountController(AppDbContext context) : Controller
 {

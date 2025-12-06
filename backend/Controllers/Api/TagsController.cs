@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using MyTechBlog.Services;
+using MyNextBlog.Services;
 
-namespace MyTechBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Api;
 
 [Route("api/tags")]
 [ApiController]

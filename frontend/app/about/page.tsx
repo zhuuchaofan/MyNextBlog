@@ -110,7 +110,7 @@ export default function AboutPage() {
            <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">关于这个博客</h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                这个项目（MyTechBlog）不仅仅是一个博客，它是我的技术试验田。采用了最新的 <strong>Headless 架构</strong>，前后端彻底分离。
+                这个项目（MyNextBlog）不仅仅是一个博客，它是我的技术试验田。采用了最新的 <strong>Headless 架构</strong>，前后端彻底分离。
               </p>
               <ul className="list-disc list-inside text-gray-600 space-y-2 ml-2">
                 <li><strong>后端</strong>: 基于 .NET 10 Web API，高性能、强类型。</li>

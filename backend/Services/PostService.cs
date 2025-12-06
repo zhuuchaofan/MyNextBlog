@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyTechBlog.Data;
-using MyTechBlog.Models;
+using MyNextBlog.Data;
+using MyNextBlog.Models;
 
-namespace MyTechBlog.Services;
+namespace MyNextBlog.Services;
 
 public class PostService(AppDbContext context, IImageService imageService) : IPostService
 {
