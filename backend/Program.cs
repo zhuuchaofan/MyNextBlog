@@ -39,6 +39,9 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // 注册 TagService
 builder.Services.AddScoped<ITagService, TagService>();
 
+// 注册后台备份服务
+builder.Services.AddHostedService<DatabaseBackupService>();
+
 // 配置 CORS (跨域资源共享) - 允许 Next.js 前端访问
 builder.Services.AddCors(options =>
 {

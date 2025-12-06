@@ -10,7 +10,7 @@ interface Post {
   id: number;
   title: string;
   createTime: string;
-  category: string;
+  categoryName: string;
 }
 
 export default function ArchivePage() {
@@ -100,7 +100,7 @@ export default function ArchivePage() {
                           <div className="relative z-10">
                              <div className="flex items-center justify-between mb-2">
                                <Badge variant="outline" className="text-orange-600 bg-orange-50/50 border-orange-100 font-normal flex items-center gap-1">
-                                 <Tag className="w-3 h-3" /> {post.category || '未分类'}
+                                 <Tag className="w-3 h-3" /> {post.categoryName || '未分类'}
                                </Badge>
                                <span className="md:hidden text-xs text-gray-400">
                                  {new Date(post.createTime).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
