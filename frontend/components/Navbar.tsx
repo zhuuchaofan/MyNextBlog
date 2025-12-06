@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
+import { ModeToggle } from '@/components/mode-toggle';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -30,13 +31,13 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-lg transition-all shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-lg transition-all shadow-sm">
       <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0 mr-4">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-800 hover:text-orange-500 transition-colors">
+            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-800 dark:text-gray-100 hover:text-orange-500 transition-colors">
               <span className="text-2xl">🐱</span>
               <span className="hidden sm:inline">球球布丁的后花园</span>
               <span className="sm:hidden">球球&布丁</span>
@@ -52,11 +53,13 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+             <ModeToggle />
+             
              <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
                <Button 
                  variant="ghost" 
                  size="icon" 
-                 className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex"
+                 className="rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hidden sm:flex"
                >
                  <Rss className="w-5 h-5" />
                </Button>
@@ -65,7 +68,7 @@ export default function Navbar() {
              <Button 
                variant="ghost" 
                size="icon" 
-               className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex"
+               className="rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hidden sm:flex"
                onClick={() => setIsSearchOpen(true)}
                aria-label="搜索"
              >
@@ -76,16 +79,16 @@ export default function Navbar() {
              <div className="md:hidden">
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" size="icon" className="text-gray-600" aria-label="打开导航菜单">
+                   <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300" aria-label="打开导航菜单">
                      <Menu className="w-6 h-6" />
                    </Button>
                  </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md">
+                 <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md">
                     <DropdownMenuLabel>导航</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {navLinks.map(link => (
                       <Link key={link.href} href={link.href}>
-                        <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50' : ''}`}>
+                        <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
                           {link.icon}
                           <span>{link.label}</span>
                         </DropdownMenuItem>
@@ -142,7 +145,7 @@ export default function Navbar() {
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
                    <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
-                     <Avatar className="h-8 w-8 border border-orange-100">
+                     <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
                        <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
                        <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                      </Avatar>
@@ -180,7 +183,7 @@ export default function Navbar() {
                </DropdownMenu>
              ) : (
                <Link href="/login" aria-label="登录账号">
-                 <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 ml-2 whitespace-nowrap">
+                 <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950 ml-2 whitespace-nowrap">
                    登录
                  </Button>
                </Link>
@@ -197,7 +200,7 @@ function NavLink({ href, icon, label, active = false }: { href: string; icon: Re
     <Link href={href}>
       <Button 
         variant={active ? "secondary" : "ghost"} 
-        className={`rounded-full gap-2 ${active ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'text-gray-600 hover:bg-gray-50'}`}
+        className={`rounded-full gap-2 ${active ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-950/50 dark:text-orange-400 dark:hover:bg-orange-900/50' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800'}`}
       >
         {icon}
         {label}
