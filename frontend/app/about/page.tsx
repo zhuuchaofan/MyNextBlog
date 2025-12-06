@@ -31,26 +31,26 @@ export default function AboutPage() {
         </div>
         
         <div className="text-center md:text-left flex-1">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 tracking-tight">
-            你好，我是 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">{SITE_CONFIG.author}</span>
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-4 tracking-tight">
+            你好，我是 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">朱超凡</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-6 max-w-2xl">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-2xl">
             {SITE_CONFIG.description}
             <br/>
-            热衷于构建高性能 Web 应用，目前专注于 <code className="bg-blue-50 text-blue-600 px-1 py-0.5 rounded font-mono text-base">.NET</code> 与 <code className="bg-black text-white px-1 py-0.5 rounded font-mono text-base">Next.js</code> 生态。
+            热衷于构建高性能 Web 应用，目前专注于 <code className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1 py-0.5 rounded font-mono text-base">.NET</code> 与 <code className="bg-black dark:bg-white text-white dark:text-black px-1 py-0.5 rounded font-mono text-base">Next.js</code> 生态。
           </p>
           <div className="flex flex-wrap justify-center md:justify-start gap-3">
-            <Button className="rounded-full gap-2 bg-gray-900 text-white hover:bg-gray-800" asChild>
+            <Button className="rounded-full gap-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200" asChild>
               <Link href={SITE_CONFIG.social.github} target="_blank">
                  <Github className="w-4 h-4" /> Github
               </Link>
             </Button>
-            <Button variant="outline" className="rounded-full gap-2 border-blue-200 text-blue-600 hover:bg-blue-50" asChild>
+            <Button variant="outline" className="rounded-full gap-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30" asChild>
               <Link href={SITE_CONFIG.social.twitter} target="_blank">
                 <Twitter className="w-4 h-4" /> Twitter
               </Link>
             </Button>
-            <Button variant="outline" className="rounded-full gap-2" asChild>
+            <Button variant="outline" className="rounded-full gap-2 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800" asChild>
               <Link href={`mailto:${SITE_CONFIG.social.email}`}>
                 <Mail className="w-4 h-4" /> 联系我
               </Link>
@@ -64,7 +64,7 @@ export default function AboutPage() {
         {/* Left Column: Skills & Stack */}
         <div className="md:col-span-4 space-y-12">
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
               <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
               技能树
             </h2>
@@ -72,12 +72,12 @@ export default function AboutPage() {
               {SKILLS.map(skill => (
                 <div key={skill.name} className="group">
                    <div className="flex justify-between text-sm mb-1">
-                     <span className="font-medium text-gray-700 flex items-center gap-2">
+                     <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                        {iconMap[skill.icon]} {skill.name}
                      </span>
-                     <span className="text-gray-400 font-mono">{skill.level}%</span>
+                     <span className="text-gray-400 dark:text-gray-500 font-mono">{skill.level}%</span>
                    </div>
-                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                   <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                      <div 
                        className="h-full bg-gradient-to-r from-orange-400 to-pink-500 rounded-full transition-all duration-1000 ease-out group-hover:brightness-110"
                        style={{ width: `${skill.level}%` }}
@@ -89,13 +89,13 @@ export default function AboutPage() {
           </section>
 
           <section>
-             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
               <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
               在读/想读
             </h2>
             <div className="flex flex-wrap gap-2">
                {BOOKS.map(book => (
-                 <Badge key={book} variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-default">
+                 <Badge key={book} variant="secondary" className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 cursor-default">
                    📖 {book}
                  </Badge>
                ))}
@@ -107,12 +107,12 @@ export default function AboutPage() {
         <div className="md:col-span-8 space-y-12">
            
            {/* About Blog */}
-           <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">关于这个博客</h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+           <section className="bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">关于这个博客</h2>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                 这个项目（MyNextBlog）不仅仅是一个博客，它是我的技术试验田。采用了最新的 <strong>Headless 架构</strong>，前后端彻底分离。
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-2">
                 <li><strong>后端</strong>: 基于 .NET 10 Web API，高性能、强类型。</li>
                 <li><strong>前端</strong>: 使用 Next.js 15 (App Router)，SEO 友好且交互流畅。</li>
                 <li><strong>部署</strong>: 全容器化 Docker 部署，通过 Cloudflare Tunnel 穿透。</li>
@@ -121,38 +121,38 @@ export default function AboutPage() {
 
            {/* Cats Section */}
            <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
                  <span className="text-3xl">🐾</span> 
                  猫主子介绍
               </h2>
               <div className="grid sm:grid-cols-2 gap-6">
                 {/* QiuQiu */}
-                <div className="bg-white rounded-2xl p-6 border border-orange-100 hover:shadow-md transition-shadow flex gap-4 items-start relative overflow-hidden">
-                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full blur-xl"></div>
-                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm z-10 overflow-hidden p-1">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-orange-100 dark:border-zinc-800 hover:shadow-md transition-all flex gap-4 items-start relative overflow-hidden">
+                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full blur-xl"></div>
+                   <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-zinc-700 shadow-sm z-10 overflow-hidden p-1">
                      {/* eslint-disable-next-line @next/next/no-img-element */}
                      <img src={PETS.qiuqiu.avatar} alt={PETS.qiuqiu.name} className="w-full h-full object-contain" />
                    </div>
                    <div className="relative z-10">
-                      <h3 className="font-bold text-lg">{PETS.qiuqiu.name} (QiuQiu)</h3>
-                      <Badge variant="outline" className="text-orange-600 border-orange-200 mb-2 mt-1">{PETS.qiuqiu.role}</Badge>
-                      <p className="text-sm text-gray-500 leading-relaxed">
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{PETS.qiuqiu.name} (QiuQiu)</h3>
+                      <Badge variant="outline" className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 mb-2 mt-1">{PETS.qiuqiu.role}</Badge>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                         {PETS.qiuqiu.description}
                       </p>
                    </div>
                 </div>
 
                 {/* Pudding */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow flex gap-4 items-start relative overflow-hidden">
-                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-gray-50 rounded-full blur-xl"></div>
-                   <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm z-10 overflow-hidden p-1">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-gray-100 dark:border-zinc-800 hover:shadow-md transition-all flex gap-4 items-start relative overflow-hidden">
+                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-gray-50 dark:bg-zinc-800/30 rounded-full blur-xl"></div>
+                   <div className="w-16 h-16 bg-gray-900 dark:bg-black rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-zinc-700 shadow-sm z-10 overflow-hidden p-1">
                      {/* eslint-disable-next-line @next/next/no-img-element */}
                      <img src={PETS.pudding.avatar} alt={PETS.pudding.name} className="w-full h-full object-contain" />
                    </div>
                    <div className="relative z-10">
-                      <h3 className="font-bold text-lg">{PETS.pudding.name} (Pudding)</h3>
-                      <Badge variant="outline" className="text-gray-700 border-gray-300 mb-2 mt-1">{PETS.pudding.role}</Badge>
-                      <p className="text-sm text-gray-500 leading-relaxed">
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{PETS.pudding.name} (Pudding)</h3>
+                      <Badge variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-600 mb-2 mt-1">{PETS.pudding.role}</Badge>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                         {PETS.pudding.description}
                       </p>
                    </div>

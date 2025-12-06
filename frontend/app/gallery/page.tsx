@@ -29,22 +29,22 @@ export default function GalleryPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-12 min-h-screen">
        <header className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-orange-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full mb-4">
             <Camera className="w-8 h-8" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">猫咪相册</h1>
-          <p className="text-gray-500 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">猫咪相册</h1>
+          <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
             这里收集了所有在博客文章中出现过的猫主子照片。每一张照片背后，都有一段关于代码与猫的故事。
           </p>
        </header>
 
        {loading ? (
-         <div className="text-center py-20 text-gray-400">加载中...</div>
+         <div className="text-center py-20 text-gray-400 dark:text-gray-500">加载中...</div>
        ) : images.length === 0 ? (
-         <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-            <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">暂无照片</p>
-            <p className="text-sm text-gray-400 mt-2">发布文章并打上“猫咪”标签，照片就会出现在这里哦！</p>
+         <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
+            <ImageIcon className="w-12 h-12 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">暂无照片</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">发布文章并打上“猫咪”标签，照片就会出现在这里哦！</p>
          </div>
        ) : (
          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
