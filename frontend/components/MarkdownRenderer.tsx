@@ -149,6 +149,20 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             ),
             h2: createHeading(2),
             h3: createHeading(3),
+            table: ({node, ...props}) => (
+              <div className="overflow-x-auto my-6 rounded-lg border border-gray-200">
+                <table {...props} className="w-full text-sm text-left" />
+              </div>
+            ),
+            thead: ({node, ...props}) => (
+              <thead {...props} className="bg-gray-50 text-gray-700 font-medium" />
+            ),
+            th: ({node, ...props}) => (
+              <th {...props} className="px-4 py-3 border-b border-gray-200 whitespace-nowrap" />
+            ),
+            td: ({node, ...props}) => (
+              <td {...props} className="px-4 py-3 border-b border-gray-100" />
+            ),
           }}
         >
           {content}
