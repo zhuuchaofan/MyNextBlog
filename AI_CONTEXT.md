@@ -98,5 +98,6 @@
 ## 7. Immediate Roadmap
 *   [x] **RSS/Atom Feed**: Generate `feed.xml` in Next.js.
 *   [x] **Dark Mode**: Toggle via `next-themes`.
-*   [ ] **Testing**: Add xUnit (Backend) and Playwright (Frontend).
-*   [ ] **Admin Features**: Add "Drafts" status management.
+*   [x] **Admin Features**: Add "Drafts" status management and toggle visibility.
+*   [ ] **Testing**: (Cancelled due to .NET Preview environment issues).
+*   [ ] **Admin Features**: Dashboard statistics (Post count, Comment count).

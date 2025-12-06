@@ -9,7 +9,7 @@ RUN dotnet restore
 # 2. 复制其余源码并发布
 COPY . .
 # 生成 Release 版本，输出到 /app/publish
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish "MyNextBlog.csproj" -c Release -o /app/publish
 
 # === 运行阶段 ===
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
