@@ -66,7 +66,9 @@ If running locally without Docker:
     *   **Frontend**: `useAuth()` hook checks user role; redirects to `/login` if unauthorized.
 
 ## Recent Major Changes
-*   **2025-12-05**:
+*   **2025-12-06**:
+    *   **Features**: Implemented **RSS Feed** (`/feed.xml`) and **Dark Mode** (system-wide adaptation including Markdown/Charts).
+    *   **Fixes**: Fixed Comment API 500 error by removing `Identity` dependency injection issues; Fixed User Avatar not showing in comments; Corrected Docker timezone to `Asia/Shanghai`.
     *   **Tags System**: Implemented full `Tag` entity (Many-to-Many with Post), backend API, and frontend input/display logic.
     *   **Gallery**: Added `/gallery` page with Masonry layout, powered by `GalleryController` filtering "Cat" related content.
     *   **Image Optimization**: Implemented client-side image compression (WebP, Max 1MB) before upload.

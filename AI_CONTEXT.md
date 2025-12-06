@@ -88,13 +88,15 @@
 ---
 
 ## 6. Recent Changes (as of 2025-12-06)
+*   [x] **Feature**: Implemented RSS Feed (`/feed.xml`).
+*   [x] **Feature**: Added Dark Mode support (Theme Toggle, Tailwind `dark:` styles).
+*   [x] **Fix**: Corrected Docker container timezone to `Asia/Shanghai`.
+*   [x] **Fix**: Resolved Comment API 500 error (Removed `UserManager` dependency) and User Avatar display issue.
 *   [x] **Refactor**: Converted `PostsApiController` to use DTOs (`PostSummaryDto`).
 *   [x] **Feature**: Added User Settings page & Avatar Upload.
-*   [x] **Infra**: Added Serilog logging & Automated DB Backup.
-*   [x] **Fix**: Solved Markdown excerpt rendering issues & Mobile table overflow.
-*   [x] **A11y**: Fixed contrast & ARIA labels (Lighthouse score improved).
 
 ## 7. Immediate Roadmap
-*   [ ] **RSS/Atom Feed**: Generate `feed.xml` in Next.js.
-*   [ ] **Dark Mode**: Toggle via `next-themes`.
+*   [x] **RSS/Atom Feed**: Generate `feed.xml` in Next.js.
+*   [x] **Dark Mode**: Toggle via `next-themes`.
 *   [ ] **Testing**: Add xUnit (Backend) and Playwright (Frontend).
+*   [ ] **Admin Features**: Add "Drafts" status management.
