@@ -15,6 +15,7 @@ public static class PostMappingExtensions
             post.Category?.Name ?? "未分类",
             post.CategoryId,
             post.User?.Username ?? "Admin",
+            post.User?.AvatarUrl,
             post.CreateTime,
             MarkdownHelper.GetCoverImage(post.Content),
             post.Tags.Select(t => t.Name).ToList(),
@@ -31,6 +32,7 @@ public static class PostMappingExtensions
             post.Category?.Name ?? "未分类",
             post.CategoryId,
             post.User?.Username ?? "Admin",
+            post.User?.AvatarUrl,
             post.CreateTime,
             post.Tags.Select(t => t.Name).ToList(),
             post.IsHidden

@@ -59,8 +59,9 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {
         return await context.Comments
+            .Include(c => c.User) // 加载关联用户
             .Where(c => c.PostId == postId)
-            .OrderBy(c => c.CreateTime) // 按时间正序排列 (楼层顺序)
+            .OrderByDescending(c => c.CreateTime) // 改为倒序，最新的在上面 (符合前端插入逻辑)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

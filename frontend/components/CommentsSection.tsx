@@ -8,11 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { fetchComments, submitComment, Comment } from '@/lib/api';
 import { MessageSquare, User, Send } from 'lucide-react';
 import { toast } from "sonner";
+import { useAuth } from '@/context/AuthContext';
 
 export default function CommentsSection({ postId }: { postId: number }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { user, token } = useAuth();
   
   // 表单状态
   const [guestName, setGuestName] = useState('');
@@ -35,12 +37,15 @@ export default function CommentsSection({ postId }: { postId: number }) {
 
     setSubmitting(true);
     try {
-      const data = await submitComment(postId, content, guestName);
+      // 如果已登录，名字其实会被后端用 User 信息覆盖/填充，这里传 username 只是作为备用或显示
+      const nameToSubmit = user ? user.username : guestName;
+      const data = await submitComment(postId, content, nameToSubmit, token || undefined);
+      
       if (data.success) {
         // 将新评论添加到列表开头
         setComments([data.comment, ...comments]);
-        setContent(''); // 清空输入框
-        // guestName 不清空，方便连续回复
+        setContent(''); // 清空内容
+        // guestName 不清空
         toast.success("评论发表成功！");
       } else {
         toast.error('提交失败：' + data.message);
@@ -79,17 +84,33 @@ export default function CommentsSection({ postId }: { postId: number }) {
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-10">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 flex-shrink-0">
-              <User className="w-6 h-6" />
+            <div className="flex-shrink-0">
+               {user ? (
+                 <Avatar className="w-12 h-12 border border-gray-100">
+                    <AvatarImage src={user.avatarUrl} />
+                    <AvatarFallback>{user.username[0]}</AvatarFallback>
+                 </Avatar>
+               ) : (
+                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
+                   <User className="w-6 h-6" />
+                 </div>
+               )}
             </div>
+            
             <div className="flex-1 space-y-4">
-              <div className="flex gap-4">
-                <Input 
-                  placeholder="昵称 (可选)" 
-                  className="max-w-[200px] bg-gray-50 border-gray-200 focus:bg-white transition-colors"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                />
+              <div className="flex gap-4 items-center">
+                {user ? (
+                   <div className="text-sm text-gray-600">
+                     正在以 <span className="font-bold text-orange-600">{user.username}</span> 的身份评论
+                   </div>
+                ) : (
+                  <Input 
+                    placeholder="昵称 (可选)" 
+                    className="max-w-[200px] bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                  />
+                )}
               </div>
               <Textarea 
                 placeholder="写下你的想法..." 
@@ -120,7 +141,8 @@ export default function CommentsSection({ postId }: { postId: number }) {
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-4 group">
               <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
-                <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} />
+                {/* 优先使用用户头像，否则使用 DiceBear */}
+                <AvatarImage src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} />
                 <AvatarFallback>{(comment.guestName && comment.guestName[0]) || 'G'}</AvatarFallback>
               </Avatar>
               <div className="flex-1">

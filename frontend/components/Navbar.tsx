@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 
 export default function Navbar() {
@@ -52,6 +52,16 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+             <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+               <Button 
+                 variant="ghost" 
+                 size="icon" 
+                 className="rounded-full hover:bg-orange-50 text-gray-500 hidden sm:flex"
+               >
+                 <Rss className="w-5 h-5" />
+               </Button>
+             </Link>
+
              <Button 
                variant="ghost" 
                size="icon" 

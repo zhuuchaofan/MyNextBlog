@@ -17,4 +17,8 @@ public class Comment
     // 游客信息 (因为允许匿名，所以是选填)
     public string? GuestName { get; set; } 
     public string? GuestEmail { get; set; }
+
+    // 关联注册用户 (如果是登录用户评论)
+    public int? UserId { get; set; }
+    public User? User { get; set; }
 }

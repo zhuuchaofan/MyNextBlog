@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Sparkles, Tag, Github } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import { fetchPopularTags } from "@/lib/api";
 
@@ -16,6 +17,7 @@ interface Post {
   excerpt: string;
   createTime: string;
   authorName: string;
+  authorAvatar?: string;
   categoryName: string;
   categoryId: number;
   coverImage?: string;
@@ -197,7 +199,10 @@ export default function Home() {
                         
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                           <div className="flex items-center gap-2 text-sm text-gray-500">
-                             <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">👤</div>
+                             <Avatar className="w-6 h-6 border border-gray-100">
+                               <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} className="object-cover"/>
+                               <AvatarFallback>User</AvatarFallback>
+                             </Avatar>
                              <span>{post.authorName || SITE_CONFIG.author}</span>
                           </div>
                           <Link href={`/posts/${post.id}`}>

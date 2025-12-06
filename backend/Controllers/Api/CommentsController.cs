@@ -1,4 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MyNextBlog.Data;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
 
@@ -6,7 +9,7 @@ namespace MyNextBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(IPostService postService) : ControllerBase
+public class CommentsController(IPostService postService, AppDbContext context) : ControllerBase
 {
     // 提交新评论
     [HttpPost]
@@ -21,13 +24,33 @@ public class CommentsController(IPostService postService) : ControllerBase
         {
             PostId = dto.PostId,
             Content = dto.Content,
-            GuestName = string.IsNullOrWhiteSpace(dto.GuestName) ? "匿名访客" : dto.GuestName,
             CreateTime = DateTime.Now
         };
 
+        // 检查用户是否登录
+        User? user = null;
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdStr != null && int.TryParse(userIdStr, out int userId))
+            {
+                user = await context.Users.FindAsync(userId);
+                if (user != null)
+                {
+                    comment.UserId = user.Id;
+                    comment.GuestName = user.Username; // 存个快照
+                }
+            }
+        }
+
+        // 如果没有关联到用户 (未登录)，则使用 GuestName
+        if (comment.UserId == null)
+        {
+             comment.GuestName = string.IsNullOrWhiteSpace(dto.GuestName) ? "匿名访客" : dto.GuestName;
+        }
+
         await postService.AddCommentAsync(comment);
 
-        // 返回成功状态和刚刚创建的评论对象（方便前端直接显示，不用重新查库）
         return Ok(new
         {
             success = true,
@@ -36,7 +59,8 @@ public class CommentsController(IPostService postService) : ControllerBase
                 comment.Id,
                 comment.GuestName,
                 comment.Content,
-                CreateTime = comment.CreateTime.ToString("yyyy/MM/dd HH:mm")
+                CreateTime = comment.CreateTime.ToString("yyyy/MM/dd HH:mm"),
+                UserAvatar = user?.AvatarUrl // 如果是登录用户，返回头像
             }
         });
     }
@@ -57,9 +81,11 @@ public class CommentsController(IPostService postService) : ControllerBase
             comments = comments.Select(c => new 
             {
                 c.Id,
-                c.GuestName,
+                // 如果有关联用户，优先显示用户的当前信息 (名字和头像)
+                GuestName = c.User != null ? c.User.Username : c.GuestName, 
                 c.Content,
-                CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm")
+                CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
+                UserAvatar = c.User?.AvatarUrl 
             }),
             hasMore
         });

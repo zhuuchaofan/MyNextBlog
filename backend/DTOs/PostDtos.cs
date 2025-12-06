@@ -10,6 +10,7 @@ public record PostSummaryDto(
     string CategoryName,
     int? CategoryId,
     string AuthorName,
+    string? AuthorAvatar, // 作者头像
     DateTime CreateTime,
     string? CoverImage, // 封面图 (从 Content 提取)
     List<string> Tags,
@@ -24,6 +25,7 @@ public record PostDetailDto(
     string CategoryName,
     int? CategoryId,
     string AuthorName,
+    string? AuthorAvatar, // 作者头像
     DateTime CreateTime,
     List<string> Tags,
     bool IsHidden

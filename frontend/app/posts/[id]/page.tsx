@@ -89,7 +89,7 @@ export default async function PostPage({ params }: Props) {
              <div className="flex items-center justify-center gap-6 text-white/90 text-sm md:text-base">
                 <div className="flex items-center gap-2">
                    <Avatar className="w-8 h-8 border-2 border-white/50">
-                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} />
+                     <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} className="object-cover" />
                      <AvatarFallback>User</AvatarFallback>
                    </Avatar>
                    <span className="font-medium">{post.authorName || '匿名'}</span>

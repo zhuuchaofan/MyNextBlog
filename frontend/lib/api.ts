@@ -6,6 +6,7 @@ export interface PostDetail {
   categoryName?: string;
   categoryId: number;
   authorName?: string;
+  authorAvatar?: string;
   commentCount: number;
   coverImage?: string;
   tags?: string[];
@@ -35,6 +36,7 @@ export interface Comment {
   guestName: string;
   content: string;
   createTime: string;
+  userAvatar?: string;
 }
 
 export async function fetchComments(postId: number, page = 1) {
@@ -42,10 +44,15 @@ export async function fetchComments(postId: number, page = 1) {
   return res.json();
 }
 
-export async function submitComment(postId: number, content: string, guestName: string) {
+export async function submitComment(postId: number, content: string, guestName: string, token?: string) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch('/api/backend/comments', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers,
     body: JSON.stringify({ postId, content, guestName })
   });
   return res.json();
