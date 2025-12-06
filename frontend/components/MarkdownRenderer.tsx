@@ -122,19 +122,15 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       const text = extractText(children);
       let slug = slugify(text);
       
-      // 简单的去重逻辑 (注意：React 可能会多次渲染，这里其实不太稳健，但先这样)
-      // 为了避免 React 渲染时的 ID 不一致，我们其实应该依赖 rehype-slug。
-      // 这里为了演示效果，我们假设标题不重复。
-      
       const Tag = `h${level}` as React.ElementType;
-      return <Tag id={slug} className={`scroll-mt-24 font-bold text-gray-900 ${level === 2 ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100' : 'text-xl mt-6 mb-3'}`} {...props}>{children}</Tag>;
+      return <Tag id={slug} className={`scroll-mt-24 font-bold text-gray-900 dark:text-gray-100 ${level === 2 ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100 dark:border-zinc-800' : 'text-xl mt-6 mb-3'}`} {...props}>{children}</Tag>;
     };
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 relative items-start">
       {/* 文章正文 */}
-      <article className="flex-1 prose prose-stone max-w-none w-full min-w-0 break-words">
+      <article className="flex-1 prose prose-stone dark:prose-invert max-w-none w-full min-w-0 break-words">
         <ReactMarkdown 
           remarkPlugins={[remarkGfm]} 
           rehypePlugins={[rehypeHighlight]}
@@ -142,26 +138,26 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             code: CodeBlock,
             img: ({node, ...props}) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img {...props} className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50" alt={props.alt || ''} />
+              <img {...props} className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50 dark:bg-zinc-800" alt={props.alt || ''} />
             ),
             a: ({node, ...props}) => (
-              <a {...props} className="text-orange-600 hover:text-orange-800 underline decoration-orange-300 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />
+              <a {...props} className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-orange-300 dark:decoration-orange-700 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />
             ),
             h2: createHeading(2),
             h3: createHeading(3),
             table: ({node, ...props}) => (
-              <div className="overflow-x-auto my-6 rounded-lg border border-gray-200">
+              <div className="overflow-x-auto my-6 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <table {...props} className="w-full text-sm text-left" />
               </div>
             ),
             thead: ({node, ...props}) => (
-              <thead {...props} className="bg-gray-50 text-gray-700 font-medium" />
+              <thead {...props} className="bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-medium" />
             ),
             th: ({node, ...props}) => (
-              <th {...props} className="px-4 py-3 border-b border-gray-200 whitespace-nowrap" />
+              <th {...props} className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 whitespace-nowrap" />
             ),
             td: ({node, ...props}) => (
-              <td {...props} className="px-4 py-3 border-b border-gray-100" />
+              <td {...props} className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800" />
             ),
           }}
         >
@@ -172,8 +168,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       {/* 右侧悬浮目录 (Desktop Only) */}
       {toc.length > 0 && (
         <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24">
-          <div className="p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100 shadow-sm">
-             <div className="flex items-center gap-2 font-bold text-gray-900 mb-4">
+          <div className="p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm transition-colors">
+             <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-gray-100 mb-4">
                <List className="w-4 h-4" /> 目录
              </div>
              <nav className="space-y-1 max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -185,7 +181,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
                      e.preventDefault();
                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
                    }}
-                   className={`block text-sm py-1.5 px-3 rounded-lg transition-all hover:bg-orange-50 hover:text-orange-600 truncate ${item.level === 3 ? 'ml-4 text-gray-400' : 'text-gray-600 font-medium'}`}
+                   className={`block text-sm py-1.5 px-3 rounded-lg transition-all hover:bg-orange-50 dark:hover:bg-zinc-800 hover:text-orange-600 dark:hover:text-orange-400 truncate ${item.level === 3 ? 'ml-4 text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400 font-medium'}`}
                    title={item.text}
                  >
                    {item.text}

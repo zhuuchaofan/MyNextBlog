@@ -51,9 +51,9 @@ export default async function PostPage({ params }: Props) {
   const readingTime = Math.ceil(post.content.length / 300);
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 pb-20 transition-colors duration-300">
       {/* 1. Hero Image / Header Background */}
-      <div className="relative w-full min-h-[40vh] md:min-h-[50vh] bg-gray-900 overflow-hidden flex flex-col justify-center">
+      <div className="relative w-full min-h-[40vh] md:min-h-[50vh] bg-gray-900 dark:bg-zinc-950 overflow-hidden flex flex-col justify-center">
         {post.coverImage ? (
           <Image
             src={post.coverImage}
@@ -63,7 +63,7 @@ export default async function PostPage({ params }: Props) {
             className="object-cover opacity-60 blur-sm scale-105"
           />
         ) : (
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 opacity-80"></div>
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 dark:from-orange-800 dark:to-pink-900 opacity-80"></div>
         )}
         
         {/* Back Button Overlay */}
@@ -112,14 +112,14 @@ export default async function PostPage({ params }: Props) {
            <PostInteractions />
 
            {/* Main Content */}
-           <div className="lg:col-span-11 bg-white rounded-t-3xl md:rounded-3xl shadow-xl p-6 md:p-12 min-h-[500px]">
+           <div className="lg:col-span-11 bg-white dark:bg-zinc-900 rounded-t-3xl md:rounded-3xl shadow-xl dark:shadow-black/50 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
               <MarkdownRenderer content={post.content} />
               
-              <div className="border-t border-gray-100 my-12"></div>
+              <div className="border-t border-gray-100 dark:border-zinc-800 my-12"></div>
 
               {/* Comments Section */}
               <div id="comments" className="max-w-3xl mx-auto">
-                 <div className="bg-gray-50 rounded-3xl p-6 md:p-8">
+                 <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-3xl p-6 md:p-8 border border-transparent dark:border-zinc-800">
                     <CommentsSection postId={post.id} />
                  </div>
               </div>
