@@ -122,15 +122,15 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+    <div className="border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm transition-colors">
       {/* 工具栏 */}
-      <div className="flex flex-wrap items-center justify-between p-2 border-b border-gray-100 bg-gray-50/50 gap-2">
+      <div className="flex flex-wrap items-center justify-between p-2 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 gap-2">
         <div className="flex flex-wrap items-center gap-1">
           <ToolbarButton icon={<Bold className="w-4 h-4" />} onClick={() => insertText('**', '**')} title="加粗" />
           <ToolbarButton icon={<Italic className="w-4 h-4" />} onClick={() => insertText('*', '*')} title="斜体" />
           <ToolbarButton icon={<Quote className="w-4 h-4" />} onClick={() => insertText('> ')} title="引用" />
           <ToolbarButton icon={<Code className="w-4 h-4" />} onClick={() => insertText('```\n', '\n```')} title="代码块" />
-          <div className="w-px h-4 bg-gray-300 mx-2"></div>
+          <div className="w-px h-4 bg-gray-300 dark:bg-zinc-700 mx-2"></div>
           <ToolbarButton icon={<LinkIcon className="w-4 h-4" />} onClick={() => insertText('[', '](url)')} title="链接" />
           <ToolbarButton icon={<List className="w-4 h-4" />} onClick={() => insertText('- ')} title="列表" />
           <ToolbarButton icon={<ImageIcon className="w-4 h-4" />} onClick={() => document.getElementById('image-upload')?.click()} title="上传图片" />
@@ -147,7 +147,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
           variant={preview ? "secondary" : "ghost"} 
           size="sm"
           onClick={() => setPreview(!preview)}
-          className="text-xs gap-2"
+          className="text-xs gap-2 dark:text-gray-300 dark:hover:bg-zinc-700"
         >
           <Eye className="w-4 h-4" />
           {preview ? '编辑模式' : '预览模式'}
@@ -157,14 +157,14 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
       {/* 编辑区 / 预览区 */}
       <div className="relative min-h-[500px]">
         {preview ? (
-          <div className="prose prose-stone max-w-none p-6 h-[500px] overflow-y-auto">
+          <div className="prose prose-stone dark:prose-invert max-w-none p-6 h-[500px] overflow-y-auto bg-white dark:bg-zinc-900">
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]} 
               rehypePlugins={[rehypeHighlight]}
               components={{
                  img: ({node, ...props}) => (
                    // eslint-disable-next-line @next/next/no-img-element
-                   <img {...props} className="rounded-lg shadow-sm max-h-[400px] mx-auto" alt={props.alt || ''} />
+                   <img {...props} className="rounded-lg shadow-sm max-h-[400px] mx-auto dark:bg-zinc-800" alt={props.alt || ''} />
                  )
               }}
             >
@@ -179,13 +179,13 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
             onPaste={handlePaste}
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="w-full h-[500px] p-6 border-0 focus-visible:ring-0 rounded-none resize-none font-mono text-sm leading-relaxed"
+            className="w-full h-[500px] p-6 border-0 focus-visible:ring-0 rounded-none resize-none font-mono text-sm leading-relaxed bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-200 dark:placeholder:text-zinc-600"
             placeholder="开始创作... (支持 Markdown, 粘贴图片)"
           />
         )}
       </div>
       
-      <div className="bg-gray-50 px-4 py-2 text-xs text-gray-400 border-t border-gray-100 flex justify-between">
+      <div className="bg-gray-50 dark:bg-zinc-800/50 px-4 py-2 text-xs text-gray-400 dark:text-zinc-500 border-t border-gray-100 dark:border-zinc-800 flex justify-between transition-colors">
          <span>Markdown Supported</span>
          <span>{value.length} chars</span>
       </div>
@@ -195,7 +195,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
 
 function ToolbarButton({ icon, onClick, title }: { icon: React.ReactNode, onClick: () => void, title: string }) {
   return (
-    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-200 text-gray-600" onClick={onClick} title={title} type="button">
+    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-600 dark:text-gray-400" onClick={onClick} title={title} type="button">
       {icon}
     </Button>
   )

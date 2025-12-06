@@ -116,4 +116,15 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     {
         return await context.Categories.ToListAsync();
     }
+
+    // 切换文章可见性
+    public async Task<bool> TogglePostVisibilityAsync(int id)
+    {
+        var post = await context.Posts.FindAsync(id);
+        if (post == null) return false;
+
+        post.IsHidden = !post.IsHidden;
+        await context.SaveChangesAsync();
+        return true;
+    }
 }

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
 import TagInput from '@/components/TagInput';
 import CreateCategoryDialog from '@/components/CreateCategoryDialog';
-import { fetchCategories, updatePost, Category } from '@/lib/api';
+import { fetchCategories, updatePost, Category, getPostWithAuth } from '@/lib/api';
 import { ChevronLeft, Save, Plus } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -42,9 +42,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         if (catRes.success) setCategories(catRes.data);
 
         // 2. 加载文章详情
-        // 复用 Public API
-        const postRes = await fetch(`/api/backend/posts/${id}`);
-        const postData = await postRes.json();
+        const postData = await getPostWithAuth(token, parseInt(id));
         
         if (postData.success) {
           const p = postData.data;
@@ -53,7 +51,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           setCategoryId(p.categoryId === 0 ? undefined : p.categoryId);
           setTags(p.tags || []); // Populate tags
         } else {
-          toast.error('文章不存在');
+          toast.error('文章不存在或已隐藏');
           router.push('/admin/posts');
         }
       } catch (err) {
@@ -94,19 +92,19 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  if (fetching) return <div className="p-10 text-center">加载文章数据中...</div>;
+  if (fetching) return <div className="p-10 text-center text-gray-500 dark:text-gray-400">加载文章数据中...</div>;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       {/* 顶部操作栏 */}
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-4">
-           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500">
+           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
              <ChevronLeft className="w-4 h-4 mr-1" /> 返回列表
            </Button>
-           <h1 className="text-2xl font-bold text-gray-900">编辑文章</h1>
+           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">编辑文章</h1>
          </div>
-         <Button onClick={handleSubmit} disabled={loading} className="bg-orange-500 hover:bg-orange-600">
+         <Button onClick={handleSubmit} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-white">
            {loading ? '保存中...' : <><Save className="w-4 h-4 mr-2" /> 保存修改</>}
          </Button>
       </div>
@@ -115,15 +113,15 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         {/* 标题输入 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <Label htmlFor="title" className="text-lg font-semibold">文章标题</Label>
-            <span className={`text-sm ${title.length > 40 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+            <Label htmlFor="title" className="text-lg font-semibold dark:text-gray-200">文章标题</Label>
+            <span className={`text-sm ${title.length > 40 ? 'text-red-500 font-bold' : 'text-gray-400 dark:text-gray-500'}`}>
               {title.length}/50
             </span>
           </div>
           <Input 
             id="title" 
             maxLength={50}
-            className="text-2xl py-6 font-medium border-transparent bg-white shadow-sm hover:border-orange-200 focus:border-orange-500 transition-all"
+            className="text-2xl py-6 font-medium border-transparent bg-white dark:bg-zinc-900 shadow-sm hover:border-orange-200 dark:hover:border-orange-800 focus:border-orange-500 dark:focus:border-orange-600 transition-all dark:text-gray-100 dark:placeholder:text-zinc-600"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
@@ -131,7 +129,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         {/* 分类选择 */}
         <div className="space-y-2">
-           <Label className="font-semibold">选择分类</Label>
+           <Label className="font-semibold dark:text-gray-200">选择分类</Label>
            <div className="flex gap-2 flex-wrap">
              {categories.map(cat => (
                <Button 
@@ -139,7 +137,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                  type="button"
                  variant={categoryId === cat.id ? 'default' : 'outline'}
                  onClick={() => setCategoryId(cat.id)}
-                 className={`rounded-full ${categoryId === cat.id ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+                 className={`rounded-full ${categoryId === cat.id ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
                >
                  {cat.name}
                </Button>
@@ -147,7 +145,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
              <Button 
                type="button"
                variant="outline" 
-               className="rounded-full border-dashed border-gray-300 text-gray-500 hover:border-orange-300 hover:text-orange-500"
+               className="rounded-full border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-500 dark:hover:text-orange-400"
                onClick={() => setIsCreateCategoryOpen(true)}
              >
                <Plus className="w-4 h-4 mr-1" /> 新建
@@ -166,13 +164,13 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         {/* 标签输入 */}
         <div className="space-y-2">
-           <Label className="font-semibold">文章标签</Label>
+           <Label className="font-semibold dark:text-gray-200">文章标签</Label>
            <TagInput value={tags} onChange={setTags} />
         </div>
 
         {/* Markdown 编辑器 */}
         <div className="space-y-2">
-           <Label className="font-semibold">正文内容</Label>
+           <Label className="font-semibold dark:text-gray-200">正文内容</Label>
            <MarkdownEditor value={content} onChange={setContent} />
         </div>
       </div>

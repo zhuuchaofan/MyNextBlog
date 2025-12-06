@@ -139,10 +139,35 @@ export async function deletePost(token: string, id: number) {
   return res.json();
 }
 
-export async function fetchPostsWithAuth(token: string, page = 1, pageSize = 10) {
-  const res = await fetch(`/api/backend/posts?page=${page}&pageSize=${pageSize}`, {
+export async function togglePostVisibility(token: string, id: number) {
+  const res = await fetch(`/api/backend/posts/${id}/visibility`, {
+    method: 'PATCH',
     headers: { 
-      'Authorization': `Bearer ${token}` // 带 Token 才能看到隐藏文章
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function fetchPostsWithAuth(token: string, page = 1, pageSize = 10) {
+  const res = await fetch(`/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`, {
+    headers: { 
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return res.json();
+}
+
+export async function getPostWithAuth(token: string, id: number) {
+  const res = await fetch(`/api/backend/posts/admin/${id}`, {
+    headers: { 
+      'Authorization': `Bearer ${token}`
     }
   });
   return res.json();

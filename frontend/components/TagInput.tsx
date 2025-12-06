@@ -32,17 +32,17 @@ export default function TagInput({ value = [], onChange }: TagInputProps) {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 border border-input rounded-md p-2 bg-white focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 min-h-[42px]">
+    <div className="flex flex-wrap gap-2 border border-input dark:border-zinc-800 rounded-md p-2 bg-white dark:bg-zinc-900 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:ring-offset-zinc-950 min-h-[42px] transition-colors">
       {value.map(tag => (
-        <Badge key={tag} variant="secondary" className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+        <Badge key={tag} variant="secondary" className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700">
           {tag}
-          <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 transition-colors">
+          <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 dark:hover:text-red-400 transition-colors">
             <X className="w-3 h-3" />
           </button>
         </Badge>
       ))}
       <Input 
-        className="flex-1 border-none shadow-none focus-visible:ring-0 min-w-[120px] h-7 p-0 text-sm" 
+        className="flex-1 border-none shadow-none focus-visible:ring-0 min-w-[120px] h-7 p-0 text-sm bg-transparent dark:text-gray-200 dark:placeholder:text-zinc-600" 
         placeholder={value.length === 0 ? "输入标签，按回车添加..." : ""}
         value={input}
         onChange={e => setInput(e.target.value)}

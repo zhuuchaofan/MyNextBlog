@@ -16,4 +16,7 @@ public interface IPostService
     // 获取评论总数
     Task<int> GetCommentCountAsync(int postId);
     Task<List<Category>> GetCategoriesAsync(); // 获取所有分类
+    
+    // 切换文章可见性
+    Task<bool> TogglePostVisibilityAsync(int id);
 }

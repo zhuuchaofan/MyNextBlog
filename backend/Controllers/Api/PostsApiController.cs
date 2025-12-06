@@ -44,6 +44,49 @@ public class PostsApiController(IPostService postService, ITagService tagService
         });
     }
 
+    // GET: api/posts/admin
+    // 专门给管理员用的列表接口
+    [HttpGet("admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetAdminPosts(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10)
+    {
+        // 既然进来了，肯定是 Admin，直接 includeHidden = true
+        var allPosts = await postService.GetAllPostsAsync(includeHidden: true);
+
+        var totalCount = allPosts.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var posts = allPosts
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => p.ToSummaryDto())
+            .ToList();
+
+        return Ok(new
+        {
+            success = true,
+            data = posts,
+            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages }
+        });
+    }
+
+    // GET: api/posts/admin/5
+    // 专门给管理员用的详情接口，无视 IsHidden
+    [HttpGet("admin/{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetAdminPost(int id)
+    {
+        var post = await postService.GetPostByIdAsync(id);
+        if (post == null)
+        {
+            return NotFound(new { success = false, message = "文章不存在" });
+        }
+        // 管理员可以直接获取，不需要判断 IsHidden
+        return Ok(new { success = true, data = post.ToDetailDto() });
+    }
+
     // GET: api/posts/5
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPost(int id)
@@ -121,5 +164,18 @@ public class PostsApiController(IPostService postService, ITagService tagService
 
         await postService.DeletePostAsync(id);
         return Ok(new { success = true, message = "删除成功" });
+    }
+
+    // PATCH: api/posts/5/visibility
+    [HttpPatch("{id}/visibility")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> ToggleVisibility(int id)
+    {
+        var success = await postService.TogglePostVisibilityAsync(id);
+        if (!success) return NotFound(new { success = false, message = "文章不存在" });
+
+        // 获取更新后的状态以返回
+        var post = await postService.GetPostByIdAsync(id);
+        return Ok(new { success = true, message = "状态更新成功", isHidden = post?.IsHidden });
     }
 }
