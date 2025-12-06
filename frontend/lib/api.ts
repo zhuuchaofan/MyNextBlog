@@ -138,3 +138,32 @@ export async function fetchPostsWithAuth(token: string, page = 1, pageSize = 10)
   });
   return res.json();
 }
+
+export async function fetchCurrentUser(token: string) {
+  const res = await fetch('/api/backend/account/me', {
+    headers: { 
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return res.json();
+}
+
+export async function uploadAvatar(token: string, file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('/api/backend/account/avatar', {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upload failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}

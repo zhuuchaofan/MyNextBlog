@@ -8,4 +8,7 @@ public class User
 
     // 新增：角色字段，默认是 "User" (普通用户)
     public string Role { get; set; } = "User";
+
+    // 新增：用户头像 URL (可空，未设置则使用默认或随机头像)
+    public string? AvatarUrl { get; set; }
 }

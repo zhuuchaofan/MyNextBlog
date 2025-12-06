@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 
 export default function Navbar() {
@@ -105,6 +105,12 @@ export default function Navbar() {
                                 </DropdownMenuItem>
                              </Link>
                            )}
+                           <Link href="/settings">
+                             <DropdownMenuItem className="cursor-pointer gap-2">
+                               <UserIcon className="w-4 h-4" />
+                               <span>个人设置</span>
+                             </DropdownMenuItem>
+                           </Link>
                            <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-red-600">
                              <LogOut className="w-4 h-4" />
                              <span>退出登录</span>
@@ -127,7 +133,7 @@ export default function Navbar() {
                  <DropdownMenuTrigger asChild>
                    <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
                      <Avatar className="h-8 w-8 border border-orange-100">
-                       <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} />
+                       <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
                        <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                      </Avatar>
                    </Button>
@@ -150,6 +156,12 @@ export default function Navbar() {
                         </DropdownMenuItem>
                      </Link>
                    )}
+                   <Link href="/settings">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>个人设置</span>
+                      </DropdownMenuItem>
+                   </Link>
                    <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600">
                      <LogOut className="mr-2 h-4 w-4" />
                      <span>退出登录</span>
