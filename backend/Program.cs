@@ -4,8 +4,17 @@ using MyNextBlog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 0. 初始化 Serilog (结构化日志)
+// 从 appsettings.json 读取配置，并始终输出到控制台以便 Docker logs 查看
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 // ==================================================================
 // 第一阶段：招募员工与采购设备 (服务注册 / Dependency Injection)
@@ -113,6 +122,9 @@ app.UseRouting();
 
 // 4.5. 跨域许可 (告诉浏览器：允许 localhost:3000 进门)
 app.UseCors("AllowNextJs");
+
+// 开启 Serilog 请求日志 (记录 HTTP 请求耗时、状态码等)
+app.UseSerilogRequestLogging();
 
 // 5. 查验身份 (必须放在 UseRouting 之后)
 app.UseAuthentication(); // 问：你是谁？(查身份证/Cookie)

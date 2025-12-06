@@ -15,8 +15,8 @@ interface Post {
   title: string;
   excerpt: string;
   createTime: string;
-  author: string;
-  category: string;
+  authorName: string;
+  categoryName: string;
   categoryId: number;
   coverImage?: string;
 }
@@ -177,7 +177,7 @@ export default function Home() {
                         <div className="flex items-center gap-3 mb-4">
                           <Link href={`/categories/${post.categoryId}`}>
                              <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg px-3 py-1 transition-colors">
-                                {post.category || '未分类'}
+                                {post.categoryName || '未分类'}
                              </Badge>
                           </Link>
                           <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
@@ -198,7 +198,7 @@ export default function Home() {
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                           <div className="flex items-center gap-2 text-sm text-gray-500">
                              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">👤</div>
-                             <span>{post.author || SITE_CONFIG.author}</span>
+                             <span>{post.authorName || SITE_CONFIG.author}</span>
                           </div>
                           <Link href={`/posts/${post.id}`}>
                             <span className="inline-flex items-center text-sm font-bold text-orange-700 hover:text-orange-800 transition-colors group/btn">

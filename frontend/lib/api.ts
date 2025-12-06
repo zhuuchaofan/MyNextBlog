@@ -3,11 +3,13 @@ export interface PostDetail {
   title: string;
   content: string;
   createTime: string;
-  category?: string;
+  categoryName?: string;
   categoryId: number;
-  author?: string;
+  authorName?: string;
   commentCount: number;
   coverImage?: string;
+  tags?: string[];
+  isHidden?: boolean;
 }
 
 export async function getPost(id: string) {

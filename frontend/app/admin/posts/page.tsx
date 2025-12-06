@@ -25,8 +25,8 @@ interface Post {
   id: number;
   title: string;
   createTime: string;
-  category: string;
-  author: string;
+  categoryName: string;
+  authorName: string;
 }
 
 export default function AdminPostsPage() {
@@ -132,9 +132,9 @@ export default function AdminPostsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                       <Badge variant="secondary" className="font-normal">{post.category || '未分类'}</Badge>
+                       <Badge variant="secondary" className="font-normal">{post.categoryName || '未分类'}</Badge>
                     </TableCell>
-                    <TableCell>{post.author}</TableCell>
+                    <TableCell>{post.authorName}</TableCell>
                     <TableCell className="text-gray-500">{new Date(post.createTime).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -169,10 +169,10 @@ export default function AdminPostsPage() {
                         {post.title}
                       </Link>
                     </h3>
-                    <Badge variant="secondary" className="shrink-0">{post.category || '未分类'}</Badge>
+                    <Badge variant="secondary" className="shrink-0">{post.categoryName || '未分类'}</Badge>
                  </div>
                  <div className="text-xs text-gray-500 flex items-center justify-between border-b border-gray-50 pb-3">
-                    <span>{post.author}</span>
+                    <span>{post.authorName}</span>
                     <span>{new Date(post.createTime).toLocaleDateString()}</span>
                  </div>
                  <div className="flex gap-3 pt-1">

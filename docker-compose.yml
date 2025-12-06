@@ -29,6 +29,8 @@ services:
       - ./data:/app/data
       # 挂载上传目录 (可选)
       - ./wwwroot/uploads:/app/wwwroot/uploads
+      # 挂载日志目录 (Serilog)
+      - ./logs:/app/logs
 
   # === 前端服务 (Next.js) ===
   frontend:

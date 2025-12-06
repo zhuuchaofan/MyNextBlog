@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.content.substring(0, 160),
       type: 'article',
       publishedTime: post.createTime,
-      authors: [post.author || 'Admin'],
+      authors: [post.authorName || 'Admin'],
       images: post.coverImage ? [post.coverImage] : [],
     },
   };
@@ -80,7 +80,7 @@ export default async function PostPage({ params }: Props) {
            <div className="space-y-4 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
              <Link href={`/categories/${post.categoryId}`}>
                 <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none px-3 py-1 mb-4">
-                  {post.category || '未分类'}
+                  {post.categoryName || '未分类'}
                 </Badge>
              </Link>
              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
@@ -89,10 +89,10 @@ export default async function PostPage({ params }: Props) {
              <div className="flex items-center justify-center gap-6 text-white/90 text-sm md:text-base">
                 <div className="flex items-center gap-2">
                    <Avatar className="w-8 h-8 border-2 border-white/50">
-                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author || 'admin'}`} />
+                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} />
                      <AvatarFallback>User</AvatarFallback>
                    </Avatar>
-                   <span className="font-medium">{post.author || '匿名'}</span>
+                   <span className="font-medium">{post.authorName || '匿名'}</span>
                 </div>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" /> {new Date(post.createTime).toLocaleDateString()}
