@@ -101,3 +101,48 @@
 *   [x] **Admin Features**: Add "Drafts" status management and toggle visibility.
 *   [ ] **Testing**: (Cancelled due to .NET Preview environment issues).
 *   [ ] **Admin Features**: Dashboard statistics (Post count, Comment count).
+
+---
+
+## 8. Architectural Review & Future Improvements (as of 2025-10)
+
+This section outlines observations and potential areas for architectural refinement and future enhancements.
+
+### 8.1 High Priority / Major Improvement Areas
+
+1.  **Reliance on .NET 10 Preview**:
+    *   **Observation**: The backend currently targets .NET 10 Preview.
+    *   **Concern**: Using a preview version in a "production-ready" (even personal) project introduces significant risks including potential instability, undetected bugs, performance regressions, and breaking changes in future releases. This can lead to increased maintenance overhead and unexpected issues.
+    *   **Recommendation**: Strongly consider upgrading to a stable, officially released version of .NET (e.g., .NET 8 LTS or the next stable release if .NET 10 stabilizes soon) for improved stability and long-term support.
+
+2.  **Lack of Automated Testing (Backend & Frontend)**:
+    *   **Observation**: Automated unit and integration tests are currently not implemented (backend unit test setup was attempted but halted due to environment issues).
+    *   **Concern**: Absence of automated tests increases the risk of regressions, makes refactoring difficult and time-consuming, and significantly slows down future feature development as manual testing becomes the primary verification method.
+    *   **Recommendation**: Prioritize implementing automated tests for critical business logic (backend services) and key user flows (frontend UI). Revisit backend unit testing when a stable .NET environment is available, and consider Playwright/Cypress for frontend integration tests.
+
+### 8.2 Medium Priority / Design Refinement Areas
+
+1.  **Service Layer's Awareness of User Roles (`isAdmin`)**:
+    *   **Observation**: In `PostService.GetAllPostsAsync(includeHidden: isAdmin)`, the service layer receives `isAdmin` directly.
+    *   **Concern**: From a strict Separation of Concerns (SoC) perspective, the service layer should ideally be agnostic to the caller's role. It should only execute the task it's given (e.g., "get posts including hidden ones" or "get only visible posts"). The decision of *whether* to include hidden posts should be made at the authorization/controller level.
+    *   **Recommendation**: While functional, a slightly cleaner approach would be for the controller to determine the `includeHidden` flag based on user roles/policies and pass a fully formed query parameter object to the service.
+
+2.  **Manual Frontend API Client Maintenance**:
+    *   **Observation**: Frontend API client (`frontend/lib/api.ts`) interfaces and `fetch` calls are manually written and maintained based on backend DTOs.
+    *   **Concern**: This manual process is prone to human error and can lead to inconsistencies between frontend expectations and backend API contracts, especially as APIs evolve.
+    *   **Recommendation**: Explore integrating automated API client generation tools (e.g., NSwag for .NET + TypeScript) to generate client code from the backend's OpenAPI (Swagger) specification. This ensures type safety and reduces manual synchronization effort.
+
+3.  **Timezone Handling in Database**:
+    *   **Observation**: Currently, `DateTime.Now` is used, and the Docker container's timezone is set to `Asia/Shanghai`.
+    *   **Concern**: While effective for a single-region blog, a more universally robust practice for `DateTime` handling is to store all dates in **UTC** in the database. Conversion to local time (or specific timezones) should happen at the presentation layer (frontend) or just before display.
+    *   **Recommendation**: For current scope, it's acceptable. For future global scalability, storing UTC is preferred.
+
+### 8.3 Potential Optimization / UI/UX Enhancements
+
+1.  **More Flexible Styling/Theming System**:
+    *   **Observation**: Dark mode relies heavily on direct `dark:` Tailwind classes.
+    *   **Recommendation**: For greater flexibility and easier customization (e.g., allowing users to choose different color themes), consider using CSS Variables to define theme-dependent colors. Tailwind can then read from these CSS variables, making global theme changes simpler and more maintainable.
+
+---
+
+This architectural review aims to guide future development and ensure the project's long-term health and maintainability.
