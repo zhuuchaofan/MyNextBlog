@@ -6,25 +6,31 @@ import Image from 'next/image';
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 
+export const dynamic = "force-dynamic";
+
 async function getInitialPosts() {
   // Use http://backend:5095 inside Docker network by default, or localhost if running locally without Docker networking (which won't work for server component -> backend unless ports are open and we use localhost, but inside container localhost is the container itself)
   // Best practice: use service name 'backend'
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  console.log(`Fetching posts from: ${backendUrl}/api/posts?page=1&pageSize=10`);
   
   try {
     const res = await fetch(`${backendUrl}/api/posts?page=1&pageSize=10`, {
-       next: { revalidate: 60 }
+       cache: 'no-store'
     });
     
     if (!res.ok) {
-        console.error(`Fetch posts failed: ${res.status}`);
+        console.error(`Fetch posts failed: ${res.status} ${res.statusText}`);
         return { data: [], meta: { hasMore: false } };
     }
     
     const json = await res.json();
+    console.log(`Fetched ${json.data?.length || 0} posts`);
     return json.success ? json : { data: [], meta: { hasMore: false } };
   } catch (e) {
     console.error("Failed to fetch posts:", e);
+    // Don't return empty list on error during build/startup, maybe throw? 
+    // But for now, let's return empty to avoid crash, but logs will help.
     return { data: [], meta: { hasMore: false } };
   }
 }
@@ -33,7 +39,7 @@ async function getPopularTags() {
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
   try {
     const res = await fetch(`${backendUrl}/api/tags/popular`, {
-       next: { revalidate: 3600 }
+       cache: 'no-store'
     });
     if (!res.ok) return [];
     const json = await res.json();
