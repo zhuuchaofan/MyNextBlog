@@ -22,7 +22,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 // ==================================================================
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 // 注册 Swagger 服务 (API 文档生成器)
 builder.Services.AddEndpointsApiExplorer();
@@ -49,8 +49,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000", 
-                "https://nextblog.zhuchaofan.online",
-                "https://blogapi.zhuchaofan.online"
+                "https://nextblog.zhuchaofan.online"
               ) 
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -65,15 +64,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 4. 招募“保安” (身份认证服务)
 // 开启 Cookie 认证 (用于浏览器) 和 JWT 认证 (用于 API/App)
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = "MyCookieAuth"; // 默认还是 Cookie，保证 MVC 页面正常
-        options.DefaultChallengeScheme = "MyCookieAuth";
-    })
-    .AddCookie("MyCookieAuth", options =>
-    {
-        options.LoginPath = "/Account/Login"; 
-        options.AccessDeniedPath = "/Account/Login";
-    })
+{
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // <--- 修正为 JWT
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -105,7 +99,7 @@ var app = builder.Build();
 // 1. 异常处理 (出事了怎么办)
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error"); // 生产环境显示友好的错误页
+    // app.UseExceptionHandler("/Home/Error"); // 生产环境显示友好的错误页
     app.UseHsts(); // 强制使用安全协议
 }
 
@@ -120,24 +114,21 @@ app.UseHttpsRedirection();
 // 允许访问 wwwroot 文件夹下的 css, js, 图片等文件
 app.UseStaticFiles();
 
+// 开启 Serilog 请求日志 (记录 HTTP 请求耗时、状态码等)
+app.UseSerilogRequestLogging();
+
 // 4. 路由匹配 (保安看门票，决定带去哪个房间)
 app.UseRouting();
 
 // 4.5. 跨域许可 (告诉浏览器：允许 localhost:3000 进门)
 app.UseCors("AllowNextJs");
 
-// 开启 Serilog 请求日志 (记录 HTTP 请求耗时、状态码等)
-app.UseSerilogRequestLogging();
-
 // 5. 查验身份 (必须放在 UseRouting 之后)
 app.UseAuthentication(); // 问：你是谁？(查身份证/Cookie)
 app.UseAuthorization();  // 问：你能干什么？(查权限/Role)
 
 // 6. 最终目的地 (默认规则)
-// 如果没指定去哪，默认去 HomeController 的 Index 方法
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
 
 // ==================================================================
 // 3.5. 数据播种 (Data Seeding)
