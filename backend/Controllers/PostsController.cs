@@ -39,16 +39,12 @@ public class PostsController(IPostService postService) : Controller
         if (id == null) return NotFound();
 
         // 吩咐厨师：按 ID 查这道菜 (此时没有评论数据)
-        var post = await postService.GetPostByIdAsync(id.Value);
+        // 只有管理员能看到隐藏文章
+        bool isAdmin = User.IsInRole("Admin");
+        var post = await postService.GetPostByIdAsync(id.Value, includeHidden: isAdmin);
 
         if (post == null) return NotFound();
         
-        // 如果文章被隐藏，且当前用户不是管理员，则拒绝访问
-        if (post.IsHidden && !User.IsInRole("Admin"))
-        {
-            return NotFound();
-        }
-
         // 手动加载第一页评论 (5条)
         post.Comments = await postService.GetCommentsAsync(post.Id, 1, 5);
         
@@ -96,7 +92,7 @@ public class PostsController(IPostService postService) : Controller
     {
         if (id == null) return NotFound();
 
-        var post = await postService.GetPostByIdAsync(id.Value);
+        var post = await postService.GetPostByIdAsync(id.Value, includeHidden: true);
         if (post == null) return NotFound();
         ViewBag.Categories = await postService.GetCategoriesAsync(); // 获取所有分类
         return View(post);

@@ -78,7 +78,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPost(int id)
     {
-        var post = await postService.GetPostByIdAsync(id);
+        var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null)
         {
             return NotFound(new { success = false, message = "文章不存在" });
@@ -91,11 +91,10 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPost(int id)
     {
-        var post = await postService.GetPostByIdAsync(id);
-        
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        var post = await postService.GetPostByIdAsync(id, includeHidden: isAdmin);
         
-        if (post == null || (post.IsHidden && !isAdmin))
+        if (post == null)
         {
             return NotFound(new { success = false, message = "文章不存在或已隐藏" });
         }
@@ -134,7 +133,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
-        var post = await postService.GetPostByIdAsync(id);
+        var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
         post.Title = dto.Title;
@@ -159,7 +158,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> DeletePost(int id)
     {
-        var post = await postService.GetPostByIdAsync(id);
+        var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
         await postService.DeletePostAsync(id);
@@ -175,7 +174,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
         if (!success) return NotFound(new { success = false, message = "文章不存在" });
 
         // 获取更新后的状态以返回
-        var post = await postService.GetPostByIdAsync(id);
+        var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         return Ok(new { success = true, message = "状态更新成功", isHidden = post?.IsHidden });
     }
 }

@@ -44,10 +44,17 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
                 .ToListAsync();
     }
     // 根据 ID 获取文章
-    public async Task<Post?> GetPostByIdAsync(int id)
+    public async Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false)
     {
         // 对应之前的 Details/Edit/Delete 查找逻辑
-        return await context.Posts
+        var query = context.Posts.AsQueryable();
+
+        if (!includeHidden)
+        {
+            query = query.Where(p => !p.IsHidden);
+        }
+
+        return await query
             //.Include(m => m.Comments) // <--- 移除：不再一次性加载所有评论，改为分页加载
             .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
             .Include(p => p.User)     // <--- 把作者也查出来
