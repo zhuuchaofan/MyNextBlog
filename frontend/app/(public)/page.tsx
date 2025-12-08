@@ -1,80 +1,57 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight, Sparkles, Tag, Github } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, ArrowRight, Tag, Github } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SITE_CONFIG, PETS } from "@/lib/constants";
-import { fetchPopularTags } from "@/lib/api";
+import PostList from "./_components/PostList";
 
-interface Post {
-  id: number;
-  title: string;
-  excerpt: string;
-  createTime: string;
-  authorName: string;
-  authorAvatar?: string;
-  categoryName: string;
-  categoryId: number;
-  coverImage?: string;
+async function getInitialPosts() {
+  // Use http://backend:5095 inside Docker network by default, or localhost if running locally without Docker networking (which won't work for server component -> backend unless ports are open and we use localhost, but inside container localhost is the container itself)
+  // Best practice: use service name 'backend'
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  
+  try {
+    const res = await fetch(`${backendUrl}/api/posts?page=1&pageSize=10`, {
+       next: { revalidate: 60 }
+    });
+    
+    if (!res.ok) {
+        console.error(`Fetch posts failed: ${res.status}`);
+        return { data: [], meta: { hasMore: false } };
+    }
+    
+    const json = await res.json();
+    return json.success ? json : { data: [], meta: { hasMore: false } };
+  } catch (e) {
+    console.error("Failed to fetch posts:", e);
+    return { data: [], meta: { hasMore: false } };
+  }
 }
 
-export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [popularTags, setPopularTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+async function getPopularTags() {
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  try {
+    const res = await fetch(`${backendUrl}/api/tags/popular`, {
+       next: { revalidate: 3600 }
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.success ? json.data : [];
+  } catch (e) {
+    console.error("Failed to fetch tags:", e);
+    return [];
+  }
+}
 
-  const loadPosts = (pageNo: number, append: boolean = false) => {
-    setLoading(true);
-    fetch(`/api/backend/posts?page=${pageNo}&pageSize=10`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          if (append) {
-            setPosts(prev => [...prev, ...data.data]);
-          } else {
-            setPosts(data.data);
-          }
-          
-          if (data.meta) {
-            setHasMore(data.meta.hasMore);
-          } else {
-            setHasMore(data.data.length === 10);
-          }
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    // Initial load
-    loadPosts(1);
-
-    // Fetch tags
-    fetchPopularTags()
-      .then(data => {
-        if (data.success) setPopularTags(data.data);
-      })
-      .catch(console.error);
-  }, []);
-
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadPosts(nextPage, true);
-  };
+export default async function Home() {
+  const postsData = await getInitialPosts();
+  const popularTags = await getPopularTags();
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
       
-      {/* Hero Section - 统一风格 */}
+      {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-orange-50 to-white dark:from-zinc-900 dark:to-zinc-950 rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 dark:shadow-black/50 border border-white dark:border-zinc-800 mb-16 isolate overflow-hidden transition-colors duration-300">
         {/* 背景装饰 */}
         <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-orange-200 to-pink-200 dark:from-orange-900/30 dark:to-pink-900/30 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
@@ -153,85 +130,10 @@ export default function Home() {
             </Link>
           </div>
 
-          {loading && posts.length === 0 ? (
-            <div className="space-y-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-64 bg-gray-100 dark:bg-zinc-900 animate-pulse rounded-3xl"></div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {posts.map((post) => (
-                <Card key={post.id} className="group overflow-hidden border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-zinc-900 rounded-3xl ring-1 ring-gray-100 dark:ring-zinc-800">
-                  <div className="flex flex-col md:flex-row h-full">
-                     {post.coverImage && (
-                        <div className="md:w-64 h-48 md:h-auto relative p-3">
-                          <div className="w-full h-full relative rounded-2xl overflow-hidden">
-                            <Link href={`/posts/${post.id}`} className="block w-full h-full">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                            </Link>
-                          </div>
-                        </div>
-                     )}
-                     
-                     <div className="flex-1 flex flex-col p-6 md:p-8">
-                        <div className="flex items-center gap-3 mb-4">
-                          <Link href={`/categories/${post.categoryId}`}>
-                             <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg px-3 py-1 transition-colors">
-                                {post.categoryName || '未分类'}
-                             </Badge>
-                          </Link>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1">
-                            <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
-                          </span>
-                        </div>
-                        
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                          <Link href={`/posts/${post.id}`}>
-                            {post.title}
-                          </Link>
-                        </h3>
-                        
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-6 flex-grow leading-relaxed">
-                          {post.excerpt || '暂无摘要...'}
-                        </p>
-                        
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-zinc-800/50">
-                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                             <Avatar className="w-6 h-6 border border-gray-100 dark:border-zinc-700">
-                               <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} className="object-cover"/>
-                               <AvatarFallback>User</AvatarFallback>
-                             </Avatar>
-                             <span>{post.authorName || SITE_CONFIG.author}</span>
-                          </div>
-                          <Link href={`/posts/${post.id}`}>
-                            <span className="inline-flex items-center text-sm font-bold text-orange-700 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 transition-colors group/btn">
-                              阅读全文 <ArrowRight className="w-4 h-4 ml-1 transform group-hover/btn:translate-x-1 transition-transform" />
-                            </span>
-                          </Link>
-                        </div>
-                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="text-center mt-12">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="rounded-full px-8 border-gray-200 dark:border-zinc-700 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 dark:bg-zinc-900 dark:text-gray-300 transition-all shadow-sm"
-                onClick={handleLoadMore}
-                disabled={loading}
-              >
-                {loading ? '加载中...' : '加载更多文章'}
-              </Button>
-            </div>
-          )}
+          <PostList 
+             initialPosts={postsData.data} 
+             initialHasMore={postsData.meta ? postsData.meta.hasMore : postsData.data.length === 10} 
+          />
         </div>
 
         {/* Sidebar (Desktop Only) */}
@@ -257,7 +159,6 @@ export default function Home() {
                      <Github className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                    </Link>
                  </Button>
-                 {/* Add more social icons */}
               </div>
            </div>
 
@@ -270,7 +171,7 @@ export default function Home() {
                  {popularTags.length === 0 ? (
                     <span className="text-sm text-gray-400 dark:text-gray-500">暂无标签</span>
                  ) : (
-                    popularTags.map(tag => (
+                    popularTags.map((tag: string) => (
                      <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
                        <Badge variant="secondary" className="bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/30 hover:text-orange-600 dark:hover:text-orange-400 cursor-pointer transition-colors rounded-lg px-3 py-1.5 font-normal">
                          # {tag}

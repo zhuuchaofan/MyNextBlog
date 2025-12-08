@@ -14,13 +14,11 @@ export default function CommentsSection({ postId }: { postId: number }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   
-  // 表单状态
   const [guestName, setGuestName] = useState('');
   const [content, setContent] = useState('');
 
-  // 加载评论
   useEffect(() => {
     fetchComments(postId)
       .then(data => {
@@ -30,22 +28,18 @@ export default function CommentsSection({ postId }: { postId: number }) {
       .catch(() => setLoading(false));
   }, [postId]);
 
-  // 提交评论
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
     setSubmitting(true);
     try {
-      // 如果已登录，名字其实会被后端用 User 信息覆盖/填充，这里传 username 只是作为备用或显示
       const nameToSubmit = user ? user.username : guestName;
-      const data = await submitComment(postId, content, nameToSubmit, token || undefined);
+      const data = await submitComment(postId, content, nameToSubmit);
       
       if (data.success) {
-        // 将新评论添加到列表开头
         setComments([data.comment, ...comments]);
-        setContent(''); // 清空内容
-        // guestName 不清空
+        setContent(''); 
         toast.success("评论发表成功！");
       } else {
         toast.error('提交失败：' + data.message);
@@ -58,7 +52,6 @@ export default function CommentsSection({ postId }: { postId: number }) {
     }
   };
 
-  // 格式化日期
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleString('zh-CN', {
@@ -80,7 +73,6 @@ export default function CommentsSection({ postId }: { postId: number }) {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">评论区 ({comments.length})</h2>
       </div>
 
-      {/* 评论输入框 */}
       <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mb-10 transition-colors duration-300">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-4">
@@ -129,7 +121,6 @@ export default function CommentsSection({ postId }: { postId: number }) {
         </form>
       </div>
 
-      {/* 评论列表 */}
       {loading ? (
         <div className="text-center text-gray-400 py-10">加载评论中...</div>
       ) : comments.length === 0 ? (
@@ -141,7 +132,6 @@ export default function CommentsSection({ postId }: { postId: number }) {
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-4 group">
               <Avatar className="w-10 h-10 border-2 border-white dark:border-zinc-800 shadow-sm">
-                {/* 优先使用用户头像，否则使用 DiceBear */}
                 <AvatarImage 
                   src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} 
                   className="object-cover"

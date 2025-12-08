@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,12 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor';
 import TagInput from '@/components/TagInput';
 import CreateCategoryDialog from '@/components/CreateCategoryDialog';
-import { fetchCategories, updatePost, Category, getPostWithAuth } from '@/lib/api';
+import { fetchCategories, createPost, Category } from '@/lib/api';
 import { ChevronLeft, Save, Plus } from 'lucide-react';
 import { toast } from "sonner";
 
-export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
-  // 解包 params Promise (Next.js 15)
-  const { id } = use(params); 
-  const { token, user } = useAuth();
+export default function NewPostPage() {
+  const { user } = useAuth();
   const router = useRouter();
   
   const [title, setTitle] = useState('');
@@ -25,44 +23,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
 
-  // 鉴权、加载分类、回显文章
   useEffect(() => {
-    if (!token || user?.role !== 'Admin') {
-      // router.push('/login'); 
-      return;
+    if (user && user.role !== 'Admin') {
+      // router.push('/'); 
     }
 
-    const init = async () => {
-      try {
-        // 1. 加载分类
-        const catRes = await fetchCategories();
-        if (catRes.success) setCategories(catRes.data);
-
-        // 2. 加载文章详情
-        const postData = await getPostWithAuth(token, parseInt(id));
-        
-        if (postData.success) {
-          const p = postData.data;
-          setTitle(p.title);
-          setContent(p.content);
-          setCategoryId(p.categoryId === 0 ? undefined : p.categoryId);
-          setTags(p.tags || []); // Populate tags
-        } else {
-          toast.error('文章不存在或已隐藏');
-          router.push('/admin/posts');
-        }
-      } catch (err) {
-        toast.error('加载失败');
-      } finally {
-        setFetching(false);
-      }
-    };
-
-    init();
-  }, [token, user, router, id]);
+    fetchCategories().then(data => {
+      if (data.success) setCategories(data.data);
+    });
+  }, [user, router]);
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -72,45 +43,44 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
     setLoading(true);
     try {
-      const res = await updatePost(token!, parseInt(id), { 
+      const res = await createPost({ 
         title, 
         content, 
         categoryId,
-        tags 
+        tags
       });
       
       if (res.success) {
-        toast.success('更新成功！');
-        router.push('/admin/posts'); 
+        toast.success('发布成功！正在跳转...');
+        setTimeout(() => {
+            router.push('/admin/posts'); 
+        }, 1500);
       } else {
-        toast.error('更新失败: ' + res.message);
+        toast.error('发布失败: ' + res.message);
       }
     } catch (error: any) {
-      toast.error('网络错误');
+      console.error('Create post error:', error);
+      toast.error('网络错误: ' + (error.message || "请检查后端服务"));
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <div className="p-10 text-center text-gray-500 dark:text-gray-400">加载文章数据中...</div>;
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* 顶部操作栏 */}
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-4">
            <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-             <ChevronLeft className="w-4 h-4 mr-1" /> 返回列表
+             <ChevronLeft className="w-4 h-4 mr-1" /> 返回
            </Button>
-           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">编辑文章</h1>
+           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">撰写新文章</h1>
          </div>
          <Button onClick={handleSubmit} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-white">
-           {loading ? '保存中...' : <><Save className="w-4 h-4 mr-2" /> 保存修改</>}
+           {loading ? '发布中...' : <><Save className="w-4 h-4 mr-2" /> 发布文章</>}
          </Button>
       </div>
 
       <div className="grid gap-6">
-        {/* 标题输入 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <Label htmlFor="title" className="text-lg font-semibold dark:text-gray-200">文章标题</Label>
@@ -122,12 +92,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             id="title" 
             maxLength={50}
             className="text-2xl py-6 font-medium border-transparent bg-white dark:bg-zinc-900 shadow-sm hover:border-orange-200 dark:hover:border-orange-800 focus:border-orange-500 dark:focus:border-orange-600 transition-all dark:text-gray-100 dark:placeholder:text-zinc-600"
+            placeholder="请输入引人入胜的标题..." 
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
         </div>
 
-        {/* 分类选择 */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">选择分类</Label>
            <div className="flex gap-2 flex-wrap">
@@ -162,13 +132,11 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           }}
         />
 
-        {/* 标签输入 */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">文章标签</Label>
            <TagInput value={tags} onChange={setTags} />
         </div>
 
-        {/* Markdown 编辑器 */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">正文内容</Label>
            <MarkdownEditor value={content} onChange={setContent} />

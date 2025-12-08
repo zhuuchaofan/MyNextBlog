@@ -40,19 +40,15 @@ export interface Comment {
 }
 
 export async function fetchComments(postId: number, page = 1) {
-  const res = await fetch(`/api/backend/comments?postId=${postId}&page=${page}&pageSize=100`); // 简单起见，先取 100 条
+  const res = await fetch(`/api/backend/comments?postId=${postId}&page=${page}&pageSize=100`);
   return res.json();
 }
 
-export async function submitComment(postId: number, content: string, guestName: string, token?: string) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
+export async function submitComment(postId: number, content: string, guestName: string) {
+  // Middleware handles token injection if cookie exists
   const res = await fetch('/api/backend/comments', {
     method: 'POST',
-    headers: headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ postId, content, guestName })
   });
   return res.json();
@@ -64,36 +60,30 @@ export interface Category {
 }
 
 export async function fetchCategories() {
-  // 由于我们没有专门的 GET /api/categories，暂时先用 Posts API 的附属数据或者假设有一个接口
-  // 这里我们需要后端补充一个 GET /api/categories 接口
   const res = await fetch('/api/backend/categories'); 
   return res.json();
 }
 
-export async function createCategory(token: string, name: string) {
+export async function createCategory(name: string) {
   const res = await fetch('/api/backend/categories', {
     method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name })
   });
   return res.json();
 }
 
 export async function fetchPopularTags() {
+  // This uses proxy /api/backend/tags/popular. Middleware might intercept but it's public API usually.
+  // Wait, tags/popular is public. Middleware only adds token if it exists. Backend ignores it if endpoint is public.
   const res = await fetch('/api/backend/tags/popular');
   return res.json();
 }
 
-export async function createPost(token: string, postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
+export async function createPost(postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
   const res = await fetch('/api/backend/posts', {
     method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(postData)
   });
 
@@ -105,13 +95,10 @@ export async function createPost(token: string, postData: { title: string; conte
   return res.json();
 }
 
-export async function updatePost(token: string, id: number, postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
+export async function updatePost(id: number, postData: { title: string; content: string; categoryId?: number; tags?: string[] }) {
   const res = await fetch(`/api/backend/posts/${id}`, {
     method: 'PUT',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(postData)
   });
 
@@ -123,12 +110,9 @@ export async function updatePost(token: string, id: number, postData: { title: s
   return res.json();
 }
 
-export async function deletePost(token: string, id: number) {
+export async function deletePost(id: number) {
   const res = await fetch(`/api/backend/posts/${id}`, {
-    method: 'DELETE',
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    }
+    method: 'DELETE'
   });
 
   if (!res.ok) {
@@ -139,12 +123,9 @@ export async function deletePost(token: string, id: number) {
   return res.json();
 }
 
-export async function togglePostVisibility(token: string, id: number) {
+export async function togglePostVisibility(id: number) {
   const res = await fetch(`/api/backend/posts/${id}/visibility`, {
-    method: 'PATCH',
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    }
+    method: 'PATCH'
   });
 
   if (!res.ok) {
@@ -155,42 +136,27 @@ export async function togglePostVisibility(token: string, id: number) {
   return res.json();
 }
 
-export async function fetchPostsWithAuth(token: string, page = 1, pageSize = 10) {
-  const res = await fetch(`/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`, {
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    }
-  });
+export async function fetchPostsWithAuth(page = 1, pageSize = 10) {
+  const res = await fetch(`/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`);
   return res.json();
 }
 
-export async function getPostWithAuth(token: string, id: number) {
-  const res = await fetch(`/api/backend/posts/admin/${id}`, {
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    }
-  });
+export async function getPostWithAuth(id: number) {
+  const res = await fetch(`/api/backend/posts/admin/${id}`);
   return res.json();
 }
 
-export async function fetchCurrentUser(token: string) {
-  const res = await fetch('/api/backend/account/me', {
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    }
-  });
+export async function fetchCurrentUser() {
+  const res = await fetch('/api/backend/account/me');
   return res.json();
 }
 
-export async function uploadAvatar(token: string, file: File) {
+export async function uploadAvatar(file: File) {
   const formData = new FormData();
   formData.append('file', file);
 
   const res = await fetch('/api/backend/account/avatar', {
     method: 'POST',
-    headers: { 
-      'Authorization': `Bearer ${token}`
-    },
     body: formData
   });
 

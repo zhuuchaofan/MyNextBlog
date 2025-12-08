@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/backend/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -32,7 +32,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        login(data.token, { username: data.username, role: data.role });
+        login({ username: data.username, role: data.role });
       } else {
         setError(data.message || '账号或密码错误，请检查');
       }

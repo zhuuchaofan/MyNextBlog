@@ -11,12 +11,11 @@ import { uploadAvatar } from "@/lib/api";
 import { Loader2, Upload } from "lucide-react";
 
 export default function SettingsPage() {
-  const { user, token, updateUser, isLoading } = useAuth();
+  const { user, updateUser, isLoading } = useAuth();
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 简单的路由保护
   if (!isLoading && !user) {
     router.push('/login');
     return null;
@@ -40,11 +39,10 @@ export default function SettingsPage() {
 
     try {
       setUploading(true);
-      const res = await uploadAvatar(token!, file);
+      const res = await uploadAvatar(file);
       
       if (res.success) {
         toast.success('头像更新成功！');
-        // 更新本地用户状态
         updateUser({
           ...user!,
           avatarUrl: res.avatarUrl
@@ -57,7 +55,6 @@ export default function SettingsPage() {
       toast.error('上传出错，请重试');
     } finally {
       setUploading(false);
-      // 清空 input，允许重复上传同一文件
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -72,7 +69,6 @@ export default function SettingsPage() {
           
           <div className="flex flex-col items-center gap-6">
             <Avatar className="w-32 h-32 border-4 border-orange-100 shadow-lg">
-              {/* 优先显示自定义头像，否则使用 DiceBear */}
               <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} className="object-cover" />
               <AvatarFallback className="text-4xl">{user?.username?.[0].toUpperCase()}</AvatarFallback>
             </Avatar>

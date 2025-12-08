@@ -31,7 +31,7 @@ interface Post {
 }
 
 export default function AdminPostsPage() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,19 +39,16 @@ export default function AdminPostsPage() {
   const [hasMore, setHasMore] = useState(false);
   const pageSize = 10;
   
-  // 控制删除弹窗的状态
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 加载文章
   useEffect(() => {
-    if (!token) return;
     loadPosts(page);
-  }, [token, page]);
+  }, [page]);
 
   const loadPosts = (currentPage: number) => {
     setLoading(true);
-    fetchPostsWithAuth(token!, currentPage, pageSize)
+    fetchPostsWithAuth(currentPage, pageSize)
       .then(data => {
         if (data.success) {
            setPosts(data.data);
@@ -69,16 +66,14 @@ export default function AdminPostsPage() {
       });
   };
 
-  // 真正执行删除的函数
   const executeDelete = async () => {
-    if (!postToDelete || !token) return;
+    if (!postToDelete) return;
 
     setIsDeleting(true);
     try {
-      const res = await deletePost(token, postToDelete.id);
+      const res = await deletePost(postToDelete.id);
       if (res.success) {
         toast.success('删除成功');
-        // 重新加载列表以更新分页状态 (totalCount 等)
         loadPosts(page); 
       } else {
         toast.error('删除失败: ' + res.message);
@@ -87,25 +82,18 @@ export default function AdminPostsPage() {
       toast.error('网络错误');
     } finally {
       setIsDeleting(false);
-      setPostToDelete(null); // 关闭弹窗
+      setPostToDelete(null); 
     }
   };
 
-  // 切换文章可见性
   const handleToggleVisibility = async (post: Post) => {
-    if (!token) {
-      toast.error('未登录或会话过期');
-      return;
-    }
-
     try {
-      const res = await togglePostVisibility(token, post.id);
+      const res = await togglePostVisibility(post.id);
 
       if (res.success) {
         const newIsHidden = res.isHidden ?? !post.isHidden;
         toast.success(newIsHidden ? '文章已设为草稿' : '文章已发布');
         
-        // 更新本地状态
         setPosts(prevPosts => prevPosts.map(p => 
           p.id === post.id ? { ...p, isHidden: newIsHidden } : p
         ));
@@ -138,7 +126,6 @@ export default function AdminPostsPage() {
          <div className="p-10 text-center text-gray-500 dark:text-gray-400">加载中...</div>
       ) : (
         <>
-          {/* Desktop View: Table */}
           <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden transition-colors">
             <Table>
               <TableHeader>
@@ -201,7 +188,6 @@ export default function AdminPostsPage() {
             </Table>
           </div>
 
-          {/* Mobile View: Cards */}
           <div className="grid gap-4 md:hidden">
             {posts.map((post) => (
               <div key={post.id} className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 space-y-3 transition-colors">
@@ -249,7 +235,6 @@ export default function AdminPostsPage() {
         </>
       )}
 
-      {/* Pagination */}
       <div className="flex justify-between items-center mt-6">
          <Button 
            variant="outline" 
@@ -270,7 +255,6 @@ export default function AdminPostsPage() {
          </Button>
       </div>
 
-      {/* 删除确认弹窗 */}
       <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -283,7 +267,7 @@ export default function AdminPostsPage() {
             <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
             <AlertDialogAction 
               onClick={(e) => {
-                e.preventDefault(); // 阻止默认关闭，直到异步操作完成
+                e.preventDefault();
                 executeDelete();
               }} 
               disabled={isDeleting}

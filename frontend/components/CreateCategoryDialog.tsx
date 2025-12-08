@@ -17,15 +17,15 @@ interface CreateCategoryDialogProps {
 export default function CreateCategoryDialog({ open, onOpenChange, onCreated }: CreateCategoryDialogProps) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !token) return;
+    if (!name.trim()) return;
 
     setLoading(true);
     try {
-      const res = await createCategory(token, name);
+      const res = await createCategory(name);
       if (res.success) {
         toast.success('分类创建成功');
         onCreated(res.category);
