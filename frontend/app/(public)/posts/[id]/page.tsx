@@ -9,7 +9,7 @@ import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import PostInteractions from '@/components/PostInteractions';
-import { getPost } from '@/lib/api';
+import { getPost } from '@/lib/data';
 
 interface Props {
   params: Promise<{ id: string }>;

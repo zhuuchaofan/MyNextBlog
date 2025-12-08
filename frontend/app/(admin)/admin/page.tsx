@@ -39,7 +39,7 @@ export default function AdminDashboard() {
               <PlusCircle className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">Create Post</div>
+              <div className="text-2xl font-bold dark:text-gray-100">撰写文章</div>
               <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">支持 Markdown 编辑与图片上传</p>
               <Button className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white pointer-events-none">开始写作</Button>
             </CardContent>
@@ -49,28 +49,30 @@ export default function AdminDashboard() {
         <Link href="/admin/posts" className="block h-full">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">文章管理</CardTitle>
+              <CardTitle className="text-sm font-medium dark:text-gray-200">内容管理</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">Manage Content</div>
+              <div className="text-2xl font-bold dark:text-gray-100">管理文章</div>
               <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">修改、隐藏或删除现有文章</p>
               <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">查看列表</Button>
             </CardContent>
           </Card>
         </Link>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium dark:text-gray-200">系统设置</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold dark:text-gray-100">Settings</div>
-            <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">分类管理、友链设置等</p>
-            <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">进入设置</Button>
-          </CardContent>
-        </Card>
+        <Link href="/settings" className="block h-full">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium dark:text-gray-200">系统设置</CardTitle>
+              <Settings className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold dark:text-gray-100">偏好设置</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">分类管理、友链设置等</p>
+              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">进入设置</Button>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );

@@ -8,9 +8,17 @@ public class TagService(AppDbContext context) : ITagService
 {
     public async Task<List<Tag>> GetPopularTagsAsync(int count)
     {
+        // 仅统计未隐藏的文章
         return await context.Tags
-            .OrderByDescending(t => t.Posts.Count)
+            .Select(t => new 
+            { 
+                Tag = t, 
+                VisiblePostCount = t.Posts.Count(p => !p.IsHidden) 
+            })
+            .Where(x => x.VisiblePostCount > 0)
+            .OrderByDescending(x => x.VisiblePostCount)
             .Take(count)
+            .Select(x => x.Tag)
             .ToListAsync();
     }
 

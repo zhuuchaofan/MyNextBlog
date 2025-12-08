@@ -3,85 +3,79 @@
 ## Core Philosophy
 1.  **Follow Standards**: Adhere to established conventions (e.g., standard Tailwind classes, RESTful API patterns) to ensure maintainability and consistency.
 2.  **Simplicity**: Strive for the simplest code implementation that fully meets the requirement. Avoid over-engineering.
-3.  **Review**: Regularly review code and decisions to remove redundancy and ensure quality (as seen in the mobile layout fix iteration).
+3.  **Review**: Regularly review code and decisions to remove redundancy and ensure quality.
 
 ## Project Overview
 
 This is a modern, full-stack personal tech blog built with a **Headless Architecture**. 
-It consists of a **.NET 10 Web API** backend and a **Next.js 15** frontend.
+It consists of a **.NET 10 Web API** backend and a **Next.js 15** frontend (BFF Pattern).
 
 ### Key Technologies:
 
 *   **Backend:** .NET 10, ASP.NET Core Web API, Entity Framework Core (SQLite), Cloudflare R2 Storage.
 *   **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui.
-*   **Authentication:** JWT (JSON Web Tokens) for API/Client, BCrypt for hashing.
+*   **Authentication:** 
+    *   **Backend**: JWT (JSON Web Tokens).
+    *   **Frontend**: HttpOnly Cookie (Secure storage), Middleware Proxy (Token Injection).
+    *   **Flow**: Login -> Next.js Route Handler sets Cookie -> Middleware reads Cookie & adds Authorization header -> Backend validates Token.
 
-## Architecture Status: Headless (Separated)
+## Architecture: BFF (Backend for Frontend)
 
-The project has successfully migrated from a traditional MVC architecture to a Headless architecture.
+The system uses Next.js as a secure intermediate layer.
+
+1.  **Client (Browser)**: Does not store tokens. Communicates with Next.js Routes (`/api/backend/*`).
+2.  **Next.js Server**:
+    *   **Server Components**: Fetch data directly from backend (Docker network) using `lib/data.ts` (manually injecting cookies).
+    *   **Middleware (`middleware.ts`)**: Intercepts requests to `/api/backend/*`, reads `token` from HttpOnly Cookie, injects `Authorization: Bearer <token>` header, and rewrites to Backend API.
+    *   **Route Handlers (`/api/auth/*`)**: Handle Login (set cookie), Logout (clear cookie), Me (read cookie).
+3.  **Backend (.NET)**: Pure API provider. Validates standard Bearer Token.
 
 ### 1. Backend (.NET API)
-*   **Role**: Pure API provider. Serves JSON data to the Next.js frontend.
-*   **Port**: Default `5095` (http) / `7153` (https).
-*   **Auth**: Validates JWT tokens via `[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]`.
+*   **Role**: Pure API provider.
+*   **Internal URL**: `http://backend:8080` (Docker Network).
+*   **Auth**: Validates JWT tokens via `[Authorize]`.
 *   **Key Controllers**:
-    *   `PostsApiController`: CRUD for posts. Supports pagination, filtering, and hidden posts (for admins).
-    *   `AuthController`: Handles login and JWT generation.
-    *   `UploadController`: Handles image uploads to R2. Supports JWT auth.
-    *   `CommentsController` & `CategoriesController`.
-    *   `TagsController`: Handles popular tags.
-    *   `GalleryController`: Handles image gallery filtering.
-*   **CORS**: Configured to allow `http://localhost:3000`.
+    *   `PostsApiController`: CRUD for posts. Supports `includeHidden` for Admins.
+    *   `TagsController`: Only returns tags for *visible* posts to public users.
 
 ### 2. Frontend (Next.js Client)
 *   **Location**: `/client` directory.
-*   **Role**: Handles all UI, routing, and user interaction (Public & Admin).
-*   **Port**: `3000`.
-*   **Proxy**: Uses `next.config.ts` rewrites (`/api/backend/*` -> `http://localhost:5095/api/*`) to allow cross-device access (e.g., mobile testing) and avoid CORS issues in some scenarios.
-*   **State Management**: `AuthContext` manages user session and JWT token in `localStorage`.
-*   **Key Features**:
-    *   **Public**: Home, Post Detail (SSR + Markdown + TOC), Archive, About, Category Filter, Gallery, Search.
-    *   **Admin**: Protected Dashboard (`/admin`), Markdown Editor (with Paste-to-Upload + Compression), Post Management (Edit/Delete with Dialogs + Pagination).
-    *   **UI Libs**: `shadcn/ui`, `sonner`, `lucide-react`, `react-photo-album`, `yet-another-react-lightbox`, `browser-image-compression`.
+*   **Public URL**: `http://localhost:3000`.
+*   **Proxy**: 
+    *   `next.config.ts`: Rewrites `/api/backend/*` -> `http://backend:8080/api/*`.
+    *   `middleware.ts`: Injects Auth Header.
+*   **State Management**: `AuthContext` syncs user profile (username, role, avatar) but *never* touches the token.
+*   **Route Groups**:
+    *   `(public)`: Visitor facing pages (Home, Post Detail). Uses `lib/data.ts` for SSR with Auth support.
+    *   `(admin)`: Protected Admin Dashboard. Redirects to login if no cookie.
+    *   `(auth)`: Login page.
 
 ## Development Workflows
 
 ### Running the Project (Docker)
-**CRITICAL RULE**: Since this project runs in Docker, **every time you modify code**, you must rebuild the containers to see changes. Local `npm run build` or `dotnet build` is not enough for the running service.
+**CRITICAL RULE**: Since this project runs in Docker with complex networking and cookies, **always use Docker Compose**.
 
 1.  **Apply Changes**: `docker compose up -d --build`
-    *   This rebuilds both frontend and backend.
 2.  **View Logs**: `docker compose logs -f`
 
-### Local Development (Optional)
-If running locally without Docker:
-1.  Start Backend: `dotnet run` (Port 5095)
-2.  Start Frontend: `cd client && npm run dev` (Port 3000)
-
-### Authentication Logic
-*   **Login**: `POST /api/backend/auth/login` -> Get Token -> Store in Context/LocalStorage.
-*   **API Calls**: Attach `Authorization: Bearer <token>` header.
-*   **Protection**:
-    *   **Backend**: `[Authorize(Roles = "Admin")]` on critical endpoints.
-    *   **Frontend**: `useAuth()` hook checks user role; redirects to `/login` if unauthorized.
+### Authentication Logic Update (2025-12-08)
+*   **Old**: LocalStorage Token (Insecure XSS risk).
+*   **New**: HttpOnly Cookie + BFF Proxy.
+    *   **Login**: POST `/api/auth/login` (Next.js Handler) -> Proxy to Backend -> Set-Cookie.
+    *   **API Calls (Client)**: `fetch('/api/backend/posts')` -> Browser sends Cookie -> Middleware adds Header -> Backend.
+    *   **API Calls (Server)**: `getPost(id)` in `lib/data.ts` -> `cookies().get('token')` -> Add Header manually -> Backend.
 
 ## Recent Major Changes
-*   **2025-12-06**:
-    *   **Features**: Implemented **RSS Feed** (`/feed.xml`) and **Dark Mode** (system-wide adaptation including Markdown/Charts).
-    *   **Fixes**: Fixed Comment API 500 error by removing `Identity` dependency injection issues; Fixed User Avatar not showing in comments; Corrected Docker timezone to `Asia/Shanghai`.
-    *   **Tags System**: Implemented full `Tag` entity (Many-to-Many with Post), backend API, and frontend input/display logic.
-    *   **Gallery**: Added `/gallery` page with Masonry layout, powered by `GalleryController` filtering "Cat" related content.
-    *   **Image Optimization**: Implemented client-side image compression (WebP, Max 1MB) before upload.
-    *   **UI/UX Polish**: Fixed mobile layout overflows, added pagination (Home/Admin), improved Markdown excerpt generation, and unified global assets (constants.ts).
-    *   **Search**: Added global search dialog and dedicated search results page with tag filtering.
-*   **2025-12-04**: Completed Admin Dashboard in Next.js. Implemented Post CRUD, Markdown Editor with image upload, and full JWT integration. Replaced native alerts with `sonner` toasts and `alert-dialog`.
-*   **2025-12-03**: Initialized Next.js project. Implemented Public views (Home, Post, Comments). Configured API Proxy.
+*   **2025-12-08**:
+    *   **Architecture Overhaul**: Migrated to BFF pattern with HttpOnly Cookie Auth.
+    *   **Directory Structure**: Organized into `(public)`, `(admin)`, `(auth)` Route Groups.
+    *   **Performance**: Converted Home Page to Server Component with direct backend fetching (no client waterfalls).
+    *   **Security Fixes**: Fixed Tag leakage (hidden posts' tags showing) and Admin Draft Preview (404 issue).
+    *   **UX**: Added Custom 404 Page (`not-found.tsx`).
+*   **2025-12-06**: Added RSS Feed, Dark Mode, Gallery, Tags System.
 
 ## Database Schema
-*   **Post**: `Id`, `Title`, `Content`, `CategoryId` (nullable), `UserId`, `IsHidden`, `CreateTime`.
-*   **Category**: `Id`, `Name`.
+*   **Post**: `Id`, `Title`, `Content`, `CategoryId`, `UserId`, `IsHidden`, `CreateTime`.
+*   **User**: `Id`, `Username`, `PasswordHash`, `Role`, `AvatarUrl`.
 *   **Tag**: `Id`, `Name`.
-*   **PostTag**: Junction table (`PostId`, `TagId`).
-*   **User**: `Id`, `Username`, `PasswordHash`, `Role` ("Admin" or "User").
-*   **Comment**: `Id`, `PostId`, `Content`, `GuestName`, `CreateTime`.
-*   **ImageAsset**: `Id`, `Url`, `StorageKey`, `PostId` (for GC).
+*   **PostTag**: `PostId`, `TagId`.

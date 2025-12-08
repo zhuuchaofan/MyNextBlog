@@ -1,3 +1,6 @@
+// Client-side API functions (or Server Actions that don't use next/headers directly)
+// Middleware handles token injection for /api/backend/* requests
+
 export interface PostDetail {
   id: number;
   title: string;
@@ -13,22 +16,16 @@ export interface PostDetail {
   isHidden?: boolean;
 }
 
-export async function getPost(id: string) {
-  try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
-    const res = await fetch(`${baseUrl}/api/posts/${id}`, {
-      next: { revalidate: 60 }
-    });
-
-    if (!res.ok) return undefined;
-    const json = await res.json();
-    if (!json.success) return undefined;
-
-    return json.data as PostDetail;
-  } catch (error) {
-    console.error('Fetch post error:', error);
-    return undefined;
-  }
+// Keep this for client-side fetching if needed (though getPost is mostly Server Component now)
+export async function getPostClient(id: string) {
+    try {
+      const res = await fetch(`/api/backend/posts/${id}`);
+      if (!res.ok) return undefined;
+      const json = await res.json();
+      return json.success ? (json.data as PostDetail) : undefined;
+    } catch (error) {
+      return undefined;
+    }
 }
 
 export interface Comment {
@@ -45,7 +42,6 @@ export async function fetchComments(postId: number, page = 1) {
 }
 
 export async function submitComment(postId: number, content: string, guestName: string) {
-  // Middleware handles token injection if cookie exists
   const res = await fetch('/api/backend/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,8 +70,6 @@ export async function createCategory(name: string) {
 }
 
 export async function fetchPopularTags() {
-  // This uses proxy /api/backend/tags/popular. Middleware might intercept but it's public API usually.
-  // Wait, tags/popular is public. Middleware only adds token if it exists. Backend ignores it if endpoint is public.
   const res = await fetch('/api/backend/tags/popular');
   return res.json();
 }
