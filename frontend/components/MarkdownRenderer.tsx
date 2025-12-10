@@ -90,16 +90,15 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     if (!inline && match) {
       return (
         <div className="relative group my-6">
-          <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <Button 
-              variant="secondary" 
-              size="icon" 
-              className="h-8 w-8 bg-gray-700 hover:bg-gray-600 text-white border-none"
-              onClick={handleCopy}
-            >
-              {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
-            </Button>
-          </div>
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="absolute right-2 top-2 h-8 w-8 bg-gray-700/80 hover:bg-gray-600 text-white border-none opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
+            onClick={handleCopy}
+            aria-label={copied ? "已复制" : "复制代码"}
+          >
+            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+          </Button>
           <pre className={`${className} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg`}>
             <code {...props} className={className}>
               {children}
