@@ -1,64 +1,83 @@
-'use client';
+'use client'; // 标记为客户端组件，因为需要状态管理、事件处理和 useEffect
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use } from 'react'; // `use` 是 React 18+ 的 hook，用于从 Promise 中同步解包值
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import MarkdownEditor from '@/components/MarkdownEditor';
-import TagInput from '@/components/TagInput';
-import CreateCategoryDialog from '@/components/CreateCategoryDialog';
-import { fetchCategories, updatePost, Category, getPostWithAuth } from '@/lib/api';
-import { ChevronLeft, Save, Plus } from 'lucide-react';
-import { toast } from "sonner";
+import MarkdownEditor from '@/components/MarkdownEditor'; // 自定义 Markdown 编辑器组件
+import TagInput from '@/components/TagInput';             // 自定义标签输入组件
+import CreateCategoryDialog from '@/components/CreateCategoryDialog'; // 创建分类对话框组件
+import { fetchCategories, updatePost, Category, getPostWithAuth } from '@/lib/api'; // 导入 API 请求函数和类型
+import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
+import { toast } from "sonner"; // Toast 通知组件
 
+/**
+ * EditPostPage 组件：编辑文章页面
+ * --------------------------------------------------------------------------------
+ * 这是一个客户端组件，用于管理员编辑现有文章。
+ * 它会在组件加载时从后端获取文章的现有数据，并提供一个表单进行修改。
+ */
 export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); 
-  const { user } = useAuth();
-  const router = useRouter();
+  // `use(params)`: Next.js 15 的新特性，在 Server Component 中异步获取路由参数后，
+  // 可以在 Client Component 中使用 `use` hook 同步解包 Promise 结果。
+  const { id } = use(params); // 获取当前文章的 ID
+  const { user } = useAuth(); // 获取当前登录用户
+  const router = useRouter(); // Next.js 路由实例
   
+  // 状态管理：用于存储表单字段的值
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // 控制表单提交的加载状态
+  const [fetching, setFetching] = useState(true); // 控制文章数据初始加载状态
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false); // 控制新建分类对话框的显示
 
+  // `useEffect` 钩子，在组件挂载后执行，用于：
+  // 1. 权限检查
+  // 2. 初始化表单数据（获取分类和文章详情）
   useEffect(() => {
+    // 权限检查（与新建页面类似）
     if (user && user.role !== 'Admin') {
       // router.push('/login'); 
     }
 
     const init = async () => {
       try {
+        // 1. 获取所有分类列表
         const catRes = await fetchCategories();
         if (catRes.success) setCategories(catRes.data);
 
-        const postData = await getPostWithAuth(parseInt(id));
-        
+        // 2. 获取当前编辑文章的详情
+        // `getPostWithAuth` 用于获取管理员权限下的文章详情（包含隐藏文章）
+        const postData = await getPostWithAuth(parseInt(id)); // 将字符串 ID 转换为整数
+
         if (postData.success) {
           const p = postData.data;
+          // 用获取到的数据初始化表单状态
           setTitle(p.title);
           setContent(p.content);
-          setCategoryId(p.categoryId === 0 ? undefined : p.categoryId);
-          setTags(p.tags || []);
+          // 如果 categoryId 为 0，则视为未分类，设为 undefined
+          setCategoryId(p.categoryId === 0 ? undefined : p.categoryId); 
+          setTags(p.tags || []); // 如果没有标签，设为空数组
         } else {
-          toast.error('文章不存在或已隐藏');
+          toast.error('文章不存在或无权编辑'); // 如果文章不存在或无权编辑，显示错误并跳转
           router.push('/admin/posts');
         }
       } catch (err) {
-        toast.error('加载失败');
+        toast.error('加载文章数据失败');
       } finally {
-        setFetching(false);
+        setFetching(false); // 结束初始加载状态
       }
     };
 
     init();
-  }, [user, router, id]);
+  }, [user, router, id]); // 依赖 `user`, `router`, `id`
 
+  // 处理文章更新提交
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast.warning('请输入文章标题');
@@ -67,6 +86,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
     setLoading(true);
     try {
+      // 调用 API 更新文章
       const res = await updatePost(parseInt(id), { 
         title, 
         content, 
@@ -75,35 +95,41 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       });
       
       if (res.success) {
-        toast.success('更新成功！');
-        router.push('/admin/posts'); 
+        toast.success('文章更新成功！');
+        router.push('/admin/posts'); // 更新成功后跳转到文章管理列表页
       } else {
         toast.error('更新失败: ' + res.message);
       }
     } catch (error: any) {
-      toast.error('网络错误');
+      toast.error('网络错误: ' + (error.message || "请检查后端服务"));
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <div className="p-10 text-center text-gray-500 dark:text-gray-400">加载文章数据中...</div>;
+  // 如果文章数据正在加载，显示加载提示
+  if (fetching) return <div className="p-10 text-center text-gray-500 dark:text-gray-400">文章数据加载中...</div>;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
+      {/* 顶部操作栏：返回按钮和保存修改按钮 */}
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-4">
+           {/* 返回列表按钮 */}
            <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
              <ChevronLeft className="w-4 h-4 mr-1" /> 返回列表
            </Button>
            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">编辑文章</h1>
          </div>
+         {/* 保存修改按钮 */}
          <Button onClick={handleSubmit} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-white">
            {loading ? '保存中...' : <><Save className="w-4 h-4 mr-2" /> 保存修改</>}
          </Button>
       </div>
 
+      {/* 文章编辑表单区域 (与新建文章页面结构类似) */}
       <div className="grid gap-6">
+        {/* 标题输入框 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <Label htmlFor="title" className="text-lg font-semibold dark:text-gray-200">文章标题</Label>
@@ -120,6 +146,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           />
         </div>
 
+        {/* 分类选择区域 */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">选择分类</Label>
            <div className="flex gap-2 flex-wrap">
@@ -145,6 +172,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
            </div>
         </div>
 
+        {/* 新建分类对话框组件 */}
         <CreateCategoryDialog 
           open={isCreateCategoryOpen} 
           onOpenChange={setIsCreateCategoryOpen} 
@@ -154,11 +182,13 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           }}
         />
 
+        {/* 标签输入区域 */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">文章标签</Label>
            <TagInput value={tags} onChange={setTags} />
         </div>
 
+        {/* 正文内容区域 (Markdown 编辑器) */}
         <div className="space-y-2">
            <Label className="font-semibold dark:text-gray-200">正文内容</Label>
            <MarkdownEditor value={content} onChange={setContent} />

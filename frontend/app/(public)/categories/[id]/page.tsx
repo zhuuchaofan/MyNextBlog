@@ -1,48 +1,69 @@
-import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation'; // Next.js 用于处理 404 错误的函数
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Folder } from "lucide-react";
 
+// 定义文章数据的接口 (精简版，用于分类列表展示)
 interface Post {
   id: number;
   title: string;
   excerpt: string;
   createTime: string;
-  author: string;
-  category: string;
+  author: string; // 这里应该是 authorName，与后端 DTO 保持一致
+  category: string; // 这里应该是 categoryName，与后端 DTO 保持一致
   categoryId: number;
   coverImage?: string;
 }
 
-// 获取分类下的文章和分类详情
+/**
+ * getCategoryData 函数：用于在服务端获取分类下的文章和分类详情
+ * --------------------------------------------------------------------------------
+ * 这是一个异步函数，负责向后端 API 并行请求两个数据：
+ * 1. 指定分类 ID 下的所有文章。
+ * 2. 指定分类 ID 的详细信息（主要是分类名称）。
+ *
+ * @param categoryId 要查询的分类 ID (字符串格式，因为来自路由参数)
+ * @returns 包含文章列表 (`posts`) 和分类名称 (`categoryName`) 的对象。
+ */
 async function getCategoryData(categoryId: string) {
+  // 确定后端 API 地址 (在 Server Component 中直接调用后端)
   const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
   const postsUrl = `${baseUrl}/api/posts?categoryId=${categoryId}`;
   const categoryUrl = `${baseUrl}/api/categories/${categoryId}`;
   
   try {
+    // 使用 `Promise.all` 并行发起两个 fetch 请求，提高数据加载效率。
     const [postsRes, categoryRes] = await Promise.all([
-      fetch(postsUrl, { next: { revalidate: 60 } }),
-      fetch(categoryUrl, { next: { revalidate: 60 } })
+      fetch(postsUrl, { next: { revalidate: 60 } }), // 缓存 60 秒
+      fetch(categoryUrl, { next: { revalidate: 60 } }) // 缓存 60 秒
     ]);
     
     let posts: Post[] = [];
-    let categoryName = `分类 ${categoryId}`;
+    let categoryName = `分类 ${categoryId}`; // 默认分类名称
 
+    // 处理文章列表的响应
     if (postsRes.ok) {
       const postsJson = await postsRes.json();
-      if (postsJson.success) posts = postsJson.data;
+      if (postsJson.success) {
+        // 适配数据接口 (后端返回的是 categoryName，前端 Post 接口中可能是 category)
+        posts = postsJson.data.map((p: any) => ({
+          ...p,
+          author: p.authorName,
+          category: p.categoryName
+        }));
+      }
     } else {
       console.error(`Fetch posts failed: ${postsRes.status} for URL: ${postsUrl}`);
     }
 
+    // 处理分类详情的响应
     if (categoryRes.ok) {
       const categoryJson = await categoryRes.json();
       if (categoryJson.success) categoryName = categoryJson.data.name;
     } else {
-       // 如果获取分类详情失败，但获取到了文章，尝试从文章中提取分类名
+       // 如果获取分类详情失败，但文章列表不为空，尝试从第一篇文章中提取分类名作为回退。
        if (posts.length > 0) categoryName = posts[0].category;
        console.error(`Fetch category failed: ${categoryRes.status} for URL: ${categoryUrl}`);
     }
@@ -50,42 +71,57 @@ async function getCategoryData(categoryId: string) {
     return { posts, categoryName };
   } catch (error) {
     console.error(`Fetch category data error`, error);
-    return { posts: [], categoryName: 'Unknown' };
+    return { posts: [], categoryName: 'Unknown' }; // 发生错误时返回空数据和未知分类名
   }
 }
 
+/**
+ * CategoryPage 组件：分类详情页面
+ * --------------------------------------------------------------------------------
+ * 这是一个 Next.js Server Component，用于显示某个特定分类下的所有文章。
+ * 路由参数 `id` 表示分类的 ID。
+ */
 export default async function CategoryPage({ params }: { params: { id: string } }) {
   const resolvedParams = await params;
+  // 在服务端调用 `getCategoryData` 获取文章列表和分类名称。
   const { posts, categoryName } = await getCategoryData(resolvedParams.id);
+
+  // 如果需要更严格的 404 处理 (例如分类 ID 不存在)，可以在这里调用 `notFound()`
+  // if (posts.length === 0 && categoryName === 'Unknown') {
+  //   notFound();
+  // }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-8">
-      {/* Header */}
+      {/* 页面头部：显示分类名称和文章数量 */}
       <div className="mb-10 flex items-center gap-4">
-        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
-          <Folder className="w-6 h-6" />
+        <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center text-orange-600 dark:text-orange-400">
+          <Folder className="w-6 h-6" /> {/* 分类图标 */}
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{categoryName}</h1>
-          <p className="text-gray-500">收录了 {posts.length} 篇文章</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{categoryName}</h1>
+          <p className="text-gray-500 dark:text-gray-400">收录了 {posts.length} 篇文章</p>
         </div>
       </div>
 
-      {/* Post List */}
+      {/* 文章列表 */}
       <div className="grid gap-6">
         {posts.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-            <p className="text-gray-400">该分类下暂时没有文章 🍂</p>
+          // 如果该分类下没有文章，显示提示信息
+          <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
+            <p className="text-gray-400 dark:text-gray-500">该分类下暂时没有文章 🍂</p>
             <Link href="/">
-              <Button variant="link" className="mt-2 text-orange-600">返回首页</Button>
+              <Button variant="link" className="mt-2 text-orange-600 dark:text-orange-400">返回首页</Button>
             </Link>
           </div>
         ) : (
+          // 遍历并渲染文章卡片 (与搜索结果页类似)
           posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 group">
+            <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 dark:border-zinc-800 group dark:bg-zinc-900">
               <div className="flex flex-col md:flex-row">
+                  {/* 封面图片 */}
                   {post.coverImage && (
-                    <div className="md:w-48 h-48 md:h-auto bg-gray-100 relative overflow-hidden group-hover:cursor-pointer">
+                    <div className="md:w-48 h-48 md:h-auto bg-gray-100 dark:bg-zinc-800 relative overflow-hidden group-hover:cursor-pointer">
                       <Link href={`/posts/${post.id}`} className="block w-full h-full">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
@@ -93,28 +129,29 @@ export default async function CategoryPage({ params }: { params: { id: string } 
                     </div>
                   )}
                   
-                  <div className="flex-1 flex flex-col">
-                    <CardHeader>
+                  {/* 文章信息 */}
+                  <div className="flex-1 flex flex-col p-6">
+                    <CardHeader className="p-0 mb-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="text-orange-600 border-orange-200">{post.category}</Badge>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Badge variant="outline" className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/50">{post.category}</Badge>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                           <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                         </span>
                       </div>
                       <CardTitle className="text-xl md:text-2xl transition-colors">
-                        <Link href={`/posts/${post.id}`} className="hover:text-orange-600 hover:underline decoration-orange-300 underline-offset-4 cursor-pointer">
+                        <Link href={`/posts/${post.id}`} className="hover:text-orange-600 dark:hover:text-orange-400 hover:underline decoration-orange-300 underline-offset-4 cursor-pointer">
                           {post.title}
                         </Link>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow">
-                      <p className="text-gray-600 line-clamp-2 md:line-clamp-3">
+                    <CardContent className="flex-grow p-0 mb-4">
+                      <p className="text-gray-600 dark:text-gray-300 line-clamp-2 md:line-clamp-3">
                         {post.excerpt}
                       </p>
                     </CardContent>
-                    <CardFooter className="pt-0">
+                    <CardFooter className="pt-0 p-0">
                       <Link href={`/posts/${post.id}`}>
-                        <Button variant="ghost" className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 px-0 cursor-pointer">
+                        <Button variant="ghost" className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-zinc-800 px-0 cursor-pointer">
                           阅读全文 <ArrowRight className="w-4 h-4 ml-1" />
                         </Button>
                       </Link>

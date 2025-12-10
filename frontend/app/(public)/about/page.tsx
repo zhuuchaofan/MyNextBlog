@@ -3,8 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Github, Mail, Twitter, Code2, Database, Layout, Server, Terminal, Cpu } from "lucide-react";
 import Link from "next/link";
-import { SITE_CONFIG, PETS, SKILLS, BOOKS } from "@/lib/constants";
+// 导入站点配置、宠物信息、技能列表、书籍列表等常量数据
+import { SITE_CONFIG, PETS, SKILLS, BOOKS } from "@/lib/constants"; 
 
+// 图标映射：将技能数据中的字符串图标名称映射到实际的 Lucide React 图标组件
 const iconMap: Record<string, React.ReactNode> = {
   Server: <Server className="w-4 h-4" />,
   Layout: <Layout className="w-4 h-4" />,
@@ -14,31 +16,44 @@ const iconMap: Record<string, React.ReactNode> = {
   Code2: <Code2 className="w-4 h-4" />,
 };
 
+/**
+ * AboutPage 组件：关于页面
+ * --------------------------------------------------------------------------------
+ * 这是一个静态内容页面，展示博主的个人信息、技能栈、在读/想读的书籍以及猫咪介绍。
+ * 所有内容都通过 `lib/constants.ts` 文件进行配置，便于维护。
+ * 作为 Server Component，此页面在服务端渲染，内容直接以 HTML 形式发送到浏览器。
+ */
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-12">
       
-      {/* Header Section */}
+      {/* 头部区域：博主介绍 */}
       <div className="flex flex-col md:flex-row items-center gap-12 mb-20">
+        {/* 博主头像区域 */}
         <div className="relative w-48 h-48 md:w-64 md:h-64 flex-shrink-0">
+           {/* 背景装饰光晕 */}
            <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+           {/* 头像图片 */}
            <div className="relative w-full h-full bg-white rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-8xl select-none bg-cover bg-center" style={{backgroundImage: `url("${SITE_CONFIG.avatar}")`}}>
              {/* Placeholder if image fails */}
            </div>
+           {/* 装饰性小图标 */}
            <div className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg text-2xl border border-orange-100">
              👨‍💻
            </div>
         </div>
         
+        {/* 文字介绍区域 */}
         <div className="text-center md:text-left flex-1">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-4 tracking-tight">
+          <h1 className="text-4xl md::text-6xl font-bold text-gray-900 dark:text-gray-100 mb-4 tracking-tight">
             你好，我是 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">朱超凡</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-2xl">
-            {SITE_CONFIG.description}
+            {SITE_CONFIG.description} {/* 从常量中读取描述 */}
             <br/>
             热衷于构建高性能 Web 应用，目前专注于 <code className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1 py-0.5 rounded font-mono text-base">.NET</code> 与 <code className="bg-black dark:bg-white text-white dark:text-black px-1 py-0.5 rounded font-mono text-base">Next.js</code> 生态。
           </p>
+          {/* 社交媒体链接按钮 */}
           <div className="flex flex-wrap justify-center md:justify-start gap-3">
             <Button className="rounded-full gap-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200" asChild>
               <Link href={SITE_CONFIG.social.github} target="_blank">
@@ -61,8 +76,9 @@ export default function AboutPage() {
 
       <div className="grid md:grid-cols-12 gap-12">
         
-        {/* Left Column: Skills & Stack */}
+        {/* 左侧列：技能树和阅读列表 */}
         <div className="md:col-span-4 space-y-12">
+          {/* 技能树部分 */}
           <section>
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
               <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
@@ -73,10 +89,11 @@ export default function AboutPage() {
                 <div key={skill.name} className="group">
                    <div className="flex justify-between text-sm mb-1">
                      <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                       {iconMap[skill.icon]} {skill.name}
+                       {iconMap[skill.icon]} {skill.name} {/* 根据 iconMap 显示对应图标 */}
                      </span>
                      <span className="text-gray-400 dark:text-gray-500 font-mono">{skill.level}%</span>
                    </div>
+                   {/* 技能进度条 */}
                    <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                      <div 
                        className="h-full bg-gradient-to-r from-orange-400 to-pink-500 rounded-full transition-all duration-1000 ease-out group-hover:brightness-110"
@@ -88,6 +105,7 @@ export default function AboutPage() {
             </div>
           </section>
 
+          {/* 在读/想读的书籍部分 */}
           <section>
              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
               <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
@@ -103,10 +121,10 @@ export default function AboutPage() {
           </section>
         </div>
 
-        {/* Right Column: Experience & Cats */}
+        {/* 右侧列：关于博客和猫主子介绍 */}
         <div className="md:col-span-8 space-y-12">
            
-           {/* About Blog */}
+           {/* 关于这个博客 */}
            <section className="bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">关于这个博客</h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
@@ -119,14 +137,14 @@ export default function AboutPage() {
               </ul>
            </section>
 
-           {/* Cats Section */}
+           {/* 猫主子介绍 */}
            <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
                  <span className="text-3xl">🐾</span> 
                  猫主子介绍
               </h2>
               <div className="grid sm:grid-cols-2 gap-6">
-                {/* QiuQiu */}
+                {/* 球球 (QiuQiu) 介绍卡片 */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-orange-100 dark:border-zinc-800 hover:shadow-md transition-all flex gap-4 items-start relative overflow-hidden">
                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full blur-xl"></div>
                    <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-zinc-700 shadow-sm z-10 overflow-hidden p-1">
@@ -142,7 +160,7 @@ export default function AboutPage() {
                    </div>
                 </div>
 
-                {/* Pudding */}
+                {/* 布丁 (Pudding) 介绍卡片 */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-gray-100 dark:border-zinc-800 hover:shadow-md transition-all flex gap-4 items-start relative overflow-hidden">
                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-gray-50 dark:bg-zinc-800/30 rounded-full blur-xl"></div>
                    <div className="w-16 h-16 bg-gray-900 dark:bg-black rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-zinc-700 shadow-sm z-10 overflow-hidden p-1">
