@@ -1,88 +1,164 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.Models;
-using MyNextBlog.Services;
-using MyNextBlog.DTOs;
-using MyNextBlog.Extensions;
-using System.Security.Claims;
+// `using` 语句用于导入必要的命名空间，以便在当前文件中使用其中定义的类型（类、接口等）。
+using System.ComponentModel.DataAnnotations;       // 引入数据注解，用于模型验证
+using Microsoft.AspNetCore.Authentication.JwtBearer; // 引入 JWT Bearer 认证方案相关类型
+using Microsoft.AspNetCore.Authorization;            // 引入授权相关特性，如 [Authorize]
+using Microsoft.AspNetCore.Mvc;                      // 引入 ASP.NET Core MVC 核心类型，如 ControllerBase, IActionResult, [HttpGet] 等
+using MyNextBlog.Models;                             // 引入应用程序的领域模型，如 Post
+using MyNextBlog.Services;                           // 引入业务服务层接口，如 IPostService, ITagService
+using MyNextBlog.DTOs;                              // 引入数据传输对象，用于 API 请求和响应
+using MyNextBlog.Extensions;                         // 引入自定义扩展方法
+using System.Security.Claims;                       // 引入安全声明，用于获取用户身份信息
 
+// `namespace` 声明了当前文件中的代码所属的命名空间。
+// 命名空间有助于组织代码，避免命名冲突。
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 文章管理控制器
-/// 提供博客文章的查询（公开/管理）、发布、更新和删除接口
+/// `PostsApiController` 是一个 ASP.NET Core Web API 控制器，负责处理与博客文章相关的 HTTP 请求。
+/// 它提供了一系列 RESTful 接口，用于文章的查询、发布、更新和删除。
 /// </summary>
+// `[Route("api/posts")]` 特性 (Attribute)：
+// 作用：定义此控制器所有 Action 方法的根路由模板。
+// 例如，如果一个 Action 方法使用 `[HttpGet]`，那么它的完整路由可能是 `GET /api/posts`。
+// 如果一个 Action 方法使用 `[HttpGet("{id}")]`，那么它的完整路由可能是 `GET /api/posts/{id}`。
 [Route("api/posts")]
+// `[ApiController]` 特性：
+// 作用：这是一个非常方便的特性，它为 Web API 控制器提供了许多“开箱即用”的行为，例如：
+// 1. 自动 HTTP 400 响应：当模型绑定或验证失败时，自动返回 BadRequest 响应。
+// 2. 绑定源推断：自动推断 action 参数的数据来源（是来自路由、查询字符串还是请求体）。
+// 3. 规范化错误响应：提供了 `ValidationProblemDetails` 响应。
+// 4. 不要求从请求体中返回复杂类型等。
 [ApiController]
+// `public class PostsApiController(...) : ControllerBase`
+// 这是控制器的定义。
+// `IPostService postService, ITagService tagService`: 这是 C# 9 引入的“主构造函数”语法。
+// 作用：它声明了 `PostsApiController` 依赖于 `IPostService` 和 `ITagService` 这两个服务。
+// ASP.NET Core 的依赖注入（DI）容器会自动识别这些依赖，并在创建 `PostsApiController` 实例时，
+// 提供这些服务的具体实现实例。这种方式叫做“构造函数注入”，是实现控制反转（IoC）和解耦的核心方式。
+// `ControllerBase`: `PostsApiController` 继承自 `ControllerBase`。
+// 作用：`ControllerBase` 是 ASP.NET Core MVC 中用于构建 Web API 的基类，它提供了：
+// 1. 对 HTTP 请求和响应的访问能力（例如 `Request`, `Response`）。
+// 2. 方便的方法来生成各种 HTTP 状态码的响应（例如 `Ok()`, `NotFound()`, `BadRequest()`, `Unauthorized()`）。
+// 3. 对模型绑定、验证和授权等功能的内置支持。
 public class PostsApiController(IPostService postService, ITagService tagService) : ControllerBase
 {
     /// <summary>
-    /// 公开接口：获取文章列表
+    /// `GetPosts` 方法是一个**公开接口**，用于获取博客文章的列表。
+    /// 它支持分页、搜索、按标签和按分类筛选。
     /// </summary>
+    // `[HttpGet]`: HTTP Get 请求的路由特性。表示这个方法会响应 HTTP GET 请求。
+    // 因为控制器类上已经有 `[Route("api/posts")]`，所以这个方法的完整路由是 `GET /api/posts`。
     [HttpGet]
+    // `public async Task<IActionResult> GetPosts(...)`: 这是方法的签名。
+    // `async Task<IActionResult>`: 表示这是一个异步方法，并且会返回一个实现了 `IActionResult` 接口的对象。
+    //   - `async`/`await`: 异步编程的关键。`await` 关键字用于等待一个异步操作（例如数据库查询）完成，
+    //     同时不会阻塞当前线程，从而提高服务器的并发处理能力。
+    //   - `IActionResult`: 是一个接口，表示 Action 方法返回的结果类型。
+    //     `ControllerBase` 提供了一系列返回 `IActionResult` 的帮助方法，例如 `Ok()`, `NotFound()` 等，
+    //     它们会自动处理 HTTP 状态码和响应体。
     public async Task<IActionResult> GetPosts(
+        // `[FromQuery]`: 特性，指示这些参数的值应该从 URL 的查询字符串中绑定。
+        // 例如：`/api/posts?page=1&pageSize=10&search=keyword`
+        // `int page = 1`: `page` 参数，如果查询字符串中没有提供，默认值为 1。
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10, 
+        // `string? search = null`: `?` 表示这是一个可空类型，即 `string` 可以为 `null`。
+        // `search = null` 表示如果查询字符串中没有提供 `search` 参数，默认值为 `null`。
         [FromQuery] string? search = null,
         [FromQuery] string? tag = null,
-        [FromQuery] int? categoryId = null)
+        [FromQuery] int? categoryId = null) // `int?` 也是可空类型，表示 `categoryId` 可以为 `null`。
     {
-        // 1. 权限判断
-        // 如果用户已登录且角色是 Admin，则允许查看隐藏文章 (Drafts)
+        // 1. **权限判断**
+        // 这一步检查当前请求的用户是否已经登录（`User.Identity?.IsAuthenticated == true`）
+        // 并且是否拥有 "Admin" 角色（`User.IsInRole("Admin")`）。
+        // `User` 是 `ControllerBase` 提供的一个属性，代表了当前 HTTP 请求的用户的身份信息。
+        // `?.` 是 C# 6 引入的“空条件运算符”，如果 `User.Identity` 为 `null`，则不会尝试访问 `IsAuthenticated`。
+        // 如果是管理员，`isAdmin` 为 `true`，后续查询将包含隐藏文章；否则，只查询公开文章。
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
         
-        // 2. 调用服务获取数据 (Entity)
-        // 这里的 includeHidden 参数决定了是否返回 IsHidden=true 的文章
+        // 2. **调用业务服务获取原始数据 (Entity)**
+        // `postService` 是通过构造函数注入进来的 `IPostService` 的实例。
+        // `await postService.GetAllPostsAsync(...)`: 调用 `PostService` 中的异步方法来获取所有符合条件的文章。
+        // `includeHidden: isAdmin`: 根据 `isAdmin` 变量的值，决定是否包含隐藏的文章。
+        // `categoryId`, `searchTerm`, `tagName`: 这些都是从 URL 查询字符串中获取的筛选参数。
+        // `allPosts` 变量现在包含了所有从数据库中查询到的 `Post` 实体对象。
         var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search, tagName: tag);
 
-        // 3. 计算分页元数据
-        // 注意：目前采用内存分页 (先全查再Skip/Take)，适合个人博客的小数据量。
-        // 数据量大时应重构为数据库分页。
-        var totalCount = allPosts.Count;
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        // 3. **计算分页元数据**
+        // 这一步根据查询到的文章总数和每页大小，计算出分页所需的信息。
+        var totalCount = allPosts.Count; // 文章总数
+        // `Math.Ceiling(...)`: 向上取整，确保即使有零头文章也能算作一页。
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize); // 总页数
 
-        // 4. 执行分页切片并转换为 DTO
-        // 使用 ToSummaryDto() 将实体转换为精简的传输对象，减少网络传输量
+        // 4. **执行分页切片并转换为 DTO**
+        // `allPosts.Skip((page - 1) * pageSize)`: 跳过前面 N 条记录，实现分页。
+        // `Take(pageSize)`: 获取当前页的记录数量。
+        // `Select(p => p.ToSummaryDto())`: 这是LINQ（Language Integrated Query）的投影操作。
+        // 它遍历 `allPosts` 中的每个 `Post` 实体 (`p`)，然后调用其扩展方法 `ToSummaryDto()`，
+        // 将 `Post` 实体转换为一个更精简的 `PostSummaryDto` 对象。
+        // 为什么需要 DTO (Data Transfer Object)？
+        //   - **减少数据传输量**: `Post` 实体可能包含很多不必要的字段（如 `Content` 字段可能非常大），
+        //     而列表页只需要显示摘要信息。`PostSummaryDto` 只包含列表页需要的数据。
+        //   - **数据脱敏/安全**: `Post` 实体可能包含敏感信息，DTO 可以选择性地暴露数据。
+        //   - **解耦**: 前端和后端之间的接口更稳定，即使后端 `Post` 实体字段变化，只要 `PostSummaryDto` 不变，
+        //     前端接口就不需要修改。
         var posts = allPosts
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(p => p.ToSummaryDto())
-            .ToList();
+            .Skip((page - 1) * pageSize) // 跳过前面 `(页码 - 1) * 每页数量` 条记录
+            .Take(pageSize)             // 取当前页的 `每页数量` 条记录
+            .Select(p => p.ToSummaryDto()) // 将 Post 实体转换为 PostSummaryDto
+            .ToList();                  // 将结果转换为列表
 
-        // 5. 返回标准响应结构
+        // 5. **返回标准响应结构**
+        // `return Ok(...)`: 返回一个 `200 OK` 的 HTTP 响应。
+        // 响应体是一个匿名对象，它包含 `success` 状态、`data` (文章列表) 和 `meta` (分页元数据)。
+        // 这种统一的响应结构有助于前端更方便地处理 API 返回结果。
         return Ok(new
         {
-            success = true,
-            data = posts,
-            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages }
+            success = true, // 指示请求是否成功
+            data = posts,   // 实际的文章数据列表
+            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages } // 分页信息
         });
     }
 
     /// <summary>
-    /// 管理员接口：获取文章列表（包含隐藏文章）
+    /// `GetAdminPosts` 方法是一个**管理员接口**，用于获取所有文章列表，
+    /// **强制包含隐藏（草稿）文章**。此接口需要管理员权限才能访问。
     /// </summary>
+    // `[HttpGet("admin")]`: HTTP Get 请求的路由特性。`"admin"` 会附加到控制器根路由 `api/posts` 后面。
+    // 因此，这个方法的完整路由是 `GET /api/posts/admin`。
     [HttpGet("admin")]
+    // `[Authorize(...)]` 特性：
+    // 作用：这是一个授权特性，用于限制只有通过了认证且拥有特定角色的用户才能访问此 Action 方法。
+    //   - `AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme`: 指定使用 JWT Bearer 认证方案进行验证。
+    //   - `Roles = "Admin"`: 指定只有拥有 "Admin" 角色的用户才能访问。如果用户已认证但不是 Admin，
+    //     则会返回 `403 Forbidden` 状态码。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPosts(
+        // `[FromQuery]`: 参数来自 URL 查询字符串，并设置默认值。
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
     {
-        // 1. 直接获取所有文章 (强制 includeHidden = true)
+        // 1. **直接获取所有文章 (强制 `includeHidden = true`)**
+        // 调用 `postService` 来获取文章。注意这里 `includeHidden` 参数被强制设为 `true`，
+        // 确保即使是隐藏（草稿）状态的文章也会被检索出来，这符合管理员查看所有文章的需求。
         var allPosts = await postService.GetAllPostsAsync(includeHidden: true);
 
-        // 2. 分页计算
+        // 2. **分页计算**
+        // 与 `GetPosts` 方法类似，计算总文章数和总页数，为前端提供分页元数据。
         var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        // 3. DTO 转换
+        // 3. **DTO 转换和分页切片**
+        // 将获取到的 `Post` 实体列表进行分页处理，并转换为 `PostSummaryDto` 对象列表。
+        // `PostSummaryDto` 包含了文章的摘要信息，适合在列表页展示。
         var posts = allPosts
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => p.ToSummaryDto())
             .ToList();
 
+        // 4. **返回标准响应结构**
+        // 返回一个包含文章数据和分页元数据的 `200 OK` 响应。
         return Ok(new
         {
             success = true,
@@ -92,142 +168,238 @@ public class PostsApiController(IPostService postService, ITagService tagService
     }
 
     /// <summary>
-    /// 管理员接口：获取文章详情
+    /// `GetAdminPost` 方法是一个**管理员接口**，用于根据文章 ID 获取单篇文章的完整详情。
+    /// 此接口强制包含隐藏文章（草稿），并且需要管理员权限才能访问。
     /// </summary>
+    // `[HttpGet("admin/{id}")]`: HTTP Get 请求路由。`{id}` 是一个路由参数，用于从 URL 中捕获文章 ID。
+    // 例如：`GET /api/posts/admin/123` 中的 `123` 将被绑定到 `id` 参数。
     [HttpGet("admin/{id}")]
+    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPost(int id)
     {
-        // 1. 获取详情 (允许隐藏文章)
+        // 1. **获取文章详情 (允许隐藏文章)**
+        // 调用 `postService.GetPostByIdAsync` 方法，传入从路由中获取的 `id`。
+        // `includeHidden: true` 确保即使文章是隐藏状态，管理员也能获取到它的详情。
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null)
         {
+            // 如果文章不存在（无论是公开还是隐藏），则返回 `404 Not Found` 响应。
             return NotFound(new { success = false, message = "文章不存在" });
         }
         
-        // 2. 补充评论总数信息 (用于前端显示)
+        // 2. **补充评论总数信息 (用于前端显示)**
+        // 调用 `postService.GetCommentCountAsync` 方法，获取该文章的评论总数。
+        // 这个信息通常在文章详情页会显示，为了避免前端再次发起请求，这里一并提供。
         var commentCount = await postService.GetCommentCountAsync(id);
         
-        // 3. 返回完整详情 DTO
+        // 3. **返回完整详情 DTO**
+        // `post.ToDetailDto(commentCount)`: 将查询到的 `Post` 实体转换为 `PostDetailDto`。
+        // `PostDetailDto` 包含了文章的完整内容和所有相关信息，以及刚刚获取到的评论总数。
+        // 返回一个包含成功状态和文章详情数据的 `200 OK` 响应。
         return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
     }
 
     /// <summary>
-    /// 公开接口：获取文章详情
+    /// `GetPost` 方法是一个**公开接口**，用于根据文章 ID 获取单篇文章的详情。
+    /// 此接口会自动根据当前用户的权限，过滤掉隐藏（草稿）文章。
     /// </summary>
+    // `[HttpGet("{id}")]`: HTTP Get 请求路由。`{id}` 是路由参数，表示文章 ID。
+    // 完整路由为 `GET /api/posts/{id}`。
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPost(int id)
     {
-        // 1. 确定权限上下文
+        // 1. **确定权限上下文**
+        // 同样检查当前用户是否已登录并且是 "Admin" 角色。
+        // 这决定了后续调用 `GetPostByIdAsync` 时 `includeHidden` 参数的值：
+        //   - 如果是 Admin，则可以获取隐藏文章。
+        //   - 如果不是 Admin（包括未登录用户），则只能获取公开文章。
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
         
-        // 2. 获取详情 (根据权限过滤隐藏文章)
+        // 2. **获取文章详情 (根据权限过滤隐藏文章)**
+        // 调用 `postService.GetPostByIdAsync`，`includeHidden` 参数动态地根据 `isAdmin` 决定。
         var post = await postService.GetPostByIdAsync(id, includeHidden: isAdmin);
         
         if (post == null)
         {
+            // 如果文章不存在，或者对于非管理员用户来说文章是隐藏的，则返回 `404 Not Found`。
             return NotFound(new { success = false, message = "文章不存在或已隐藏" });
         }
 
-        // 3. 补充评论总数
+        // 3. **补充评论总数**
+        // 获取文章的评论总数，用于详情页显示。
         var commentCount = await postService.GetCommentCountAsync(id);
 
+        // 返回包含成功状态和文章详情数据的 `200 OK` 响应。
         return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
     }
 
     /// <summary>
-    /// 管理员接口：发布新文章
+    /// `CreatePost` 方法是一个**管理员接口**，用于发布一篇新的博客文章。
+    /// 此接口需要管理员权限。
     /// </summary>
+    // `[HttpPost]`: HTTP Post 请求的路由特性。表示这个方法会响应 HTTP POST 请求。
+    // 完整路由为 `POST /api/posts`。
     [HttpPost]
+    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    // `[FromBody] CreatePostDto dto`:
+    //   - `[FromBody]`: 特性，指示 `dto` 参数的值应该从 HTTP 请求的 Body（请求体）中绑定。
+    //     ASP.NET Core 会自动将 JSON 格式的请求体反序列化为 `CreatePostDto` 对象。
+    //   - `CreatePostDto`: 这是一个数据传输对象 (DTO)，专门用于接收创建文章所需的数据。
+    //     使用 DTO 而不是直接使用 `Post` 实体作为参数，可以：
+    //       1. **防止过度暴露**: 避免客户端设置数据库中不应该由它们控制的字段（例如 `Id`, `CreateTime` 等）。
+    //       2. **模型验证**: 可以在 DTO 上使用 `[Required]` 等数据注解进行验证，清晰地定义了接口的输入格式。
     public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
     {
-        // 1. 获取当前登录用户 ID (从 Token Claims 中解析)
+        // 1. **获取当前登录用户 ID (从 Token Claims 中解析)**
+        // `User.FindFirst(ClaimTypes.NameIdentifier)`: `User` 对象代表当前用户的身份，
+        // `FindFirst(ClaimTypes.NameIdentifier)` 尝试从用户的身份声明 (Claims) 中查找表示用户唯一标识符的 Claim。
+        // `ClaimTypes.NameIdentifier` 是一个标准名称，通常用于存储用户 ID。
+        // `?.Value`: 获取 Claim 的值，如果 `FindFirst` 返回 `null`，则整个表达式为 `null`。
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // `int.TryParse`: 尝试将字符串 `userIdStr` 转换为整数 `userId`。
+        // 如果转换失败（例如用户 ID 不存在或不是有效数字），则将 `userId` 设为 `0`。
         if (!int.TryParse(userIdStr, out int userId)) userId = 0; 
 
-        // 2. 构建文章实体
+        // 2. **构建文章实体**
+        // 根据 `CreatePostDto` 中的数据，创建一个新的 `Post` 实体对象。
         var post = new Post
         {
             Title = dto.Title,
             Content = dto.Content,
             CategoryId = dto.CategoryId,
+            // 如果 `userId` 大于 0（即用户已登录并成功获取到 ID），则设置 `UserId`；
+            // 否则设置为 `null`，表示文章可能没有关联到特定用户（尽管对于管理员接口，通常总会有用户）。
             UserId = userId > 0 ? userId : null,
-            CreateTime = DateTime.Now
+            CreateTime = DateTime.Now // 创建时间默认为当前时间
         };
 
-        // 3. 处理标签关联
-        // GetOrCreateTagsAsync 会自动处理标签去重和新建
+        // 3. **处理标签关联**
+        // 如果 `CreatePostDto` 中包含了标签名称列表：
         if (dto.Tags != null && dto.Tags.Any())
         {
+            // `tagService.GetOrCreateTagsAsync(dto.Tags.ToArray())`: 调用标签服务，
+            // 它会检查这些标签是否已存在于数据库中。如果不存在，则会创建新的标签；
+            // 如果存在，则直接获取现有标签。最终返回一个 `Tag` 实体列表。
+            // 这样确保了标签的唯一性，并避免了重复创建。
             post.Tags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
         }
 
-        // 4. 保存到数据库 (PostService 内部会处理图片关联)
+        // 4. **保存到数据库**
+        // `await postService.AddPostAsync(post)`: 调用文章服务将新创建的 `post` 实体保存到数据库。
+        // `PostService` 内部还包含一个逻辑，即在文章保存后，会扫描文章内容，自动关联其中引用的图片。
         await postService.AddPostAsync(post);
         
+        // 返回一个 `200 OK` 响应，表示文章发布成功。
+        // 响应体中包含了成功信息、新文章的 ID，以及文章的详情 DTO (包含自动生成的 Id)。
         return Ok(new { success = true, message = "发布成功", postId = post.Id, data = post.ToDetailDto() });
     }
 
     /// <summary>
-    /// 管理员接口：更新文章
+    /// `UpdatePost` 方法是一个**管理员接口**，用于根据文章 ID 更新现有文章。
+    /// 此接口需要管理员权限。
     /// </summary>
+    // `[HttpPut("{id}")]`: HTTP Put 请求的路由特性。表示这个方法会响应 HTTP PUT 请求。
+    // `{id}` 是路由参数，表示要更新的文章 ID。
+    // 完整路由为 `PUT /api/posts/{id}`。
     [HttpPut("{id}")]
+    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
-        // 1. 检查文章是否存在
+        // 1. **检查文章是否存在**
+        // 首先从数据库中获取要更新的文章。`includeHidden: true` 确保即使是隐藏文章也能被管理员更新。
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
+        // 如果 `post` 为 `null`，表示文章不存在，返回 `404 Not Found`。
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
-        // 2. 更新基本字段
+        // 2. **更新文章的基本字段**
+        // 将 `UpdatePostDto` 中包含的新数据赋值给从数据库中取出的 `post` 实体对象。
+        // 注意，这里只更新允许修改的字段，例如 `Id`、`CreateTime` 等字段不应该由前端修改。
         post.Title = dto.Title;
         post.Content = dto.Content;
         post.CategoryId = dto.CategoryId;
-        post.IsHidden = dto.IsHidden;
+        post.IsHidden = dto.IsHidden; // 允许管理员更改文章的可见性状态
 
-        // 3. 更新标签 (策略：先清空，再重新添加)
+        // 3. **更新标签 (策略：先清空，再重新添加)**
+        // 更新文章的标签是一个常见的操作。这里采取的策略是：
+        //   - `post.Tags.Clear()`: 首先清空该文章当前所有关联的标签。
         post.Tags.Clear();
+        //   - 然后，如果 `UpdatePostDto` 中提供了新的标签列表，就将这些新标签重新关联到文章。
         if (dto.Tags != null && dto.Tags.Any())
         {
+            // `tagService.GetOrCreateTagsAsync()`: 确保新的标签名称都对应到数据库中的 `Tag` 实体，
+            // 如果有新标签，则会先创建它们。
             var newTags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
+            // `post.Tags.AddRange(newTags)`: 将处理后的 `Tag` 实体添加到文章的标签集合中。
             post.Tags.AddRange(newTags);
         }
 
-        // 4. 保存更改
+        // 4. **保存更改到数据库**
+        // `await postService.UpdatePostAsync(post)`: 调用文章服务保存对 `post` 实体的所有更改。
+        // `PostService` 内部会处理 EF Core 的更新操作，并可能重新扫描文章内容以关联图片。
         await postService.UpdatePostAsync(post);
+        // 返回一个 `200 OK` 响应，表示文章更新成功，并返回更新后的文章详情。
         return Ok(new { success = true, message = "更新成功", data = post.ToDetailDto() });
     }
 
     /// <summary>
-    /// 管理员接口：删除文章
+    /// `DeletePost` 方法是一个**管理员接口**，用于根据文章 ID 删除文章。
+    /// 此接口需要管理员权限。
     /// </summary>
+    // `[HttpDelete("{id}")]`: HTTP Delete 请求的路由特性。表示这个方法会响应 HTTP DELETE 请求。
+    // `{id}` 是路由参数，表示要删除的文章 ID。
+    // 完整路由为 `DELETE /api/posts/{id}`。
     [HttpDelete("{id}")]
+    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> DeletePost(int id)
     {
-        // 1. 验证存在性
+        // 1. **验证文章是否存在**
+        // 在执行删除操作之前，首先检查要删除的文章是否存在。
+        // `includeHidden: true` 确保管理员可以删除隐藏文章。
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
+        // 如果文章不存在，返回 `404 Not Found`。
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
-        // 2. 执行删除 (PostService 内部会处理级联删除逻辑)
+        // 2. **执行删除操作**
+        // 调用 `postService.DeletePostAsync` 方法来执行文章的删除。
+        // `PostService` 内部会处理删除文章的所有相关逻辑，包括：
+        //   - 从数据库中删除 `Post` 实体。
+        //   - 处理关联数据的级联删除（例如，文章被删除时，其关联的评论和标签关系也会被删除）。
+        //   - 清理云存储中与该文章关联的图片文件。
         await postService.DeletePostAsync(id);
+        // 返回 `200 OK` 响应，表示文章删除成功。
         return Ok(new { success = true, message = "删除成功" });
     }
 
+
     /// <summary>
-    /// 管理员接口：切换文章可见性 (快捷操作)
+    /// `ToggleVisibility` 方法是一个**管理员接口**，用于快速切换文章的可见状态。
+    /// （即将公开文章设为隐藏，将隐藏文章设为公开）
+    /// 此接口需要管理员权限。
     /// </summary>
+    // `[HttpPatch("{id}/visibility")]`: HTTP Patch 请求的路由特性。
+    // `PATCH` 通常用于局部更新资源。这里用于更新文章的 `IsHidden` 字段。
+    // 完整路由为 `PATCH /api/posts/{id}/visibility`。
     [HttpPatch("{id}/visibility")]
+    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> ToggleVisibility(int id)
     {
-        // 1. 执行切换
+        // 1. **执行可见性切换操作**
+        // 调用 `postService.TogglePostVisibilityAsync` 方法来切换文章的 `IsHidden` 状态。
+        // 这个方法会返回一个布尔值，表示操作是否成功（例如，如果文章 ID 不存在，则会失败）。
         var success = await postService.TogglePostVisibilityAsync(id);
+        // 如果 `success` 为 `false`（通常意味着文章 ID 不存在），返回 `404 Not Found`。
         if (!success) return NotFound(new { success = false, message = "文章不存在" });
 
-        // 2. 获取更新后的状态以返回给前端
+        // 2. **获取更新后的状态并返回给前端**
+        // 为了让前端能够立即显示更新后的文章状态，我们再次从数据库中获取文章，
+        // 并将其当前的 `IsHidden` 状态返回。
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
+        // 返回 `200 OK` 响应，包含成功信息和更新后的 `isHidden` 状态。
         return Ok(new { success = true, message = "状态更新成功", isHidden = post?.IsHidden });
     }
 }
