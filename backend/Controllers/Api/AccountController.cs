@@ -13,17 +13,8 @@ namespace MyNextBlog.Controllers.Api;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
-public class AccountController : ControllerBase
+public class AccountController(AppDbContext context, IStorageService storageService) : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IStorageService _storageService;
-
-    public AccountController(AppDbContext context, IStorageService storageService)
-    {
-        _context = context;
-        _storageService = storageService;
-    }
-
     /// <summary>
     /// 获取当前登录用户的详细信息
     /// </summary>
@@ -38,7 +29,7 @@ public class AccountController : ControllerBase
         }
 
         // 2. 查询数据库获取最新信息
-        var user = await _context.Users.FindAsync(userId);
+        var user = await context.Users.FindAsync(userId);
         if (user == null)
         {
             return NotFound("User not found");
@@ -79,7 +70,7 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _context.Users.FindAsync(userId);
+        var user = await context.Users.FindAsync(userId);
         if (user == null)
         {
             return NotFound("User not found");
@@ -91,11 +82,11 @@ public class AccountController : ControllerBase
             
             // 5. 上传到云存储
             // 指定 "avatars" 作为前缀，将头像文件单独归档
-            var result = await _storageService.UploadAsync(stream, file.FileName, file.ContentType, "avatars");
+            var result = await storageService.UploadAsync(stream, file.FileName, file.ContentType, "avatars");
 
             // 6. 更新用户头像链接
             user.AvatarUrl = result.Url;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return Ok(new { success = true, avatarUrl = result.Url });
         }

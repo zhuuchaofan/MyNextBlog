@@ -11,26 +11,18 @@ namespace MyNextBlog.Services;
 /// 数据库自动备份服务 (后台托管服务)
 /// 继承自 BackgroundService，随应用程序启动而运行，负责定期备份 SQLite 数据库文件。
 /// </summary>
-public class DatabaseBackupService : BackgroundService
+public class DatabaseBackupService(IServiceProvider serviceProvider, ILogger<DatabaseBackupService> logger)
+    : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<DatabaseBackupService> _logger;
-    
     // 备份周期：每天一次
-    private readonly TimeSpan _period = TimeSpan.FromHours(24); 
-
-    public DatabaseBackupService(IServiceProvider serviceProvider, ILogger<DatabaseBackupService> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
+    private readonly TimeSpan _period = TimeSpan.FromHours(24);
 
     /// <summary>
     /// 服务主循环
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Database Backup Service is starting.");
+        logger.LogInformation("Database Backup Service is starting.");
 
         // 策略：不希望备份逻辑阻塞服务器启动，所以开一个独立的 Task 去跑首次备份。
         // 同时设置了 1 分钟的延迟，等待数据库初始化完成。
@@ -55,10 +47,10 @@ public class DatabaseBackupService : BackgroundService
     {
         try
         {
-            _logger.LogInformation("Starting scheduled database backup...");
+            logger.LogInformation("Starting scheduled database backup...");
 
             // 创建一个新的 Scope (作用域)，因为后台服务是单例的 (Singleton)，而 StorageService 通常是 Scoped 的。
-            using (var scope = _serviceProvider.CreateScope())
+            using (var scope = serviceProvider.CreateScope())
             {
                 var storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
                 
@@ -67,7 +59,7 @@ public class DatabaseBackupService : BackgroundService
 
                 if (!File.Exists(dbPath))
                 {
-                    _logger.LogWarning($"Database file not found at {dbPath}, skipping backup.");
+                    logger.LogWarning($"Database file not found at {dbPath}, skipping backup.");
                     return;
                 }
 
@@ -85,7 +77,7 @@ public class DatabaseBackupService : BackgroundService
                     
                     // 上传到云存储的 "backups" 专用文件夹
                     var result = await storageService.UploadAsync(stream, fileName, "application/x-sqlite3", "backups");
-                    _logger.LogInformation($"Database backup uploaded successfully to: {result.Url}");
+                    logger.LogInformation($"Database backup uploaded successfully to: {result.Url}");
                 }
                 finally
                 {
@@ -96,7 +88,7 @@ public class DatabaseBackupService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during database backup.");
+            logger.LogError(ex, "Error occurred during database backup.");
         }
     }
 }
