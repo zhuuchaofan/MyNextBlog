@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
+import { cookies } from 'next/headers'; // 导入 cookies 工具
 
 // 强制动态渲染 (Force Dynamic)
 // 默认情况下，Next.js 会尝试在构建时静态生成页面 (Static Site Generation, SSG)。
@@ -49,8 +50,22 @@ async function getInitialPosts() {
 // 获取热门标签 (Server-Side)
 async function getPopularTags() {
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  
   try {
+    // 获取当前请求的 Cookie Store
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token');
+
+    // 构造请求头，如果有 token 则带上
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token.value}`;
+    }
+
     const res = await fetch(`${backendUrl}/api/tags/popular`, {
+       headers,
        cache: 'no-store'
     });
     if (!res.ok) return [];

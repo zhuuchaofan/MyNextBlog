@@ -14,20 +14,19 @@ public class TagService(AppDbContext context) : ITagService
     /// 获取热门标签列表
     /// </summary>
     /// <param name="count">返回的标签数量</param>
-    /// <returns>按关联文章数量（仅限公开文章）倒序排列的标签列表</returns>
-    public async Task<List<Tag>> GetPopularTagsAsync(int count)
+    /// <param name="includeHidden">是否包含只关联隐藏文章的标签</param>
+    /// <returns>按关联文章数量倒序排列的标签列表</returns>
+    public async Task<List<Tag>> GetPopularTagsAsync(int count, bool includeHidden = false)
     {
-        // 核心逻辑：我们只关心那些关联了"公开文章"的标签。
-        // 如果一个标签只关联了隐藏文章，它不应该出现在热门列表中。
         return await context.Tags
             .Select(t => new 
             { 
                 Tag = t, 
-                // 计算该标签下 visible (IsHidden=false) 文章的数量
-                VisiblePostCount = t.Posts.Count(p => !p.IsHidden) 
+                // 如果 includeHidden 为 true，统计所有文章；否则只统计 !IsHidden 的文章
+                PostCount = t.Posts.Count(p => includeHidden || !p.IsHidden) 
             })
-            .Where(x => x.VisiblePostCount > 0) // 过滤掉没有公开文章的标签
-            .OrderByDescending(x => x.VisiblePostCount) // 按热度排序
+            .Where(x => x.PostCount > 0) // 过滤掉计数为 0 的标签
+            .OrderByDescending(x => x.PostCount) // 按热度排序
             .Take(count)
             .Select(x => x.Tag) // 还原为 Tag 对象
             .ToListAsync();
