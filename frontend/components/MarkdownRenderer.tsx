@@ -66,8 +66,8 @@ const PreBlock = ({ children, ...props }: any) => {
 
   if (React.isValidElement(child)) {
     // 不再检查 type === 'code'，因为可能是自定义组件
-    if (child.props.className) {
-      languageClassName = child.props.className;
+    if (typeof child.props === 'object' && child.props !== null && 'className' in child.props) {
+      languageClassName = (child.props as any).className;
     }
   }
 
@@ -92,7 +92,7 @@ const PreBlock = ({ children, ...props }: any) => {
       <pre
         ref={preRef}
         // 使用从子元素提取的 className，确保高亮样式生效
-        className={`${languageClassName} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg`}
+        className={`${languageClassName} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg custom-scrollbar-code`}
         {...props}
       >
         {children} {/* 这里是 ReactMarkdown 渲染的 <code> 元素 */}

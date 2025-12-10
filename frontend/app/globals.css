@@ -121,3 +121,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar for Code Blocks */
+.custom-scrollbar-code::-webkit-scrollbar {
+  width: 8px;   /* 垂直滚动条宽度 */
+  height: 8px;  /* 水平滚动条高度 */
+}
+
+.custom-scrollbar-code::-webkit-scrollbar-track {
+  background: transparent; /* 滚动条轨道背景透明 */
+}
+
+.custom-scrollbar-code::-webkit-scrollbar-thumb {
+  background: #4a5568; /* 滚动条滑块颜色 (深灰色) */
+  border-radius: 10px; /* 圆角 */
+  border: 2px solid transparent; /* 边框透明，防止边框突兀 */
+  background-clip: padding-box; /* 确保边框在滑块内部 */
+}
+
+.custom-scrollbar-code::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* 鼠标悬停时滑块颜色变浅 */
+}
+
+/* 兼容 Firefox */
+.custom-scrollbar-code {
+  scrollbar-width: thin; /* "auto" 或 "thin" */
+  scrollbar-color: #4a5568 transparent; /* 滑块颜色 轨道颜色 */
+}
