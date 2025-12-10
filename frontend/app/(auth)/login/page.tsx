@@ -1,7 +1,7 @@
-'use client';
+'use client'; // 标记为客户端组件，因为需要使用 React Hooks (useState) 和浏览器事件 (onSubmit)
 
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext'; // 导入自定义认证钩子，用于获取 login 方法
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,19 +10,26 @@ import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
+  // 定义本地状态，用于存储表单输入和 UI 状态
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // 从 AuthContext 获取 login 方法
+  // 该方法负责在登录成功后更新全局用户状态并进行页面跳转
   const { login } = useAuth();
 
+  // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault(); // 阻止浏览器默认的表单提交刷新行为
+    setError('');       // 清除之前的错误信息
+    setLoading(true);   // 设置加载状态，显示转圈动画
 
     try {
+      // **关键点**: 这里请求的是 Next.js 的路由处理程序 (Route Handler) `/api/auth/login`，
+      // 而不是直接请求后端的 C# API。
+      // 这样做的好处是 Token 的设置（HttpOnly Cookie）完全由服务端路由处理，前端无需关心。
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,27 +39,32 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // 登录成功
+        // 调用 context 的 login 方法，传入用户信息（不包含 token）
+        // login 方法内部会执行 router.push('/admin') 跳转
         login({ username: data.username, role: data.role });
       } else {
+        // 登录失败，显示错误消息
         setError(data.message || '账号或密码错误，请检查');
       }
     } catch (err) {
       setError('连接服务器失败，请稍后再试');
     } finally {
+      // 无论成功失败，都关闭加载状态
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50/50">
-      {/* 背景装饰圆 (Blobs) */}
+      {/* 背景装饰圆 (Blobs) - 使用 CSS 动画增加视觉效果 */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
       <Card className="w-full max-w-[900px] grid md:grid-cols-2 overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm m-4">
         
-        {/* 左侧：品牌视觉区 */}
+        {/* 左侧：品牌视觉区 (仅在大屏幕显示) */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-orange-400 to-pink-500 p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="relative z-10 text-center space-y-6">

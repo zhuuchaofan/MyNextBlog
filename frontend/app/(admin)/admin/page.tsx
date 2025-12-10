@@ -1,4 +1,4 @@
-'use client';
+'use client'; // 标记为客户端组件，因为需要使用 Hooks 和处理用户交互
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,30 +8,42 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, FileText, Settings } from 'lucide-react';
 import Link from 'next/link';
 
+// 管理后台首页 (Admin Dashboard)
+// --------------------------------------------------------------------------------
+// 这是管理员登录后看到的第一个页面，提供了各个管理功能的快捷入口。
 export default function AdminDashboard() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+  const { user, isLoading } = useAuth(); // 获取全局用户状态
+  const router = useRouter(); // 获取路由实例，用于跳转
 
+  // **权限检查 (客户端保护)**
+  // 虽然 middleware.ts 已经做了路由保护，但在组件内部再次检查用户角色是一个双重保险。
+  // 特别是对于 'Admin' 角色的检查，因为 middleware 可能只检查了是否有 token。
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
+        // 未登录，跳转到登录页
         router.push('/login');
       } else if (user.role !== 'Admin') {
-        router.push('/'); // 普通用户不允许进入
+        // 已登录但不是管理员，跳转回首页
+        router.push('/'); 
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router]); // 依赖项变化时重新执行检查
 
+  // 在加载权限或用户未就绪时，显示加载提示
   if (isLoading || !user) {
     return <div className="flex justify-center py-20">加载权限中...</div>;
   }
 
+  // 渲染仪表盘布局
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">管理后台</h1>
       
+      {/* 使用 Grid 布局展示功能卡片 */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* 快捷操作卡片 */}
+        
+        {/* 卡片 1: 写新文章 */}
         <Link href="/admin/posts/new" className="block h-full">
           <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-orange-500 h-full dark:bg-zinc-900 dark:border-zinc-800 dark:border-l-orange-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -46,6 +58,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
+        {/* 卡片 2: 内容管理 */}
         <Link href="/admin/posts" className="block h-full">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -60,6 +73,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
+        {/* 卡片 3: 系统设置 */}
         <Link href="/settings" className="block h-full">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
