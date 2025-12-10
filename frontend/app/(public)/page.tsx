@@ -6,19 +6,31 @@ import Image from 'next/image';
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 
+// 强制动态渲染 (Force Dynamic)
+// 默认情况下，Next.js 会尝试在构建时静态生成页面 (Static Site Generation, SSG)。
+// 但因为我们的博客数据是经常变化的（发布新文章），而且我们需要在 Docker 内部网络中获取数据，
+// 所以设置为 "force-dynamic" 告诉 Next.js 每次用户请求时都在**服务端**重新执行此组件。
+// 这相当于 SSR (Server-Side Rendering)。
 export const dynamic = "force-dynamic";
 
+// 获取初始文章列表 (Server-Side)
 async function getInitialPosts() {
-  // Use http://backend:5095 inside Docker network by default, or localhost if running locally without Docker networking (which won't work for server component -> backend unless ports are open and we use localhost, but inside container localhost is the container itself)
-  // Best practice: use service name 'backend'
+  // 确定后端 API 地址
+  // 在 Docker 容器内部通信时，我们使用服务名 "backend" (http://backend:8080)。
+  // process.env.BACKEND_URL 通常在 docker-compose.yml 中配置。
+  // 如果是本地开发（非 Docker），则回退到 http://backend:5095 (这可能需要在 hosts 文件中映射 backend，或者直接改成 localhost)。
+  // **最佳实践**: 始终优先使用环境变量配置。
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
   console.log(`Fetching posts from: ${backendUrl}/api/posts?page=1&pageSize=10`);
   
   try {
+    // 使用 fetch API 获取数据。
+    // cache: 'no-store' 意味着不缓存结果，确保每次刷新都是最新数据（配合 dynamic = "force-dynamic"）。
     const res = await fetch(`${backendUrl}/api/posts?page=1&pageSize=10`, {
        cache: 'no-store'
     });
     
+    // 如果响应状态码不是 2xx，记录错误并返回空数据，防止页面崩溃。
     if (!res.ok) {
         console.error(`Fetch posts failed: ${res.status} ${res.statusText}`);
         return { data: [], meta: { hasMore: false } };
@@ -28,13 +40,13 @@ async function getInitialPosts() {
     console.log(`Fetched ${json.data?.length || 0} posts`);
     return json.success ? json : { data: [], meta: { hasMore: false } };
   } catch (e) {
+    // 捕获网络错误（如后端未启动），返回空列表，保证页面骨架能渲染出来。
     console.error("Failed to fetch posts:", e);
-    // Don't return empty list on error during build/startup, maybe throw? 
-    // But for now, let's return empty to avoid crash, but logs will help.
     return { data: [], meta: { hasMore: false } };
   }
 }
 
+// 获取热门标签 (Server-Side)
 async function getPopularTags() {
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
   try {
@@ -50,20 +62,25 @@ async function getPopularTags() {
   }
 }
 
+// 首页组件 (Server Component)
+// 这是一个 Async 组件，可以直接在组件内部使用 `await` 获取数据。
+// 数据获取发生在服务端，浏览器接收到的是已经填充好数据的 HTML。
 export default async function Home() {
+  // 并行获取文章和标签数据
   const postsData = await getInitialPosts();
   const popularTags = await getPopularTags();
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
       
-      {/* Hero Section */}
+      {/* Hero Section (顶部横幅) */}
       <div className="relative bg-gradient-to-br from-orange-50 to-white dark:from-zinc-900 dark:to-zinc-950 rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-orange-100/50 dark:shadow-black/50 border border-white dark:border-zinc-800 mb-16 isolate overflow-hidden transition-colors duration-300">
-        {/* 背景装饰 */}
+        {/* 背景装饰 (模糊圆球) */}
         <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-orange-200 to-pink-200 dark:from-orange-900/30 dark:to-pink-900/30 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-80 h-80 bg-gradient-to-tr from-blue-200 to-purple-200 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+          {/* 左侧文字区 */}
           <div className="flex-1 space-y-6 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-orange-100 dark:border-orange-900 text-orange-600 dark:text-orange-400 text-sm font-medium shadow-sm">
               <Sparkles className="w-4 h-4" />
@@ -97,7 +114,7 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Hero Image / Illustration */}
+          {/* 右侧图片区 (Hero Image / Illustration) */}
           <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white dark:from-orange-900/20 dark:to-zinc-800/20 rounded-full animate-pulse"></div>
             <div className="relative w-full h-full bg-white/50 dark:bg-zinc-800/50 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-zinc-700/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
@@ -105,7 +122,7 @@ export default async function Home() {
                  src={PETS.qiuqiu.avatar} 
                  alt={PETS.qiuqiu.name} 
                  fill 
-                 priority={true} // Marked as LCP element
+                 priority={true} // 优先级加载 (LCP 优化)
                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                  className="object-cover rounded-3xl transition-transform duration-700 group-hover:scale-110" 
                />
@@ -124,7 +141,7 @@ export default async function Home() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Main Content: Post List */}
+        {/* 主内容区: 文章列表 (占用 8 列) */}
         <div className="lg:col-span-8 space-y-8">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
@@ -136,15 +153,16 @@ export default async function Home() {
             </Link>
           </div>
 
+          {/* 将服务端获取的数据通过 props 传递给客户端组件 PostList */}
           <PostList 
              initialPosts={postsData.data} 
              initialHasMore={postsData.meta ? postsData.meta.hasMore : postsData.data.length === 10} 
           />
         </div>
 
-        {/* Sidebar (Desktop Only) */}
+        {/* 侧边栏 (仅桌面端显示，占用 4 列) */}
         <div className="hidden lg:block lg:col-span-4 space-y-8">
-           {/* About Widget */}
+           {/* 博主简介小部件 */}
            <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm text-center relative overflow-hidden transition-colors duration-300">
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 opacity-50"></div>
               <div className="relative z-10 -mt-4 mb-4">
@@ -168,7 +186,7 @@ export default async function Home() {
               </div>
            </div>
 
-           {/* Tags Widget */}
+           {/* 热门标签小部件 */}
            <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm transition-colors duration-300">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <Tag className="w-4 h-4 text-orange-500" /> 热门话题
