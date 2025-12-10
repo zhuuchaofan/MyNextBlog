@@ -23,7 +23,7 @@ public class R2StorageService : IStorageService
         _publicDomain = r2Config["PublicDomain"] ?? ""; // 允许为空，但在实际使用中需要配置
     }
 
-    public async Task<ImageUploadResult> UploadAsync(Stream fileStream, string fileName, string contentType)
+    public async Task<ImageUploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string? customPrefix = null)
     {
         var config = new AmazonS3Config
         {
@@ -32,10 +32,14 @@ public class R2StorageService : IStorageService
 
         using var client = new AmazonS3Client(_accessKey, _secretKey, config);
 
-        // 生成唯一的 Key (路径)，按日期组织文件夹，防止文件名冲突
-        // 例如: 2023/11/30/guid-filename.jpg
-        var datePrefix = DateTime.Now.ToString("yyyy/MM/dd");
-        var keyName = $"{datePrefix}/{fileName}";
+        // 确定存储路径前缀：如果有自定义前缀就用自定义的，否则按日期归档
+        var prefix = string.IsNullOrEmpty(customPrefix) 
+            ? DateTime.Now.ToString("yyyy/MM/dd") 
+            : customPrefix.TrimEnd('/'); // 去掉末尾斜杠以防双重斜杠
+
+        // 生成唯一的 Key
+        // 格式: {prefix}/{guid}{ext}
+        var keyName = $"{prefix}/{Guid.NewGuid()}{Path.GetExtension(fileName)}";
 
         var putRequest = new PutObjectRequest
         {

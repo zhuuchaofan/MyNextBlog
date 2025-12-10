@@ -75,12 +75,10 @@ public class AccountController : ControllerBase
 
         try
         {
-            // 生成唯一文件名
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var newFileName = $"avatars/{Guid.NewGuid()}{ext}"; // 使用 avatars/ 前缀组织文件
-
             using var stream = file.OpenReadStream();
-            var result = await _storageService.UploadAsync(stream, newFileName, file.ContentType);
+            // 上传到 "avatars" 文件夹
+            // 注意：fileName 参数传原始文件名即可，R2StorageService 会自动生成 GUID 文件名
+            var result = await _storageService.UploadAsync(stream, file.FileName, file.ContentType, "avatars");
 
             // 更新数据库
             user.AvatarUrl = result.Url;

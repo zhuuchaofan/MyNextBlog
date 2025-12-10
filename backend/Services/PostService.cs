@@ -6,9 +6,6 @@ namespace MyNextBlog.Services;
 
 public class PostService(AppDbContext context, IImageService imageService) : IPostService
 {
-    // 数据库上下文
-
-    // 构造函数注入数据库上下文
     // 获取所有文章
     public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
@@ -39,7 +36,6 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
                 .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
                 .Include(p => p.User)     // <--- 把作者也查出来
                 .Include(p => p.Tags)     // <--- 把标签也查出来
-                .Include(m => m.Comments)
                 .OrderByDescending(p => p.CreateTime)
                 .ToListAsync();
     }
@@ -55,7 +51,6 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         }
 
         return await query
-            //.Include(m => m.Comments) // <--- 移除：不再一次性加载所有评论，改为分页加载
             .Include(p => p.Category) // <--- 把分类也查出来，否则页面显示为空
             .Include(p => p.User)     // <--- 把作者也查出来
             .Include(p => p.Tags)     // <--- 把标签也查出来

@@ -7,6 +7,7 @@ public class Comment
     public int Id { get; set; }
     
     [Required]
+    [MaxLength(1000)]
     public string Content { get; set; } = string.Empty;
     public DateTime CreateTime { get; set; } = DateTime.Now;
 
@@ -15,7 +16,9 @@ public class Comment
     public Post? Post { get; set; }
 
     // 游客信息 (因为允许匿名，所以是选填)
+    [MaxLength(100)]
     public string? GuestName { get; set; } 
+    [MaxLength(100)]
     public string? GuestEmail { get; set; }
 
     // 关联注册用户 (如果是登录用户评论)

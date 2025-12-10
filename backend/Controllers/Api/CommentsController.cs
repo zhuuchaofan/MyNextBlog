@@ -78,6 +78,7 @@ public class CommentsController(IPostService postService, AppDbContext context) 
         return Ok(new
         {
             success = true,
+            totalCount, // 返回评论总数
             comments = comments.Select(c => new 
             {
                 c.Id,

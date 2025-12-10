@@ -56,7 +56,7 @@ public class AuthService : IAuthService
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.Now.AddDays(7), // Token 有效期 7 天
+            expires: DateTime.UtcNow.AddDays(7), // Token 有效期 7 天 (使用 UTC 时间)
             signingCredentials: creds
         );
 

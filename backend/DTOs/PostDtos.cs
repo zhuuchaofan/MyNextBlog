@@ -28,7 +28,8 @@ public record PostDetailDto(
     string? AuthorAvatar, // 作者头像
     DateTime CreateTime,
     List<string> Tags,
-    bool IsHidden
+    bool IsHidden,
+    int CommentCount // 评论总数
 );
 
 // 创建文章 DTO

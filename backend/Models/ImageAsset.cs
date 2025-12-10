@@ -8,12 +8,14 @@ public class ImageAsset
     public int Id { get; set; }
 
     [Required]
+    [MaxLength(500)]
     public string Url { get; set; } = string.Empty;
 
     /// <summary>
     /// 存储服务中的唯一标识 (Key)，用于删除文件
     /// </summary>
     [Required]
+    [MaxLength(100)]
     public string StorageKey { get; set; } = string.Empty;
 
     public DateTime UploadTime { get; set; } = DateTime.Now;

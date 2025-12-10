@@ -64,10 +64,11 @@ public class DatabaseBackupService : BackgroundService
 
                 try 
                 {
-                    var fileName = $"backups/blog_backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}.db";
+                    var fileName = $"blog_backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}.db";
                     using var stream = File.OpenRead(tempPath);
                     
-                    var result = await storageService.UploadAsync(stream, fileName, "application/x-sqlite3");
+                    // 指定存入 "backups" 文件夹
+                    var result = await storageService.UploadAsync(stream, fileName, "application/x-sqlite3", "backups");
                     _logger.LogInformation($"Database backup uploaded successfully to: {result.Url}");
                 }
                 finally

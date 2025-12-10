@@ -7,8 +7,8 @@ namespace MyNextBlog.Controllers.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-// 支持 Cookie (用于MVC页面粘贴) 和 JWT (用于Next.js上传)
-[Authorize(AuthenticationSchemes = "MyCookieAuth," + JwtBearerDefaults.AuthenticationScheme)] 
+// 统一使用 JWT 认证
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] 
 public class UploadController(IStorageService storageService, IImageService imageService) : ControllerBase
 {
     [HttpPost]
@@ -24,17 +24,14 @@ public class UploadController(IStorageService storageService, IImageService imag
         if (!allowedExtensions.Contains(extension))
             return BadRequest("只支持上传图片格式");
 
-        // 2. 生成随机文件名 (防止重名覆盖)
-        var fileName = Guid.NewGuid().ToString() + extension;
-
-        // 3. 上传到 R2
+        // 2. 上传到 R2 (由 Service 负责生成安全文件名)
         using var stream = file.OpenReadStream();
-        var result = await storageService.UploadAsync(stream, fileName, file.ContentType);
+        var result = await storageService.UploadAsync(stream, file.FileName, file.ContentType);
 
-        // 4. 在数据库中记录这张图片 (此时 PostId 为 null)
+        // 3. 在数据库中记录这张图片 (此时 PostId 为 null)
         await imageService.RecordImageAsync(result.Url, result.StorageKey);
 
-        // 5. 返回图片的访问 URL
+        // 4. 返回图片的访问 URL
         return Ok(new { url = result.Url });
     }
 

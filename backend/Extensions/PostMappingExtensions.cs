@@ -23,7 +23,7 @@ public static class PostMappingExtensions
         );
     }
 
-    public static PostDetailDto ToDetailDto(this Post post)
+    public static PostDetailDto ToDetailDto(this Post post, int commentCount = 0)
     {
         return new PostDetailDto(
             post.Id,
@@ -35,7 +35,8 @@ public static class PostMappingExtensions
             post.User?.AvatarUrl,
             post.CreateTime,
             post.Tags.Select(t => t.Name).ToList(),
-            post.IsHidden
+            post.IsHidden,
+            commentCount
         );
     }
 }

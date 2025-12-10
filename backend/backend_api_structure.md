@@ -79,9 +79,9 @@ API 层位于 `Controllers/Api` 目录下，负责接收 HTTP 请求，解析请
 *   **`IStorageService` & `R2StorageService`**:
     *   **职责**: 提供抽象的文件存储服务，目前具体实现是 Cloudflare R2。
     *   **主要功能**:
-        *   `UploadAsync`: 将文件流上传到 R2，并返回访问 URL 和存储键。
+        *   `UploadAsync`: 将文件流上传到 R2。**新特性**：支持 `customPrefix` 参数，允许将文件存入指定文件夹（如 `avatars/`, `backups/`）；若未指定，则默认按日期 (`yyyy/MM/dd`) 归档。
         *   `DeleteAsync`: 根据存储键从 R2 删除文件。
-    *   **技术实现**: 使用 AWS SDK for .NET 连接 Cloudflare R2 (与 S3 兼容)，自动处理文件路径生成（按日期组织）。
+    *   **技术实现**: 使用 AWS SDK for .NET 连接 Cloudflare R2 (与 S3 兼容)，自动处理文件路径生成。
 
 *   **`ICategoryService` & `CategoryService`**:
     *   **职责**: 管理文章分类的 CRUD 操作。
