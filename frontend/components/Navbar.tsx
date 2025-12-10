@@ -22,6 +22,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navLinks = [
     { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },
@@ -77,110 +82,125 @@ export default function Navbar() {
              
              {/* Mobile Menu Trigger */}
              <div className="md:hidden">
-               <DropdownMenu>
-                 <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300" aria-label="打开导航菜单">
-                     <Menu className="w-6 h-6" />
-                   </Button>
-                 </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md">
-                    <DropdownMenuLabel>导航</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {navLinks.map(link => (
-                      <Link key={link.href} href={link.href}>
-                        <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
-                          {link.icon}
-                          <span>{link.label}</span>
-                        </DropdownMenuItem>
-                      </Link>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => {setIsSearchOpen(true);}}>
-                      <Search className="w-4 h-4" />
-                      <span>搜索</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {user ? (
-                        <>
-                           <DropdownMenuLabel className="font-normal">
-                             <div className="flex flex-col space-y-1">
-                               <p className="text-sm font-medium leading-none">{user.username}</p>
-                               <p className="text-xs leading-none text-muted-foreground">
-                                 {user.role === 'Admin' ? '管理员' : '普通用户'}
-                               </p>
-                             </div>
-                           </DropdownMenuLabel>
-                           {user.role === 'Admin' && (
-                             <Link href="/admin">
-                                <DropdownMenuItem className="cursor-pointer gap-2">
-                                  <LayoutDashboard className="w-4 h-4" />
-                                  <span>管理后台</span>
-                                </DropdownMenuItem>
-                             </Link>
-                           )}
-                           <Link href="/settings">
-                             <DropdownMenuItem className="cursor-pointer gap-2">
-                               <UserIcon className="w-4 h-4" />
-                               <span>个人设置</span>
-                             </DropdownMenuItem>
-                           </Link>
-                           <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-red-600">
-                             <LogOut className="w-4 h-4" />
-                             <span>退出登录</span>
-                           </DropdownMenuItem>
-                        </>
-                    ) : (
-                        <Link href="/login">
-                            <DropdownMenuItem className="cursor-pointer gap-2">
-                                <LogIn className="w-4 h-4" />
-                                <span>登录</span>
-                            </DropdownMenuItem>
+               {!mounted ? (
+                 <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300" aria-label="打开导航菜单">
+                   <Menu className="w-6 h-6" />
+                 </Button>
+               ) : (
+                 <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300" aria-label="打开导航菜单">
+                       <Menu className="w-6 h-6" />
+                     </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md">
+                      <DropdownMenuLabel>导航</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {navLinks.map(link => (
+                        <Link key={link.href} href={link.href}>
+                          <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
+                            {link.icon}
+                            <span>{link.label}</span>
+                          </DropdownMenuItem>
                         </Link>
-                    )}
-                 </DropdownMenuContent>
-               </DropdownMenu>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => {setIsSearchOpen(true);}}>
+                        <Search className="w-4 h-4" />
+                        <span>搜索</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {user ? (
+                          <>
+                             <DropdownMenuLabel className="font-normal">
+                               <div className="flex flex-col space-y-1">
+                                 <p className="text-sm font-medium leading-none">{user.username}</p>
+                                 <p className="text-xs leading-none text-muted-foreground">
+                                   {user.role === 'Admin' ? '管理员' : '普通用户'}
+                                 </p>
+                               </div>
+                             </DropdownMenuLabel>
+                             {user.role === 'Admin' && (
+                               <Link href="/admin">
+                                  <DropdownMenuItem className="cursor-pointer gap-2">
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    <span>管理后台</span>
+                                  </DropdownMenuItem>
+                               </Link>
+                             )}
+                             <Link href="/settings">
+                               <DropdownMenuItem className="cursor-pointer gap-2">
+                                 <UserIcon className="w-4 h-4" />
+                                 <span>个人设置</span>
+                               </DropdownMenuItem>
+                             </Link>
+                             <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-red-600">
+                               <LogOut className="w-4 h-4" />
+                               <span>退出登录</span>
+                             </DropdownMenuItem>
+                          </>
+                      ) : (
+                          <Link href="/login">
+                              <DropdownMenuItem className="cursor-pointer gap-2">
+                                  <LogIn className="w-4 h-4" />
+                                  <span>登录</span>
+                              </DropdownMenuItem>
+                          </Link>
+                      )}
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               )}
              </div>
 
              {user ? (
-               <DropdownMenu>
-                 <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
-                     <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
-                       <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
-                       <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
-                     </Avatar>
-                   </Button>
-                 </DropdownMenuTrigger>
-                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                   <DropdownMenuLabel className="font-normal">
-                     <div className="flex flex-col space-y-1">
-                       <p className="text-sm font-medium leading-none">{user.username}</p>
-                       <p className="text-xs leading-none text-muted-foreground">
-                         {user.role === 'Admin' ? '管理员' : '普通用户'}
-                       </p>
-                     </div>
-                   </DropdownMenuLabel>
-                   <DropdownMenuSeparator />
-                   {user.role === 'Admin' && (
-                     <Link href="/admin">
+               !mounted ? (
+                 <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
+                   <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
+                     <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
+                     <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                   </Avatar>
+                 </Button>
+               ) : (
+                 <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
+                       <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
+                         <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
+                         <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                       </Avatar>
+                     </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent className="w-56" align="end" forceMount>
+                     <DropdownMenuLabel className="font-normal">
+                       <div className="flex flex-col space-y-1">
+                         <p className="text-sm font-medium leading-none">{user.username}</p>
+                         <p className="text-xs leading-none text-muted-foreground">
+                           {user.role === 'Admin' ? '管理员' : '普通用户'}
+                         </p>
+                       </div>
+                     </DropdownMenuLabel>
+                     <DropdownMenuSeparator />
+                     {user.role === 'Admin' && (
+                       <Link href="/admin">
+                          <DropdownMenuItem className="cursor-pointer">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <span>管理后台</span>
+                          </DropdownMenuItem>
+                       </Link>
+                     )}
+                     <Link href="/settings">
                         <DropdownMenuItem className="cursor-pointer">
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          <span>管理后台</span>
+                          <UserIcon className="mr-2 h-4 w-4" />
+                          <span>个人设置</span>
                         </DropdownMenuItem>
                      </Link>
-                   )}
-                   <Link href="/settings">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>个人设置</span>
-                      </DropdownMenuItem>
-                   </Link>
-                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600">
-                     <LogOut className="mr-2 h-4 w-4" />
-                     <span>退出登录</span>
-                   </DropdownMenuItem>
-                 </DropdownMenuContent>
-               </DropdownMenu>
+                     <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600">
+                       <LogOut className="mr-2 h-4 w-4" />
+                       <span>退出登录</span>
+                     </DropdownMenuItem>
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               )
              ) : (
                <Link href="/login" aria-label="登录账号">
                  <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950 ml-2 whitespace-nowrap">
