@@ -3,13 +3,25 @@ using Markdig;
 
 namespace MyNextBlog.Helpers;
 
+/// <summary>
+/// Markdown 处理工具类
+/// 提供 Markdown 转 HTML、纯文本摘要提取和封面图提取功能
+/// </summary>
 public static class MarkdownHelper
 {
+    // 配置 Markdig 管道，启用高级扩展 (表格、任务列表等)
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
+    /// <summary>
+    /// 将 Markdown 转换为 HTML
+    /// </summary>
     public static string Parse(string markdown) => string.IsNullOrEmpty(markdown) ? "" : Markdown.ToHtml(markdown, Pipeline);
 
-    // 提取纯文本摘要
+    /// <summary>
+    /// 从 Markdown 中提取纯文本摘要
+    /// </summary>
+    /// <param name="markdown">原始 Markdown 内容</param>
+    /// <param name="length">截取长度 (默认200字符)</param>
     public static string GetExcerpt(string markdown, int length = 200)
     {
         if (string.IsNullOrEmpty(markdown)) return "";
@@ -46,15 +58,19 @@ public static class MarkdownHelper
         // 10. 压缩空白: 多个换行/空格 -> 单个空格
         text = Regex.Replace(text, @"\s+", " ").Trim();
 
+        // 截取并添加省略号
         return text.Length > length ? text.Substring(0, length) + "..." : text;
     }
 
-    // 提取第一张图片作为封面
+    /// <summary>
+    /// 提取 Markdown 中的第一张图片作为封面
+    /// </summary>
+    /// <returns>图片 URL (若无图则返回 null)</returns>
     public static string? GetCoverImage(string markdown)
     {
         if (string.IsNullOrEmpty(markdown)) return null;
         
-        // 1. 尝试匹配 Markdown 图片
+        // 1. 尝试匹配 Markdown 图片语法
         var match = Regex.Match(markdown, @"!\[.*?\]\((.*?)\)");
         if (match.Success)
         {
@@ -62,7 +78,7 @@ public static class MarkdownHelper
             return match.Groups[1].Value.Split(new[] { ' ', '"' }, StringSplitOptions.RemoveEmptyEntries)[0]; 
         }
 
-        // 2. 尝试匹配 HTML 图片 <img src="..." />
+        // 2. 尝试匹配 HTML 图片标签 <img src="..." />
         var htmlMatch = Regex.Match(markdown, @"<img[^>]+src=[""'](.*?)[""']", RegexOptions.IgnoreCase);
         if (htmlMatch.Success)
         {

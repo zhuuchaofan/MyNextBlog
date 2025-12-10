@@ -4,6 +4,10 @@ using Amazon.S3.Model;
 
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// Cloudflare R2 存储服务实现
+/// 使用 AWS SDK for .NET (S3 协议兼容) 与 R2 进行交互
+/// </summary>
 public class R2StorageService : IStorageService
 {
     private readonly string _serviceUrl;
@@ -20,9 +24,17 @@ public class R2StorageService : IStorageService
         _accessKey = r2Config["AccessKey"] ?? throw new ArgumentNullException("CloudflareR2:AccessKey is missing");
         _secretKey = r2Config["SecretKey"] ?? throw new ArgumentNullException("CloudflareR2:SecretKey is missing");
         _bucketName = r2Config["BucketName"] ?? throw new ArgumentNullException("CloudflareR2:BucketName is missing");
-        _publicDomain = r2Config["PublicDomain"] ?? ""; // 允许为空，但在实际使用中需要配置
+        _publicDomain = r2Config["PublicDomain"] ?? ""; 
     }
 
+    /// <summary>
+    /// 上传文件到对象存储
+    /// </summary>
+    /// <param name="fileStream">文件流</param>
+    /// <param name="fileName">原始文件名 (用于提取扩展名)</param>
+    /// <param name="contentType">MIME 类型 (如 image/jpeg)</param>
+    /// <param name="customPrefix">可选：自定义文件夹路径 (如 "avatars", "backups")。若为空则按日期归档。</param>
+    /// <returns>包含访问 URL 和 StorageKey 的结果对象</returns>
     public async Task<ImageUploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string? customPrefix = null)
     {
         var config = new AmazonS3Config
@@ -32,13 +44,19 @@ public class R2StorageService : IStorageService
 
         using var client = new AmazonS3Client(_accessKey, _secretKey, config);
 
-        // 确定存储路径前缀：如果有自定义前缀就用自定义的，否则按日期归档
+        // 策略 1: 确定文件夹路径
+        // 如果调用方指定了 customPrefix (如头像上传)，则使用它；
+        // 否则默认按 yyyy/MM/dd 格式归档，方便按时间管理。
         var prefix = string.IsNullOrEmpty(customPrefix) 
             ? DateTime.Now.ToString("yyyy/MM/dd") 
-            : customPrefix.TrimEnd('/'); // 去掉末尾斜杠以防双重斜杠
+            : customPrefix.TrimEnd('/');
 
-        // 生成唯一的 Key
-        // 格式: {prefix}/{guid}{ext}
+        // 策略 2: 安全重命名
+        // 永远不要直接使用用户上传的 fileName 作为存储键！
+        // 1. 防止路径遍历攻击 (../../etc/passwd)
+        // 2. 防止同名文件覆盖
+        // 3. 处理特殊字符兼容性
+        // 解决方案：使用 GUID + 原始扩展名
         var keyName = $"{prefix}/{Guid.NewGuid()}{Path.GetExtension(fileName)}";
 
         var putRequest = new PutObjectRequest
@@ -47,21 +65,21 @@ public class R2StorageService : IStorageService
             Key = keyName,
             InputStream = fileStream,
             ContentType = contentType,
-            DisablePayloadSigning = true // R2 推荐配置
+            DisablePayloadSigning = true // R2/Cloudflare 特有配置，提升性能
         };
 
+        // 执行上传
         await client.PutObjectAsync(putRequest);
 
+        // 构造公开访问链接
         string fileUrl;
-        // 构造返回的 URL
-        // 如果 PublicDomain 未配置，这是一个提示
         if (string.IsNullOrEmpty(_publicDomain) || _publicDomain.Contains("your-public-r2-domain"))
         {
+             // 配置未就绪时的容错处理
              fileUrl = $"/error/configure-public-domain/{keyName}"; 
         }
         else
         {
-            // 确保域名末尾没有斜杠，避免双斜杠
             var baseUrl = _publicDomain.TrimEnd('/');
             fileUrl = $"{baseUrl}/{keyName}";
         }
@@ -73,6 +91,10 @@ public class R2StorageService : IStorageService
         };
     }
 
+    /// <summary>
+    /// 删除文件
+    /// </summary>
+    /// <param name="storageKey">文件的唯一键 (Key)</param>
     public async Task DeleteAsync(string storageKey)
     {
         var config = new AmazonS3Config

@@ -1,15 +1,22 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Add this
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.Services;
 
 namespace MyNextBlog.Controllers.Api;
 
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")] // Add Scheme
+/// <summary>
+/// 分类管理控制器
+/// 默认所有写操作都需要 Admin 权限，读操作公开
+/// </summary>
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
 [Route("api/[controller]")]
 [ApiController]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
+    /// <summary>
+    /// 创建新分类 (管理员)
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
@@ -27,14 +34,20 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(new { success = true, category = newCategory });
     }
 
+    /// <summary>
+    /// 获取所有分类 (公开)
+    /// </summary>
     [HttpGet]
-    [AllowAnonymous] // 允许所有人获取分类列表
+    [AllowAnonymous] 
     public async Task<IActionResult> GetAll()
     {
         var categories = await categoryService.GetAllCategoriesAsync();
         return Ok(new { success = true, data = categories });
     }
 
+    /// <summary>
+    /// 根据 ID 获取分类详情 (公开)
+    /// </summary>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
@@ -47,6 +60,5 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(new { success = true, data = category });
     }
 
-    // DTO (Data Transfer Object) 用于接收前端数据
     public record CreateCategoryDto(string Name);
 }

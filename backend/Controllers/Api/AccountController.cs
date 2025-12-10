@@ -7,31 +7,29 @@ using System.Security.Claims;
 
 namespace MyNextBlog.Controllers.Api;
 
+/// <summary>
+/// 账户与个人信息控制器
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
-public class AccountController : ControllerBase
+public class AccountController(AppDbContext context, IStorageService storageService) : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IStorageService _storageService;
-
-    public AccountController(AppDbContext context, IStorageService storageService)
-    {
-        _context = context;
-        _storageService = storageService;
-    }
-
-    // GET: api/account/me
+    /// <summary>
+    /// 获取当前登录用户的详细信息
+    /// </summary>
+    /// <returns>包含 ID、用户名、角色和头像的 User 对象</returns>
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
+        // 从 JWT Token 中解析用户 ID
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
         {
             return Unauthorized();
         }
 
-        var user = await _context.Users.FindAsync(userId);
+        var user = await context.Users.FindAsync(userId);
         if (user == null)
         {
             return NotFound("User not found");
@@ -46,18 +44,21 @@ public class AccountController : ControllerBase
         });
     }
 
-    // POST: api/account/avatar
+    /// <summary>
+    /// 上传并更新用户头像
+    /// </summary>
+    /// <param name="file">图片文件 (max 5MB)</param>
     [HttpPost("avatar")]
     public async Task<IActionResult> UploadAvatar(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest("请选择文件");
 
-        // 验证文件类型
+        // 1. 验证文件类型 (安全检查)
         if (!file.ContentType.StartsWith("image/"))
             return BadRequest("只能上传图片文件");
 
-        // 限制大小 (例如 5MB)
+        // 2. 验证文件大小 (限制 5MB)
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest("图片大小不能超过 5MB");
 
@@ -67,7 +68,7 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _context.Users.FindAsync(userId);
+        var user = await context.Users.FindAsync(userId);
         if (user == null)
         {
             return NotFound("User not found");
@@ -76,13 +77,14 @@ public class AccountController : ControllerBase
         try
         {
             using var stream = file.OpenReadStream();
-            // 上传到 "avatars" 文件夹
-            // 注意：fileName 参数传原始文件名即可，R2StorageService 会自动生成 GUID 文件名
-            var result = await _storageService.UploadAsync(stream, file.FileName, file.ContentType, "avatars");
+            
+            // 3. 上传到 "avatars" 专用文件夹
+            // R2StorageService 会自动处理文件名冲突
+            var result = await storageService.UploadAsync(stream, file.FileName, file.ContentType, "avatars");
 
-            // 更新数据库
+            // 4. 更新数据库中的头像链接
             user.AvatarUrl = result.Url;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return Ok(new { success = true, avatarUrl = result.Url });
         }

@@ -4,21 +4,34 @@ using MyNextBlog.Data;
 
 namespace MyNextBlog.Controllers.Api;
 
+/// <summary>
+/// 画廊控制器
+/// 提供类似 Pinterest 的图片流浏览功能
+/// </summary>
 [Route("api/gallery")]
 [ApiController]
 public class GalleryController(AppDbContext context) : ControllerBase
 {
+    /// <summary>
+    /// 获取公开文章中的图片列表
+    /// </summary>
+    /// <param name="page">页码</param>
+    /// <param name="pageSize">每页数量</param>
+    /// <param name="keyword">筛选关键词 (匹配分类或标签)，若为空则返回所有</param>
+    /// <returns>图片列表 (适配前端相册组件的格式)</returns>
     [HttpGet]
     public async Task<IActionResult> GetImages(int page = 1, int pageSize = 20, string? keyword = null)
     {
+        // 核心逻辑：只展示"公开文章"中的图片
+        // 隐藏文章的图片不应该出现在公共图库中
         var query = context.ImageAssets
             .Include(i => i.Post)
             .ThenInclude(p => p.Category)
             .Include(i => i.Post)
             .ThenInclude(p => p.Tags)
-            .Where(i => i.Post != null && !i.Post.IsHidden); // 必须关联了公开文章
+            .Where(i => i.Post != null && !i.Post.IsHidden); 
 
-        // 如果有搜索关键词，则筛选分类或标签
+        // 搜索过滤逻辑
         if (!string.IsNullOrWhiteSpace(keyword))
         {
             query = query.Where(i => 
@@ -36,9 +49,9 @@ public class GalleryController(AppDbContext context) : ControllerBase
             .Select(i => new 
             {
                 i.Id,
-                src = i.Url, // 前端库通常用 src
-                alt = i.Post.Title,
-                width = 800, // 假数据，为了兼容某些库，实际显示自适应
+                src = i.Url,   // 图片地址
+                alt = i.Post.Title, // 图片描述 (使用文章标题)
+                width = 800,   // 占位宽度 (前端自适应)
                 height = 600
             })
             .ToListAsync();
