@@ -19,6 +19,7 @@ export interface Post {
   categoryName: string;
   categoryId: number;
   coverImage?: string;
+  tags?: string[];
 }
 
 interface PostListProps {
@@ -75,13 +76,23 @@ export default function PostList({ initialPosts, initialHasMore }: PostListProps
                      )}
                      
                      <div className="flex-1 flex flex-col p-6 md:p-8">
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="flex flex-wrap items-center gap-3 mb-4">
                           <Link href={`/categories/${post.categoryId}`}>
                              <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg px-3 py-1 transition-colors">
                                 {post.categoryName || '未分类'}
                              </Badge>
                           </Link>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1">
+                          
+                          {/* 渲染标签 */}
+                          {post.tags && post.tags.map(tag => (
+                            <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
+                              <Badge variant="outline" className="text-xs text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer rounded-lg px-2 py-0.5 transition-colors">
+                                # {tag}
+                              </Badge>
+                            </Link>
+                          ))}
+
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1 ml-auto">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>
                         </div>

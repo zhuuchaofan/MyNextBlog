@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
 using MyNextBlog.Services;

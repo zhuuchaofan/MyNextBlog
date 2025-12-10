@@ -1,5 +1,4 @@
 // `using` 语句用于导入必要的命名空间，以便在当前文件中使用其中定义的类型（类、接口等）。
-using System.ComponentModel.DataAnnotations;       // 引入数据注解，用于模型验证
 using Microsoft.AspNetCore.Authentication.JwtBearer; // 引入 JWT Bearer 认证方案相关类型
 using Microsoft.AspNetCore.Authorization;            // 引入授权相关特性，如 [Authorize]
 using Microsoft.AspNetCore.Mvc;                      // 引入 ASP.NET Core MVC 核心类型，如 ControllerBase, IActionResult, [HttpGet] 等

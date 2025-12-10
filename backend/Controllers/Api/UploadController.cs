@@ -21,7 +21,7 @@ public class UploadController(IStorageService storageService, IImageService imag
     /// <param name="file">图片文件 (jpg, png, gif, webp)</param>
     /// <returns>图片的 URL</returns>
     [HttpPost]
-    public async Task<IActionResult> Upload(IFormFile file)
+    public async Task<IActionResult> Upload(IFormFile? file)
     {
         // 1. 基础参数验证
         if (file == null || file.Length == 0)
@@ -37,7 +37,7 @@ public class UploadController(IStorageService storageService, IImageService imag
         // 3. 上传到 R2 云存储
         // 注意：我们直接传原始文件名，StorageService 内部会负责生成安全的 GUID 文件名，
         // 防止文件名冲突和路径遍历攻击。
-        using var stream = file.OpenReadStream();
+        await using var stream = file.OpenReadStream();
         var result = await storageService.UploadAsync(stream, file.FileName, file.ContentType);
 
         // 4. 在数据库中记录这张图片

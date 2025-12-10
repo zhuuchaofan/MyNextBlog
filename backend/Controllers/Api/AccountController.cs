@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Services;
 using System.Security.Claims;
@@ -49,7 +48,7 @@ public class AccountController(AppDbContext context, IStorageService storageServ
     /// 上传并更新用户头像
     /// </summary>
     [HttpPost("avatar")]
-    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    public async Task<IActionResult> UploadAvatar(IFormFile? file)
     {
         // 1. 基础验证
         if (file == null || file.Length == 0)
@@ -78,7 +77,7 @@ public class AccountController(AppDbContext context, IStorageService storageServ
 
         try
         {
-            using var stream = file.OpenReadStream();
+            await using var stream = file.OpenReadStream();
             
             // 5. 上传到云存储
             // 指定 "avatars" 作为前缀，将头像文件单独归档

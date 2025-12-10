@@ -5,7 +5,7 @@ export const SITE_CONFIG = {
   url: "https://zhuchaofan.online",
   avatar: "https://picture.zhuchaofan.online/CAT/boy_01.png",
   social: {
-    github: "https://github.com/chaofan920",
+    github: "https://github.com/zhuuchaofan",
     twitter: "https://twitter.com/zhuchaofan",
     email: "zhuuchaofan@gmail.com"
   }
