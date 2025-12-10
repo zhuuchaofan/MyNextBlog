@@ -17,14 +17,10 @@ public class CommentsController(IPostService postService, AppDbContext context) 
     /// <summary>
     /// 发表新评论
     /// </summary>
-    /// <remarks>
-    /// 支持两种模式：
-    /// 1. 登录用户：自动绑定 UserId，显示用户头像和昵称。
-    /// 2. 匿名访客：使用前端传入的 GuestName。
-    /// </remarks>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
+        // 1. 验证输入
         if (string.IsNullOrWhiteSpace(dto.Content))
         {
             return BadRequest(new { success = false, message = "评论内容不能为空" });
@@ -37,7 +33,8 @@ public class CommentsController(IPostService postService, AppDbContext context) 
             CreateTime = DateTime.Now
         };
 
-        // 尝试获取当前登录用户
+        // 2. 身份识别
+        // 尝试判断当前请求是否来自已登录用户
         User? user = null;
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -47,20 +44,24 @@ public class CommentsController(IPostService postService, AppDbContext context) 
                 user = await context.Users.FindAsync(userId);
                 if (user != null)
                 {
+                    // 如果是登录用户，绑定 UserId 并自动填充 GuestName 为用户名
                     comment.UserId = user.Id;
-                    comment.GuestName = user.Username; // 存个快照，以防用户后来注销了账号评论还在
+                    comment.GuestName = user.Username; 
                 }
             }
         }
 
-        // 如果是匿名用户，使用传入的昵称 (默认为"匿名访客")
+        // 3. 处理匿名访客
+        // 如果未登录，则使用前端传入的 GuestName，若未传则默认为"匿名访客"
         if (comment.UserId == null)
         {
              comment.GuestName = string.IsNullOrWhiteSpace(dto.GuestName) ? "匿名访客" : dto.GuestName;
         }
 
+        // 4. 保存评论
         await postService.AddCommentAsync(comment);
 
+        // 5. 返回创建成功的评论对象 (包含用户信息以便前端立即渲染)
         return Ok(new
         {
             success = true,
@@ -70,7 +71,7 @@ public class CommentsController(IPostService postService, AppDbContext context) 
                 comment.GuestName,
                 comment.Content,
                 CreateTime = comment.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-                UserAvatar = user?.AvatarUrl // 如果是登录用户，返回头像供前端即时展示
+                UserAvatar = user?.AvatarUrl // 如果是登录用户，返回头像
             }
         });
     }
@@ -81,11 +82,14 @@ public class CommentsController(IPostService postService, AppDbContext context) 
     [HttpGet]
     public async Task<IActionResult> GetComments(int postId, int page = 1, int pageSize = 5)
     {
+        // 1. 获取评论数据和总数
         var comments = await postService.GetCommentsAsync(postId, page, pageSize);
         var totalCount = await postService.GetCommentCountAsync(postId);
         
+        // 2. 判断是否还有更多页
         bool hasMore = (page * pageSize) < totalCount;
 
+        // 3. 返回结果
         return Ok(new
         {
             success = true,
@@ -93,7 +97,7 @@ public class CommentsController(IPostService postService, AppDbContext context) 
             comments = comments.Select(c => new 
             {
                 c.Id,
-                // 显示逻辑：如果关联了注册用户，优先显示该用户最新的昵称和头像
+                // 显示逻辑：如果有关联的注册用户，优先显示该用户当前的用户名 (而不是评论时的快照)
                 GuestName = c.User != null ? c.User.Username : c.GuestName, 
                 c.Content,
                 CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm"),

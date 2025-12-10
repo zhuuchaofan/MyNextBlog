@@ -21,15 +21,6 @@ public class PostsApiController(IPostService postService, ITagService tagService
     /// <summary>
     /// 公开接口：获取文章列表
     /// </summary>
-    /// <param name="page">当前页码 (默认1)</param>
-    /// <param name="pageSize">每页条数 (默认10)</param>
-    /// <param name="search">搜索关键词 (可选)</param>
-    /// <param name="tag">按标签筛选 (可选)</param>
-    /// <param name="categoryId">按分类筛选 (可选)</param>
-    /// <remarks>
-    /// 普通用户只能看到 IsHidden=false 的文章。
-    /// 如果是 Admin 登录用户，系统会自动包含隐藏文章。
-    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> GetPosts(
         [FromQuery] int page = 1, 
@@ -38,25 +29,29 @@ public class PostsApiController(IPostService postService, ITagService tagService
         [FromQuery] string? tag = null,
         [FromQuery] int? categoryId = null)
     {
-        // 检查当前用户是否为管理员
+        // 1. 权限判断
+        // 如果用户已登录且角色是 Admin，则允许查看隐藏文章 (Drafts)
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
         
-        // 获取原始数据 (Entity)
+        // 2. 调用服务获取数据 (Entity)
+        // 这里的 includeHidden 参数决定了是否返回 IsHidden=true 的文章
         var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search, tagName: tag);
 
-        // 计算分页元数据
+        // 3. 计算分页元数据
         // 注意：目前采用内存分页 (先全查再Skip/Take)，适合个人博客的小数据量。
         // 数据量大时应重构为数据库分页。
         var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        // 执行分页并转换为 DTO
+        // 4. 执行分页切片并转换为 DTO
+        // 使用 ToSummaryDto() 将实体转换为精简的传输对象，减少网络传输量
         var posts = allPosts
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => p.ToSummaryDto())
             .ToList();
 
+        // 5. 返回标准响应结构
         return Ok(new
         {
             success = true,
@@ -68,20 +63,20 @@ public class PostsApiController(IPostService postService, ITagService tagService
     /// <summary>
     /// 管理员接口：获取文章列表（包含隐藏文章）
     /// </summary>
-    /// <remarks>
-    /// 专门供后台管理界面使用，强制包含隐藏文章。
-    /// </remarks>
     [HttpGet("admin")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPosts(
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
     {
+        // 1. 直接获取所有文章 (强制 includeHidden = true)
         var allPosts = await postService.GetAllPostsAsync(includeHidden: true);
 
+        // 2. 分页计算
         var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
+        // 3. DTO 转换
         var posts = allPosts
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -99,37 +94,34 @@ public class PostsApiController(IPostService postService, ITagService tagService
     /// <summary>
     /// 管理员接口：获取文章详情
     /// </summary>
-    /// <param name="id">文章 ID</param>
-    /// <remarks>
-    /// 可以访问任意状态的文章（包括已隐藏的）。
-    /// </remarks>
     [HttpGet("admin/{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPost(int id)
     {
+        // 1. 获取详情 (允许隐藏文章)
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null)
         {
             return NotFound(new { success = false, message = "文章不存在" });
         }
         
-        // 补充评论总数信息
+        // 2. 补充评论总数信息 (用于前端显示)
         var commentCount = await postService.GetCommentCountAsync(id);
         
+        // 3. 返回完整详情 DTO
         return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
     }
 
     /// <summary>
     /// 公开接口：获取文章详情
     /// </summary>
-    /// <param name="id">文章 ID</param>
-    /// <remarks>
-    /// 如果文章被隐藏且当前用户不是管理员，将返回 404。
-    /// </remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPost(int id)
     {
+        // 1. 确定权限上下文
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        
+        // 2. 获取详情 (根据权限过滤隐藏文章)
         var post = await postService.GetPostByIdAsync(id, includeHidden: isAdmin);
         
         if (post == null)
@@ -137,7 +129,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
             return NotFound(new { success = false, message = "文章不存在或已隐藏" });
         }
 
-        // 补充评论总数信息
+        // 3. 补充评论总数
         var commentCount = await postService.GetCommentCountAsync(id);
 
         return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
@@ -150,10 +142,11 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
     {
-        // 获取当前登录用户 ID
+        // 1. 获取当前登录用户 ID (从 Token Claims 中解析)
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(userIdStr, out int userId)) userId = 0; 
 
+        // 2. 构建文章实体
         var post = new Post
         {
             Title = dto.Title,
@@ -163,13 +156,16 @@ public class PostsApiController(IPostService postService, ITagService tagService
             CreateTime = DateTime.Now
         };
 
-        // 处理标签关联
+        // 3. 处理标签关联
+        // GetOrCreateTagsAsync 会自动处理标签去重和新建
         if (dto.Tags != null && dto.Tags.Any())
         {
             post.Tags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
         }
 
+        // 4. 保存到数据库 (PostService 内部会处理图片关联)
         await postService.AddPostAsync(post);
+        
         return Ok(new { success = true, message = "发布成功", postId = post.Id, data = post.ToDetailDto() });
     }
 
@@ -180,16 +176,17 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
+        // 1. 检查文章是否存在
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
-        // 更新基本信息
+        // 2. 更新基本字段
         post.Title = dto.Title;
         post.Content = dto.Content;
         post.CategoryId = dto.CategoryId;
         post.IsHidden = dto.IsHidden;
 
-        // 更新标签 (先清空再重新添加)
+        // 3. 更新标签 (策略：先清空，再重新添加)
         post.Tags.Clear();
         if (dto.Tags != null && dto.Tags.Any())
         {
@@ -197,6 +194,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
             post.Tags.AddRange(newTags);
         }
 
+        // 4. 保存更改
         await postService.UpdatePostAsync(post);
         return Ok(new { success = true, message = "更新成功", data = post.ToDetailDto() });
     }
@@ -208,9 +206,11 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> DeletePost(int id)
     {
+        // 1. 验证存在性
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
+        // 2. 执行删除 (PostService 内部会处理级联删除逻辑)
         await postService.DeletePostAsync(id);
         return Ok(new { success = true, message = "删除成功" });
     }
@@ -222,9 +222,11 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> ToggleVisibility(int id)
     {
+        // 1. 执行切换
         var success = await postService.TogglePostVisibilityAsync(id);
         if (!success) return NotFound(new { success = false, message = "文章不存在" });
 
+        // 2. 获取更新后的状态以返回给前端
         var post = await postService.GetPostByIdAsync(id, includeHidden: true);
         return Ok(new { success = true, message = "状态更新成功", isHidden = post?.IsHidden });
     }
