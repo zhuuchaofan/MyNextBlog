@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -35,6 +35,55 @@ const extractText = (children: any): string => {
   if (typeof children === 'object' && children?.props?.children) return extractText(children.props.children);
   return '';
 };
+
+// ===========================================================================
+// 新的 PreBlock 组件，处理 <pre> 标签的渲染 (包括复制按钮和外部容器)
+// ===========================================================================
+const PreBlock = ({ children, ...props }: any) => {
+  const preRef = useRef<HTMLPreElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (preRef.current) {
+      // innerText 会获取 <pre> 内部所有文本，包括高亮 span 的内容
+      navigator.clipboard.writeText(preRef.current.innerText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // 提取 children 中的 className (通常在 <code> 标签上)
+  let languageClassName = '';
+  if (Array.isArray(children) && children.length > 0 && React.isValidElement(children[0])) {
+    const codeElement = children[0] as React.ReactElement;
+    if (codeElement.type === 'code' && codeElement.props.className) {
+      languageClassName = codeElement.props.className;
+    }
+  }
+
+  return (
+    <div className="relative group my-6">
+      <Button
+        variant="secondary"
+        size="icon"
+        className="absolute right-2 top-2 h-8 w-8 bg-gray-700/80 hover:bg-gray-600 text-white border-none opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
+        onClick={handleCopy}
+        aria-label={copied ? "已复制" : "复制代码"}
+      >
+        {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+      </Button>
+      <pre
+        ref={preRef}
+        // 使用从子元素提取的 className，确保高亮样式生效
+        className={`${languageClassName} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg`}
+        {...props}
+      >
+        {children} {/* 这里是 ReactMarkdown 渲染的 <code> 元素 */}
+      </pre>
+    </div>
+  );
+};
+
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
@@ -75,40 +124,17 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     setToc(items);
   }, [content]);
 
-  // 复制代码功能
-  const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
-    const [copied, setCopied] = useState(false);
-    const match = /language-(\w+)/.exec(className || '');
-    const code = String(children).replace(/\n$/, '');
-
-    const handleCopy = () => {
-      navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
-
-    if (!inline && match) {
-      return (
-        <div className="relative group my-6">
-          <Button 
-            variant="secondary" 
-            size="icon" 
-            className="absolute right-2 top-2 h-8 w-8 bg-gray-700/80 hover:bg-gray-600 text-white border-none opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
-            onClick={handleCopy}
-            aria-label={copied ? "已复制" : "复制代码"}
-          >
-            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
-          </Button>
-          <pre className={`${className} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg`}>
-            <code {...props} className={className}>
-              {children}
-            </code>
-          </pre>
-        </div>
-      );
-    }
+// ===========================================================================
+// 修改后的 CodeBlock 组件，只处理行内代码
+// ===========================================================================
+const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
+  if (inline) {
     return <code className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-mono text-sm" {...props}>{children}</code>;
-  };
+  }
+  // 对于块级代码，我们不在这里渲染额外的 div 或 pre
+  // 而是直接返回 <code> 标签本身，由 PreBlock (pre 组件) 负责外部包裹
+  return <code {...props} className={className}>{children}</code>;
+};
 
   // 用于渲染时跟踪重复 ID
   // 注意：这种方式在 React Server Component 或 Strict Mode 下可能会有副作用，
@@ -134,7 +160,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           remarkPlugins={[remarkGfm]} 
           rehypePlugins={[rehypeHighlight]}
           components={{
-            code: CodeBlock,
+            pre: PreBlock, // 使用新的 PreBlock 组件处理 <pre>
+            code: CodeBlock, // 使用修改后的 CodeBlock 组件处理 <code>
             img: ({node, ...props}) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img {...props} className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50 dark:bg-zinc-800" alt={props.alt || ''} />
