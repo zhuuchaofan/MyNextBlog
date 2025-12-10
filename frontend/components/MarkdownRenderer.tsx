@@ -1,16 +1,24 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { Button } from "@/components/ui/button";
 import { Check, Copy, List } from "lucide-react";
+import dynamic from 'next/dynamic'; // 引入 dynamic
 import 'highlight.js/styles/github-dark.css';
+
+// 动态导入 MermaidBlock，禁用 SSR 因为 mermaid 依赖 window
+const MermaidBlock = dynamic(() => import('@/components/MermaidBlock'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse h-32 bg-gray-100 dark:bg-zinc-800 rounded-xl my-6"></div>
+});
 
 interface MarkdownRendererProps {
   content: string;
 }
+
 
 interface TocItem {
   id: string;
@@ -54,11 +62,20 @@ const PreBlock = ({ children, ...props }: any) => {
 
   // 提取 children 中的 className (通常在 <code> 标签上)
   let languageClassName = '';
-  if (Array.isArray(children) && children.length > 0 && React.isValidElement(children[0])) {
-    const codeElement = children[0] as React.ReactElement;
-    if (codeElement.type === 'code' && codeElement.props.className) {
-      languageClassName = codeElement.props.className;
+  const child = Array.isArray(children) ? children[0] : children;
+
+  if (React.isValidElement(child)) {
+    // 不再检查 type === 'code'，因为可能是自定义组件
+    if (child.props.className) {
+      languageClassName = child.props.className;
     }
+  }
+
+  // 检查是否是 mermaid 代码块
+  if (languageClassName?.includes('mermaid')) {
+    const chartContent = extractText(children);
+    // console.log('Found mermaid block:', chartContent);
+    return <MermaidBlock chart={chartContent} />;
   }
 
   return (
