@@ -38,6 +38,8 @@ builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 // 注册 TagService
 builder.Services.AddScoped<ITagService, TagService>();
+// 注册 AuthService
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // 注册后台备份服务
 builder.Services.AddHostedService<DatabaseBackupService>();
