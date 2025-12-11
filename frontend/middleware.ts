@@ -1,62 +1,96 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// 中间件 (Middleware)
-// --------------------------------------------------------------------------------
-// 这是一个运行在 Next.js 服务边缘（Edge Runtime）的轻量级函数。
-// 它会在请求到达具体的页面或 API 路由**之前**执行。
-//
-// 本项目的中间件主要有两个核心职责：
-// 1. **认证代理 (Auth Proxy)**: 拦截前端对 `/api/backend` 的请求，自动注入 Authorization 头。
-// 2. **路由保护 (Route Protection)**: 保护 `/admin` 开头的路由，防止未登录用户访问。
+// 后端 API 基础 URL。
+// 注意：在 Edge Runtime (Vercel) 中，环境变量需要特殊配置。
+// 在本地 Docker 环境中，`http://backend:8080` 或 `http://localhost:5095` 可能会根据您的配置有所不同。
+const BACKEND_API_URL = process.env.BACKEND_URL || 'http://backend:8080';
 
-export function middleware(request: NextRequest) {
-  // 1. 拦截后端 API 请求 (API 代理逻辑辅助)
-  // 注意：实际的 URL 重写 (Rewrite) 是在 `next.config.ts` 中配置的，
-  // 但中间件在这里负责**注入身份凭证**。
-  if (request.nextUrl.pathname.startsWith('/api/backend')) {
-    // 从 Cookie 中读取 Token (HttpOnly Cookie 安全性高，JS 无法读取，但浏览器会自动发送给同源请求)
-    const token = request.cookies.get('token')?.value;
-    
-    // 创建一个新的 Headers 对象，以便修改请求头
-    const requestHeaders = new Headers(request.headers);
-    
-    // 如果 Cookie 中存在 Token，则手动添加 'Authorization' 头
-    // 格式为: Bearer <token_string>
-    if (token) {
-      requestHeaders.set('Authorization', `Bearer ${token}`);
-    }
+export async function middleware(request: NextRequest) {
+  const currentPath = request.nextUrl.pathname;
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-    // NextResponse.next(): 允许请求继续传递到下一步（即 next.config.ts 中的 rewrite 规则）。
-    // 我们将修改后的 headers 传递下去。
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-  
-  // 2. 保护管理员路由
-  // 任何访问 `/admin` 开头的 URL 都需要检查是否已登录。
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-     const token = request.cookies.get('token');
-     
-     // 如果没有 Token (未登录)，则强制重定向到登录页面。
-     if (!token) {
-        // 创建重定向 URL，指向 /login
+  // --- 1. 处理 /api/backend/ 请求的认证和刷新 ---
+  if (currentPath.startsWith('/api/backend')) {
+    let accessToken = request.cookies.get('token')?.value; // 注意 Cookie 名是 'token'
+    const refreshToken = request.cookies.get('refreshToken')?.value;
+
+    // 如果没有 AccessToken，但有 RefreshToken，尝试刷新
+    if (!accessToken && refreshToken) {
+      try {
+        const refreshRes = await fetch(`${BACKEND_API_URL}/api/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }), // 后端 RefreshTokenDto 字段名是 refreshToken
+        });
+
+        if (refreshRes.ok) {
+          const newAuthData = await refreshRes.json();
+          accessToken = newAuthData.accessToken; // 获取新的 AccessToken
+          const newRefreshToken = newAuthData.refreshToken; // 获取新的 RefreshToken
+
+          // 更新 AccessToken Cookie
+          response.cookies.set('token', accessToken, { // Cookie 名是 'token'
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 15 * 60, // 15 分钟
+          });
+
+          // 更新 RefreshToken Cookie
+          response.cookies.set('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60, // 7 天
+          });
+
+          // 将新的 AccessToken 注入到当前请求的 Headers 中
+          response.request.headers.set('Authorization', `Bearer ${accessToken}`);
+        } else {
+          // 刷新失败（Refresh Token 无效或过期），需要重新登录
+          // 清除所有认证 Cookie
+          response.cookies.delete('token');
+          response.cookies.delete('refreshToken');
+          // 如果是 /admin 路由，则重定向到登录页
+          if (currentPath.startsWith('/admin')) {
+            return NextResponse.redirect(new URL('/login', request.url));
+          }
+          // 对于非 /admin 路由，允许继续，后端会返回 401
+        }
+      } catch (error) {
+        console.error('Refresh Token failed in middleware:', error);
+        // 刷新接口本身出错，也清除 Cookie
+        response.cookies.delete('token');
+        response.cookies.delete('refreshToken');
+        if (currentPath.startsWith('/admin')) {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+      }
+    } else if (accessToken) {
+      // 如果有 AccessToken (且是有效的，没有过期，或者 Middleware 不去管是否过期)
+      response.request.headers.set('Authorization', `Bearer ${accessToken}`);
+    } else if (!accessToken && !refreshToken && currentPath.startsWith('/admin')) {
+        // 没有 AccessToken 也没有 RefreshToken，且是 /admin 路由，重定向到登录
         return NextResponse.redirect(new URL('/login', request.url));
-     }
-     // 注意：这里只做了“是否登录”的初步检查。
-     // 具体的“是否是管理员”权限检查，仍然由后端 API (通过 [Authorize(Roles="Admin")]) 把关。
-     // 即使恶意用户伪造了 Token 绕过这里，后端也会拒绝请求。
+    }
   }
-  
-  // 对于其他无需处理的请求，直接放行。
-  return NextResponse.next();
+
+  // --- 2. 保护管理员路由（如果上面没有处理） ---
+  // 这部分逻辑可以放在上面，但为了清晰分开
+  if (currentPath.startsWith('/admin') && !request.cookies.has('token')) { // 检查 AccessToken
+    // 如果 AccessToken 仍不存在 (意味着没有登录或刷新失败)，重定向到登录
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  return response;
 }
 
 // 配置匹配器
-// 指定中间件只对以下路径生效，避免影响静态资源（图片、CSS等）的加载速度。
 export const config = {
   matcher: ['/api/backend/:path*', '/admin/:path*'],
 };

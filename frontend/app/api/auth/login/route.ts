@@ -37,12 +37,22 @@ export async function POST(request: Request) {
         // 获取 Cookie 存储对象
         const cookieStore = await cookies();
         
-        // 设置名为 'token' 的 Cookie
+        // 设置名为 'token' 的 Access Token Cookie
+        // 有效期与后端一致 (15分钟)
         cookieStore.set('token', data.token, {
-            httpOnly: true, // 禁止客户端 JavaScript 访问 (安全核心)
-            secure: process.env.NODE_ENV === 'production', // 仅在生产环境强制 HTTPS
-            path: '/', // Cookie 在整个网站有效
-            maxAge: 60 * 60 * 24 * 7, // 有效期 7 天 (单位：秒)
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 15 * 60, // 15 分钟
+        });
+
+        // 设置名为 'refreshToken' 的 Cookie
+        // 有效期 7 天
+        cookieStore.set('refreshToken', data.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60, // 7 天
         });
         
         // **安全响应**

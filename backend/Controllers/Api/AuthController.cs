@@ -61,4 +61,21 @@ public class AuthController(IAuthService authService) : ControllerBase
         // `AuthResponseDto` 包含了生成的 JWT Token 和一些基本的用户信息，供前端使用。
         return Ok(authResponse);
     }
+
+    /// <summary>
+    /// `Refresh` 方法用于刷新 JWT Token。
+    /// 当 Access Token 过期时，客户端可以使用 Refresh Token 获取新的 Access Token。
+    /// </summary>
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenDto dto)
+    {
+        var authResponse = await authService.RefreshTokenAsync(dto.RefreshToken);
+
+        if (authResponse == null)
+        {
+            return BadRequest(new { success = false, message = "Token 无效或已过期" });
+        }
+
+        return Ok(authResponse);
+    }
 }
