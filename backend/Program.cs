@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;               // 用于处理安全令牌�
 using MyNextBlog.Data;                              // 导入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Extensions;                         // 导入我们自己定义的扩展方法，比如 SeedDatabase
 using MyNextBlog.Services;                           // 导入业务逻辑服务层命名空间
+using MyNextBlog.Middlewares;                        // 导入中间件命名空间
 using Serilog;                                      // 导入 Serilog 日志库
 using System.Text;                                  // 用于字符串编码等操作
 
@@ -63,6 +64,9 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 // 3. **统一管理**: 所有的服务都在这里进行配置和注册，方便统一管理。
 //
 // `builder.Services` 就是用来注册各种服务的集合。
+
+// 注册全局异常处理中间件
+builder.Services.AddTransient<GlobalExceptionMiddleware>();
 
 // `builder.Services.AddControllers();`
 // 作用：注册应用程序中所有的 Controller 类。这是构建 Web API 应用程序的基石。
@@ -253,6 +257,9 @@ var app = builder.Build();
 //
 // **顺序至关重要！** 中间件的注册顺序决定了它们在管道中执行的顺序。
 // 例如，日志中间件应该在身份认证中间件之前，这样即使请求被认证拒绝，也能记录下来。
+
+// 注册全局异常处理中间件 (必须放在管道最前面)
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // 1. 全局异常处理和安全头
 // `app.Environment.IsDevelopment()`: 检查当前应用程序是否在开发环境中运行。
