@@ -1,5 +1,6 @@
 // `using` 语句用于导入必要的命名空间，以便在当前文件中使用其中定义的类型。
 using Microsoft.EntityFrameworkCore; // 引入 Entity Framework Core，用于数据库操作
+using Microsoft.Extensions.Caching.Memory; // 引入内存缓存命名空间
 using MyNextBlog.Data;              // 引入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Models;            // 引入应用程序的领域模型，如 Post, Comment, Category 等
 
@@ -16,19 +17,11 @@ namespace MyNextBlog.Services;
 /// </summary>
 // `public class PostService(...) : IPostService`
 // 这是服务类的定义。
-// `AppDbContext context, IImageService imageService`: 这是 C# 9 引入的“主构造函数”语法。
-// 作用：它声明了 `PostService` 依赖于 `AppDbContext` (数据库上下文) 和 `IImageService` (图片服务)。
-// 这表示 `PostService` 需要通过这两个服务来完成自己的工作。
-//   - `AppDbContext`: 用于与数据库交互，执行查询、添加、更新和删除操作。
-//   - `IImageService`: 用于处理文章内容中的图片资源，例如在保存文章后关联图片，或在删除文章时清理图片。
-// `IPostService`: `PostService` 实现了 `IPostService` 接口。
-//   - **接口 (Interface)** 定义了一组方法签名，但没有实现细节。
-//   - **实现 (Implementation)** 提供了这些方法的具体代码。
-//   - **好处**: 这种面向接口编程（Interface-oriented Programming）的方式使得代码更加灵活和可测试。
-//     例如，在测试 `PostService` 时，我们可以使用一个模拟（Mock）的 `IImageService` 实例，
-//     而不是真实的 `IImageService`，从而隔离测试范围。
-public class PostService(AppDbContext context, IImageService imageService) : IPostService
+// `AppDbContext context, IImageService imageService, IMemoryCache cache`: 注入缓存服务
+public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache) : IPostService
 {
+    private const string AllPostsCacheKey = "all_posts_public"; // 首页文章列表的缓存 Key
+
     /// <summary>
     /// `GetAllPostsAsync` 方法用于获取所有博客文章的列表，支持多种筛选条件和权限控制。
     /// </summary>
@@ -39,6 +32,16 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     /// <returns>返回一个 `Task<List<Post>>`，其中包含符合条件且已加载关联数据（分类、作者、标签）的文章实体列表。</returns>
     public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
+        // 缓存策略：仅缓存“默认首页列表”（即只查询公开文章，且无任何搜索或分类过滤条件）
+        // 这是为了优化最高频的访问场景（首页加载），同时避免缓存组合爆炸。
+        bool isCacheable = !includeHidden && categoryId == null && string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(tagName);
+
+        // 尝试从缓存获取
+        if (isCacheable && cache.TryGetValue(AllPostsCacheKey, out List<Post>? cachedPosts) && cachedPosts != null)
+        {
+            return cachedPosts;
+        }
+
         // `context.Posts`: 通过 `AppDbContext` 访问数据库中的 `Posts` 表。
         // `.AsNoTracking()`: 禁用更改跟踪。对于只读查询，这可以显著提高性能，因为 EF Core 不需要维护实体状态的快照。
         // `.AsQueryable()`: 将 `DbSet<Post>` 转换为 `IQueryable<Post>`。
@@ -84,12 +87,23 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         // 作用：它告诉 EF Core 在执行主查询 (`Post`) 的同时，也一并从数据库中加载其相关的实体。
         // 这样可以避免“N+1 查询问题”（即先查询 N 篇文章，再为每篇文章单独查询其关联数据，导致 N+1 次数据库往返）。
         // 注意：这里没有 `Include(p => p.Comments)`，这是为了列表页的性能考虑，避免加载大量评论数据。
-        return await query
+        var posts = await query
                 .Include(p => p.Category)           // 预加载文章所属的 Category 对象
                 .Include(p => p.User)               // 预加载文章的作者 User 对象
                 .Include(p => p.Tags)               // 预加载文章关联的 Tag 集合
                 .OrderByDescending(p => p.CreateTime) // 按 `CreateTime` 字段倒序排序，即最新发布的文章在前
                 .ToListAsync();                     // 执行构建好的 LINQ 查询，并异步地将结果转换为 `List<Post>`。
+
+        // 如果是可缓存的查询，则将结果写入缓存
+        if (isCacheable)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5)); // 设置 5 分钟绝对过期时间
+            
+            cache.Set(AllPostsCacheKey, posts, cacheEntryOptions);
+        }
+
+        return posts;
     }
 
     /// <summary>
@@ -192,6 +206,9 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         // 那么 `AssociateImagesAsync` 会将这些图片与当前这篇 `post` 关联起来，
         // 更新它们的 `PostId` 字段。这对于后续清理未使用的图片（“僵尸图片”）非常重要。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
+
+        // 清除首页列表缓存，以便用户能立即看到新文章
+        cache.Remove(AllPostsCacheKey);
     }
 
     /// <summary>
@@ -216,6 +233,9 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
         // 例如，用户可能在编辑文章时添加了新的图片。
         // 因此，这里再次调用 `imageService.AssociateImagesAsync`，以确保所有图片资源与最新文章内容保持同步。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
+
+        // 清除首页列表缓存，以反映修改
+        cache.Remove(AllPostsCacheKey);
     }
 
     /// <summary>
@@ -251,6 +271,9 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
             // 此时，根据 `AppDbContext` 中配置的级联删除规则，与此 `post` 关联的 `Comment` 实体
             // 和 `PostTag` (文章-标签关联表) 中的记录也会被自动删除。
             await context.SaveChangesAsync();
+
+            // 清除首页列表缓存
+            cache.Remove(AllPostsCacheKey);
         }
     }
 

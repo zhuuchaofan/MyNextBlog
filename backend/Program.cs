@@ -68,6 +68,10 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 // 注册全局异常处理中间件
 builder.Services.AddTransient<GlobalExceptionMiddleware>();
 
+// 注册内存缓存服务 (Memory Cache)
+// 这允许我们在应用程序内存中存储数据，以减少数据库查询，提高性能。
+builder.Services.AddMemoryCache();
+
 // `builder.Services.AddControllers();`
 // 作用：注册应用程序中所有的 Controller 类。这是构建 Web API 应用程序的基石。
 // 它会告诉 ASP.NET Core 框架去扫描程序集中的所有 Controller，并使它们能够响应 HTTP 请求。
