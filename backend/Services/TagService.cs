@@ -18,7 +18,8 @@ public class TagService(AppDbContext context) : ITagService
     /// <returns>按关联文章数量倒序排列的标签列表</returns>
     public async Task<List<Tag>> GetPopularTagsAsync(int count, bool includeHidden = false)
     {
-        return await context.Tags
+        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
+        return await context.Tags.AsNoTracking()
             .Select(t => new 
             { 
                 Tag = t, 

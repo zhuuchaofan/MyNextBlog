@@ -15,8 +15,9 @@ public class CategoryService(AppDbContext context) : ICategoryService
     /// </summary>
     public async Task<List<Category>> GetAllCategoriesAsync()
     {
+        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
         // 按名称字母顺序排序返回
-        return await context.Categories.OrderBy(c => c.Name).ToListAsync();
+        return await context.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
     }
 
     /// <summary>
@@ -24,7 +25,9 @@ public class CategoryService(AppDbContext context) : ICategoryService
     /// </summary>
     public async Task<Category?> GetByIdAsync(int id)
     {
-        return await context.Categories.FindAsync(id);
+        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
+        // `FirstOrDefaultAsync()`: 异步查找满足条件的第一个实体，如果不存在则返回 `null`。
+        return await context.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
     }
 
     /// <summary>

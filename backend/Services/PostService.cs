@@ -40,10 +40,11 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
         // `context.Posts`: 通过 `AppDbContext` 访问数据库中的 `Posts` 表。
+        // `.AsNoTracking()`: 禁用更改跟踪。对于只读查询，这可以显著提高性能，因为 EF Core 不需要维护实体状态的快照。
         // `.AsQueryable()`: 将 `DbSet<Post>` 转换为 `IQueryable<Post>`。
         // `IQueryable` 允许我们构建复杂的 LINQ 查询表达式，这些表达式在执行 `ToListAsync()` 等方法时，
         // 会被 EF Core 翻译成 SQL 语句，并在数据库层面执行，从而避免将整个表加载到内存中再筛选，提高效率。
-        var query = context.Posts.AsQueryable();
+        var query = context.Posts.AsNoTracking().AsQueryable();
 
         // 1. **过滤文章可见性**
         // 如果 `includeHidden` 为 `false`（即非管理员或未指定包含隐藏文章），则只选择 `IsHidden` 属性为 `false` 的文章。
@@ -100,7 +101,8 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     public async Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false)
     {
         // 同样将 `Posts` DbSet 转换为 `IQueryable`，以便构建查询。
-        var query = context.Posts.AsQueryable();
+        // 使用 `.AsNoTracking()` 来优化只读查询的性能。
+        var query = context.Posts.AsNoTracking().AsQueryable();
 
         // 根据 `includeHidden` 参数，决定是否在查询中添加过滤条件，只返回公开文章。
         if (!includeHidden)
@@ -130,6 +132,8 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {
         return await context.Comments
+            // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
+            .AsNoTracking()
             // `Include(c => c.User)`: 预加载评论的作者信息。
             // 如果评论是由登录用户发布的，`c.User` 将包含该用户的详细信息。
             .Include(c => c.User) 
@@ -271,9 +275,10 @@ public class PostService(AppDbContext context, IImageService imageService) : IPo
     public async Task<List<Category>> GetCategoriesAsync()
     {
         // `context.Categories`: 访问数据库中的 `Categories` 表。
+        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
         // `ToListAsync()`: 异步执行查询，并将所有 `Category` 实体转换为 `List<Category>`。
         // 由于分类数据量通常不大，直接获取所有分类是常见的做法。
-        return await context.Categories.ToListAsync();
+        return await context.Categories.AsNoTracking().ToListAsync();
     }
 
         /// <summary>
