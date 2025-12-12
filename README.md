@@ -103,6 +103,28 @@ UPDATE Users SET Role = 'Admin' WHERE Username = 'your_username';
 
 ---
 
+## 📅 Future Roadmap (成熟度路线图)
+
+目前项目处于 **v0.8** 阶段，核心功能完备且性能优异，但在运维体系和测试覆盖率上距离“生产级成熟产品”仍有差距。以下是迈向 v1.0 的规划：
+
+### 🛠️ Phase 1: 稳固地基 (Stability & Ops)
+- [ ] **自动化测试**: 引入 xUnit 为 `PostService` 等核心逻辑添加单元测试，确保重构不回退。
+- [ ] **数据灾备**: 实现 SQLite 数据库的定时自动备份 (Cronjob)，并同步上传至 R2 存储桶。
+- [ ] **健康检查**: 添加 `/health` 端点，配合 Docker Healthcheck 实现服务自动重启。
+- [ ] **日志聚合**: 接入 Loki 或将 Serilog 落地为文件并轮转，便于排查生产环境问题。
+
+### ✨ Phase 2: 功能补全 (Features & Polish)
+- [ ] **评论增强**: 接入 Cloudflare Turnstile 验证码防刷，集成 SMTP 邮件通知。
+- [ ] **动态配置**: 建立 `SystemSettings` 表，实现后台动态配置（如缓存时间、分页大小），拒绝硬编码。
+- [ ] **资源治理**: 完善 R2 图片清理策略，实现“孤儿文件”的定期扫描与回收。
+- [ ] **RSS/Atom**: 支持标准订阅源，方便 RSS 阅读器抓取。
+
+### 📊 Phase 3: 可观测性 (Observability)
+- [ ] **流量统计**: 集成 Umami 或自建简单的 PV/UV 统计面板。
+- [ ] **性能监控**: 接入 OpenTelemetry，监控 API 响应耗时与内存泄漏风险。
+
+---
+
 ## 📄 License
 
 MIT License.
