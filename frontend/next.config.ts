@@ -4,18 +4,21 @@ const nextConfig: NextConfig = {
   output: "standalone", // 开启 Docker 优化模式
   images: {
     remotePatterns: [
+      // 仅允许可信的头像服务
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
       },
+      // 您的 R2 存储桶域名
       {
         protocol: 'https',
-        hostname: '**', // 允许所有 HTTPS 图片源 (生产环境建议限制具体域名)
+        hostname: 'picture.zhuchaofan.online', 
       },
-      {
-         protocol: 'http',
-         hostname: '**', // 允许所有 HTTP 图片源 (用于本地开发 localhost 等)
-      }
+      // 仅在开发环境下允许 localhost
+      ...(process.env.NODE_ENV === 'development' ? [{
+        protocol: 'http' as const,
+        hostname: 'localhost',
+      }] : []),
     ],
   },
   async rewrites() {
