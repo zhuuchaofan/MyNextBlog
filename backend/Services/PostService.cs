@@ -82,17 +82,28 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
         }
 
-        // 5. **执行查询并加载关联数据 (Eager Loading)**
-        // `.Include(...)`: 这是一个 EF Core 的“预加载 (Eager Loading)”方法。
-        // 作用：它告诉 EF Core 在执行主查询 (`Post`) 的同时，也一并从数据库中加载其相关的实体。
-        // 这样可以避免“N+1 查询问题”（即先查询 N 篇文章，再为每篇文章单独查询其关联数据，导致 N+1 次数据库往返）。
-        // 注意：这里没有 `Include(p => p.Comments)`，这是为了列表页的性能考虑，避免加载大量评论数据。
+        // 5. **执行查询并加载关联数据 (使用 Select 投影优化)**
+        // 优化：不再使用 Include 加载整篇文章，而是通过 Select 投影只选取必要的字段。
+        // 特别是 Content 字段，只截取前 200 个字符用于生成摘要，这极大地减少了从数据库传输的数据量。
         var posts = await query
-                .Include(p => p.Category)           // 预加载文章所属的 Category 对象
-                .Include(p => p.User)               // 预加载文章的作者 User 对象
-                .Include(p => p.Tags)               // 预加载文章关联的 Tag 集合
-                .OrderByDescending(p => p.CreateTime) // 按 `CreateTime` 字段倒序排序，即最新发布的文章在前
-                .ToListAsync();                     // 执行构建好的 LINQ 查询，并异步地将结果转换为 `List<Post>`。
+                .OrderByDescending(p => p.CreateTime) // 按 `CreateTime` 字段倒序排序
+                .Select(p => new Post
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    // 核心优化：如果内容超过 200 字，只截取前 200 字；否则取全部。
+                    // 这对于列表页展示摘要已经足够，且避免了加载大段正文。
+                    Content = p.Content.Length > 200 ? p.Content.Substring(0, 200) : p.Content,
+                    CreateTime = p.CreateTime,
+                    IsHidden = p.IsHidden,
+                    CategoryId = p.CategoryId,
+                    // 在 Select 投影中，Include 会失效，所以我们需要在这里手动映射关联属性。
+                    // EF Core 会自动生成相应的 JOIN SQL 语句。
+                    Category = p.Category,
+                    User = p.User,
+                    Tags = p.Tags
+                })
+                .ToListAsync();
 
         // 如果是可缓存的查询，则将结果写入缓存
         if (isCacheable)
