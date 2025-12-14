@@ -11,6 +11,7 @@ using MyNextBlog.Services;                           // 导入业务逻辑服务
 using MyNextBlog.Middlewares;                        // 导入中间件命名空间
 using Serilog;                                      // 导入 Serilog 日志库
 using System.Text;                                  // 用于字符串编码等操作
+using Ganss.Xss;                                    // 引入 XSS 清洗库
 
 // ==================================================================
 // 程序的入口点：创建 WebApplicationBuilder
@@ -76,6 +77,9 @@ builder.Services.AddMemoryCache();
 // 作用：注册应用程序中所有的 Controller 类。这是构建 Web API 应用程序的基石。
 // 它会告诉 ASP.NET Core 框架去扫描程序集中的所有 Controller，并使它们能够响应 HTTP 请求。
 builder.Services.AddControllers();
+
+// 注册 XSS 清洗服务 (单例)
+builder.Services.AddSingleton<IHtmlSanitizer, HtmlSanitizer>();
 
 // ------------------------------------------------------------------
 // Swagger/OpenAPI 相关服务注册

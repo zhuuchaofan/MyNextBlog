@@ -13,7 +13,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(IPostService postService, AppDbContext context, IMemoryCache cache) : ControllerBase
+public class CommentsController(IPostService postService, AppDbContext context, IMemoryCache cache, IHtmlSanitizer sanitizer) : ControllerBase
 {
     /// <summary>
     /// 发表新评论
@@ -44,7 +44,7 @@ public class CommentsController(IPostService postService, AppDbContext context, 
 
         // 2. XSS 清洗
         // 防止用户提交恶意脚本 (如 <script>alert(1)</script>)
-        var sanitizer = new HtmlSanitizer();
+        // 使用注入的 sanitizer 实例
         var safeContent = sanitizer.Sanitize(dto.Content);
 
         // 如果清洗后内容变为空（说明全是恶意标签），则拒绝
