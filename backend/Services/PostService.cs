@@ -123,51 +123,6 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
-
-    /// <summary>
-    /// `GetCommentsAsync` 方法用于获取指定文章的评论列表，支持分页功能。
-    /// </summary>
-    /// <param name="postId">要获取评论的文章的整数 ID。</param>
-    /// <param name="page">当前页码，从 1 开始计数。</param>
-    /// <param name="pageSize">每页包含的评论数量。</param>
-    /// <returns>返回一个 `Task<List<Comment>>`，其中包含符合条件的评论实体列表。</returns>
-    public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
-    {
-        return await context.Comments
-            // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
-            .AsNoTracking()
-            // `Include(c => c.User)`: 预加载评论的作者信息。
-            // 如果评论是由登录用户发布的，`c.User` 将包含该用户的详细信息。
-            .Include(c => c.User) 
-            // `Where(c => c.PostId == postId)`: 筛选出 `PostId` 与传入的 `postId` 相匹配的评论。
-            .Where(c => c.PostId == postId)
-            // `OrderByDescending(c => c.CreateTime)`: 按评论的 `CreateTime` 字段倒序排序，
-            // 这样最新的评论会排在列表的最前面。
-            .OrderByDescending(c => c.CreateTime)
-            // `Skip((page - 1) * pageSize)`: 跳过前面页的记录。
-            // 例如，第 1 页跳过 0 条，第 2 页跳过 `pageSize` 条。
-            .Skip((page - 1) * pageSize)
-            // `Take(pageSize)`: 获取当前页的记录数量。
-            .Take(pageSize)
-            // `ToListAsync()`: 异步执行查询，并将结果转换为 `List<Comment>`。
-            .ToListAsync();
-    }
-
-
-    /// <summary>
-    /// `GetCommentCountAsync` 方法用于获取指定文章的评论总数。
-    /// </summary>
-    /// <param name="postId">要统计评论的文章的整数 ID。</param>
-    /// <returns>返回一个 `Task<int>`，表示该文章的评论总数。</returns>
-    public async Task<int> GetCommentCountAsync(int postId)
-    {
-        // `context.Comments.CountAsync(c => c.PostId == postId)`:
-        //   - `CountAsync()`: 这是一个 EF Core 异步方法，用于统计满足条件的记录数量。
-        //   - `c => c.PostId == postId`: Lambda 表达式，筛选条件是 `PostId` 与传入的 `postId` 相等。
-        // EF Core 会将此 LINQ 查询翻译成 SQL 的 `SELECT COUNT(*)` 语句，并在数据库层面执行，效率很高。
-        return await context.Comments.CountAsync(c => c.PostId == postId);
-    }
-
     /// <summary>
     /// `AddPostAsync` 方法用于在数据库中创建一篇新的文章记录。
     /// </summary>
@@ -263,20 +218,6 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             // 清除首页列表缓存
             cache.Remove(AllPostsCacheKey);
         }
-    }
-
-    /// <summary>
-    /// `AddCommentAsync` 方法用于向数据库中添加一条新的评论记录。
-    /// </summary>
-    /// <param name="comment">要添加的 `Comment` 实体对象。</param>
-    /// <returns>一个 `Task`，表示异步操作的完成。</returns>
-    public async Task AddCommentAsync(Comment comment)
-    {
-        // `context.Comments.Add(comment)`: 将新的 `comment` 实体添加到数据库的 `Comments` 表中。
-        context.Comments.Add(comment);
-        // `await context.SaveChangesAsync()`: 将内存中的添加操作同步到数据库。
-        // 在此之后，`comment` 对象的 `Id` 属性会被数据库自动生成的值填充。
-        await context.SaveChangesAsync();
     }
 
     /// <summary>

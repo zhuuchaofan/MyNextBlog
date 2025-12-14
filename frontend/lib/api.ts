@@ -49,20 +49,21 @@ export interface Comment {
   content: string;
   createTime: string;
   userAvatar?: string;
+  parentId?: number;
 }
 
 // 获取评论列表
-export async function fetchComments(postId: number, page = 1) {
-  const res = await fetch(`/api/backend/comments?postId=${postId}&page=${page}&pageSize=100`);
+export async function fetchComments(postId: number, page = 1, pageSize = 10) {
+  const res = await fetch(`/api/backend/comments?postId=${postId}&page=${page}&pageSize=${pageSize}`);
   return res.json();
 }
 
 // 提交新评论
-export async function submitComment(postId: number, content: string, guestName: string) {
+export async function submitComment(postId: number, content: string, guestName: string, parentId?: number) {
   const res = await fetch('/api/backend/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }, // 必须指定 JSON 内容类型
-    body: JSON.stringify({ postId, content, guestName })
+    body: JSON.stringify({ postId, content, guestName, parentId })
   });
   return res.json();
 }

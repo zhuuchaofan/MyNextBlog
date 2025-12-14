@@ -24,4 +24,9 @@ public class Comment
     // 关联注册用户 (如果是登录用户评论)
     public int? UserId { get; set; }
     public User? User { get; set; }
+
+    // 关系：父评论 ID (用于实现回复/盖楼)
+    public int? ParentId { get; set; }
+    public Comment? Parent { get; set; } // 导航属性：指向父评论
+    public List<Comment> Children { get; set; } = new List<Comment>(); // 导航属性：子评论列表
 }

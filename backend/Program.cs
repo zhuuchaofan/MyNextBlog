@@ -112,6 +112,7 @@ builder.Services.AddSwaggerGen();
 // 例如，在一个请求中，对 `PostService` 的所有操作都应该使用同一个 `AppDbContext` 实例。
 // Scoped 生命周期完美满足了这种需求。
 builder.Services.AddScoped<IPostService, PostService>();       // 文章服务接口及其实现
+builder.Services.AddScoped<ICommentService, CommentService>();   // 评论服务接口及其实现
 builder.Services.AddScoped<IStorageService, R2StorageService>(); // 文件存储服务，例如上传文件到 Cloudflare R2
 builder.Services.AddScoped<IImageService, ImageService>();     // 图片处理服务，负责图片关联和清理
 builder.Services.AddScoped<ICategoryService, CategoryService>(); // 分类管理服务

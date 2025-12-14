@@ -13,7 +13,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(IPostService postService, AppDbContext context, IMemoryCache cache, IHtmlSanitizer sanitizer) : ControllerBase
+public class CommentsController(ICommentService commentService, AppDbContext context, IMemoryCache cache, IHtmlSanitizer sanitizer) : ControllerBase
 {
     /// <summary>
     /// 发表新评论
@@ -57,7 +57,8 @@ public class CommentsController(IPostService postService, AppDbContext context, 
         {
             PostId = dto.PostId,
             Content = safeContent, // 使用清洗后的内容
-            CreateTime = DateTime.Now
+            CreateTime = DateTime.Now,
+            ParentId = dto.ParentId // 赋值 ParentId
         };
 
         // 3. 身份识别
@@ -86,7 +87,7 @@ public class CommentsController(IPostService postService, AppDbContext context, 
         }
 
         // 5. 保存评论
-        await postService.AddCommentAsync(comment);
+        await commentService.AddCommentAsync(comment);
 
         // 6. 返回创建成功的评论对象 (包含用户信息以便前端立即渲染)
         return Ok(new
@@ -98,7 +99,8 @@ public class CommentsController(IPostService postService, AppDbContext context, 
                 comment.GuestName,
                 comment.Content,
                 CreateTime = comment.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-                UserAvatar = user?.AvatarUrl // 如果是登录用户，返回头像
+                UserAvatar = user?.AvatarUrl, // 如果是登录用户，返回头像
+                comment.ParentId // 返回 ParentId
             }
         });
     }
@@ -110,8 +112,8 @@ public class CommentsController(IPostService postService, AppDbContext context, 
     public async Task<IActionResult> GetComments(int postId, int page = 1, int pageSize = 5)
     {
         // 1. 获取评论数据和总数
-        var comments = await postService.GetCommentsAsync(postId, page, pageSize);
-        var totalCount = await postService.GetCommentCountAsync(postId);
+        var comments = await commentService.GetCommentsAsync(postId, page, pageSize);
+        var totalCount = await commentService.GetCommentCountAsync(postId);
         
         // 2. 判断是否还有更多页
         bool hasMore = (page * pageSize) < totalCount;
@@ -128,11 +130,12 @@ public class CommentsController(IPostService postService, AppDbContext context, 
                 GuestName = c.User != null ? c.User.Username : c.GuestName, 
                 c.Content,
                 CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-                UserAvatar = c.User?.AvatarUrl 
+                UserAvatar = c.User?.AvatarUrl,
+                c.ParentId // 返回 ParentId
             }),
             hasMore
         });
     }
 
-    public record CreateCommentDto(int PostId, string Content, string? GuestName);
+    public record CreateCommentDto(int PostId, string Content, string? GuestName, int? ParentId);
 }

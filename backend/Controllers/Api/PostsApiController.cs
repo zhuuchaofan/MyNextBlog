@@ -39,7 +39,7 @@ namespace MyNextBlog.Controllers.Api;
 // 1. 对 HTTP 请求和响应的访问能力（例如 `Request`, `Response`）。
 // 2. 方便的方法来生成各种 HTTP 状态码的响应（例如 `Ok()`, `NotFound()`, `BadRequest()`, `Unauthorized()`）。
 // 3. 对模型绑定、验证和授权等功能的内置支持。
-public class PostsApiController(IPostService postService, ITagService tagService) : ControllerBase
+public class PostsApiController(IPostService postService, ITagService tagService, ICommentService commentService) : ControllerBase
 {
     /// <summary>
     /// `GetPosts` 方法是一个**公开接口**，用于获取博客文章的列表。
@@ -137,9 +137,9 @@ public class PostsApiController(IPostService postService, ITagService tagService
         }
         
         // 2. **补充评论总数信息 (用于前端显示)**
-        // 调用 `postService.GetCommentCountAsync` 方法，获取该文章的评论总数。
+        // 调用 `commentService.GetCommentCountAsync` 方法，获取该文章的评论总数。
         // 这个信息通常在文章详情页会显示，为了避免前端再次发起请求，这里一并提供。
-        var commentCount = await postService.GetCommentCountAsync(id);
+        var commentCount = await commentService.GetCommentCountAsync(id);
         
         // 3. **返回完整详情 DTO**
         // `post.ToDetailDto(commentCount)`: 将查询到的 `Post` 实体转换为 `PostDetailDto`。
@@ -176,7 +176,7 @@ public class PostsApiController(IPostService postService, ITagService tagService
 
         // 3. **补充评论总数**
         // 获取文章的评论总数，用于详情页显示。
-        var commentCount = await postService.GetCommentCountAsync(id);
+        var commentCount = await commentService.GetCommentCountAsync(id);
 
         // 返回包含成功状态和文章详情数据的 `200 OK` 响应。
         return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
