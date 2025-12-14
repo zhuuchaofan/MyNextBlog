@@ -91,4 +91,15 @@ public class Post
     /// 通过这个属性，可以直接从 `Post` 实例访问其关联的 `User` 实体（即作者信息）。
     /// </summary>
     public User? User { get; set; }
+
+    /// <summary>
+    /// `LikeCount` 属性记录文章获得的点赞总数。
+    /// 这是一个冗余字段，用于优化查询性能，避免每次都计算 `PostLikes.Count()`。
+    /// </summary>
+    public int LikeCount { get; set; } = 0;
+
+    /// <summary>
+    /// `PostLikes` 属性是导航属性，表示**一篇文章可以有多个点赞记录**。
+    /// </summary>
+    public List<PostLike> PostLikes { get; set; } = new();
 }

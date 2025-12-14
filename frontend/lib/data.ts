@@ -12,6 +12,7 @@ export interface PostDetail {
   authorName?: string;
   authorAvatar?: string;
   commentCount: number;
+  likeCount: number;
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;

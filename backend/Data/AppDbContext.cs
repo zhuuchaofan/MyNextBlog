@@ -31,6 +31,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Category> Categories { get; set; }   // 对应数据库中的 Categories 表，用于管理文章分类
     public DbSet<Tag> Tags { get; set; }             // 对应数据库中的 Tags 表，用于管理文章标签
     public DbSet<ImageAsset> ImageAssets { get; set; } // 对应数据库中的 ImageAssets 表，用于管理图片资源
+    public DbSet<PostLike> PostLikes { get; set; }    // 对应数据库中的 PostLikes 表，用于管理文章点赞
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。

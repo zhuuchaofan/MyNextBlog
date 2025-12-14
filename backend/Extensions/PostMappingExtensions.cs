@@ -29,7 +29,8 @@ public static class PostMappingExtensions
             post.CreateTime,
             MarkdownHelper.GetCoverImage(post.Content), // 提取封面图
             post.Tags.Select(t => t.Name).ToList(),
-            post.IsHidden
+            post.IsHidden,
+            post.LikeCount
         );
     }
 
@@ -50,7 +51,8 @@ public static class PostMappingExtensions
             post.CreateTime,
             post.Tags.Select(t => t.Name).ToList(),
             post.IsHidden,
-            commentCount
+            commentCount,
+            post.LikeCount
         );
     }
 }

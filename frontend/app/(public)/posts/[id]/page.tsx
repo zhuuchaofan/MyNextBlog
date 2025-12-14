@@ -132,7 +132,7 @@ export default async function PostPage({ params }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
            
            {/* 左侧边栏：交互按钮 (仅在大屏显示) */}
-           <PostInteractions />
+           <PostInteractions postId={post.id} initialLikeCount={post.likeCount} />
 
            {/* 主内容容器 */}
            <div className="lg:col-span-11 bg-white dark:bg-zinc-900 rounded-t-3xl md:rounded-3xl shadow-xl dark:shadow-black/50 p-6 md:p-12 min-h-[500px] transition-colors duration-300">

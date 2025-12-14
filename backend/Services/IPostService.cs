@@ -21,4 +21,8 @@ public interface IPostService
     
     // 切换文章可见性
     Task<bool> TogglePostVisibilityAsync(int id);
+
+    // 切换点赞状态 (Toggle)
+    // 返回值: (IsLiked: 当前是否已赞, NewLikeCount: 最新的点赞总数)
+    Task<(bool IsLiked, int NewLikeCount)> ToggleLikeAsync(int postId, int? userId, string? ipAddress);
 }

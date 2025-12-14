@@ -24,6 +24,7 @@ export interface PostDetail {
   authorName?: string;
   authorAvatar?: string;
   commentCount: number;
+  likeCount: number;
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;
@@ -181,10 +182,34 @@ export async function uploadAvatar(file: File) {
     body: formData // fetch 会自动设置 Content-Type 为 multipart/form-data
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Upload failed: ${res.status} ${text}`);
+    if (!res.ok) {
+
+      const text = await res.text();
+
+      throw new Error(`Upload failed: ${res.status} ${text}`);
+
+    }
+
+  
+
+    return res.json();
+
   }
 
-  return res.json();
-}
+  
+
+  // 切换文章点赞状态
+
+  export async function toggleLike(postId: number) {
+
+    const res = await fetch(`/api/backend/posts/${postId}/like`, {
+
+      method: 'POST'
+
+    });
+
+    return res.json();
+
+  }
+
+  

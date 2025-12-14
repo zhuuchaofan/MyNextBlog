@@ -44,7 +44,8 @@ public record PostSummaryDto(
     DateTime CreateTime,                     // 文章创建时间
     string? CoverImage,                      // 文章封面图片的 URL (可空，从 `Content` 中提取)
     List<string> Tags,                       // 文章关联的标签名称列表
-    bool IsHidden                            // 文章是否隐藏 (true 为隐藏/草稿，false 为公开)
+    bool IsHidden,                           // 文章是否隐藏 (true 为隐藏/草稿，false 为公开)
+    int LikeCount                            // 文章点赞数
 );
 
 /// <summary>
@@ -62,7 +63,8 @@ public record PostDetailDto(
     DateTime CreateTime,                     // 文章创建时间
     List<string> Tags,                       // 文章关联的标签名称列表
     bool IsHidden,                           // 文章是否隐藏
-    int CommentCount                         // 文章的评论总数
+    int CommentCount,                        // 文章的评论总数
+    int LikeCount                            // 文章点赞数
 );
 
 /// <summary>

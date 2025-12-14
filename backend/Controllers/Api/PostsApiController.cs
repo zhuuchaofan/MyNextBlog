@@ -326,4 +326,42 @@ public class PostsApiController(IPostService postService, ITagService tagService
         // 返回 `200 OK` 响应，包含成功信息和更新后的 `isHidden` 状态。
         return Ok(new { success = true, message = "状态更新成功", isHidden = post?.IsHidden });
     }
+
+    /// <summary>
+    /// 切换点赞状态 (公开接口，支持游客)
+    /// </summary>
+    [HttpPost("{id}/like")]
+    public async Task<IActionResult> ToggleLike(int id)
+    {
+        int? userId = null;
+        // 尝试获取登录用户 ID
+        if (User.Identity?.IsAuthenticated == true)
+        {
+             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+             if (int.TryParse(userIdStr, out int uid)) userId = uid;
+        }
+
+        // 获取 IP 地址 (兼容反向代理)
+        string? ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+
+        // 如果既没有登录也没有 IP (极端情况)，记录为 "unknown"
+        if (!userId.HasValue && string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = "unknown";
+        }
+
+        try 
+        {
+            var (isLiked, newLikeCount) = await postService.ToggleLikeAsync(id, userId, ipAddress);
+            return Ok(new { success = true, isLiked, likeCount = newLikeCount });
+        }
+        catch (ArgumentException)
+        {
+            return NotFound(new { success = false, message = "文章不存在" });
+        }
+    }
 }

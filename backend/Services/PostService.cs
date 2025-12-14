@@ -305,33 +305,70 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         /// <returns>返回一个 `Task<bool>`。如果文章存在并成功切换了状态，则返回 `true`；否则返回 `false`。</returns>
 
             public async Task<bool> TogglePostVisibilityAsync(int id)
+    {
+        var post = await context.Posts.FindAsync(id);
+        if (post == null) return false;
 
-            {
+        post.IsHidden = !post.IsHidden;
+        await context.SaveChangesAsync();
 
-                var post = await context.Posts.FindAsync(id);
-
-                if (post == null) return false;
-
+        // 清除首页列表缓存，以便首页立即反映可见性变化
+        cache.Remove(AllPostsCacheKey);
         
-
-                post.IsHidden = !post.IsHidden;
-
-                await context.SaveChangesAsync();
-
-        
-
-                // 清除首页列表缓存，以便首页立即反映可见性变化
-
-                            // 清除首页列表缓存，以便首页立即反映可见性变化
-
-                            cache.Remove(AllPostsCacheKey);
-
-                
-
-                            return true;
-
-                        }
-
+        return true;
     }
+
+    /// <summary>
+    /// 切换点赞状态
+    /// </summary>
+    public async Task<(bool IsLiked, int NewLikeCount)> ToggleLikeAsync(int postId, int? userId, string? ipAddress)
+    {
+        var post = await context.Posts.FindAsync(postId);
+        if (post == null)
+        {
+            throw new ArgumentException("Post not found");
+        }
+
+        // 查找是否已点赞
+        PostLike? existingLike = null;
+        if (userId.HasValue)
+        {
+            existingLike = await context.PostLikes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+        }
+        else if (!string.IsNullOrEmpty(ipAddress))
+        {
+            existingLike = await context.PostLikes.FirstOrDefaultAsync(l => l.PostId == postId && l.IpAddress == ipAddress);
+        }
+
+        bool isLiked;
+        if (existingLike != null)
+        {
+            // 取消点赞
+            context.PostLikes.Remove(existingLike);
+            post.LikeCount = Math.Max(0, post.LikeCount - 1);
+            isLiked = false;
+        }
+        else
+        {
+            // 添加点赞
+            var newLike = new PostLike
+            {
+                PostId = postId,
+                UserId = userId,
+                IpAddress = ipAddress
+            };
+            context.PostLikes.Add(newLike);
+            post.LikeCount++;
+            isLiked = true;
+        }
+
+        await context.SaveChangesAsync();
+        
+        // 也可以选择在这里清除缓存，或者让点赞数实时性要求不那么高
+        // cache.Remove(AllPostsCacheKey); 
+
+        return (isLiked, post.LikeCount);
+    }
+}
 
     
