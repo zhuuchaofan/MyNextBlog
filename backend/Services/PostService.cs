@@ -341,35 +341,33 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         /// <returns>返回一个 `Task<bool>`。如果文章存在并成功切换了状态，则返回 `true`；否则返回 `false`。</returns>
 
-        public async Task<bool> TogglePostVisibilityAsync(int id)
+            public async Task<bool> TogglePostVisibilityAsync(int id)
 
-        {
+            {
 
-            // `await context.Posts.FindAsync(id)`: 异步地根据主键 ID 查找文章。
+                var post = await context.Posts.FindAsync(id);
 
-            var post = await context.Posts.FindAsync(id);
+                if (post == null) return false;
 
-            // 如果文章不存在，直接返回 `false` 表示操作失败。
+        
 
-            if (post == null) return false;
+                post.IsHidden = !post.IsHidden;
 
-    
+                await context.SaveChangesAsync();
 
-            // `post.IsHidden = !post.IsHidden;`: 核心逻辑。
+        
 
-            // `!` 运算符用于取反布尔值。如果 `IsHidden` 是 `true`，则变为 `false`；如果 `IsHidden` 是 `false`，则变为 `true`。
+                // 清除首页列表缓存，以便首页立即反映可见性变化
 
-            post.IsHidden = !post.IsHidden;
+                            // 清除首页列表缓存，以便首页立即反映可见性变化
 
-            // `await context.SaveChangesAsync()`: 将 `post` 实体状态的更改（即 `IsHidden` 属性的变化）同步到数据库。
+                            cache.Remove(AllPostsCacheKey);
 
-            await context.SaveChangesAsync();
+                
 
-            // 返回 `true` 表示操作成功。
+                            return true;
 
-            return true;
-
-        }
+                        }
 
     }
 
