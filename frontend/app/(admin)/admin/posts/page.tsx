@@ -46,6 +46,8 @@ export default function AdminPostsPage() {
   const [loading, setLoading] = useState(true); // 控制加载状态
   const [page, setPage] = useState(1); // 当前页码
   const [hasMore, setHasMore] = useState(false); // 是否有更多数据可加载 (分页)
+  const [totalCount, setTotalCount] = useState(0); // 文章总数
+  const [totalPages, setTotalPages] = useState(0); // 总页数
   const pageSize = 10; // 每页显示的文章数量
   
   // 删除确认对话框相关状态
@@ -69,6 +71,8 @@ export default function AdminPostsPage() {
            // 根据后端返回的 meta 信息判断是否有更多数据
            if (data.meta) {
              setHasMore(data.meta.hasMore);
+             setTotalCount(data.meta.totalCount); // 更新总数
+             setTotalPages(data.meta.totalPages); // 更新总页数
            } else {
              // 如果没有 meta 信息，简单判断是否有下一页 (默认每页 pageSize 条，如果刚好取满则可能有更多)
              setHasMore(data.data.length === pageSize);
@@ -270,15 +274,19 @@ export default function AdminPostsPage() {
 
       {/* 分页控制 */}
       <div className="flex justify-between items-center mt-6">
-         <Button 
-           variant="outline" 
-           disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载
-           onClick={() => setPage(p => Math.max(1, p - 1))} // 切换到上一页
-           className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
-         >
-           上一页
-         </Button>
-         <span className="text-sm text-gray-500 dark:text-gray-400">第 {page} 页</span>
+         <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载
+              onClick={() => setPage(p => Math.max(1, p - 1))} // 切换到上一页
+              className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
+            >
+              上一页
+            </Button>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              第 {page} / {totalPages || 1} 页 (共 {totalCount} 篇)
+            </span>
+         </div>
          <Button 
            variant="outline" 
            disabled={!hasMore || loading} // 禁用条件：没有更多数据或正在加载
