@@ -56,66 +56,32 @@ public class PostsApiController(IPostService postService, ITagService tagService
     //     `ControllerBase` 提供了一系列返回 `IActionResult` 的帮助方法，例如 `Ok()`, `NotFound()` 等，
     //     它们会自动处理 HTTP 状态码和响应体。
     public async Task<IActionResult> GetPosts(
-        // `[FromQuery]`: 特性，指示这些参数的值应该从 URL 的查询字符串中绑定。
-        // 例如：`/api/posts?page=1&pageSize=10&search=keyword`
-        // `int page = 1`: `page` 参数，如果查询字符串中没有提供，默认值为 1。
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10, 
-        // `string? search = null`: `?` 表示这是一个可空类型，即 `string` 可以为 `null`。
-        // `search = null` 表示如果查询字符串中没有提供 `search` 参数，默认值为 `null`。
         [FromQuery] string? search = null,
         [FromQuery] string? tag = null,
-        [FromQuery] int? categoryId = null) // `int?` 也是可空类型，表示 `categoryId` 可以为 `null`。
+        [FromQuery] int? categoryId = null)
     {
-        // 1. **权限判断**
-        // 这一步检查当前请求的用户是否已经登录（`User.Identity?.IsAuthenticated == true`）
-        // 并且是否拥有 "Admin" 角色（`User.IsInRole("Admin")`）。
-        // `User` 是 `ControllerBase` 提供的一个属性，代表了当前 HTTP 请求的用户的身份信息。
-        // `?.` 是 C# 6 引入的“空条件运算符”，如果 `User.Identity` 为 `null`，则不会尝试访问 `IsAuthenticated`。
-        // 如果是管理员，`isAdmin` 为 `true`，后续查询将包含隐藏文章；否则，只查询公开文章。
         bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
         
-        // 2. **调用业务服务获取原始数据 (Entity)**
-        // `postService` 是通过构造函数注入进来的 `IPostService` 的实例。
-        // `await postService.GetAllPostsAsync(...)`: 调用 `PostService` 中的异步方法来获取所有符合条件的文章。
-        // `includeHidden: isAdmin`: 根据 `isAdmin` 变量的值，决定是否包含隐藏的文章。
-        // `categoryId`, `searchTerm`, `tagName`: 这些都是从 URL 查询字符串中获取的筛选参数。
-        // `allPosts` 变量现在包含了所有从数据库中查询到的 `Post` 实体对象。
-        var allPosts = await postService.GetAllPostsAsync(includeHidden: isAdmin, categoryId: categoryId, searchTerm: search, tagName: tag);
+        // 调用支持数据库级分页的新接口，直接获取 (数据, 总条数)
+        var (allPosts, totalCount) = await postService.GetAllPostsAsync(
+            page, pageSize, 
+            includeHidden: isAdmin, 
+            categoryId: categoryId, 
+            searchTerm: search, 
+            tagName: tag
+        );
 
-        // 3. **计算分页元数据**
-        // 这一步根据查询到的文章总数和每页大小，计算出分页所需的信息。
-        var totalCount = allPosts.Count; // 文章总数
-        // `Math.Ceiling(...)`: 向上取整，确保即使有零头文章也能算作一页。
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize); // 总页数
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        // 4. **执行分页切片并转换为 DTO**
-        // `allPosts.Skip((page - 1) * pageSize)`: 跳过前面 N 条记录，实现分页。
-        // `Take(pageSize)`: 获取当前页的记录数量。
-        // `Select(p => p.ToSummaryDto())`: 这是LINQ（Language Integrated Query）的投影操作。
-        // 它遍历 `allPosts` 中的每个 `Post` 实体 (`p`)，然后调用其扩展方法 `ToSummaryDto()`，
-        // 将 `Post` 实体转换为一个更精简的 `PostSummaryDto` 对象。
-        // 为什么需要 DTO (Data Transfer Object)？
-        //   - **减少数据传输量**: `Post` 实体可能包含很多不必要的字段（如 `Content` 字段可能非常大），
-        //     而列表页只需要显示摘要信息。`PostSummaryDto` 只包含列表页需要的数据。
-        //   - **数据脱敏/安全**: `Post` 实体可能包含敏感信息，DTO 可以选择性地暴露数据。
-        //   - **解耦**: 前端和后端之间的接口更稳定，即使后端 `Post` 实体字段变化，只要 `PostSummaryDto` 不变，
-        //     前端接口就不需要修改。
-        var posts = allPosts
-            .Skip((page - 1) * pageSize) // 跳过前面 `(页码 - 1) * 每页数量` 条记录
-            .Take(pageSize)             // 取当前页的 `每页数量` 条记录
-            .Select(p => p.ToSummaryDto()) // 将 Post 实体转换为 PostSummaryDto
-            .ToList();                  // 将结果转换为列表
+        var posts = allPosts.Select(p => p.ToSummaryDto()).ToList();
 
-        // 5. **返回标准响应结构**
-        // `return Ok(...)`: 返回一个 `200 OK` 的 HTTP 响应。
-        // 响应体是一个匿名对象，它包含 `success` 状态、`data` (文章列表) 和 `meta` (分页元数据)。
-        // 这种统一的响应结构有助于前端更方便地处理 API 返回结果。
         return Ok(new
         {
-            success = true, // 指示请求是否成功
-            data = posts,   // 实际的文章数据列表
-            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages } // 分页信息
+            success = true,
+            data = posts,
+            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages }
         });
     }
 
@@ -126,38 +92,21 @@ public class PostsApiController(IPostService postService, ITagService tagService
     // `[HttpGet("admin")]`: HTTP Get 请求的路由特性。`"admin"` 会附加到控制器根路由 `api/posts` 后面。
     // 因此，这个方法的完整路由是 `GET /api/posts/admin`。
     [HttpGet("admin")]
-    // `[Authorize(...)]` 特性：
-    // 作用：这是一个授权特性，用于限制只有通过了认证且拥有特定角色的用户才能访问此 Action 方法。
-    //   - `AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme`: 指定使用 JWT Bearer 认证方案进行验证。
-    //   - `Roles = "Admin"`: 指定只有拥有 "Admin" 角色的用户才能访问。如果用户已认证但不是 Admin，
-    //     则会返回 `403 Forbidden` 状态码。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAdminPosts(
-        // `[FromQuery]`: 参数来自 URL 查询字符串，并设置默认值。
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
     {
-        // 1. **直接获取所有文章 (强制 `includeHidden = true`)**
-        // 调用 `postService` 来获取文章。注意这里 `includeHidden` 参数被强制设为 `true`，
-        // 确保即使是隐藏（草稿）状态的文章也会被检索出来，这符合管理员查看所有文章的需求。
-        var allPosts = await postService.GetAllPostsAsync(includeHidden: true);
+        // 直接调用支持分页的接口
+        var (allPosts, totalCount) = await postService.GetAllPostsAsync(
+            page, pageSize, 
+            includeHidden: true
+        );
 
-        // 2. **分页计算**
-        // 与 `GetPosts` 方法类似，计算总文章数和总页数，为前端提供分页元数据。
-        var totalCount = allPosts.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        // 3. **DTO 转换和分页切片**
-        // 将获取到的 `Post` 实体列表进行分页处理，并转换为 `PostSummaryDto` 对象列表。
-        // `PostSummaryDto` 包含了文章的摘要信息，适合在列表页展示。
-        var posts = allPosts
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(p => p.ToSummaryDto())
-            .ToList();
+        var posts = allPosts.Select(p => p.ToSummaryDto()).ToList();
 
-        // 4. **返回标准响应结构**
-        // 返回一个包含文章数据和分页元数据的 `200 OK` 响应。
         return Ok(new
         {
             success = true,

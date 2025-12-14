@@ -5,7 +5,8 @@ namespace MyNextBlog.Services;
 public interface IPostService
 {
     // 定义这个服务能干什么
-    Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null);
+    // 支持数据库级分页，返回 (当前页数据, 总条数)
+    Task<(List<Post> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null);
     Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false);
     Task<Post?> GetPostForUpdateAsync(int id);
     Task AddPostAsync(Post post);

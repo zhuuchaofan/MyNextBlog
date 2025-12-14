@@ -23,98 +23,61 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     private const string AllPostsCacheKey = "all_posts_public"; // 首页文章列表的缓存 Key
 
     /// <summary>
-    /// `GetAllPostsAsync` 方法用于获取所有博客文章的列表，支持多种筛选条件和权限控制。
+    /// 获取文章列表 (数据库级分页)
     /// </summary>
-    /// <param name="includeHidden">布尔值，如果为 `true`，则包含 `IsHidden` 属性为 `true` 的文章（例如草稿）；否则只返回公开文章。</param>
-    /// <param name="categoryId">可选的整数 ID，用于按文章所属的分类进行筛选。</param>
-    /// <param name="searchTerm">可选的字符串，用于在文章标题或内容中进行关键词模糊搜索。</param>
-    /// <param name="tagName">可选的字符串，用于按文章关联的标签名称进行筛选。</param>
-    /// <returns>返回一个 `Task<List<Post>>`，其中包含符合条件且已加载关联数据（分类、作者、标签）的文章实体列表。</returns>
-    public async Task<List<Post>> GetAllPostsAsync(bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
+    public async Task<(List<Post> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
-        // 缓存策略：仅缓存“默认首页列表”（即只查询公开文章，且无任何搜索或分类过滤条件）
-        // 这是为了优化最高频的访问场景（首页加载），同时避免缓存组合爆炸。
-        bool isCacheable = !includeHidden && categoryId == null && string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(tagName);
-
-        // 尝试从缓存获取
-        if (isCacheable && cache.TryGetValue(AllPostsCacheKey, out List<Post>? cachedPosts) && cachedPosts != null)
-        {
-            return cachedPosts;
-        }
-
-        // `context.Posts`: 通过 `AppDbContext` 访问数据库中的 `Posts` 表。
-        // `.AsNoTracking()`: 禁用更改跟踪。对于只读查询，这可以显著提高性能，因为 EF Core 不需要维护实体状态的快照。
-        // `.AsQueryable()`: 将 `DbSet<Post>` 转换为 `IQueryable<Post>`。
-        // `IQueryable` 允许我们构建复杂的 LINQ 查询表达式，这些表达式在执行 `ToListAsync()` 等方法时，
-        // 会被 EF Core 翻译成 SQL 语句，并在数据库层面执行，从而避免将整个表加载到内存中再筛选，提高效率。
+        // 构建基础查询
         var query = context.Posts.AsNoTracking().AsQueryable();
 
-        // 1. **过滤文章可见性**
-        // 如果 `includeHidden` 为 `false`（即非管理员或未指定包含隐藏文章），则只选择 `IsHidden` 属性为 `false` 的文章。
+        // 1. 过滤文章可见性
         if (!includeHidden)
         {
             query = query.Where(p => !p.IsHidden);
         }
         
-        // 2. **按分类筛选**
-        // `categoryId.HasValue`: 检查 `categoryId` 是否有值（即不是 `null`）。
-        // `p.CategoryId == categoryId.Value`: 筛选出 `CategoryId` 与传入值匹配的文章。
+        // 2. 按分类筛选
         if (categoryId.HasValue)
         {
             query = query.Where(p => p.CategoryId == categoryId.Value);
         }
 
-        // 3. **关键词搜索 (标题或内容)**
-        // `!string.IsNullOrWhiteSpace(searchTerm)`: 检查 `searchTerm` 是否不为空或只包含空格。
-        // `p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm)`: 使用 `Contains` 方法进行模糊匹配。
-        // EF Core 会将其转换为 SQL 的 `LIKE '%searchTerm%'` 语句。
+        // 3. 关键词搜索
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
         }
 
-        // 4. **按标签筛选**
-        // `p.Tags.Any(t => t.Name == tagName)`: 筛选出至少包含一个名称与 `tagName` 匹配的标签的文章。
-        // `Any()` 是一个 LINQ 方法，用于检查集合中是否存在满足条件的元素。
-        // 注意：这种 `Any` 查询在标签数量非常庞大时可能会有性能损耗，但在博客系统这种规模下通常是可接受的。
+        // 4. 按标签筛选
         if (!string.IsNullOrWhiteSpace(tagName))
         {
             query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
         }
 
-        // 5. **执行查询并加载关联数据 (使用 Select 投影优化)**
-        // 优化：不再使用 Include 加载整篇文章，而是通过 Select 投影只选取必要的字段。
-        // 特别是 Content 字段，只截取前 200 个字符用于生成摘要，这极大地减少了从数据库传输的数据量。
+        // 5. 获取总记录数 (在分页之前)
+        var totalCount = await query.CountAsync();
+
+        // 6. 执行分页查询
         var posts = await query
-                .OrderByDescending(p => p.CreateTime) // 按 `CreateTime` 字段倒序排序
+                .OrderByDescending(p => p.CreateTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new Post
                 {
                     Id = p.Id,
                     Title = p.Title,
-                    // 核心优化：如果内容超过 200 字，只截取前 200 字；否则取全部。
-                    // 这对于列表页展示摘要已经足够，且避免了加载大段正文。
+                    // 摘要截取逻辑保持不变
                     Content = p.Content.Length > 200 ? p.Content.Substring(0, 200) : p.Content,
                     CreateTime = p.CreateTime,
                     IsHidden = p.IsHidden,
                     CategoryId = p.CategoryId,
-                    // 在 Select 投影中，Include 会失效，所以我们需要在这里手动映射关联属性。
-                    // EF Core 会自动生成相应的 JOIN SQL 语句。
                     Category = p.Category,
                     User = p.User,
                     Tags = p.Tags
                 })
                 .ToListAsync();
 
-        // 如果是可缓存的查询，则将结果写入缓存
-        if (isCacheable)
-        {
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5)); // 设置 5 分钟绝对过期时间
-            
-            cache.Set(AllPostsCacheKey, posts, cacheEntryOptions);
-        }
-
-        return posts;
+        return (posts, totalCount);
     }
 
     /// <summary>
