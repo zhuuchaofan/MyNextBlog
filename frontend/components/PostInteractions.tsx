@@ -88,7 +88,7 @@ export default function PostInteractions({ postId, initialLikeCount }: PostInter
           variant="outline" 
           size="icon" 
           disabled={loading}
-          className={`rounded-full h-12 w-12 border-gray-200 transition-colors ${liked ? 'text-pink-500 bg-pink-50 border-pink-200' : 'text-gray-500 hover:text-pink-500 hover:bg-pink-50'}`}
+          className={`rounded-full h-12 w-12 border-gray-200 transition-colors ${liked ? 'text-orange-500 bg-orange-50 border-orange-200' : 'text-gray-500 hover:text-orange-500 hover:bg-orange-50'}`}
           onClick={handleLike}
         >
           <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />

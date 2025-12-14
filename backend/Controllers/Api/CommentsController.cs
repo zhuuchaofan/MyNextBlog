@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Ganss.Xss;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
@@ -11,7 +13,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(IPostService postService, AppDbContext context) : ControllerBase
+public class CommentsController(IPostService postService, AppDbContext context, IMemoryCache cache) : ControllerBase
 {
     /// <summary>
     /// 发表新评论
@@ -19,20 +21,46 @@ public class CommentsController(IPostService postService, AppDbContext context) 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
+        // 0. 频率限制 (Rate Limiting)
+        // 获取客户端 IP (兼容反向代理)
+        string ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                           ?? HttpContext.Connection.RemoteIpAddress?.ToString() 
+                           ?? "unknown";
+                           
+        string cacheKey = $"comment_rate_limit_{ipAddress}";
+        if (cache.TryGetValue(cacheKey, out _))
+        {
+            return StatusCode(429, new { success = false, message = "评论太频繁，请稍后再试 (60s)" });
+        }
+        
+        // 设置限制：60秒内只能发一条
+        cache.Set(cacheKey, true, TimeSpan.FromSeconds(60));
+
         // 1. 验证输入
         if (string.IsNullOrWhiteSpace(dto.Content))
         {
             return BadRequest(new { success = false, message = "评论内容不能为空" });
         }
 
+        // 2. XSS 清洗
+        // 防止用户提交恶意脚本 (如 <script>alert(1)</script>)
+        var sanitizer = new HtmlSanitizer();
+        var safeContent = sanitizer.Sanitize(dto.Content);
+
+        // 如果清洗后内容变为空（说明全是恶意标签），则拒绝
+        if (string.IsNullOrWhiteSpace(safeContent))
+        {
+             return BadRequest(new { success = false, message = "评论内容包含非法字符" });
+        }
+
         var comment = new Comment
         {
             PostId = dto.PostId,
-            Content = dto.Content,
+            Content = safeContent, // 使用清洗后的内容
             CreateTime = DateTime.Now
         };
 
-        // 2. 身份识别
+        // 3. 身份识别
         // 尝试判断当前请求是否来自已登录用户
         User? user = null;
         if (User.Identity?.IsAuthenticated == true)
@@ -50,17 +78,17 @@ public class CommentsController(IPostService postService, AppDbContext context) 
             }
         }
 
-        // 3. 处理匿名访客
+        // 4. 处理匿名访客
         // 如果未登录，则使用前端传入的 GuestName，若未传则默认为"匿名访客"
         if (comment.UserId == null)
         {
              comment.GuestName = string.IsNullOrWhiteSpace(dto.GuestName) ? "匿名访客" : dto.GuestName;
         }
 
-        // 4. 保存评论
+        // 5. 保存评论
         await postService.AddCommentAsync(comment);
 
-        // 5. 返回创建成功的评论对象 (包含用户信息以便前端立即渲染)
+        // 6. 返回创建成功的评论对象 (包含用户信息以便前端立即渲染)
         return Ok(new
         {
             success = true,
