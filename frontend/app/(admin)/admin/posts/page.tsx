@@ -273,25 +273,25 @@ export default function AdminPostsPage() {
       )}
 
       {/* 分页控制 */}
-      <div className="flex justify-between items-center mt-6">
-         <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载
-              onClick={() => setPage(p => Math.max(1, p - 1))} // 切换到上一页
-              className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
-            >
-              上一页
-            </Button>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              第 {page} / {totalPages || 1} 页 (共 {totalCount} 篇)
-            </span>
-         </div>
+      <div className="flex flex-col-reverse md:flex-row justify-between items-center mt-6 gap-4">
+         <Button 
+           variant="outline" 
+           disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载
+           onClick={() => setPage(p => Math.max(1, p - 1))} // 切换到上一页
+           className="w-full md:w-auto border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
+         >
+           上一页
+         </Button>
+         
+         <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+           第 {page} / {totalPages || 1} 页 (共 {totalCount} 篇)
+         </span>
+
          <Button 
            variant="outline" 
            disabled={!hasMore || loading} // 禁用条件：没有更多数据或正在加载
            onClick={() => setPage(p => p + 1)} // 切换到下一页
-           className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
+           className="w-full md:w-auto border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
          >
            下一页
          </Button>
