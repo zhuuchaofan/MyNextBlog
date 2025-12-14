@@ -295,51 +295,27 @@ public class PostsApiController(IPostService postService, ITagService tagService
         return Ok(new { success = true, message = "发布成功", postId = post.Id, data = post.ToDetailDto() });
     }
 
-    /// <summary>
-    /// `UpdatePost` 方法是一个**管理员接口**，用于根据文章 ID 更新现有文章。
-    /// 此接口需要管理员权限。
-    /// </summary>
-    // `[HttpPut("{id}")]`: HTTP Put 请求的路由特性。表示这个方法会响应 HTTP PUT 请求。
-    // `{id}` 是路由参数，表示要更新的文章 ID。
-    // 完整路由为 `PUT /api/posts/{id}`。
     [HttpPut("{id}")]
-    // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
-        // 1. **检查文章是否存在**
-        // 首先从数据库中获取要更新的文章。`includeHidden: true` 确保即使是隐藏文章也能被管理员更新。
-        var post = await postService.GetPostByIdAsync(id, includeHidden: true);
-        // 如果 `post` 为 `null`，表示文章不存在，返回 `404 Not Found`。
+        // 使用 GetPostForUpdateAsync 获取开启追踪的实体，确保标签更新时不会报主键冲突
+        var post = await postService.GetPostForUpdateAsync(id);
         if (post == null) return NotFound(new { success = false, message = "文章不存在" });
 
-        // 2. **更新文章的基本字段**
-        // 将 `UpdatePostDto` 中包含的新数据赋值给从数据库中取出的 `post` 实体对象。
-        // 注意，这里只更新允许修改的字段，例如 `Id`、`CreateTime` 等字段不应该由前端修改。
         post.Title = dto.Title;
         post.Content = dto.Content;
         post.CategoryId = dto.CategoryId;
-        post.IsHidden = dto.IsHidden; // 允许管理员更改文章的可见性状态
+        post.IsHidden = dto.IsHidden;
 
-        // 3. **更新标签 (策略：先清空，再重新添加)**
-        // 更新文章的标签是一个常见的操作。这里采取的策略是：
-        //   - `post.Tags.Clear()`: 首先清空该文章当前所有关联的标签。
         post.Tags.Clear();
-        //   - 然后，如果 `UpdatePostDto` 中提供了新的标签列表，就将这些新标签重新关联到文章。
         if (dto.Tags != null && dto.Tags.Any())
         {
-            // `tagService.GetOrCreateTagsAsync()`: 确保新的标签名称都对应到数据库中的 `Tag` 实体，
-            // 如果有新标签，则会先创建它们。
             var newTags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
-            // `post.Tags.AddRange(newTags)`: 将处理后的 `Tag` 实体添加到文章的标签集合中。
             post.Tags.AddRange(newTags);
         }
 
-        // 4. **保存更改到数据库**
-        // `await postService.UpdatePostAsync(post)`: 调用文章服务保存对 `post` 实体的所有更改。
-        // `PostService` 内部会处理 EF Core 的更新操作，并可能重新扫描文章内容以关联图片。
         await postService.UpdatePostAsync(post);
-        // 返回一个 `200 OK` 响应，表示文章更新成功，并返回更新后的文章详情。
         return Ok(new { success = true, message = "更新成功", data = post.ToDetailDto() });
     }
 

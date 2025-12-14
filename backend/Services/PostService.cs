@@ -146,6 +146,20 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             .FirstOrDefaultAsync(m => m.Id == id);
     }
 
+    /// <summary>
+    /// 获取用于更新的文章实体 (开启追踪)
+    /// </summary>
+    /// <remarks>
+    /// 专门用于 Update 操作。必须开启追踪 (不使用 AsNoTracking)，
+    /// 并且必须 Include Tags，这样 EF Core 才能正确处理标签集合的变更（识别新增、删除和保留的标签）。
+    /// </remarks>
+    public async Task<Post?> GetPostForUpdateAsync(int id)
+    {
+        return await context.Posts
+            .Include(p => p.Tags)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
 
     /// <summary>
     /// `GetCommentsAsync` 方法用于获取指定文章的评论列表，支持分页功能。
