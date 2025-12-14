@@ -4,10 +4,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import GithubSlugger from 'github-slugger';
 import { Button } from "@/components/ui/button";
 import { Check, Copy, List } from "lucide-react";
 import dynamic from 'next/dynamic'; // 引入 dynamic
 import 'highlight.js/styles/github-dark.css';
+
+// Lightbox 引入
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 // 动态导入 MermaidBlock，禁用 SSR 因为 mermaid 依赖 window
 const MermaidBlock = dynamic(() => import('@/components/MermaidBlock'), {
@@ -25,16 +31,6 @@ interface TocItem {
   text: string;
   level: number;
 }
-
-// 简单的 Slugify 函数，支持中文
-const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-') // 空格转短横线
-    .replace(/[^\w\u4e00-\u9fa5-]/g, '') // 移除非字母数字中文和短横线
-    .replace(/\-+/g, '-'); // 合并短横线
-};
 
 // 从 React Node 中提取纯文本
 const extractText = (children: any): string => {
@@ -104,36 +100,39 @@ const PreBlock = ({ children, ...props }: any) => {
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  // 解析 TOC
+  // 解析 TOC 和 图片列表
   useEffect(() => {
-    // 这里简单用正则提取，可能无法处理复杂嵌套（比如标题里有粗体），但对大多数情况够用
+    const slugger = new GithubSlugger(); // 实例化 slugger，确保每次解析都是独立的上下文
     const lines = content.split('\n');
     const items: TocItem[] = [];
-    
-    // 用于处理重复标题
-    const slugCounts: Record<string, number> = {};
+    const extractedImages: string[] = [];
+
+    // 提取图片的正则：![alt](url)
+    const imgRegex = /!\[.*?\]\((.*?)\)/g;
+    let imgMatch;
+    // 使用 while 循环在全文中查找所有图片链接
+    while ((imgMatch = imgRegex.exec(content)) !== null) {
+        if (imgMatch[1]) {
+            extractedImages.push(imgMatch[1]);
+        }
+    }
+    setImages(extractedImages);
+
 
     lines.forEach((line) => {
-      // 匹配 ## 或 ### 开头的行，允许行尾有空白字符（处理 \r 等）
+      // 匹配 ## 或 ### 开头的行
       const match = line.match(/^(#{2,3})\s+(.+?)\s*$/); 
       if (match) {
         const level = match[1].length;
-        // 去除 markdown 符号（如 **text** -> text）
+        // 去除 markdown 符号
         let text = match[2].replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(`)(.*?)\1/g, '$2').trim();
         
-        let slug = slugify(text);
-        
-        // 处理重复 ID
-        if (slugCounts[slug]) {
-          slugCounts[slug]++;
-          slug = `${slug}-${slugCounts[slug]}`;
-        } else {
-          slugCounts[slug] = 0; // 第一次出现不加后缀，或者设为 1
-          // 实际上 rehype-slug 第一次不加后缀，第二次加 -1
-          // 我们简单点：第一次 0，第二次 1
-          slugCounts[slug] = 1;
-        }
+        // 使用 GithubSlugger 生成与 rehype-slug 完全一致的 ID (自动处理重复)
+        const slug = slugger.slug(text);
 
         items.push({ id: slug, text, level });
       }
@@ -145,28 +144,35 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 // 修改后的 CodeBlock 组件，只处理行内代码
 // ===========================================================================
 const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
-  if (inline) {
-    return <code className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-mono text-sm" {...props}>{children}</code>;
-  }
-  // 对于块级代码，我们不在这里渲染额外的 div 或 pre
-  // 而是直接返回 <code> 标签本身，由 PreBlock (pre 组件) 负责外部包裹
-  return <code {...props} className={className}>{children}</code>;
+  // 科学解法：依据 HTML 语义，行内代码即 "父级不是 <pre> 的 <code>"
+  // 使用 Tailwind 的父级状态选择器或直接的 CSS 选择器逻辑
+  const inlineClasses = `
+    [:not(pre)>&]:bg-orange-50 [:not(pre)>&]:text-orange-600 
+    dark:[:not(pre)>&]:bg-zinc-800 dark:[:not(pre)>&]:text-orange-400
+    [:not(pre)>&]:px-1.5 [:not(pre)>&]:py-0.5 [:not(pre)>&]:rounded [:not(pre)>&]:font-mono [:not(pre)>&]:text-sm
+  `.replace(/\s+/g, ' ');
+
+  return <code {...props} className={`${className || ''} ${inlineClasses}`.trim()}>{children}</code>;
 };
 
-  // 用于渲染时跟踪重复 ID
-  // 注意：这种方式在 React Server Component 或 Strict Mode 下可能会有副作用，
-  // 但在 Client Component 且简单的博客场景下是可以接受的。
-  // 更好的方式是使用 rehype 插件，但这里我们手动实现。
-  const slugCountsRender: Record<string, number> = {};
-
-  const createHeading = (level: number) => {
-    return ({ node, children, ...props }: any) => {
-      const text = extractText(children);
-      let slug = slugify(text);
+  // 标题通用样式组件
+  const HeadingRenderer = ({ level, children, ...props }: any) => {
+    // ID 已经由 rehype-slug 自动注入到 props 中了，我们只需透传 props
+    const Tag = `h${level}` as React.ElementType;
+    
+    // 自定义样式
+    const styles = level === 2 
+      ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100 dark:border-zinc-800' 
+      : 'text-xl mt-6 mb-3';
       
-      const Tag = `h${level}` as React.ElementType;
-      return <Tag id={slug} className={`scroll-mt-24 font-bold text-gray-900 dark:text-gray-100 ${level === 2 ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100 dark:border-zinc-800' : 'text-xl mt-6 mb-3'}`} {...props}>{children}</Tag>;
-    };
+    return (
+      <Tag 
+        className={`scroll-mt-24 font-bold text-gray-900 dark:text-gray-100 ${styles}`} 
+        {...props}
+      >
+        {children}
+      </Tag>
+    );
   };
 
   return (
@@ -175,19 +181,34 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
       <article className="flex-1 prose prose-stone dark:prose-invert max-w-none w-full min-w-0 break-words">
         <ReactMarkdown 
           remarkPlugins={[remarkGfm]} 
-          rehypePlugins={[rehypeHighlight]}
+          rehypePlugins={[rehypeHighlight, rehypeSlug]}
           components={{
             pre: PreBlock, // 使用新的 PreBlock 组件处理 <pre>
             code: CodeBlock, // 使用修改后的 CodeBlock 组件处理 <code>
-            img: ({node, ...props}) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img {...props} className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50 dark:bg-zinc-800" alt={props.alt || ''} />
-            ),
+            img: ({node, ...props}) => {
+               const src = props.src || '';
+               return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  {...props} 
+                                     onClick={() => {
+                                       const srcString = String(src); // 确保 src 是字符串类型
+                                       const index = images.indexOf(srcString);                    if (index >= 0) {
+                        setLightboxIndex(index);
+                        setLightboxOpen(true);
+                    }
+                  }}
+                  className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50 dark:bg-zinc-800 cursor-zoom-in hover:opacity-95 transition-opacity" 
+                  alt={props.alt || ''} 
+                  loading="lazy" // 开启懒加载
+                />
+              );
+            },
             a: ({node, ...props}) => (
               <a {...props} className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-orange-300 dark:decoration-orange-700 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />
             ),
-            h2: createHeading(2),
-            h3: createHeading(3),
+            h2: (props) => <HeadingRenderer level={2} {...props} />,
+            h3: (props) => <HeadingRenderer level={3} {...props} />,
             table: ({node, ...props}) => (
               <div className="overflow-x-auto my-6 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <table {...props} className="w-full text-sm text-left" />
@@ -207,6 +228,14 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
           {content}
         </ReactMarkdown>
       </article>
+      
+      {/* 图片灯箱 */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        index={lightboxIndex}
+        slides={images.map(src => ({ src }))}
+      />
 
       {/* 右侧悬浮目录 (Desktop Only) */}
       {toc.length > 0 && (
@@ -218,7 +247,7 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
              <nav className="space-y-1 max-h-[70vh] overflow-y-auto custom-scrollbar">
                {toc.map((item) => (
                  <a 
-                   key={item.id} // 如果有重复标题，这里可能会有 key 重复警告，实际应加 index
+                   key={item.id} // ID 唯一
                    href={`#${item.id}`}
                    onClick={(e) => {
                      e.preventDefault();
