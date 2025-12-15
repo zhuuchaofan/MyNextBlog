@@ -50,6 +50,7 @@ export interface Comment {
   createTime: string;
   userAvatar?: string;
   parentId?: number;
+  children?: Comment[];
 }
 
 // 获取评论列表

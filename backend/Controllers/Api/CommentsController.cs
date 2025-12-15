@@ -93,15 +93,7 @@ public class CommentsController(ICommentService commentService, AppDbContext con
         return Ok(new
         {
             success = true,
-            comment = new
-            {
-                comment.Id,
-                comment.GuestName,
-                comment.Content,
-                CreateTime = comment.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-                UserAvatar = user?.AvatarUrl, // 如果是登录用户，返回头像
-                comment.ParentId // 返回 ParentId
-            }
+            comment = MapToDto(comment)
         });
     }
 
@@ -123,19 +115,24 @@ public class CommentsController(ICommentService commentService, AppDbContext con
         {
             success = true,
             totalCount, 
-            comments = comments.Select(c => new 
-            {
-                c.Id,
-                // 显示逻辑：如果有关联的注册用户，优先显示该用户当前的用户名 (而不是评论时的快照)
-                GuestName = c.User != null ? c.User.Username : c.GuestName, 
-                c.Content,
-                CreateTime = c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-                UserAvatar = c.User?.AvatarUrl,
-                c.ParentId // 返回 ParentId
-            }),
+            comments = comments.Select(MapToDto),
             hasMore
         });
     }
 
+    private static CommentDto MapToDto(Comment c)
+    {
+        return new CommentDto(
+            c.Id,
+            c.User != null ? c.User.Username : (c.GuestName ?? "匿名"),
+            c.Content,
+            c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
+            c.User?.AvatarUrl,
+            c.ParentId,
+            c.Children.Select(MapToDto).ToList()
+        );
+    }
+
     public record CreateCommentDto(int PostId, string Content, string? GuestName, int? ParentId);
+    public record CommentDto(int Id, string GuestName, string Content, string CreateTime, string? UserAvatar, int? ParentId, List<CommentDto> Children);
 }

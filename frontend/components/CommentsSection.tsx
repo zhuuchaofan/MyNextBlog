@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,11 +9,6 @@ import { fetchComments, submitComment, Comment } from '@/lib/api';
 import { MessageSquare, User, Send, Reply, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useAuth } from '@/context/AuthContext';
-
-// 扩展 Comment 类型以包含子评论 (前端辅助属性)
-interface CommentNode extends Comment {
-  children?: CommentNode[];
-}
 
 export default function CommentsSection({ postId }: { postId: number }) {
   const [allComments, setAllComments] = useState<Comment[]>([]);
@@ -61,35 +56,33 @@ export default function CommentsSection({ postId }: { postId: number }) {
     loadData(page + 1);
   };
 
-  // 将扁平列表转换为树状结构
-  const commentTree = useMemo(() => {
-    const map = new Map<number, CommentNode>();
-    const roots: CommentNode[] = [];
+  // 递归插入新评论
+  const addCommentToTree = (nodes: Comment[], newComment: Comment): Comment[] => {
+    // 如果是根评论，直接插到最前面
+    if (!newComment.parentId) {
+        return [newComment, ...nodes];
+    }
 
-    // 1. 初始化所有节点
-    allComments.forEach(c => {
-      map.set(c.id, { ...c, children: [] });
+    // 否则递归查找父节点
+    return nodes.map(node => {
+        if (node.id === newComment.parentId) {
+            return {
+                ...node,
+                children: [...(node.children || []), newComment]
+            };
+        }
+        if (node.children && node.children.length > 0) {
+             return {
+                 ...node,
+                 children: addCommentToTree(node.children, newComment)
+             };
+        }
+        return node;
     });
-
-    // 2. 组装树
-    allComments.forEach(c => {
-      const node = map.get(c.id)!;
-      if (c.parentId && map.has(c.parentId)) {
-        map.get(c.parentId)!.children!.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    // 3. 排序 (这里假设 ID 大的比较新，或者是按时间倒序)
-    // 根节点通常按时间倒序 (最新在最前)，子回复通常按时间正序 (最早在最前)
-    roots.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime());
-    
-    return roots;
-  }, [allComments]);
+  };
 
   const handleCommentSuccess = (newComment: Comment) => {
-    setAllComments(prev => [newComment, ...prev]);
+    setAllComments(prev => addCommentToTree(prev, newComment));
     setTotalCount(prev => prev + 1);
     setReplyingTo(null); // 关闭回复框
   };
@@ -116,7 +109,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
         </div>
       ) : (
         <div className="space-y-6">
-          {commentTree.map((node) => (
+          {allComments.map((node) => (
             <CommentItem 
                 key={node.id} 
                 node={node} 
@@ -149,7 +142,7 @@ function CommentItem({
     setReplyingTo, 
     onSuccess 
 }: { 
-    node: CommentNode, 
+    node: Comment, 
     postId: number, 
     replyingTo: number | null, 
     setReplyingTo: (id: number | null) => void,
@@ -172,7 +165,7 @@ function CommentItem({
                     <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{node.guestName || '匿名网友'}</span>
                         <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-400">{new Date(node.createTime).toLocaleString()}</span>
+                            <span className="text-xs text-gray-400">{node.createTime}</span>
                             <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -206,7 +199,7 @@ function CommentItem({
                 {node.children && node.children.length > 0 && (
                     <div className="mt-4 space-y-4 pl-4 md:pl-8 border-l-2 border-gray-50 dark:border-zinc-800/50">
                         {node.children
-                            .sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()) // 子评论按时间正序
+                            // .sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()) // Backend may already sort, but safe to keep if needed. API returns formatted string time, so sorting by string might be tricky if format changes. Assuming backend order is correct.
                             .map(child => (
                                 <CommentItem 
                                     key={child.id} 
