@@ -66,7 +66,7 @@ export default async function PostPage({ params }: Props) {
   const readingTime = Math.ceil(post.content.length / 300);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 pb-20 transition-colors duration-300">
+    <div className="min-h-screen pb-20 transition-colors duration-300">
       {/* --- 顶部 Hero 区域 (背景图/标题) --- */}
       <div className="relative w-full min-h-[40vh] md:min-h-[50vh] bg-gray-900 dark:bg-zinc-950 overflow-hidden flex flex-col justify-center">
         {/* 背景图处理 */}
@@ -135,7 +135,7 @@ export default async function PostPage({ params }: Props) {
            <PostInteractions postId={post.id} initialLikeCount={post.likeCount} />
 
            {/* 主内容容器 */}
-           <div className="lg:col-span-11 bg-white dark:bg-zinc-900 rounded-t-3xl md:rounded-3xl shadow-xl dark:shadow-black/50 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
+           <div className="lg:col-span-11 bg-white/95 dark:bg-zinc-900/95 backdrop-blur rounded-t-3xl md:rounded-3xl shadow-xl dark:shadow-black/50 border border-gray-100 dark:border-zinc-800 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
               {/* Markdown 渲染器：将 Markdown 文本转换为 HTML */}
               <MarkdownRenderer content={post.content} />
               

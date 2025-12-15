@@ -62,7 +62,7 @@ export default function PostList({ initialPosts, initialHasMore }: PostListProps
     <div className="space-y-8">
        <div className="space-y-6">
               {posts.map((post) => (
-                <Card key={post.id} className="group overflow-hidden border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-zinc-900 rounded-3xl ring-1 ring-gray-100 dark:ring-zinc-800">
+                <Card key={post.id} className="group overflow-hidden border border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 rounded-3xl">
                   <div className="flex flex-col md:flex-row h-full">
                      {post.coverImage && (
                         <div className="md:w-64 h-48 md:h-auto relative p-3">

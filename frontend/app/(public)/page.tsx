@@ -178,7 +178,7 @@ export default async function Home() {
         {/* 侧边栏 (仅桌面端显示，占用 4 列) */}
         <div className="hidden lg:block lg:col-span-4 space-y-8">
            {/* 博主简介小部件 */}
-           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm text-center relative overflow-hidden transition-colors duration-300">
+           <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm text-center relative overflow-hidden transition-colors duration-300">
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 opacity-50"></div>
               <div className="relative z-10 -mt-4 mb-4">
                  <div className="w-20 h-20 mx-auto bg-white dark:bg-zinc-800 rounded-full p-1 shadow-lg">
@@ -202,7 +202,7 @@ export default async function Home() {
            </div>
 
            {/* 热门标签小部件 */}
-           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm transition-colors duration-300">
+           <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100 dark:border-zinc-800 shadow-sm transition-colors duration-300">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <Tag className="w-4 h-4 text-orange-500" /> 热门话题
               </h3>
