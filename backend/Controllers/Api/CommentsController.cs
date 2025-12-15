@@ -4,8 +4,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Ganss.Xss;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
+using MyNextBlog.Services.Email;
 using MyNextBlog.Services;
-using Microsoft.AspNetCore.Authorization; // Added this line
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore; // Added this line // Added this line
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -14,7 +16,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(ICommentService commentService, AppDbContext context, IMemoryCache cache, IHtmlSanitizer sanitizer) : ControllerBase
+public class CommentsController(ICommentService commentService, AppDbContext context, IMemoryCache cache, IHtmlSanitizer sanitizer, IConfiguration configuration, IEmailService emailService) : ControllerBase
 {
     /// <summary>
     /// 发表新评论
@@ -87,14 +89,74 @@ public class CommentsController(ICommentService commentService, AppDbContext con
              comment.GuestName = string.IsNullOrWhiteSpace(dto.GuestName) ? "匿名访客" : dto.GuestName;
         }
 
-        // 5. 保存评论
+        // 5. 反垃圾检查 (Spam Check)
+        // 从配置中读取违禁词
+        var spamKeywords = configuration.GetSection("SpamKeywords").Get<string[]>() ?? Array.Empty<string>();
+        bool isSpam = spamKeywords.Any(k => safeContent.Contains(k, StringComparison.OrdinalIgnoreCase));
+        
+        // 如果是管理员，跳过检查
+        bool isAdmin = User.IsInRole("Admin");
+
+        // 如果命中敏感词且非管理员，强制设为待审核
+        if (isSpam && !isAdmin)
+        {
+            comment.IsApproved = false;
+        }
+
+        // 6. 保存评论
         await commentService.AddCommentAsync(comment);
 
-        // 6. 返回创建成功的评论对象 (包含用户信息以便前端立即渲染)
+        // 7. 发送邮件通知 (如果这是回复)
+        if (comment.ParentId.HasValue)
+        {
+            var parentComment = await context.Comments.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == comment.ParentId.Value);
+            if (parentComment != null)
+            {
+                string? recipientEmail = null;
+                string recipientName = parentComment.GuestName ?? "匿名访客"; // 默认收件人名称
+                
+                // 优先使用注册用户的邮箱
+                if (parentComment.User != null && !string.IsNullOrWhiteSpace(parentComment.User.Email))
+                {
+                    recipientEmail = parentComment.User.Email;
+                    recipientName = parentComment.User.Username;
+                }
+                // 其次使用匿名用户的邮箱
+                else if (!string.IsNullOrWhiteSpace(parentComment.GuestEmail))
+                {
+                    recipientEmail = parentComment.GuestEmail;
+                }
+
+                if (!string.IsNullOrWhiteSpace(recipientEmail))
+                {
+                    var post = await context.Posts.FirstOrDefaultAsync(p => p.Id == comment.PostId);
+                    var postTitle = post?.Title ?? "您的文章";
+                    var commentLink = $"您的评论 [\"{parentComment.Content.Substring(0, Math.Min(20, parentComment.Content.Length))}...\"] 有新回复";
+
+                    string subject = $"您的评论在 [{postTitle}] 获得新回复！";
+                    string body = $@"
+                        <p>亲爱的 {recipientName}，</p>
+                        <p>您在文章 <strong>&quot;{postTitle}&quot;</strong> 下的评论有了新的回复：</p>
+                        <blockquote>
+                            <p>{comment.Content}</p>
+                        </blockquote>
+                        <p>点击这里查看完整对话：<a href=""{Request.Scheme}://{Request.Host}/posts/{comment.PostId}#comment-{comment.Id}"">查看评论</a></p>
+                        <p>期待您的再次访问！</p>
+                        <p>MyNextBlog 团队</p>
+                    ";
+                    await emailService.SendEmailAsync(recipientEmail, subject, body);
+                }
+            }
+        }
+
+
+        // 8. 返回创建成功的评论对象
+        // 注意：如果被反垃圾拦截(IsApproved=false)，前端展示时需要提示用户“评论待审核”
         return Ok(new
         {
             success = true,
-            comment = MapToDto(comment)
+            comment = MapToDto(comment),
+            message = comment.IsApproved ? "评论发表成功" : "评论包含敏感词，已进入人工审核队列"
         });
     }
 
@@ -171,6 +233,28 @@ public class CommentsController(ICommentService commentService, AppDbContext con
         var result = await commentService.DeleteCommentAsync(id);
         if (!result) return NotFound(new { success = false, message = "评论不存在" });
         return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// [Admin] 批量批准
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost("batch-approve")]
+    public async Task<IActionResult> BatchApprove([FromBody] List<int> ids)
+    {
+        var count = await commentService.BatchApproveAsync(ids);
+        return Ok(new { success = true, count });
+    }
+
+    /// <summary>
+    /// [Admin] 批量删除
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost("batch-delete")]
+    public async Task<IActionResult> BatchDelete([FromBody] List<int> ids)
+    {
+        var count = await commentService.BatchDeleteAsync(ids);
+        return Ok(new { success = true, count });
     }
 
     private static CommentDto MapToDto(Comment c)

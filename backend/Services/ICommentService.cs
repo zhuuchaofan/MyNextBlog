@@ -12,4 +12,6 @@ public interface ICommentService
     Task<(List<Comment> Comments, int TotalCount)> GetAllCommentsForAdminAsync(int page, int pageSize, bool? isApproved);
     Task<bool> ToggleApprovalAsync(int id);
     Task<bool> DeleteCommentAsync(int id);
+    Task<int> BatchApproveAsync(List<int> ids);
+    Task<int> BatchDeleteAsync(List<int> ids);
 }

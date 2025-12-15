@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchAllCommentsAdmin, toggleCommentApproval, deleteCommentAdmin } from '@/lib/api';
+import { fetchAllCommentsAdmin, toggleCommentApproval, deleteCommentAdmin, batchApproveComments, batchDeleteComments } from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, CheckCircle, XCircle, Trash2, ArrowLeft, MessageSquare } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Trash2, ArrowLeft, MessageSquare, CheckSquare } from 'lucide-react';
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -39,10 +40,14 @@ export default function AdminCommentsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<'all' | 'pending'>('all'); // all or pending (isApproved=false)
+  
+  // 多选状态
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   // 加载数据
   const loadData = async () => {
     setLoading(true);
+    setSelectedIds(new Set()); // 翻页或刷新时清空选择
     try {
       const isApproved = filter === 'pending' ? false : undefined;
       const data = await fetchAllCommentsAdmin(page, 20, isApproved);
@@ -63,6 +68,58 @@ export default function AdminCommentsPage() {
   useEffect(() => {
     loadData();
   }, [page, filter]);
+
+  // 全选/取消全选
+  const handleSelectAll = (checked: boolean) => {
+      if (checked) {
+          setSelectedIds(new Set(comments.map(c => c.id)));
+      } else {
+          setSelectedIds(new Set());
+      }
+  };
+
+  // 单选
+  const handleSelectOne = (id: number, checked: boolean) => {
+      const newSet = new Set(selectedIds);
+      if (checked) {
+          newSet.add(id);
+      } else {
+          newSet.delete(id);
+      }
+      setSelectedIds(newSet);
+  };
+
+  // 批量批准
+  const handleBatchApprove = async () => {
+      if (selectedIds.size === 0) return;
+      try {
+          const res = await batchApproveComments(Array.from(selectedIds));
+          if (res.success) {
+              toast.success(`已批准 ${res.count} 条评论`);
+              loadData(); // 重新加载以更新状态
+          } else {
+              toast.error("批量操作失败");
+          }
+      } catch (error) {
+          toast.error("网络错误");
+      }
+  };
+
+  // 批量删除
+  const handleBatchDelete = async () => {
+      if (selectedIds.size === 0) return;
+      try {
+          const res = await batchDeleteComments(Array.from(selectedIds));
+          if (res.success) {
+              toast.success(`已删除 ${res.count} 条评论`);
+              loadData();
+          } else {
+              toast.error("批量删除失败");
+          }
+      } catch (error) {
+          toast.error("网络错误");
+      }
+  };
 
   // 操作：切换审核状态
   const handleToggleApproval = async (id: number, currentStatus: boolean) => {
@@ -103,7 +160,7 @@ export default function AdminCommentsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl pb-24">
       {/* 头部导航 */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" size="icon" onClick={() => router.push('/admin')}>
@@ -125,7 +182,6 @@ export default function AdminCommentsPage() {
                 <TabsTrigger value="all">全部评论</TabsTrigger>
                 <TabsTrigger value="pending">
                     待审核
-                    {/* 这里可以加个数字角标，如果 API 支持返回待审核总数的话 */}
                 </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -140,6 +196,12 @@ export default function AdminCommentsPage() {
         <Table>
             <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                    <TableHead className="w-[50px]">
+                        <Checkbox 
+                            checked={comments.length > 0 && selectedIds.size === comments.length}
+                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                        />
+                    </TableHead>
                     <TableHead className="w-[180px]">用户</TableHead>
                     <TableHead>评论内容</TableHead>
                     <TableHead className="w-[150px]">文章</TableHead>
@@ -150,7 +212,7 @@ export default function AdminCommentsPage() {
             <TableBody>
                 {loading ? (
                     <TableRow>
-                        <TableCell colSpan={5} className="h-40 text-center text-gray-500">
+                        <TableCell colSpan={6} className="h-40 text-center text-gray-500">
                              <div className="flex items-center justify-center gap-2">
                                 <Loader2 className="w-4 h-4 animate-spin" /> 加载中...
                              </div>
@@ -158,13 +220,19 @@ export default function AdminCommentsPage() {
                     </TableRow>
                 ) : comments.length === 0 ? (
                     <TableRow>
-                         <TableCell colSpan={5} className="h-40 text-center text-gray-500">
+                         <TableCell colSpan={6} className="h-40 text-center text-gray-500">
                              暂无数据
                          </TableCell>
                     </TableRow>
                 ) : (
                     comments.map(comment => (
-                        <TableRow key={comment.id}>
+                        <TableRow key={comment.id} className={selectedIds.has(comment.id) ? "bg-orange-50 dark:bg-orange-900/10" : ""}>
+                            <TableCell>
+                                <Checkbox 
+                                    checked={selectedIds.has(comment.id)}
+                                    onCheckedChange={(checked) => handleSelectOne(comment.id, !!checked)}
+                                />
+                            </TableCell>
                             <TableCell>
                                 <div className="font-medium text-gray-900 dark:text-gray-200">{comment.guestName}</div>
                                 <div className="text-xs text-gray-400">{new Date(comment.createTime).toLocaleString()}</div>
@@ -241,6 +309,44 @@ export default function AdminCommentsPage() {
               下一页
           </Button>
       </div>
+
+      {/* 底部浮动批量操作栏 */}
+      {selectedIds.size > 0 && (
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xl rounded-full px-6 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-5">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  已选择 {selectedIds.size} 项
+              </span>
+              <div className="h-4 w-px bg-gray-200 dark:bg-zinc-700"></div>
+              <Button size="sm" onClick={handleBatchApprove} className="bg-green-600 hover:bg-green-700 text-white rounded-full">
+                  <CheckSquare className="w-4 h-4 mr-2" /> 批量通过
+              </Button>
+              <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="destructive" className="rounded-full">
+                        <Trash2 className="w-4 h-4 mr-2" /> 批量删除
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                      <AlertDialogHeader>
+                          <AlertDialogTitle>确认批量删除？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                              您即将删除 {selectedIds.size} 条评论，此操作不可撤销。
+                          </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleBatchDelete} className="bg-red-600 hover:bg-red-700">
+                              确认删除
+                          </AlertDialogAction>
+                      </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
+              
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-gray-500 rounded-full">
+                  取消
+              </Button>
+          </div>
+      )}
     </div>
   );
 }

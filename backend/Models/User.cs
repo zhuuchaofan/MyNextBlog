@@ -10,5 +10,7 @@ public class User
     public string Role { get; set; } = "User";
 
     // 新增：用户头像 URL (可空，未设置则使用默认或随机头像)
-    public string? AvatarUrl { get; set; }
+    public string? AvatarUrl { get; set; } // 用户头像 URL
+
+    public string? Email { get; set; } // 用户邮箱
 }

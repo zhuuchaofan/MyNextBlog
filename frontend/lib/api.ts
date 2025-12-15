@@ -225,3 +225,23 @@ export async function deleteCommentAdmin(id: number) {
   });
   return res.json();
 }
+
+// [Admin] 批量批准评论
+export async function batchApproveComments(ids: number[]) {
+  const res = await fetch('/api/backend/comments/batch-approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(ids)
+  });
+  return res.json();
+}
+
+// [Admin] 批量删除评论
+export async function batchDeleteComments(ids: number[]) {
+  const res = await fetch('/api/backend/comments/batch-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(ids)
+  });
+  return res.json();
+}

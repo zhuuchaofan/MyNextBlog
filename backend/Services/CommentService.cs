@@ -74,4 +74,25 @@ public class CommentService(AppDbContext context) : ICommentService
         await context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<int> BatchApproveAsync(List<int> ids)
+    {
+        var comments = await context.Comments.Where(c => ids.Contains(c.Id) && !c.IsApproved).ToListAsync();
+        if (!comments.Any()) return 0;
+
+        foreach (var c in comments)
+        {
+            c.IsApproved = true;
+        }
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<int> BatchDeleteAsync(List<int> ids)
+    {
+        var comments = await context.Comments.Where(c => ids.Contains(c.Id)).ToListAsync();
+        if (!comments.Any()) return 0;
+
+        context.Comments.RemoveRange(comments);
+        return await context.SaveChangesAsync();
+    }
 }

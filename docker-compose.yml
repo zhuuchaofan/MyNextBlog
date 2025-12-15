@@ -26,6 +26,9 @@ services:
       - JwtSettings__SecretKey=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
+      # SMTP
+      - SmtpSettings__SenderEmail=${SMTP_EMAIL}
+      - SmtpSettings__SenderPassword=${SMTP_PASSWORD}
     volumes:
       # 挂载数据库文件，保证重启不丢数据 (宿主机 ./data -> 容器 /app/data)
       - ./data:/app/data

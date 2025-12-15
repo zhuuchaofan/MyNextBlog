@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;               // 用于处理安全令牌�
 using MyNextBlog.Data;                              // 导入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Extensions;                         // 导入我们自己定义的扩展方法，比如 SeedDatabase
 using MyNextBlog.Services;                           // 导入业务逻辑服务层命名空间
+using MyNextBlog.Services.Email;                           // 导入邮件服务命名空间
 using MyNextBlog.Middlewares;                        // 导入中间件命名空间
 using Serilog;                                      // 导入 Serilog 日志库
 using System.Text;                                  // 用于字符串编码等操作
@@ -118,6 +119,7 @@ builder.Services.AddScoped<IImageService, ImageService>();     // 图片处理�
 builder.Services.AddScoped<ICategoryService, CategoryService>(); // 分类管理服务
 builder.Services.AddScoped<ITagService, TagService>();         // 标签管理服务
 builder.Services.AddScoped<IAuthService, AuthService>();       // 用户认证和授权服务
+builder.Services.AddSingleton<IEmailService, SmtpEmailService>(); // 真实邮件服务
 
 // --- 后台任务注册 (HostedService 生命周期) ---
 // ------------------------------------------------------------------
