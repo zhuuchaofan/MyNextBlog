@@ -24,7 +24,7 @@ public static class PostMappingExtensions
             MarkdownHelper.GetExcerpt(post.Content), // 提取摘要
             post.Category?.Name ?? "未分类",
             post.CategoryId,
-            post.User?.Username ?? "Admin",
+            GetAuthorName(post.User),
             post.User?.AvatarUrl,
             post.CreateTime,
             MarkdownHelper.GetCoverImage(post.Content), // 提取封面图
@@ -46,7 +46,7 @@ public static class PostMappingExtensions
             post.Content,
             post.Category?.Name ?? "未分类",
             post.CategoryId,
-            post.User?.Username ?? "Admin",
+            GetAuthorName(post.User),
             post.User?.AvatarUrl,
             post.CreateTime,
             post.Tags.Select(t => t.Name).ToList(),
@@ -54,5 +54,11 @@ public static class PostMappingExtensions
             commentCount,
             post.LikeCount
         );
+    }
+
+    private static string GetAuthorName(User? user)
+    {
+        if (user == null) return "Admin";
+        return !string.IsNullOrEmpty(user.Nickname) ? user.Nickname : user.Username;
     }
 }

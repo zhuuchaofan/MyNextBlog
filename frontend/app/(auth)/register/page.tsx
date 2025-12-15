@@ -1,36 +1,43 @@
-'use client'; // 标记为客户端组件，因为需要使用 React Hooks (useState) 和浏览器事件 (onSubmit)
+'use client'; 
 
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext'; // 导入自定义认证钩子，用于获取 login 方法
+import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
 import Link from 'next/link';
+import { registerUser } from '@/lib/api'; // Use registerUser from api.ts
 
-export default function LoginPage() {
-  // 定义本地状态，用于存储表单输入和 UI 状态
+export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // 从 AuthContext 获取 login 方法
-  // 该方法负责在登录成功后更新全局用户状态并进行页面跳转
   const { login } = useAuth();
 
-  // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // 阻止浏览器默认的表单提交刷新行为
-    setError('');       // 清除之前的错误信息
-    setLoading(true);   // 设置加载状态，显示转圈动画
+    e.preventDefault();
+    setError('');
+    
+    if (password !== confirmPassword) {
+        setError("两次输入的密码不一致");
+        return;
+    }
+
+    if (password.length < 6) {
+        setError("密码长度不能少于6位");
+        return;
+    }
+
+    setLoading(true);
 
     try {
-      // **关键点**: 这里请求的是 Next.js 的路由处理程序 (Route Handler) `/api/auth/login`，
-      // 而不是直接请求后端的 C# API。
-      // 这样做的好处是 Token 的设置（HttpOnly Cookie）完全由服务端路由处理，前端无需关心。
-      const res = await fetch('/api/auth/login', {
+      // Use Next.js Route Handler for registration
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -39,60 +46,52 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // 登录成功
-        // 调用 context 的 login 方法，传入用户信息（不包含 token）
-        // login 方法内部会执行 router.push('/admin') 跳转
-        login({ username: data.username, role: data.role });
+        // 注册成功后自动登录
+        login({ username: data.user.username, role: data.user.role, avatarUrl: data.user.avatarUrl });
       } else {
-        // 登录失败，显示错误消息
-        setError(data.message || '账号或密码错误，请检查');
+        setError(data.message || '注册失败，请稍后重试');
       }
     } catch (err) {
       setError('连接服务器失败，请稍后再试');
     } finally {
-      // 无论成功失败，都关闭加载状态
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50/50">
-      {/* 背景装饰圆 (Blobs) - 使用 CSS 动画增加视觉效果 */}
+      {/* Background Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
       <Card className="w-full max-w-[900px] grid md:grid-cols-2 overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm m-4">
         
-        {/* 左侧：品牌视觉区 (仅在大屏幕显示) */}
-        <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-orange-400 to-pink-500 p-10 text-white relative overflow-hidden">
+        {/* Left Column: Brand */}
+        <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-pink-500 to-orange-400 p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="relative z-10 text-center space-y-6">
              <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto shadow-lg border border-white/30 animate-float">
-                <span className="text-6xl">🐱</span>
+                <span className="text-6xl">🚀</span>
              </div>
              <div>
-               <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
-               <p className="text-orange-100 text-sm">欢迎回到球球与布丁的后花园</p>
-             </div>
-             <div className="pt-8 text-xs text-orange-100 opacity-80">
-               <p>技术 • 生活 • 萌宠</p>
+               <h2 className="text-3xl font-bold mb-2">Join Us!</h2>
+               <p className="text-orange-100 text-sm">创建账号，开始您的博客之旅</p>
              </div>
           </div>
           
-          {/* 装饰性爪印 */}
           <PawPrint className="absolute bottom-10 right-10 w-24 h-24 text-white/10 rotate-12" />
           <PawPrint className="absolute top-10 left-10 w-16 h-16 text-white/10 -rotate-12" />
         </div>
 
-        {/* 右侧：登录表单 */}
+        {/* Right Column: Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="text-center md:text-left mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">管理员登录</h1>
-            <p className="text-sm text-gray-500 mt-2">请输入您的凭证以继续</p>
+            <h1 className="text-2xl font-bold text-gray-900">注册账号</h1>
+            <p className="text-sm text-gray-500 mt-2">请填写以下信息以完成注册</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 border border-red-100 animate-in fade-in slide-in-from-top-2">
                 <span className="w-1 h-1 rounded-full bg-red-500"></span>
@@ -101,13 +100,13 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-700">用户名</Label>
+              <Label htmlFor="username">用户名</Label>
               <div className="relative group">
                 <UserIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="username" 
                   className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
-                  placeholder="您的用户名"
+                  placeholder="请输入用户名"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -123,48 +122,43 @@ export default function LoginPage() {
                   id="password" 
                   type="password" 
                   className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
-                  placeholder="••••••••"
+                  placeholder="至少6位"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
-              <div className="flex justify-end">
-                 <Link href="#" className="text-xs text-orange-500 hover:text-orange-600 hover:underline">
-                   忘记密码?
-                 </Link>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">确认密码</Label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  placeholder="请再次输入密码"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
               </div>
             </div>
 
             <Button 
               type="submit" 
-              className="w-full h-11 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+              className="w-full h-11 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300 mt-4"
               disabled={loading}
             >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  验证中...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  立即登录 <ArrowRight className="w-4 h-4" />
-                </span>
-              )}
+              {loading ? "注册中..." : <span className="flex items-center gap-2">立即注册 <ArrowRight className="w-4 h-4" /></span>}
             </Button>
           </form>
 
-          <div className="mt-8 text-center text-xs text-gray-400">
-            &copy; 2025 MyNextBlog. All rights reserved.
-          </div>
-          
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-500">还没有账号？ </span>
-            <Link href="/register" className="text-orange-500 hover:text-orange-600 hover:underline font-medium">
-              立即注册
+          <div className="mt-6 text-center text-sm">
+            <span className="text-gray-500">已有账号？ </span>
+            <Link href="/login" className="text-orange-500 hover:text-orange-600 hover:underline font-medium">
+              去登录
             </Link>
           </div>
         </div>

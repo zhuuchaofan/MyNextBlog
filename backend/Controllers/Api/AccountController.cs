@@ -41,12 +41,15 @@ public class AccountController(AppDbContext context, IStorageService storageServ
             user.Username,
             user.Role,
             user.AvatarUrl,
-            user.Email // 返回邮箱
+            user.Email,
+            user.Nickname,
+            user.Bio,
+            user.Website
         });
     }
 
     /// <summary>
-    /// 更新个人资料 (邮箱)
+    /// 更新个人资料
     /// </summary>
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
@@ -74,17 +77,21 @@ public class AccountController(AppDbContext context, IStorageService storageServ
             }
             user.Email = dto.Email;
         }
+        
+        if (dto.Nickname != null) user.Nickname = dto.Nickname;
+        if (dto.Bio != null) user.Bio = dto.Bio;
+        if (dto.Website != null) user.Website = dto.Website;
 
         await context.SaveChangesAsync();
 
         return Ok(new 
         { 
             success = true, 
-            user = new { user.Id, user.Username, user.Role, user.AvatarUrl, user.Email } 
+            user = new { user.Id, user.Username, user.Role, user.AvatarUrl, user.Email, user.Nickname, user.Bio, user.Website } 
         });
     }
 
-    public record UpdateProfileDto(string? Email);
+    public record UpdateProfileDto(string? Email, string? Nickname, string? Bio, string? Website);
 
     /// <summary>
     /// 上传并更新用户头像

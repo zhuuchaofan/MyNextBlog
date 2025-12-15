@@ -114,7 +114,7 @@ export default function Navbar() {
                           <>
                              <DropdownMenuLabel className="font-normal">
                                <div className="flex flex-col space-y-1">
-                                 <p className="text-sm font-medium leading-none">{user.username}</p>
+                                 <p className="text-sm font-medium leading-none">{user.nickname || user.username}</p>
                                  <p className="text-xs leading-none text-muted-foreground">
                                    {user.role === 'Admin' ? '管理员' : '普通用户'}
                                  </p>
@@ -173,7 +173,7 @@ export default function Navbar() {
                    <DropdownMenuContent className="w-56" align="end" forceMount>
                      <DropdownMenuLabel className="font-normal">
                        <div className="flex flex-col space-y-1">
-                         <p className="text-sm font-medium leading-none">{user.username}</p>
+                         <p className="text-sm font-medium leading-none">{user.nickname || user.username}</p>
                          <p className="text-xs leading-none text-muted-foreground">
                            {user.role === 'Admin' ? '管理员' : '普通用户'}
                          </p>

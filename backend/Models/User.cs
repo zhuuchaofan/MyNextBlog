@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations; // Added this line
+
 namespace MyNextBlog.Models;
 
 public class User
@@ -13,4 +15,14 @@ public class User
     public string? AvatarUrl { get; set; } // 用户头像 URL
 
     public string? Email { get; set; } // 用户邮箱
+
+    // 扩展资料
+    [MaxLength(50)]
+    public string? Nickname { get; set; } // 昵称 (显示名)
+    
+    [MaxLength(200)]
+    public string? Bio { get; set; } // 个人简介
+    
+    [MaxLength(200)]
+    public string? Website { get; set; } // 个人网站
 }

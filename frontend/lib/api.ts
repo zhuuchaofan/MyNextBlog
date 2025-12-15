@@ -192,13 +192,29 @@ export async function uploadAvatar(file: File) {
   return res.json();
 }
 
-// 更新个人资料 (邮箱)
-export async function updateProfile(email: string) {
+// 更新个人资料
+export async function updateProfile(data: { email?: string; nickname?: string; bio?: string; website?: string }) {
   const res = await fetch('/api/backend/account/profile', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
+    body: JSON.stringify(data)
   });
+  return res.json();
+}
+
+// 注册新用户
+export async function registerUser(username: string, password: string) {
+  const res = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || '注册失败');
+  }
+  
   return res.json();
 }
 

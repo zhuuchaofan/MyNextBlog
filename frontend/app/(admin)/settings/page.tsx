@@ -1,100 +1,96 @@
-'use client'; // 标记为客户端组件，因为需要使用 Hooks (useState, useEffect, useRef) 和处理文件上传
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子，用于获取和更新用户状态
+import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // shadcn/ui Avatar 组件
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner"; // Toast 通知组件
-import { uploadAvatar, updateProfile } from "@/lib/api"; // 导入上传头像的 API 函数
-import { Loader2, Upload, Save } from "lucide-react"; // 图标库
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { uploadAvatar, updateProfile } from "@/lib/api";
+import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X } from "lucide-react";
 
-/**
- * SettingsPage 组件：个人设置页面
- * --------------------------------------------------------------------------------
- * 这是一个客户端组件，允许管理员查看和更新个人信息，特别是更换头像。
- */
 export default function SettingsPage() {
-  const { user, updateUser, isLoading } = useAuth(); // 获取用户状态和更新用户信息的函数
-  const router = useRouter(); // Next.js 路由实例
-  const [uploading, setUploading] = useState(false); // 控制头像上传的加载状态
+  const { user, updateUser, isLoading } = useAuth();
+  const router = useRouter();
+  
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [email, setEmail] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null); // 用于引用隐藏的文件输入框
+  const [isEditing, setIsEditing] = useState(false); // 新增：编辑模式状态
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 初始化邮箱
+  // Form State
+  const [formData, setFormData] = useState({
+    email: '',
+    nickname: '',
+    bio: '',
+    website: ''
+  });
+
+  // Initialize form with user data
   useEffect(() => {
-    if (user?.email) {
-      setEmail(user.email);
+    if (user) {
+      setFormData({
+        email: user.email || '',
+        nickname: user.nickname || '',
+        bio: user.bio || '',
+        website: user.website || ''
+      });
     }
   }, [user]);
 
-  // **权限检查和重定向**
-  // 如果用户未登录且加载完成，则重定向到登录页。
-  // 注意：虽然 middleware 已经保护了 /admin 路由，这里的检查是为了在客户端进行即时反馈。
   if (!isLoading && !user) {
     router.push('/login');
-    return null; // 阻止渲染，等待重定向
+    return null;
   }
 
-  // 加载用户信息时显示加载动画
   if (isLoading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
 
-  // 处理文件选择和上传
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; // 获取用户选择的文件
-    if (!file) return; // 如果没有选择文件，则直接返回
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    // 1. **文件类型验证**
     if (!file.type.startsWith('image/')) {
       toast.error('请上传图片文件');
       return;
     }
 
-    // 2. **文件大小验证 (最大 5MB)**
     if (file.size > 5 * 1024 * 1024) {
       toast.error('图片大小不能超过 5MB');
       return;
     }
 
     try {
-      setUploading(true); // 开始上传，显示加载状态
-      const res = await uploadAvatar(file); // 调用 API 上传文件
+      setUploading(true);
+      const res = await uploadAvatar(file);
 
       if (res.success) {
-        toast.success('头像更新成功！'); // 上传成功通知
-        // 更新全局用户状态中的头像 URL，这样 Navbar 等组件会自动更新头像显示
-        updateUser({
-          ...user!, // 使用非空断言，因为在此处 `user` 必然存在
-          avatarUrl: res.avatarUrl
-        });
+        toast.success('头像更新成功！');
+        updateUser({ ...user!, avatarUrl: res.avatarUrl });
       } else {
-        toast.error('上传失败'); // 上传失败通知
+        toast.error('上传失败');
       }
     } catch (error) {
       console.error(error);
-      toast.error('上传出错，请重试'); // 捕获并处理网络错误
+      toast.error('上传出错');
     } finally {
-      setUploading(false); // 结束上传状态
-      // 清空文件输入框，以便用户可以再次选择相同文件
+      setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // 处理资料更新
-  const handleSaveProfile = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+      e.preventDefault();
       setSaving(true);
       try {
-          const res = await updateProfile(email);
+          const res = await updateProfile(formData);
           if (res.success) {
               toast.success("个人资料已更新");
-              updateUser({
-                  ...user!,
-                  email: email
-              });
+              updateUser({ ...user!, ...formData });
+              setIsEditing(false); // 保存后退出编辑模式
           } else {
               toast.error(res.message || "更新失败");
           }
@@ -105,78 +101,147 @@ export default function SettingsPage() {
       }
   };
 
+  const handleCancel = () => {
+      setIsEditing(false);
+      // 重置表单为当前用户数据
+      if (user) {
+        setFormData({
+            email: user.email || '',
+            nickname: user.nickname || '',
+            bio: user.bio || '',
+            website: user.website || ''
+        });
+      }
+  };
+
   return (
-    <div className="container mx-auto py-10 px-4 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>个人设置</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          
-          <div className="flex flex-col items-center gap-6">
-            {/* 用户头像显示 */}
-            <Avatar className="w-32 h-32 border-4 border-orange-100 shadow-lg">
-              {/* 如果用户有自定义头像，则显示；否则使用 DiceBear 生成的默认头像 */}
-              <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} className="object-cover" />
-              {/* 如果头像加载失败，显示用户名的首字母 */}
-              <AvatarFallback className="text-4xl">{user?.username?.[0].toUpperCase()}</AvatarFallback>
-            </Avatar>
+    <div className="container mx-auto py-10 px-4 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">账号设置</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        {/* Left Column: Avatar & Basic Info */}
+        <div className="md:col-span-1 space-y-6">
+            <Card>
+                <CardHeader className="text-center">
+                    <CardTitle>我的头像</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-4">
+                    <Avatar className="w-32 h-32 border-4 border-orange-100 dark:border-orange-900/30 shadow-lg">
+                        <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} className="object-cover" />
+                        <AvatarFallback className="text-4xl">{user?.username?.[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{user?.nickname || user?.username}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">@{user?.username}</p>
+                    </div>
 
-            {/* 用户名和角色信息 */}
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{user?.username}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{user?.role === 'Admin' ? '管理员' : '普通用户'}</p>
-            </div>
+                    <div className="w-full">
+                        <Button 
+                            variant="outline" 
+                            className="w-full"
+                            disabled={uploading}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                            更换头像
+                        </Button>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                        <p className="text-xs text-center text-gray-400 mt-2">支持 JPG, PNG. 最大 5MB</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
-            {/* 更换头像按钮和隐藏的文件输入框 */}
-            <div className="flex items-center gap-4 w-full max-w-xs">
-              <Button 
-                variant="outline" 
-                className="w-full relative overflow-hidden" 
-                disabled={uploading} // 上传中禁用按钮
-                onClick={() => fileInputRef.current?.click()} // 点击按钮时触发文件选择
-              >
-                {uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // 上传中显示加载动画
-                ) : (
-                  <Upload className="mr-2 h-4 w-4" /> // 否则显示上传图标
-                )}
-                {uploading ? '上传中...' : '更换头像'}
-              </Button>
-              {/* 隐藏的文件输入框，用于选择文件 */}
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                className="hidden" 
-                accept="image/*" // 只接受图片文件
-                onChange={handleFileChange} // 文件选择后触发处理函数
-              />
-            </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500">支持 JPG, PNG, GIF. 最大 5MB.</p>
-          </div>
+        {/* Right Column: Profile Form */}
+        <div className="md:col-span-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>个人资料</CardTitle>
+                        <CardDescription>管理您的公开信息和联系方式</CardDescription>
+                    </div>
+                    {!isEditing && (
+                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                            <Pencil className="w-4 h-4 mr-2" /> 编辑
+                        </Button>
+                    )}
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSave} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="nickname" className="flex items-center gap-2">
+                                <UserIcon className="w-4 h-4 text-gray-500" /> 昵称 (显示名)
+                            </Label>
+                            <Input 
+                                id="nickname" 
+                                placeholder="例如：技术宅" 
+                                value={formData.nickname}
+                                onChange={(e) => setFormData({...formData, nickname: e.target.value})}
+                                disabled={!isEditing}
+                            />
+                        </div>
 
-          <div className="border-t border-gray-100 dark:border-zinc-800 my-6"></div>
+                        <div className="space-y-2">
+                            <Label htmlFor="bio">个人简介</Label>
+                            <Textarea 
+                                id="bio" 
+                                placeholder="写一句话介绍你自己..." 
+                                className="resize-none h-24"
+                                value={formData.bio}
+                                onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                                disabled={!isEditing}
+                            />
+                        </div>
 
-          {/* 邮箱设置表单 */}
-          <div className="space-y-4 max-w-md mx-auto">
-              <div className="space-y-2">
-                  <Label htmlFor="email">邮箱地址 (用于接收通知)</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="your@email.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-              </div>
-              <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  保存更改
-              </Button>
-          </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-gray-500" /> 邮箱地址
+                                </Label>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="your@email.com" 
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    disabled={!isEditing}
+                                />
+                                <p className="text-xs text-gray-500">用于接收评论通知</p>
+                            </div>
 
-        </CardContent>
-      </Card>
+                            <div className="space-y-2">
+                                <Label htmlFor="website" className="flex items-center gap-2">
+                                    <Globe className="w-4 h-4 text-gray-500" /> 个人网站
+                                </Label>
+                                <Input 
+                                    id="website" 
+                                    placeholder="https://example.com" 
+                                    value={formData.website}
+                                    onChange={(e) => setFormData({...formData, website: e.target.value})}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+                        </div>
+
+                        {isEditing && (
+                            <div className="pt-4 flex justify-end gap-2">
+                                <Button type="button" variant="outline" onClick={handleCancel}>
+                                    <X className="w-4 h-4 mr-2" /> 取消
+                                </Button>
+                                <Button type="submit" disabled={saving} className="min-w-[120px] bg-orange-500 hover:bg-orange-600 text-white">
+                                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                    保存更改
+                                </Button>
+                            </div>
+                        )}
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
+
+      </div>
     </div>
   );
 }

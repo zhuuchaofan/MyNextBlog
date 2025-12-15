@@ -280,9 +280,19 @@ public class CommentsController(ICommentService commentService, AppDbContext con
 
     private static CommentDto MapToDto(Comment c)
     {
+        string authorName = "匿名";
+        if (c.User != null)
+        {
+            authorName = !string.IsNullOrEmpty(c.User.Nickname) ? c.User.Nickname : c.User.Username;
+        }
+        else if (!string.IsNullOrEmpty(c.GuestName))
+        {
+            authorName = c.GuestName;
+        }
+
         return new CommentDto(
             c.Id,
-            c.User != null ? c.User.Username : (c.GuestName ?? "匿名"),
+            authorName,
             c.Content,
             c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
             c.User?.AvatarUrl,
