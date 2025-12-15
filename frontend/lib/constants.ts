@@ -1,7 +1,7 @@
 export const SITE_CONFIG = {
   name: "朱超凡的技术博客",
   author: "朱超凡",
-  description: "全栈开发者 / .NET / Next.js / 技术折腾狂",
+  description: "全栈开发者 / .NET / Next.js / 赴日修行中",
   url: "https://zhuchaofan.online",
   avatar: "https://picture.zhuchaofan.online/CAT/boy_01.png",
   social: {
@@ -26,13 +26,57 @@ export const PETS = {
   }
 };
 
-export const SKILLS = [
-  { name: ".NET Core / C#", level: 95, icon: "Server" },
-  { name: "React / Next.js", level: 85, icon: "Layout" },
-  { name: "Docker / K8s", level: 80, icon: "Cpu" },
-  { name: "SQL / NoSQL", level: 85, icon: "Database" },
-  { name: "Linux Ops", level: 75, icon: "Terminal" },
-  { name: "TypeScript", level: 90, icon: "Code2" },
+export const SKILL_CATEGORIES = [
+  {
+    title: "后端与数据库",
+    skills: [
+      { name: ".NET Framework / Core", icon: "Server", level: "精通" },
+      { name: "C#", icon: "Code2", level: "精通" },
+      { name: "Oracle DB", icon: "Database", level: "熟练" },
+      { name: "PostgreSQL", icon: "Database", level: "熟练" },
+      { name: "Legacy Migration", icon: "GitGraph", level: "熟练" }, 
+      { name: "Mainframe (Learning)", icon: "Server", level: "初学" }
+    ]
+  },
+  {
+    title: "前端 (业余)",
+    skills: [
+      { name: "React", icon: "Layout", level: "掌握" },
+      { name: "Next.js 15", icon: "Globe", level: "掌握" },
+      { name: "TypeScript", icon: "Code2", level: "掌握" },
+      { name: "Tailwind CSS", icon: "Palette", level: "掌握" }
+    ]
+  },
+  {
+    title: "运维与工具",
+    skills: [
+      { name: "Docker", icon: "Container", level: "掌握" },
+      { name: "Linux", icon: "Terminal", level: "掌握" },
+      { name: "Git", icon: "GitGraph", level: "熟练" },
+      { name: "iTerm", icon: "Terminal", level: "熟练" }
+    ]
+  }
 ];
 
-export const BOOKS = ["Native AOT", "Blazor", ".NET Aspire", "Orleans", "SignalR"];
+export interface Book {
+  title: string;
+  status: string;
+  cover: string;
+}
+
+export const BOOKS: Book[] = [
+  { title: "重构：改善既有代码的设计", status: "Reading", cover: "🔨" },
+  { title: "图解HTTP", status: "Reading", cover: "🌐" },
+  { title: "算法图解", status: "Reading", cover: "💡" },
+];
+
+export const TIMELINE = [
+  { year: "2026 (预计)", title: "回国发展", description: "计划结束出向任务回国，继续在技术领域深耕。" },
+  { year: "2025.02", title: "赴日出向", description: "来到日本富士通总部，投身大型机系统迁移项目，同时开启日语学习之旅。" },
+  { year: "2019", title: "入职富士通 (西安)", description: "正式步入职场。主要负责 .NET 版本升级与数据库移行 (Oracle -> PostgreSQL) 项目，积累了扎实的企业级开发经验。" },
+];
+
+export const GEARS = [
+  { category: "Hardware", items: ["Mac mini M4"] },
+  { category: "Software", items: ["JetBrains Rider", "VS Code", "iTerm", "Docker Desktop", "Obsidian"] }
+];
