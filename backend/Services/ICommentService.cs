@@ -4,7 +4,6 @@ namespace MyNextBlog.Services;
 
 public interface ICommentService
 {
-    Task AddCommentAsync(Comment comment);
     Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize);
     Task<int> GetCommentCountAsync(int postId);
     
@@ -14,4 +13,9 @@ public interface ICommentService
     Task<bool> DeleteCommentAsync(int id);
     Task<int> BatchApproveAsync(List<int> ids);
     Task<int> BatchDeleteAsync(List<int> ids);
+
+    // High-level business logic
+    Task<CommentCreationResult> CreateCommentAsync(int postId, string content, string? guestName, int? parentId, int? userId);
 }
+
+public record CommentCreationResult(bool Success, string Message, Comment? Comment);

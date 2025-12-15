@@ -6,9 +6,12 @@ namespace MyNextBlog.Services;
 public interface IAuthService
 {
     Task<AuthResponseDto?> LoginAsync(LoginDto dto);
-    
-    // Helper methods for controller
+    Task<AuthResult> RegisterAsync(string username, string password);
+
+    // Helper methods for controller (if needed, or can be private/internal if fully refactored)
     Task<User?> AuthenticateAsync(string username, string password);
     string GenerateJwtToken(User user);
     string HashPassword(string password);
 }
+
+public record AuthResult(bool Success, string Message, User? User, string? Token);

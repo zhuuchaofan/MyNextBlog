@@ -1,9 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.DTOs;
 using MyNextBlog.Services;
-using MyNextBlog.Data; // Added
-using MyNextBlog.Models; // Added
-using Microsoft.EntityFrameworkCore; // Added for AnyAsync
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -12,7 +8,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(IAuthService authService, AppDbContext context) : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
     /// <summary>
     /// 用户登录
@@ -20,12 +16,14 @@ public class AuthController(IAuthService authService, AppDbContext context) : Co
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
+        // 使用 Service 提供的 Helper 方法进行认证
         var user = await authService.AuthenticateAsync(dto.Username, dto.Password);
         if (user == null)
         {
             return Unauthorized(new { message = "用户名或密码错误" });
         }
 
+        // 生成 Token
         var token = authService.GenerateJwtToken(user);
         
         // 返回 Token 和用户信息
@@ -48,32 +46,17 @@ public class AuthController(IAuthService authService, AppDbContext context) : Co
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        if (await context.Users.AnyAsync(u => u.Username == dto.Username))
+        var result = await authService.RegisterAsync(dto.Username, dto.Password);
+
+        if (!result.Success)
         {
-            return BadRequest(new { message = "用户名已存在" });
+            return BadRequest(new { message = result.Message });
         }
 
-        // 创建新用户 (默认普通用户角色)
-        var user = new User
-        {
-            Username = dto.Username,
-            Role = "User", // 默认角色
-            AvatarUrl = null
-        };
-        
-        // 哈希密码 (简单示例，实际应使用更强的哈希算法如 BCrypt/Argon2)
-        // 注意：AuthService.AuthenticateAsync 使用的是安全的 BCrypt 哈希
-        user.PasswordHash = authService.HashPassword(dto.Password);
-
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
-
-        // 注册成功后直接生成 Token 登录
-        var token = authService.GenerateJwtToken(user);
-
+        var user = result.User!;
         return Ok(new 
         {
-            token,
+            token = result.Token,
             user = new 
             {
                 user.Id,

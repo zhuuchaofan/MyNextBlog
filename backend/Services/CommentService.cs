@@ -1,16 +1,140 @@
 using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
+using Ganss.Xss;
+using MyNextBlog.Services.Email;
 
 namespace MyNextBlog.Services;
 
-public class CommentService(AppDbContext context) : ICommentService
+public class CommentService(
+    AppDbContext context,
+    IHtmlSanitizer sanitizer,
+    IConfiguration configuration,
+    IEmailService emailService) : ICommentService
 {
-    public async Task AddCommentAsync(Comment comment)
+    public async Task<CommentCreationResult> CreateCommentAsync(int postId, string content, string? guestName, int? parentId, int? userId)
     {
+        if (string.IsNullOrWhiteSpace(content))
+            return new CommentCreationResult(false, "评论内容不能为空", null);
+
+        var safeContent = sanitizer.Sanitize(content);
+        if (string.IsNullOrWhiteSpace(safeContent))
+            return new CommentCreationResult(false, "评论内容包含非法字符", null);
+
+        User? user = null;
+        if (userId.HasValue)
+        {
+            user = await context.Users.FindAsync(userId.Value);
+        }
+
+        var comment = new Comment
+        {
+            PostId = postId,
+            Content = safeContent,
+            CreateTime = DateTime.Now,
+            ParentId = parentId,
+            GuestName = guestName
+        };
+
+        if (user != null)
+        {
+            comment.UserId = user.Id;
+            comment.GuestName = user.Username; 
+        }
+        else
+        {
+             comment.GuestName = string.IsNullOrWhiteSpace(guestName) ? "匿名访客" : guestName;
+        }
+
+        // Spam Check
+        var spamKeywords = configuration.GetSection("SpamKeywords").Get<string[]>() ?? Array.Empty<string>();
+        bool isSpam = spamKeywords.Any(k => safeContent.Contains(k, StringComparison.OrdinalIgnoreCase));
+        
+        bool isAdmin = user?.Role == "Admin";
+
+        if (isSpam && !isAdmin)
+        {
+            comment.IsApproved = false;
+        }
+
         context.Comments.Add(comment);
         await context.SaveChangesAsync();
+
+        _ = SendNotificationsAsync(comment);
+
+        string message = comment.IsApproved ? "评论发表成功" : "评论包含敏感词，已进入人工审核队列";
+        return new CommentCreationResult(true, message, comment);
     }
+
+    private async Task SendNotificationsAsync(Comment comment)
+    {
+        try 
+        {
+            var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
+            var postTitle = post?.Title ?? "未命名文章";
+            var appUrl = configuration["AppUrl"]?.TrimEnd('/');
+
+            if (!comment.IsApproved)
+            {
+                var adminEmail = configuration["SmtpSettings:AdminEmail"];
+                if (!string.IsNullOrEmpty(adminEmail))
+                {
+                    string subject = $"[待审核] 新评论需处理：{postTitle}";
+                    string body = $@"
+                        <p>有一条新评论触发了敏感词拦截，请审核：</p>
+                        <p><strong>文章：</strong> {postTitle}</p>
+                        <p><strong>用户：</strong> {comment.GuestName}</p>
+                        <p><strong>内容：</strong></p>
+                        <blockquote>{comment.Content}</blockquote>
+                        <p><a href=""{appUrl}/admin/comments"">前往审核</a></p>
+                    ";
+                    await emailService.SendEmailAsync(adminEmail, subject, body);
+                }
+            }
+            else if (comment.ParentId.HasValue)
+            {
+                var parentComment = await context.Comments.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == comment.ParentId.Value);
+                if (parentComment != null)
+                {
+                    string? recipientEmail = null;
+                    string recipientName = parentComment.GuestName ?? "匿名访客";
+                    
+                    if (parentComment.User != null && !string.IsNullOrWhiteSpace(parentComment.User.Email))
+                    {
+                        recipientEmail = parentComment.User.Email;
+                        recipientName = parentComment.User.Username;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(parentComment.GuestEmail))
+                    {
+                        recipientEmail = parentComment.GuestEmail;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(recipientEmail))
+                    {
+                        string subject = $"您的评论在 [{postTitle}] 获得新回复！";
+                        string body = $@"
+                            <p>亲爱的 {recipientName}，</p>
+                            <p>您在文章 <strong>&quot;{postTitle}&quot;</strong> 下的评论有了新的回复：</p>
+                            <blockquote>
+                                <p>{comment.Content}</p>
+                            </blockquote>
+                            <p>点击这里查看完整对话：<a href=""{appUrl}/posts/{comment.PostId}#comment-{comment.Id}"">查看评论</a></p>
+                            <p>期待您的再次访问！</p>
+                            <p>MyNextBlog 团队</p>
+                        ";
+                        await emailService.SendEmailAsync(recipientEmail, subject, body);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending notification: {ex.Message}");
+        }
+    }
+
+    // Removed AddCommentAsync
+
 
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {
