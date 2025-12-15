@@ -106,8 +106,32 @@ public class CommentsController(ICommentService commentService, AppDbContext con
         // 6. 保存评论
         await commentService.AddCommentAsync(comment);
 
-        // 7. 发送邮件通知 (如果这是回复)
-        if (comment.ParentId.HasValue)
+        // 7. 发送邮件通知
+        // 获取文章标题
+        var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
+        var postTitle = post?.Title ?? "未命名文章";
+
+        // Case A: 待审核通知 (发给管理员)
+        if (!comment.IsApproved)
+        {
+            var adminEmail = configuration["SmtpSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                string subject = $"[待审核] 新评论需处理：{postTitle}";
+                string body = $@"
+                    <p>有一条新评论触发了敏感词拦截，请审核：</p>
+                    <p><strong>文章：</strong> {postTitle}</p>
+                    <p><strong>用户：</strong> {comment.GuestName}</p>
+                    <p><strong>内容：</strong></p>
+                    <blockquote>{comment.Content}</blockquote>
+                    <p><a href=""{Request.Scheme}://{Request.Host}/admin/comments"">前往审核</a></p>
+                ";
+                // 不等待邮件发送，以免阻塞接口
+                _ = emailService.SendEmailAsync(adminEmail, subject, body);
+            }
+        }
+        // Case B: 回复通知 (发给被回复的用户，前提是评论已通过)
+        else if (comment.ParentId.HasValue)
         {
             var parentComment = await context.Comments.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == comment.ParentId.Value);
             if (parentComment != null)
@@ -129,10 +153,6 @@ public class CommentsController(ICommentService commentService, AppDbContext con
 
                 if (!string.IsNullOrWhiteSpace(recipientEmail))
                 {
-                    var post = await context.Posts.FirstOrDefaultAsync(p => p.Id == comment.PostId);
-                    var postTitle = post?.Title ?? "您的文章";
-                    var commentLink = $"您的评论 [\"{parentComment.Content.Substring(0, Math.Min(20, parentComment.Content.Length))}...\"] 有新回复";
-
                     string subject = $"您的评论在 [{postTitle}] 获得新回复！";
                     string body = $@"
                         <p>亲爱的 {recipientName}，</p>
@@ -144,7 +164,7 @@ public class CommentsController(ICommentService commentService, AppDbContext con
                         <p>期待您的再次访问！</p>
                         <p>MyNextBlog 团队</p>
                     ";
-                    await emailService.SendEmailAsync(recipientEmail, subject, body);
+                    _ = emailService.SendEmailAsync(recipientEmail, subject, body);
                 }
             }
         }
