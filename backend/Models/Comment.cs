@@ -29,4 +29,7 @@ public class Comment
     public int? ParentId { get; set; }
     public Comment? Parent { get; set; } // 导航属性：指向父评论
     public List<Comment> Children { get; set; } = new List<Comment>(); // 导航属性：子评论列表
+
+    // 审核状态：默认不需要审核 (true)，如果开启强审核则设为 false
+    public bool IsApproved { get; set; } = true;
 }

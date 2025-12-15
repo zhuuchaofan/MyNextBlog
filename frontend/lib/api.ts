@@ -184,34 +184,44 @@ export async function uploadAvatar(file: File) {
     body: formData // fetch 会自动设置 Content-Type 为 multipart/form-data
   });
 
-    if (!res.ok) {
-
-      const text = await res.text();
-
-      throw new Error(`Upload failed: ${res.status} ${text}`);
-
-    }
-
-  
-
-    return res.json();
-
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upload failed: ${res.status} ${text}`);
   }
 
-  
+  return res.json();
+}
 
-  // 切换文章点赞状态
+// 切换文章点赞状态
+export async function toggleLike(postId: number) {
+  const res = await fetch(`/api/backend/posts/${postId}/like`, {
+    method: 'POST'
+  });
+  return res.json();
+}
 
-  export async function toggleLike(postId: number) {
-
-    const res = await fetch(`/api/backend/posts/${postId}/like`, {
-
-      method: 'POST'
-
-    });
-
-    return res.json();
-
+// [Admin] 获取所有评论
+export async function fetchAllCommentsAdmin(page = 1, pageSize = 20, isApproved?: boolean) {
+  let url = `/api/backend/comments/admin?page=${page}&pageSize=${pageSize}`;
+  if (isApproved !== undefined) {
+    url += `&isApproved=${isApproved}`;
   }
+  const res = await fetch(url);
+  return res.json();
+}
 
-  
+// [Admin] 切换评论审核状态
+export async function toggleCommentApproval(id: number) {
+  const res = await fetch(`/api/backend/comments/${id}/approval`, {
+    method: 'PATCH'
+  });
+  return res.json();
+}
+
+// [Admin] 删除评论
+export async function deleteCommentAdmin(id: number) {
+  const res = await fetch(`/api/backend/comments/${id}`, {
+    method: 'DELETE'
+  });
+  return res.json();
+}

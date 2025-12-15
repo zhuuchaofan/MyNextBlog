@@ -5,6 +5,7 @@ using Ganss.Xss;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
+using Microsoft.AspNetCore.Authorization; // Added this line
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -118,6 +119,58 @@ public class CommentsController(ICommentService commentService, AppDbContext con
             comments = comments.Select(MapToDto),
             hasMore
         });
+    }
+
+    /// <summary>
+    /// [Admin] 获取所有评论列表
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin")]
+    public async Task<IActionResult> GetAdminComments(int page = 1, int pageSize = 20, bool? isApproved = null)
+    {
+        var (comments, totalCount) = await commentService.GetAllCommentsForAdminAsync(page, pageSize, isApproved);
+        
+        return Ok(new
+        {
+            success = true,
+            totalCount,
+            comments = comments.Select(c => new
+            {
+                c.Id,
+                c.Content,
+                c.CreateTime,
+                c.GuestName,
+                c.GuestEmail,
+                c.IsApproved,
+                PostTitle = c.Post?.Title, // 需要在 Service Include Post
+                PostId = c.PostId,
+                UserAvatar = c.User?.AvatarUrl
+            })
+        });
+    }
+
+    /// <summary>
+    /// [Admin] 切换审核状态
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id}/approval")]
+    public async Task<IActionResult> ToggleApproval(int id)
+    {
+        var result = await commentService.ToggleApprovalAsync(id);
+        if (!result) return NotFound(new { success = false, message = "评论不存在" });
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// [Admin] 删除评论
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteComment(int id)
+    {
+        var result = await commentService.DeleteCommentAsync(id);
+        if (!result) return NotFound(new { success = false, message = "评论不存在" });
+        return Ok(new { success = true });
     }
 
     private static CommentDto MapToDto(Comment c)
