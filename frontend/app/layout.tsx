@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
+import { BackgroundGrid } from "@/components/ui/BackgroundGrid";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <BackgroundGrid />
             {children}
             <Toaster />
           </AuthProvider>
