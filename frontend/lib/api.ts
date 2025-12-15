@@ -192,6 +192,16 @@ export async function uploadAvatar(file: File) {
   return res.json();
 }
 
+// 更新个人资料 (邮箱)
+export async function updateProfile(email: string) {
+  const res = await fetch('/api/backend/account/profile', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  return res.json();
+}
+
 // 切换文章点赞状态
 export async function toggleLike(postId: number) {
   const res = await fetch(`/api/backend/posts/${postId}/like`, {

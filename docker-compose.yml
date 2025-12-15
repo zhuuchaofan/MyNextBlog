@@ -29,6 +29,8 @@ services:
       # SMTP
       - SmtpSettings__SenderEmail=${SMTP_EMAIL}
       - SmtpSettings__SenderPassword=${SMTP_PASSWORD}
+      # App
+      - AppUrl=${APP_URL}
     volumes:
       # 挂载数据库文件，保证重启不丢数据 (宿主机 ./data -> 容器 /app/data)
       - ./data:/app/data

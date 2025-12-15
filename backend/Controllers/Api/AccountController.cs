@@ -40,9 +40,51 @@ public class AccountController(AppDbContext context, IStorageService storageServ
             user.Id,
             user.Username,
             user.Role,
-            user.AvatarUrl
+            user.AvatarUrl,
+            user.Email // 返回邮箱
         });
     }
+
+    /// <summary>
+    /// 更新个人资料 (邮箱)
+    /// </summary>
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+    {
+        // 1. 获取当前用户
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+
+        // 2. 更新信息
+        if (dto.Email != null)
+        {
+            // 简单的邮箱格式验证 (可选)
+            if (!string.IsNullOrWhiteSpace(dto.Email) && !dto.Email.Contains("@"))
+            {
+                 return BadRequest(new { success = false, message = "邮箱格式不正确" });
+            }
+            user.Email = dto.Email;
+        }
+
+        await context.SaveChangesAsync();
+
+        return Ok(new 
+        { 
+            success = true, 
+            user = new { user.Id, user.Username, user.Role, user.AvatarUrl, user.Email } 
+        });
+    }
+
+    public record UpdateProfileDto(string? Email);
 
     /// <summary>
     /// 上传并更新用户头像

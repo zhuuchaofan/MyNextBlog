@@ -8,6 +8,7 @@ interface User {
   username: string;
   role: string;
   avatarUrl?: string;
+  email?: string;
 }
 
 // 定义 AuthContext 提供的功能和数据接口
@@ -43,7 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
              setUser({
                  username: data.user.username,
                  role: data.user.role,
-                 avatarUrl: data.user.avatarUrl
+                 avatarUrl: data.user.avatarUrl,
+                 email: data.user.email
              });
           }
         }

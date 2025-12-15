@@ -110,6 +110,7 @@ public class CommentsController(ICommentService commentService, AppDbContext con
         // 获取文章标题
         var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
         var postTitle = post?.Title ?? "未命名文章";
+        var appUrl = configuration["AppUrl"]?.TrimEnd('/');
 
         // Case A: 待审核通知 (发给管理员)
         if (!comment.IsApproved)
@@ -124,7 +125,7 @@ public class CommentsController(ICommentService commentService, AppDbContext con
                     <p><strong>用户：</strong> {comment.GuestName}</p>
                     <p><strong>内容：</strong></p>
                     <blockquote>{comment.Content}</blockquote>
-                    <p><a href=""{Request.Scheme}://{Request.Host}/admin/comments"">前往审核</a></p>
+                    <p><a href=""{appUrl}/admin/comments"">前往审核</a></p>
                 ";
                 // 不等待邮件发送，以免阻塞接口
                 _ = emailService.SendEmailAsync(adminEmail, subject, body);
@@ -160,7 +161,7 @@ public class CommentsController(ICommentService commentService, AppDbContext con
                         <blockquote>
                             <p>{comment.Content}</p>
                         </blockquote>
-                        <p>点击这里查看完整对话：<a href=""{Request.Scheme}://{Request.Host}/posts/{comment.PostId}#comment-{comment.Id}"">查看评论</a></p>
+                        <p>点击这里查看完整对话：<a href=""{appUrl}/posts/{comment.PostId}#comment-{comment.Id}"">查看评论</a></p>
                         <p>期待您的再次访问！</p>
                         <p>MyNextBlog 团队</p>
                     ";

@@ -17,9 +17,9 @@ public class CommentService(AppDbContext context) : ICommentService
         return await context.Comments
             .AsNoTracking()
             .Include(c => c.User)
-            .Include(c => c.Children)
+            .Include(c => c.Children.Where(child => child.IsApproved)) // Filter children!
                 .ThenInclude(r => r.User)
-            .Where(c => c.PostId == postId && c.ParentId == null && c.IsApproved) // Only approved comments
+            .Where(c => c.PostId == postId && c.ParentId == null && c.IsApproved) // Only approved root comments
             .OrderByDescending(c => c.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

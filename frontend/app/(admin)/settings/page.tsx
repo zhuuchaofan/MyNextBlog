@@ -1,14 +1,16 @@
 'use client'; // 标记为客户端组件，因为需要使用 Hooks (useState, useEffect, useRef) 和处理文件上传
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子，用于获取和更新用户状态
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // shadcn/ui Avatar 组件
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner"; // Toast 通知组件
-import { uploadAvatar } from "@/lib/api"; // 导入上传头像的 API 函数
-import { Loader2, Upload } from "lucide-react"; // 图标库
+import { uploadAvatar, updateProfile } from "@/lib/api"; // 导入上传头像的 API 函数
+import { Loader2, Upload, Save } from "lucide-react"; // 图标库
 
 /**
  * SettingsPage 组件：个人设置页面
@@ -19,7 +21,16 @@ export default function SettingsPage() {
   const { user, updateUser, isLoading } = useAuth(); // 获取用户状态和更新用户信息的函数
   const router = useRouter(); // Next.js 路由实例
   const [uploading, setUploading] = useState(false); // 控制头像上传的加载状态
+  const [saving, setSaving] = useState(false);
+  const [email, setEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null); // 用于引用隐藏的文件输入框
+
+  // 初始化邮箱
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   // **权限检查和重定向**
   // 如果用户未登录且加载完成，则重定向到登录页。
@@ -73,6 +84,27 @@ export default function SettingsPage() {
     }
   };
 
+  // 处理资料更新
+  const handleSaveProfile = async () => {
+      setSaving(true);
+      try {
+          const res = await updateProfile(email);
+          if (res.success) {
+              toast.success("个人资料已更新");
+              updateUser({
+                  ...user!,
+                  email: email
+              });
+          } else {
+              toast.error(res.message || "更新失败");
+          }
+      } catch (error) {
+          toast.error("网络错误");
+      } finally {
+          setSaving(false);
+      }
+  };
+
   return (
     <div className="container mx-auto py-10 px-4 max-w-2xl">
       <Card>
@@ -121,6 +153,26 @@ export default function SettingsPage() {
               />
             </div>
             <p className="text-xs text-gray-400 dark:text-gray-500">支持 JPG, PNG, GIF. 最大 5MB.</p>
+          </div>
+
+          <div className="border-t border-gray-100 dark:border-zinc-800 my-6"></div>
+
+          {/* 邮箱设置表单 */}
+          <div className="space-y-4 max-w-md mx-auto">
+              <div className="space-y-2">
+                  <Label htmlFor="email">邮箱地址 (用于接收通知)</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+              </div>
+              <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  保存更改
+              </Button>
           </div>
 
         </CardContent>
