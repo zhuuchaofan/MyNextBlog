@@ -157,7 +157,7 @@ export default function Navbar() {
                  <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
                    <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
                      <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
-                     <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                     <AvatarFallback>{user.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                    </Avatar>
                  </Button>
                ) : (
@@ -166,7 +166,7 @@ export default function Navbar() {
                      <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
                        <Avatar className="h-8 w-8 border border-orange-100 dark:border-orange-900">
                          <AvatarImage src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.username} className="object-cover" />
-                         <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                         <AvatarFallback>{user.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                        </Avatar>
                      </Button>
                    </DropdownMenuTrigger>

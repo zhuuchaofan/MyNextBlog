@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: true, // 开启 SourceMap 以定位生产环境报错
   output: "standalone", // 开启 Docker 优化模式
   images: {
     remotePatterns: [
