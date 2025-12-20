@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Authorization;
+using MyNextBlog.DTOs;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
 
@@ -176,7 +177,4 @@ public class CommentsController(ICommentService commentService, IMemoryCache cac
             c.Children.Select(MapToDto).ToList()
         );
     }
-
-    public record CreateCommentDto(int PostId, string Content, string? GuestName, int? ParentId);
-    public record CommentDto(int Id, string GuestName, string Content, string CreateTime, string? UserAvatar, int? ParentId, List<CommentDto> Children);
 }

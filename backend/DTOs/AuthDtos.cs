@@ -1,7 +1,23 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyNextBlog.DTOs;
 
-public record LoginDto(string Username, string Password);
+public record LoginDto(
+    [Required(ErrorMessage = "用户名不能为空")]
+    string Username,
+    
+    [Required(ErrorMessage = "密码不能为空")]
+    string Password
+);
+
+public record RegisterDto(
+    [Required(ErrorMessage = "用户名不能为空")]
+    [StringLength(20, MinimumLength = 3, ErrorMessage = "用户名长度必须在3-20个字符之间")]
+    string Username,
+    
+    [Required(ErrorMessage = "密码不能为空")]
+    [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度至少需要6个字符")]
+    string Password
+);
 
 public record AuthResponseDto(string Token, DateTime Expiration, string Username, string Role);

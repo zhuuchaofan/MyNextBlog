@@ -116,6 +116,7 @@ builder.Services.AddScoped<IPostService, PostService>();       // 文章服务�
 builder.Services.AddScoped<ICommentService, CommentService>();   // 评论服务接口及其实现
 builder.Services.AddScoped<IStorageService, R2StorageService>(); // 文件存储服务，例如上传文件到 Cloudflare R2
 builder.Services.AddScoped<IImageService, ImageService>();     // 图片处理服务，负责图片关联和清理
+builder.Services.AddScoped<IGalleryService, GalleryService>();   // 画廊服务
 builder.Services.AddScoped<ICategoryService, CategoryService>(); // 分类管理服务
 builder.Services.AddScoped<ITagService, TagService>();         // 标签管理服务
 builder.Services.AddScoped<IAuthService, AuthService>();       // 用户认证和授权服务

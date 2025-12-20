@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyNextBlog.DTOs;
 using MyNextBlog.Services;
 using System.Security.Claims;
 
@@ -70,8 +71,6 @@ public class AccountController(IUserService userService) : ControllerBase
             user = new { user.Id, user.Username, user.Role, user.AvatarUrl, user.Email, user.Nickname, user.Bio, user.Website } 
         });
     }
-
-    public record UpdateProfileDto(string? Email, string? Nickname, string? Bio, string? Website);
 
     /// <summary>
     /// 上传并更新用户头像

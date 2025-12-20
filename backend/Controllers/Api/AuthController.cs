@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyNextBlog.DTOs;
 using MyNextBlog.Services;
 
 namespace MyNextBlog.Controllers.Api;
@@ -66,7 +67,4 @@ public class AuthController(IAuthService authService) : ControllerBase
             }
         });
     }
-
-    public record LoginDto(string Username, string Password);
-    public record RegisterDto(string Username, string Password);
 }

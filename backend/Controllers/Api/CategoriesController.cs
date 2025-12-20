@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyNextBlog.DTOs;
 using MyNextBlog.Services;
 
 namespace MyNextBlog.Controllers.Api;
@@ -20,10 +21,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-        {
-            return BadRequest(new { success = false, message = "分类名称不能为空" });
-        }
+        // 自动验证：如果模型状态无效，[ApiController] 属性会自动返回 400 BadRequest
 
         if (await categoryService.ExistsAsync(dto.Name))
         {
@@ -59,6 +57,4 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         }
         return Ok(new { success = true, data = category });
     }
-
-    public record CreateCategoryDto(string Name);
 }
