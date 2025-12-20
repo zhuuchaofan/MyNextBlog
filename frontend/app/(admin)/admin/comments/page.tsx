@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchAllCommentsAdmin, toggleCommentApproval, deleteCommentAdmin, batchApproveComments, batchDeleteComments } from '@/lib/api';
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AdminComment {
   id: number;
@@ -45,7 +46,7 @@ export default function AdminCommentsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   // 加载数据
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setSelectedIds(new Set()); // 翻页或刷新时清空选择
     try {
@@ -57,17 +58,16 @@ export default function AdminCommentsPage() {
       } else {
         toast.error("加载评论失败");
       }
-    } catch (error) {
-        console.error(error);
+    } catch {
         toast.error("网络错误");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filter]);
 
   useEffect(() => {
     loadData();
-  }, [page, filter]);
+  }, [loadData]);
 
   // 全选/取消全选
   const handleSelectAll = (checked: boolean) => {
@@ -100,7 +100,7 @@ export default function AdminCommentsPage() {
           } else {
               toast.error("批量操作失败");
           }
-      } catch (error) {
+      } catch {
           toast.error("网络错误");
       }
   };
@@ -116,7 +116,7 @@ export default function AdminCommentsPage() {
           } else {
               toast.error("批量删除失败");
           }
-      } catch (error) {
+      } catch {
           toast.error("网络错误");
       }
   };
@@ -138,7 +138,7 @@ export default function AdminCommentsPage() {
         } else {
             toast.error("操作失败");
         }
-    } catch (error) {
+    } catch {
         toast.error("操作出错");
     }
   };
@@ -154,7 +154,7 @@ export default function AdminCommentsPage() {
           } else {
               toast.error("删除失败");
           }
-      } catch (error) {
+      } catch {
           toast.error("删除出错");
       }
   };
@@ -192,7 +192,9 @@ export default function AdminCommentsPage() {
       </div>
 
       {/* 列表内容 */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[400px]">
+        {/* Desktop View: Table */}
+        <div className="hidden md:block">
         <Table>
             <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
@@ -298,6 +300,90 @@ export default function AdminCommentsPage() {
                 )}
             </TableBody>
         </Table>
+        </div>
+
+        {/* Mobile View: Cards */}
+        <div className="md:hidden">
+          {loading ? (
+             <div className="flex flex-col items-center justify-center h-40 text-gray-500 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-sm">加载中...</span>
+             </div>
+          ) : comments.length === 0 ? (
+             <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
+                暂无数据
+             </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-zinc-800">
+              {comments.map(comment => (
+                <div key={comment.id} className={`p-4 transition-colors ${selectedIds.has(comment.id) ? "bg-orange-50 dark:bg-orange-900/10" : ""}`}>
+                   <div className="flex items-start gap-3 mb-3">
+                      <Checkbox 
+                          className="mt-1"
+                          checked={selectedIds.has(comment.id)}
+                          onCheckedChange={(checked) => handleSelectOne(comment.id, !!checked)}
+                      />
+                      <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                             <div className="flex items-center gap-2 mb-1">
+                                <Avatar className="w-6 h-6">
+                                    <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName}`} />
+                                    <AvatarFallback>{comment.guestName[0]}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-bold text-sm text-gray-900 dark:text-gray-200 truncate">{comment.guestName}</span>
+                             </div>
+                             {comment.isApproved ? (
+                                <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">公开</Badge>
+                             ) : (
+                                <Badge variant="outline" className="text-[10px] h-5 bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800">待审</Badge>
+                             )}
+                          </div>
+                          <div className="text-xs text-gray-400 mb-2">{new Date(comment.createTime).toLocaleString()}</div>
+                          
+                          <div className="text-sm text-gray-700 dark:text-gray-300 break-words leading-relaxed">
+                              {comment.content}
+                          </div>
+                      </div>
+                   </div>
+
+                   <div className="flex items-center justify-between pt-2 pl-9">
+                       <Link href={`/posts/${comment.postId}`} className="text-xs text-blue-500 truncate max-w-[120px]">
+                          {comment.postTitle || `#${comment.postId}`}
+                       </Link>
+                       
+                       <div className="flex gap-1">
+                          <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className={`h-8 px-2 text-xs ${comment.isApproved ? "text-orange-500" : "text-green-600"}`}
+                              onClick={() => handleToggleApproval(comment.id, comment.isApproved)}
+                          >
+                              {comment.isApproved ? "隐藏" : "通过"}
+                          </Button>
+                          <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs text-red-500 hover:text-red-600">
+                                      删除
+                                  </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                      <AlertDialogTitle>确认删除？</AlertDialogTitle>
+                                      <AlertDialogDescription>不可撤销。</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                      <AlertDialogCancel>取消</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDelete(comment.id)} className="bg-red-500">删除</AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                       </div>
+                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       
       {/* 简单的分页控制 */}
@@ -312,39 +398,43 @@ export default function AdminCommentsPage() {
 
       {/* 底部浮动批量操作栏 */}
       {selectedIds.size > 0 && (
-          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xl rounded-full px-6 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-5">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  已选择 {selectedIds.size} 项
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xl rounded-full px-4 py-3 md:px-6 flex items-center gap-2 md:gap-4 animate-in slide-in-from-bottom-5 w-[90vw] md:w-auto max-w-2xl overflow-x-auto no-scrollbar justify-between md:justify-start">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                  已选 {selectedIds.size}
               </span>
-              <div className="h-4 w-px bg-gray-200 dark:bg-zinc-700"></div>
-              <Button size="sm" onClick={handleBatchApprove} className="bg-green-600 hover:bg-green-700 text-white rounded-full">
-                  <CheckSquare className="w-4 h-4 mr-2" /> 批量通过
-              </Button>
-              <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm" variant="destructive" className="rounded-full">
-                        <Trash2 className="w-4 h-4 mr-2" /> 批量删除
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                      <AlertDialogHeader>
-                          <AlertDialogTitle>确认批量删除？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                              您即将删除 {selectedIds.size} 条评论，此操作不可撤销。
-                          </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                          <AlertDialogCancel>取消</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleBatchDelete} className="bg-red-600 hover:bg-red-700">
-                              确认删除
-                          </AlertDialogAction>
-                      </AlertDialogFooter>
-                  </AlertDialogContent>
-              </AlertDialog>
-              
-              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-gray-500 rounded-full">
-                  取消
-              </Button>
+              <div className="h-4 w-px bg-gray-200 dark:bg-zinc-700 flex-shrink-0"></div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button size="sm" onClick={handleBatchApprove} className="bg-green-600 hover:bg-green-700 text-white rounded-full whitespace-nowrap px-3 text-xs md:text-sm">
+                      <CheckSquare className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> 
+                      <span className="hidden sm:inline">批量</span>通过
+                  </Button>
+                  <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive" className="rounded-full whitespace-nowrap px-3 text-xs md:text-sm">
+                            <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> 
+                            <span className="hidden sm:inline">批量</span>删除
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>确认批量删除？</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                  您即将删除 {selectedIds.size} 条评论，此操作不可撤销。
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel>取消</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleBatchDelete} className="bg-red-600 hover:bg-red-700">
+                                  确认删除
+                              </AlertDialogAction>
+                          </AlertDialogFooter>
+                      </AlertDialogContent>
+                  </AlertDialog>
+                  
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-gray-500 rounded-full whitespace-nowrap px-2">
+                      取消
+                  </Button>
+              </div>
           </div>
       )}
     </div>
