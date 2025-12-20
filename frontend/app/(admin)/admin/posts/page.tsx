@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子，用于获取用户状态
+// import { useAuth } from '@/context/AuthContext'; // Unused
 import { fetchPostsWithAuth, deletePost, togglePostVisibility } from '@/lib/api'; // 导入 API 请求函数
 import { Button } from "@/components/ui/button"; // shadcn/ui 按钮组件
 import { Badge } from "@/components/ui/badge"; // shadcn/ui 徽章组件
@@ -38,7 +38,7 @@ interface Post {
  * 它会从后端获取所有文章（包括隐藏的草稿），并提供分页功能。
  */
 export default function AdminPostsPage() {
-  const { user } = useAuth(); // 获取当前登录用户，用于权限判断（尽管 middleware 已做大部分工作）
+  // const { user } = useAuth(); // Unused
   const router = useRouter(); // Next.js 路由实例，用于页面跳转
   
   // 状态管理
@@ -100,7 +100,7 @@ export default function AdminPostsPage() {
       } else {
         toast.error('文章删除失败: ' + res.message); // 显示失败通知
       }
-    } catch (error) {
+    } catch {
       toast.error('网络错误，请稍后重试'); // 捕获网络异常
     } finally {
       setIsDeleting(false); // 结束删除加载状态
@@ -273,7 +273,7 @@ export default function AdminPostsPage() {
       )}
 
       {/* 分页控制 */}
-      <div className="flex flex-col-reverse md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
          <Button 
            variant="outline" 
            disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载

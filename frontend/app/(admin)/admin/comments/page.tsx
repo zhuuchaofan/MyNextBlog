@@ -382,7 +382,7 @@ export default function AdminCommentsPage() {
       </div>
       
       {/* 分页控制 */}
-      <div className="flex flex-col-reverse md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
           <Button 
             variant="outline" 
             size="sm" 
