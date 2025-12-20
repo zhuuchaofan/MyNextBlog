@@ -6,15 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowRight, PawPrint, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema, LoginFormData } from '@/lib/schemas';
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [serverError, setServerError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const { 
     register, 
@@ -125,15 +127,32 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="password" 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   {...register('password')}
-                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
-              <div className="flex justify-end">
-                 <Link href="#" className="text-xs text-orange-500 hover:text-orange-600 hover:underline">
+              
+              <div className="flex items-center justify-between mt-2">
+                 <div className="flex items-center space-x-2">
+                    <Checkbox id="remember-me" />
+                    <label
+                      htmlFor="remember-me"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-500"
+                    >
+                      记住我
+                    </label>
+                 </div>
+                 <Link href="/forgot-password" className="text-xs text-orange-500 hover:text-orange-600 hover:underline">
                    忘记密码?
                  </Link>
               </div>

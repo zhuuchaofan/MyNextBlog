@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowRight, PawPrint, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,8 @@ import { RegisterSchema, RegisterFormData } from '@/lib/schemas';
 export default function RegisterPage() {
   const { login } = useAuth();
   const [serverError, setServerError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { 
     register, 
@@ -120,11 +122,18 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="password" 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   {...register('password')}
-                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="至少6位"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
             </div>
@@ -135,11 +144,18 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="confirmPassword" 
-                  type="password" 
+                  type={showConfirmPassword ? "text" : "password"} 
                   {...register('confirmPassword')}
-                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="请再次输入密码"
                 />
+                 <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
             </div>
