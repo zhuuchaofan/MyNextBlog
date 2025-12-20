@@ -24,8 +24,9 @@ const notoEmoji = Noto_Color_Emoji({
 });
 
 export const metadata: Metadata = {
-  title: "My Tech Blog",
-  description: "A modern tech blog built with Next.js and .NET",
+  metadataBase: new URL(process.env.APP_URL || "https://nextblog.zhuchaofan.online"),
+  title: "MyNextBlog - Tech & Life",
+  description: "A modern full-stack blog built with Next.js 15 and .NET 10.",
 };
 
 export default function RootLayout({

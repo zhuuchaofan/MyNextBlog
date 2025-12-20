@@ -63,6 +63,9 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 1. 📝 核心博客系统 (Blog Core)
 
+- **SEO 最佳实践**:
+  - 配置了 `metadataBase`，确保 Open Graph 分享链接的正确性。
+  - 全站服务器端渲染 (SSR)，利用 `generateMetadata` 动态生成文章标题和摘要。
 - **Markdown 引擎**:
   - 基于 `react-markdown` 和 `rehype-highlight`。
   - 支持 GFM 标准表格、任务列表、代码块高亮。
@@ -85,6 +88,9 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 3. 🖼️ 云原生媒体中心 (Cloud Media)
 
+- **Next.js Image 优化**:
+  - `next.config.ts` 已配置 `remotePatterns` 白名单，仅允许 R2 和 DiceBear 域名。
+  - 利用 Next.js 自动生成 `srcset`，根据设备屏幕实现响应式图片加载，大幅节省带宽。
 - **架构**:
   - 彻底告别本地 `wwwroot/uploads` 目录。
   - 所有图片（头像、文章配图）直接流式上传至 **Cloudflare R2** (S3 兼容)。
@@ -96,7 +102,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
     3.  将匹配到的图片资源标记为 `Bound` 并关联 `PostId`。
     4.  后台服务定期清理 `Unbound` 且超过 24 小时的图片。
 
-### 4. � RSS 订阅 (Feed)
+### 4. 📊 RSS 订阅 (Feed)
 
 - **标准支持**: 自动生成符合 `RSS 2.0` 标准的 XML 文件。
 - **路由**: `/feed.xml`。
@@ -128,16 +134,17 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ## 🛠 技术底层 (Tech Stack)
 
-| 领域         | 核心技术       | 详细说明                                                                       |
-| :----------- | :------------- | :----------------------------------------------------------------------------- | ----------------------------------------------- |
-| **Frontend** | **Next.js 15** | 使用 App Router 架构，结合 Server Actions 处理表单提交。                       |
-|              | **Typescript** | 全面强类型覆盖，前后端共享 DTO 定义。                                          |
-|              | **UI System**  | Tailwind CSS v4 (原子化 CSS) + shadcn/ui (无头组件库) + Framer Motion (动画)。 |
-| **Backend**  | **.NET 10**    | 抢先体验版 ASP.NET Core Web API，使用 Minimal APIs 风格。                      |
-|              |                | **Data**                                                                       | EF Core Code-First, 自动 Migrations & Seeding。 |
-|              | **Services**   | MemoryCache, Serilog, Automapper, HostedServices (Backups)。                   |
-|              | **Serilog**    | 结构化日志，支持输出到 Console, File 或 Elasticsearch。                        |
-| **DevOps**   | **Docker**     | 多阶段构建 (Multi-stage Build)，最终镜像仅 80MB+。                             |
+| 领域         | 核心技术       | 详细说明                                                                             |
+| :----------- | :------------- | :----------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Frontend** | **Next.js 15** | 使用 App Router 架构，结合 Server Actions 处理表单提交。                             |
+|              | **Typescript** | 全面强类型覆盖，前后端共享 DTO 定义。                                                |
+|              | **UI System**  | Tailwind CSS v4 (原子化 CSS) + shadcn/ui (无头组件库) + Framer Motion (动画)。       |
+|              | **Config**     | `next.config.ts` 配置了 `standalone` 模式 (Docker 优化) 和 API Rewrites (反向代理)。 |
+| **Backend**  | **.NET 10**    | 抢先体验版 ASP.NET Core Web API，使用 Minimal APIs 风格。                            |
+|              |                | **Data**                                                                             | EF Core Code-First, 自动 Migrations & Seeding。 |
+|              | **Services**   | MemoryCache, Serilog, Automapper, HostedServices (Backups)。                         |
+|              | **Serilog**    | 结构化日志，支持输出到 Console, File 或 Elasticsearch。                              |
+| **DevOps**   | **Docker**     | 多阶段构建 (Multi-stage Build)，最终镜像仅 80MB+。                                   |
 
 ---
 
