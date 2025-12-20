@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Color_Emoji } from "next/font/google"; // 引入 Noto Color Emoji
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL || "https://nextblog.zhuchaofan.online"),
   title: "MyNextBlog - Tech & Life",
   description: "A modern full-stack blog built with Next.js 15 and .NET 10.",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
