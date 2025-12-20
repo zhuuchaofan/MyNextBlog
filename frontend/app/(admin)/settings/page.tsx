@@ -92,7 +92,13 @@ export default function SettingsPage() {
       e.preventDefault();
       setSaving(true);
       try {
-          const res = await updateProfile(formData);
+          // Convert empty strings to undefined for optional fields
+          const payload = {
+            ...formData,
+            birthDate: formData.birthDate === '' ? undefined : formData.birthDate
+          };
+
+          const res = await updateProfile(payload);
           if (res.success) {
               toast.success("个人资料已更新");
               updateUser({ ...user!, ...formData });
