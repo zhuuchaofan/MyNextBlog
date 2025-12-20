@@ -202,7 +202,7 @@ export default function AboutPage() {
                   </CardTitle>
                </CardHeader>
                <CardContent>
-                 <div className="relative border-l border-gray-200 dark:border-zinc-700 ml-2 space-y-8 pl-6 py-2">
+                 <div className="relative border-l border-gray-200 dark:border-zinc-700 ml-8 space-y-8 pl-6 py-2">
                    {TIMELINE.map((item, index) => (
                      <div key={index} className="relative group">
                        <span className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-zinc-900 ${index === 0 ? "bg-orange-500" : "bg-gray-300 dark:bg-zinc-600"} group-hover:scale-110 transition-transform`}></span>

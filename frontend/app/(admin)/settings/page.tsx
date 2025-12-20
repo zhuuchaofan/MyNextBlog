@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { uploadAvatar, updateProfile } from "@/lib/api";
-import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X } from "lucide-react";
+import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X, ChevronLeft } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, updateUser, isLoading } = useAuth();
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           } else {
               toast.error(res.message || "更新失败");
           }
-      } catch (error) {
+      } catch {
           toast.error("网络错误");
       } finally {
           setSaving(false);
@@ -115,8 +115,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">账号设置</h1>
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
+          <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">账号设置</h1>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         

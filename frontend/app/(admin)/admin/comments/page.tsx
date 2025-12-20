@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, CheckCircle, XCircle, Trash2, ArrowLeft, MessageSquare, CheckSquare } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Trash2, CheckSquare, ChevronLeft } from 'lucide-react';
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -163,11 +163,10 @@ export default function AdminCommentsPage() {
     <div className="container mx-auto px-4 py-8 max-w-6xl pb-24">
       {/* 头部导航 */}
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/admin')}>
-          <ArrowLeft className="w-5 h-5" />
+        <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
+          <ChevronLeft className="w-4 h-4 mr-1" /> 返回
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-orange-500" />
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             评论管理
         </h1>
       </div>
@@ -185,17 +184,13 @@ export default function AdminCommentsPage() {
                 </TabsTrigger>
             </TabsList>
           </Tabs>
-          
-          <div className="text-sm text-gray-500">
-             共 {totalCount} 条记录
-          </div>
       </div>
 
       {/* 列表内容 */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[400px]">
         {/* Desktop View: Table */}
         <div className="hidden md:block">
-        <Table>
+        <Table className="table-fixed">
             <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
                     <TableHead className="w-[50px]">
@@ -206,7 +201,7 @@ export default function AdminCommentsPage() {
                     </TableHead>
                     <TableHead className="w-[180px]">用户</TableHead>
                     <TableHead>评论内容</TableHead>
-                    <TableHead className="w-[150px]">文章</TableHead>
+                    <TableHead className="w-[200px]">文章</TableHead>
                     <TableHead className="w-[100px]">状态</TableHead>
                     <TableHead className="w-[150px] text-right">操作</TableHead>
                 </TableRow>
@@ -240,7 +235,7 @@ export default function AdminCommentsPage() {
                                 <div className="text-xs text-gray-400">{new Date(comment.createTime).toLocaleString()}</div>
                             </TableCell>
                             <TableCell>
-                                <div className="max-w-lg break-words text-sm text-gray-600 dark:text-gray-300">
+                                <div className="break-words line-clamp-2 text-sm text-gray-600 dark:text-gray-300" title={comment.content}>
                                     {comment.content}
                                 </div>
                             </TableCell>
@@ -340,7 +335,7 @@ export default function AdminCommentsPage() {
                           </div>
                           <div className="text-xs text-gray-400 mb-2">{new Date(comment.createTime).toLocaleString()}</div>
                           
-                          <div className="text-sm text-gray-700 dark:text-gray-300 break-words leading-relaxed">
+                          <div className="text-sm text-gray-700 dark:text-gray-300 break-all line-clamp-3 leading-relaxed">
                               {comment.content}
                           </div>
                       </div>
@@ -386,12 +381,29 @@ export default function AdminCommentsPage() {
         </div>
       </div>
       
-      {/* 简单的分页控制 */}
-      <div className="flex justify-end mt-4 gap-2">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+      {/* 分页控制 */}
+      <div className="flex flex-col-reverse md:flex-row justify-between items-center mt-6 gap-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setPage(p => Math.max(1, p - 1))} 
+            disabled={page === 1 || loading}
+            className="w-full md:w-auto"
+          >
               上一页
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={comments.length < 20}>
+
+          <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            第 {page} / {Math.ceil(totalCount / 20) || 1} 页 (共 {totalCount} 条)
+          </span>
+
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setPage(p => p + 1)} 
+            disabled={comments.length < 20 || loading}
+            className="w-full md:w-auto"
+          >
               下一页
           </Button>
       </div>
