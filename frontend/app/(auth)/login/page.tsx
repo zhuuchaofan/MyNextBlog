@@ -52,7 +52,7 @@ export default function LoginPage() {
         // 登录失败，显示错误消息
         setError(data.message || '账号或密码错误，请检查');
       }
-    } catch (err) {
+    } catch {
       setError('连接服务器失败，请稍后再试');
     } finally {
       // 无论成功失败，都关闭加载状态

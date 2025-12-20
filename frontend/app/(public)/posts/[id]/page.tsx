@@ -136,7 +136,7 @@ export default async function PostPage({ params }: Props) {
            <PostInteractions postId={post.id} initialLikeCount={post.likeCount} />
 
            {/* 主内容容器 */}
-           <div className="lg:col-span-11 bg-white/95 dark:bg-zinc-900/95 backdrop-blur rounded-t-3xl md:rounded-3xl shadow-xl dark:shadow-black/50 border border-gray-100 dark:border-zinc-800 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
+           <div className="lg:col-span-11 bg-white/95 dark:bg-zinc-900/95 backdrop-blur rounded-3xl shadow-xl dark:shadow-black/50 border border-gray-100 dark:border-zinc-800 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
               {/* Markdown 渲染器：将 Markdown 文本转换为 HTML */}
               <MarkdownRenderer content={post.content} />
               

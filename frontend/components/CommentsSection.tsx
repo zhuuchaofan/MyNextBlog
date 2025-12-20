@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,11 +21,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
 
   // 初始化加载
-  useEffect(() => {
-    loadData(1);
-  }, [postId]);
-
-  const loadData = async (pageNum: number) => {
+  const loadData = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
       const data = await fetchComments(postId, pageNum);
@@ -50,7 +46,11 @@ export default function CommentsSection({ postId }: { postId: number }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    loadData(1);
+  }, [loadData, postId]);
 
   const handleLoadMore = () => {
     loadData(page + 1);

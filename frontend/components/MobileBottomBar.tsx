@@ -8,15 +8,15 @@ import { toast } from "sonner";
 
 interface MobileBottomBarProps {
   postId: number;
+  commentCount: number;
   initialLikeCount: number;
-  commentCount: number; // passed from server or parent
 }
 
-export default function MobileBottomBar({ postId, initialLikeCount, commentCount }: MobileBottomBarProps) {
+export default function MobileBottomBar({ postId, commentCount, initialLikeCount }: MobileBottomBarProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [loading, setLoading] = useState(false);
-  
+
   // Reuse like logic from PostInteractions (DRY violation but quick for now, ideal refactor later)
   useEffect(() => {
     try {
@@ -24,8 +24,8 @@ export default function MobileBottomBar({ postId, initialLikeCount, commentCount
       if (Array.isArray(likedPosts) && likedPosts.includes(postId)) {
         setLiked(true);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      toast.error("操作失败，请重试");
     }
   }, [postId]);
 
@@ -52,8 +52,9 @@ export default function MobileBottomBar({ postId, initialLikeCount, commentCount
              newLikedPosts = likedPosts.filter((id: number) => id !== postId);
         }
         localStorage.setItem('liked_posts', JSON.stringify(newLikedPosts));
+        toast.success(res.isLiked ? "点赞成功" : "已取消点赞");
       }
-    } catch (error) {
+    } catch {
       setLiked(previousLiked); // rollback
       setLikeCount(prev => previousLiked ? prev + 1 : prev - 1);
       toast.error("操作失败");
@@ -108,9 +109,13 @@ export default function MobileBottomBar({ postId, initialLikeCount, commentCount
              </Button>
 
              <Button variant="ghost" size="icon" className={liked ? "text-red-500" : "text-gray-500"} onClick={handleLike}>
-                <div className="flex flex-col items-center">
+                <div className="relative">
                     <Heart className={`w-6 h-6 ${liked ? 'fill-current' : ''}`} />
-                    {/* <span className="text-[10px] font-medium">{likeCount}</span> No space for text maybe? */}
+                    {likeCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] h-4 min-w-[16px] px-0.5 rounded-full flex items-center justify-center animate-in zoom-in">
+                            {likeCount > 99 ? '99+' : likeCount}
+                        </span>
+                    )}
                 </div>
              </Button>
              

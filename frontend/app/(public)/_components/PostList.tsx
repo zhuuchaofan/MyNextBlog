@@ -81,8 +81,8 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
             throw new Error(json.message);
         }
         toast.success(post.isHidden ? "文章已公开" : "文章已隐藏");
-    } catch (error) {
-        toast.error("操作失败");
+    } catch {
+        toast.error('点赞失败');
         setPosts(originalPosts); // 回滚
     }
   };
