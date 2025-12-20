@@ -63,6 +63,13 @@ export default function MobileBottomBar({ postId, initialLikeCount, commentCount
   };
 
   const scrollToComments = () => {
+     const textarea = document.getElementById('main-comment-textarea');
+     if (textarea) {
+         textarea.focus();
+         textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+         return;
+     }
+
      const commentsSection = document.getElementById('comments');
      if (commentsSection) {
          commentsSection.scrollIntoView({ behavior: 'smooth' });

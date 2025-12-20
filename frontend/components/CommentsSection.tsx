@@ -96,7 +96,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
 
       {/* 顶部发表框 (发表一级评论) */}
       <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mb-10 transition-colors duration-300">
-        <CommentForm postId={postId} onSuccess={handleCommentSuccess} />
+        <CommentForm postId={postId} onSuccess={handleCommentSuccess} textareaId="main-comment-textarea" />
       </div>
 
       {loading && page === 1 ? (
@@ -224,13 +224,15 @@ function CommentForm({
     parentId, 
     onSuccess, 
     onCancel,
-    autoFocus = false 
+    autoFocus = false,
+    textareaId
 }: { 
     postId: number, 
     parentId?: number, 
     onSuccess: (c: Comment) => void,
     onCancel?: () => void,
-    autoFocus?: boolean
+    autoFocus?: boolean,
+    textareaId?: string
 }) {
     const { user } = useAuth();
     const [guestName, setGuestName] = useState('');
@@ -289,6 +291,7 @@ function CommentForm({
               )}
               
               <Textarea 
+                id={textareaId}
                 placeholder={parentId ? "回复..." : "写下你的想法..."}
                 className="min-h-[80px] bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 focus:bg-white dark:focus:bg-zinc-900 transition-colors resize-none text-sm"
                 value={content}
