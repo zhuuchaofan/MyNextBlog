@@ -51,31 +51,27 @@ export default function ForgotPasswordPage() {
   return (
     <div className="w-full h-screen lg:grid lg:grid-cols-2 overflow-hidden bg-white dark:bg-zinc-900">
       
-      {/* Left Side: Artistic/Brand Section */}
-      <div className="hidden lg:flex flex-col justify-between bg-black text-white p-10 relative overflow-hidden">
-        {/* Abstract Background */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/30 via-zinc-900 to-zinc-950 z-0"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay"></div>
+      {/* Left Side: Artistic/Brand Section (Tech Theme) */}
+      <div className="hidden lg:flex flex-col justify-between bg-zinc-900 text-white p-10 relative overflow-hidden">
+        {/* Tech Background: Dot Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
         
-        {/* Animated Decor */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }} 
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] z-1"
-        />
+        {/* Subtle Ambient Light - Forgot Password Variant (Blue) */}
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
 
         {/* Brand Content */}
         <div className="relative z-10 flex items-center gap-2 font-bold text-xl tracking-tighter">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black">B</div>
+          <div className="w-8 h-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg flex items-center justify-center text-white">B</div>
           MyNextBlog
         </div>
 
         <div className="relative z-10 space-y-6 max-w-lg">
-           <h2 className="text-4xl font-bold tracking-tight">在这里找回您的访问权限。</h2>
-           <p className="text-zinc-400">安全第一。我们通过验证邮箱来确保是您本人在操作。</p>
+           <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl">
+             <h2 className="text-3xl font-bold tracking-tight mb-2">恢复访问权限</h2>
+             <p className="text-zinc-300">
+               安全第一。我们通过验证您的注册邮箱来确保账户安全。
+             </p>
+           </div>
         </div>
 
         <div className="relative z-10 text-xs text-zinc-500">
