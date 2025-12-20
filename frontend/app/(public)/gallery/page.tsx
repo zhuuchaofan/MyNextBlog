@@ -10,6 +10,8 @@ interface GalleryImage {
   id: number;
   src: string; // 图片 URL
   alt: string; // 图片描述 (通常是文章标题)
+  width: number;
+  height: number;
 }
 
 /**
@@ -67,7 +69,8 @@ export default function GalleryPage() {
                <img 
                  src={img.src} 
                  alt={img.alt} 
-                 className="w-full rounded-2xl shadow-sm group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1" 
+                 className="w-full rounded-2xl shadow-sm group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1 bg-gray-100 dark:bg-zinc-800" 
+                 style={{ aspectRatio: `${img.width} / ${img.height}` }}
                  loading="lazy" // 懒加载图片，提高页面性能
                />
                {/* 图片悬停时的标题覆盖层 */}
