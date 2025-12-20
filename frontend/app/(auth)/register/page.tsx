@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -8,53 +8,54 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
 import Link from 'next/link';
-import { registerUser } from '@/lib/api'; // Use registerUser from api.ts
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RegisterSchema, RegisterFormData } from '@/lib/schemas';
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
   const { login } = useAuth();
+  const [serverError, setServerError] = useState('');
+  
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors, isSubmitting } 
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+      confirmPassword: ''
+    }
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const onSubmit = async (formData: RegisterFormData) => {
+    setServerError('');
     
-    if (password !== confirmPassword) {
-        setError("两次输入的密码不一致");
-        return;
-    }
-
-    if (password.length < 6) {
-        setError("密码长度不能少于6位");
-        return;
-    }
-
-    setLoading(true);
-
     try {
-      // Use Next.js Route Handler for registration
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ 
+          username: formData.username, 
+          password: formData.password 
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         // 注册成功后自动登录
-        login({ username: data.user.username, role: data.user.role, avatarUrl: data.user.avatarUrl });
+        login({ 
+          username: data.user.username, 
+          role: data.user.role, 
+          avatarUrl: data.user.avatarUrl 
+        });
       } else {
-        setError(data.message || '注册失败，请稍后重试');
+        setServerError(data.message || '注册失败，请稍后重试');
       }
-    } catch (err) {
-      setError('连接服务器失败，请稍后再试');
-    } finally {
-      setLoading(false);
+    } catch {
+      setServerError('连接服务器失败，请稍后再试');
     }
   };
 
@@ -91,11 +92,11 @@ export default function RegisterPage() {
             <p className="text-sm text-gray-500 mt-2">请填写以下信息以完成注册</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {serverError && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 border border-red-100 animate-in fade-in slide-in-from-top-2">
                 <span className="w-1 h-1 rounded-full bg-red-500"></span>
-                {error}
+                {serverError}
               </div>
             )}
 
@@ -105,13 +106,12 @@ export default function RegisterPage() {
                 <UserIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="username" 
-                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  {...register('username')}
+                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.username ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="请输入用户名"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
                 />
               </div>
+              {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -121,13 +121,12 @@ export default function RegisterPage() {
                 <Input 
                   id="password" 
                   type="password" 
-                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  {...register('password')}
+                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="至少6位"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
                 />
               </div>
+              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -137,21 +136,28 @@ export default function RegisterPage() {
                 <Input 
                   id="confirmPassword" 
                   type="password" 
-                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  {...register('confirmPassword')}
+                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="请再次输入密码"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
                 />
               </div>
+              {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
             </div>
 
             <Button 
               type="submit" 
               className="w-full h-11 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300 mt-4"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? "注册中..." : <span className="flex items-center gap-2">立即注册 <ArrowRight className="w-4 h-4" /></span>}
+              {isSubmitting ? (
+                 <span className="flex items-center gap-2">
+                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                   </svg>
+                   注册中...
+                 </span>
+              ) : <span className="flex items-center gap-2">立即注册 <ArrowRight className="w-4 h-4" /></span>}
             </Button>
           </form>
 

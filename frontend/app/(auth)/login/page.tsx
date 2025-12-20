@@ -1,75 +1,76 @@
-'use client'; // 标记为客户端组件，因为需要使用 React Hooks (useState) 和浏览器事件 (onSubmit)
+'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext'; // 导入自定义认证钩子，用于获取 login 方法
+import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Lock, User as UserIcon, ArrowRight, PawPrint } from 'lucide-react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LoginSchema, LoginFormData } from '@/lib/schemas';
 
 export default function LoginPage() {
-  // 定义本地状态，用于存储表单输入和 UI 状态
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  // 从 AuthContext 获取 login 方法
-  // 该方法负责在登录成功后更新全局用户状态并进行页面跳转
   const { login } = useAuth();
+  const [serverError, setServerError] = useState('');
+  
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors, isSubmitting } 
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      username: '',
+      password: ''
+    }
+  });
 
-  // 处理表单提交
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // 阻止浏览器默认的表单提交刷新行为
-    setError('');       // 清除之前的错误信息
-    setLoading(true);   // 设置加载状态，显示转圈动画
-
+  const onSubmit = async (formData: LoginFormData) => {
+    setServerError('');
+    
     try {
-      // **关键点**: 这里请求的是 Next.js 的路由处理程序 (Route Handler) `/api/auth/login`，
-      // 而不是直接请求后端的 C# API。
-      // 这样做的好处是 Token 的设置（HttpOnly Cookie）完全由服务端路由处理，前端无需关心。
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // 登录成功
-        // 调用 context 的 login 方法，传入用户信息（不包含 token）
-        // login 方法内部会执行 router.push('/admin') 跳转
-        // login 方法内部会执行 router.push('/admin') 跳转
         login({ 
           username: data.username, 
           role: data.role,
-          avatarUrl: data.avatarUrl 
+          avatarUrl: data.avatarUrl,
+          email: data.user?.email,
+          nickname: data.user?.nickname,
+          bio: data.user?.bio,
+          website: data.user?.website,
+          location: data.user?.location,
+          occupation: data.user?.occupation,
+          birthDate: data.user?.birthDate
         });
       } else {
-        // 登录失败，显示错误消息
-        setError(data.message || '账号或密码错误，请检查');
+        setServerError(data.message || '账号或密码错误，请检查');
       }
     } catch {
-      setError('连接服务器失败，请稍后再试');
-    } finally {
-      // 无论成功失败，都关闭加载状态
-      setLoading(false);
+      setServerError('连接服务器失败，请稍后再试');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50/50">
-      {/* 背景装饰圆 (Blobs) - 使用 CSS 动画增加视觉效果 */}
+      {/* 背景装饰圆 (Blobs) */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
       <Card className="w-full max-w-[900px] grid md:grid-cols-2 overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm m-4">
         
-        {/* 左侧：品牌视觉区 (仅在大屏幕显示) */}
+        {/* 左侧：品牌视觉区 */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-orange-400 to-pink-500 p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="relative z-10 text-center space-y-6">
@@ -85,7 +86,6 @@ export default function LoginPage() {
              </div>
           </div>
           
-          {/* 装饰性爪印 */}
           <PawPrint className="absolute bottom-10 right-10 w-24 h-24 text-white/10 rotate-12" />
           <PawPrint className="absolute top-10 left-10 w-16 h-16 text-white/10 -rotate-12" />
         </div>
@@ -97,11 +97,11 @@ export default function LoginPage() {
             <p className="text-sm text-gray-500 mt-2">请输入您的凭证以继续</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {serverError && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 border border-red-100 animate-in fade-in slide-in-from-top-2">
                 <span className="w-1 h-1 rounded-full bg-red-500"></span>
-                {error}
+                {serverError}
               </div>
             )}
 
@@ -111,13 +111,12 @@ export default function LoginPage() {
                 <UserIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
                 <Input 
                   id="username" 
-                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  {...register('username')}
+                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.username ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="您的用户名"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
                 />
               </div>
+              {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -127,13 +126,12 @@ export default function LoginPage() {
                 <Input 
                   id="password" 
                   type="password" 
-                  className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all" 
+                  {...register('password')}
+                  className={`pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
                 />
               </div>
+              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
               <div className="flex justify-end">
                  <Link href="#" className="text-xs text-orange-500 hover:text-orange-600 hover:underline">
                    忘记密码?
@@ -144,9 +142,9 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               className="w-full h-11 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? (
+              {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
