@@ -42,7 +42,12 @@ export default function LoginPage() {
         // 登录成功
         // 调用 context 的 login 方法，传入用户信息（不包含 token）
         // login 方法内部会执行 router.push('/admin') 跳转
-        login({ username: data.username, role: data.role });
+        // login 方法内部会执行 router.push('/admin') 跳转
+        login({ 
+          username: data.username, 
+          role: data.role,
+          avatarUrl: data.avatarUrl 
+        });
       } else {
         // 登录失败，显示错误消息
         setError(data.message || '账号或密码错误，请检查');

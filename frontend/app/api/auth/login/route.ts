@@ -51,8 +51,9 @@ export async function POST(request: Request) {
         // 之后的请求会自动由浏览器带上 HttpOnly Cookie。
         return NextResponse.json({ 
             success: true, 
-            username: data.username, 
-            role: data.role 
+            username: data.user.username, 
+            role: data.user.role,
+            avatarUrl: data.user.avatarUrl
         });
     }
 
