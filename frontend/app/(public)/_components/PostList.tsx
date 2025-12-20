@@ -105,6 +105,11 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                      
                      <div className="flex-1 flex flex-col p-6 md:p-8">
                         <div className="flex flex-wrap items-center gap-3 mb-4">
+                          {post.isHidden && (
+                            <Badge variant="destructive" className="h-6 px-2 text-xs border-dashed border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40">
+                              Hidden
+                            </Badge>
+                          )}
                           <Link href={`/categories/${post.categoryId}`}>
                              <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg px-3 py-1 transition-colors">
                                 {post.categoryName || '未分类'}
@@ -139,8 +144,7 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                         </div>
                         
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                          <Link href={`/posts/${post.id}`} className="flex items-center gap-2">
-                            {post.isHidden && <Badge variant="destructive" className="text-[10px] h-5 px-1.5">Hidden</Badge>}
+                          <Link href={`/posts/${post.id}`} className="block">
                             {post.title}
                           </Link>
                         </h3>
