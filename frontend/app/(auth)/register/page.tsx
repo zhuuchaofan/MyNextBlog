@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, User as UserIcon, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Lock, User as UserIcon, Eye, EyeOff, ArrowRight, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +26,7 @@ export default function RegisterPage() {
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
       username: '',
+      email: '',
       password: '',
       confirmPassword: ''
     }
@@ -40,6 +41,7 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           username: formData.username, 
+          email: formData.email,
           password: formData.password 
         }),
       });
@@ -142,6 +144,21 @@ export default function RegisterPage() {
                    />
                 </div>
                 {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">邮箱地址</Label>
+                <div className="relative">
+                   <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                   <Input 
+                     id="email"
+                     type="email"
+                     className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium" 
+                     placeholder="name@example.com"
+                     {...register('email')}
+                   />
+                </div>
+                {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">

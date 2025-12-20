@@ -47,7 +47,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        var result = await authService.RegisterAsync(dto.Username, dto.Password);
+        var result = await authService.RegisterAsync(dto.Username, dto.Password, dto.Email);
 
         if (!result.Success)
         {
@@ -66,5 +66,31 @@ public class AuthController(IAuthService authService) : ControllerBase
                 user.AvatarUrl 
             }
         });
+    }
+
+    /// <summary>
+    /// 忘记密码
+    /// </summary>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        var result = await authService.ForgotPasswordAsync(dto.Email);
+        return Ok(new { message = result.Message });
+    }
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var result = await authService.ResetPasswordAsync(dto.Email, dto.Token, dto.NewPassword);
+        
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new { message = result.Message });
     }
 }

@@ -7,21 +7,45 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowRight, ChevronLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from "framer-motion";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ForgotPasswordSchema, ForgotPasswordFormData } from '@/lib/schemas';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors, isSubmitting } 
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(ForgotPasswordSchema),
+    defaultValues: {
+      email: ''
+    }
+  });
+
+  const onSubmit = async (formData: ForgotPasswordFormData) => {
+    setServerError('');
     
-    // Simulate API call delay
-    setTimeout(() => {
-      setIsLoading(false);
-      setSubmitted(true);
-    }, 1500);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        setServerError(data.message || '发送失败，请稍后重试');
+      }
+    } catch {
+      setServerError('连接服务器失败，请稍后再试');
+    }
   };
 
   return (
@@ -79,7 +103,17 @@ export default function ForgotPasswordPage() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        {serverError && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="p-3 rounded-md bg-red-50 text-red-500 text-sm border border-red-200"
+                          >
+                            {serverError}
+                          </motion.div>
+                        )}
+
                         <div className="space-y-2">
                             <Label htmlFor="email">邮箱地址</Label>
                             <div className="relative group">
@@ -89,19 +123,18 @@ export default function ForgotPasswordPage() {
                                     type="email" 
                                     placeholder="name@example.com" 
                                     className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
+                                    {...register('email')}
                                 />
                             </div>
+                            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
                         </div>
 
                         <Button 
                             type="submit" 
                             className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black"
-                            disabled={isLoading}
+                            disabled={isSubmitting}
                         >
-                            {isLoading ? (
+                            {isSubmitting ? (
                                 <span className="flex items-center gap-2">
                                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 发送中...
@@ -125,7 +158,7 @@ export default function ForgotPasswordPage() {
                     </div>
                     <h2 className="text-2xl font-bold text-zinc-900 mb-2">邮件已发送!</h2>
                     <p className="text-zinc-500 mb-8 max-w-xs mx-auto">
-                        如果 <span className="font-semibold text-zinc-900">{email}</span> 存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
+                        如果该邮箱存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
                     </p>
                     <Link href="/login">
                         <Button variant="outline" className="w-full h-11 border-zinc-300 hover:bg-zinc-50 text-zinc-700">

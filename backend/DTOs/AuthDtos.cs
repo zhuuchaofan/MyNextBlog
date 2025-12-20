@@ -17,7 +17,23 @@ public record RegisterDto(
     
     [Required(ErrorMessage = "密码不能为空")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度至少需要6个字符")]
-    string Password
+    string Password,
+
+    [Required(ErrorMessage = "邮箱不能为空")]
+    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+    string Email
+);
+
+public record ForgotPasswordDto(
+    [Required(ErrorMessage = "邮箱不能为空")]
+    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+    string Email
+);
+
+public record ResetPasswordDto(
+    [Required] string Token,
+    [Required] string Email,
+    [Required] [StringLength(100, MinimumLength = 6)] string NewPassword
 );
 
 public record AuthResponseDto(string Token, DateTime Expiration, string Username, string Role);

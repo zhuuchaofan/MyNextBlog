@@ -15,6 +15,10 @@ public class User
     public string? AvatarUrl { get; set; } // 用户头像 URL
 
     public string? Email { get; set; } // 用户邮箱
+    
+    // 密码重置相关
+    public string? PasswordResetToken { get; set; }
+    public DateTime? ResetTokenExpires { get; set; }
 
     // 扩展资料
     [MaxLength(50)]
