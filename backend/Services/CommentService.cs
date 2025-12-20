@@ -75,10 +75,10 @@ public class CommentService(
             var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
             var postTitle = post?.Title ?? "未命名文章";
             var appUrl = configuration["AppUrl"]?.TrimEnd('/');
+            var adminEmail = configuration["SmtpSettings:AdminEmail"];
 
             if (!comment.IsApproved)
             {
-                var adminEmail = configuration["SmtpSettings:AdminEmail"];
                 if (!string.IsNullOrEmpty(adminEmail))
                 {
                     string subject = $"[待审核] 新评论需处理：{postTitle}";
@@ -93,7 +93,36 @@ public class CommentService(
                     await emailService.SendEmailAsync(adminEmail, subject, body);
                 }
             }
-            else if (comment.ParentId.HasValue)
+            else
+            {
+                // 3. 正常评论通知站长 (新增逻辑)
+                // 只要是审核通过的评论，且发布者不是管理员自己（防止自己收到自己的邮件），都通知站长
+                // 简单的判断：如果评论者邮箱不等于管理员邮箱（假设配置了）
+                // 更严谨的判断需要 User Role，但这里我们尽量简化
+                if (!string.IsNullOrEmpty(adminEmail))
+                {
+                     // 避免通知自己：如果当前评论者就是 AdminEmail，则不发
+                     // 注意：这里 comment.GuestEmail 可能是空的，或者 comment.User.Email
+                     var commenterEmail = comment.User?.Email ?? comment.GuestEmail;
+                     
+                     if (commenterEmail != adminEmail) 
+                     {
+                        string subject = $"[新评论] {postTitle}";
+                        string body = $@"
+                            <p>您的文章 <strong>{postTitle}</strong> 收到了新评论：</p>
+                            <p><strong>用户：</strong> {comment.GuestName}</p>
+                            <blockquote>
+                                <p>{comment.Content}</p>
+                            </blockquote>
+                            <p><a href=""{appUrl}/posts/{comment.PostId}#comment-{comment.Id}"">查看评论</a></p>
+                        ";
+                         await emailService.SendEmailAsync(adminEmail, subject, body);
+                     }
+                }
+            }
+
+            // 恢复原本的 else if 逻辑，改为独立的 if，因为我们希望 Admin 和 被回复者 同时收到通知
+            if (comment.ParentId.HasValue && comment.IsApproved)
             {
                 var parentComment = await context.Comments.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == comment.ParentId.Value);
                 if (parentComment != null)
