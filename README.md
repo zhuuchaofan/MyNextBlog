@@ -12,9 +12,11 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 - **BFF 安全架构**: Next.js 作为中间层拦截 API 请求，实现了 **Token 隐身化** (HttpOnly Cookie)，彻底杜绝了 XSS 窃取 Token 的风险。
 - **智能缓存 (Smart Caching)**:
-  - **首页秒开**: 针对高频的“纯净首页”请求，实现了毫秒级内存缓存。
-  - **权限隔离**: 缓存 Key 区分管理员与游客 (`all_posts_index_True`/`False`)，防止隐藏文章泄露。
-  - **即时一致性**: 任何文章的增删改都会在 0.01 秒内自动清空相关缓存，拒绝过期数据。
+  - **前端 ISR (增量静态再生)**: 首页与详情页采用 Next.js ISR 策略，每 60 秒自动重验证。公开访问命中静态缓存，实现 CDN 级秒开体验。
+  - **后端分层缓存**:
+    - **内存缓存**: 针对高频的“纯净首页”请求，后端实现了毫秒级内存缓存。
+    - **权限隔离**: 缓存 Key 区分管理员与游客 (`all_posts_index_True`/`False`)，防止隐藏文章泄露。
+    - **一致性**: 后端缓存支持即时失效，与前端 ISR 配合实现“最终一致性” (60s 延迟)。
 - **极致 DB 优化**:
   - **AsNoTracking**: 全面禁用变更追踪，降低内存 60%+。
   - **Select 投影**: 列表页仅查询 200 字摘要，极大减少 I/O 载荷。
@@ -65,7 +67,8 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 - **SEO 最佳实践**:
   - 配置了 `metadataBase`，确保 Open Graph 分享链接的正确性。
-  - 全站服务器端渲染 (SSR)，利用 `generateMetadata` 动态生成文章标题和摘要。
+  - 配置了 `metadataBase`，确保 Open Graph 分享链接的正确性。
+  - 混合渲染策略：首页/详情页 (ISR) + 管理后台 (SSR) + 交互组件 (CSR)，利用 `generateMetadata` 动态生成文章标题和摘要。
 - **Markdown 引擎**:
   - 基于 `react-markdown` 和 `rehype-highlight`。
   - 支持 GFM 标准表格、任务列表、代码块高亮。
@@ -147,6 +150,20 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **高可用**: 即使服务器彻底宕机，也能从云端恢复最近一次的数据。
 - **数据播种 (Seeding)**:
   - 首次启动时，`DataSeeder` 会自动初始化默认分类 (`Technology`, `Life`) 和系统配置，实现开箱即用。
+
+---
+
+## 🔮 未来规划 (Roadmap)
+
+- [ ] **流量统计 (Analytics)**:
+  - 计划集成 **Google Analytics 4** 或 **Vercel Analytics**，补充缺失的访客行为数据。
+  - 目前仅有 Search Console 的搜索点击数据。
+- **移动端体验升级**:
+  - [ ] **原生分享**: 适配移动端 `navigator.share` API，调用系统级分享菜单。
+  - [ ] **PWA 支持**: 增加 `manifest.json`，支持添加到主屏幕。
+- **内容增强**:
+  - [ ] **全文 RSS**: 目前 RSS 仅输出摘要，计划增加配置项支持全文输出。
+  - [ ] **AI 摘要**: 利用 LLM 自动为长文章生成 TL;DR 摘要。
 
 ---
 

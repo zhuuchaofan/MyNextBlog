@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SITE_CONFIG } from "@/lib/constants";
+import { toast } from "sonner";
 
 export interface Post {
   id: number;
@@ -20,14 +21,16 @@ export interface Post {
   categoryId: number;
   coverImage?: string;
   tags?: string[];
+  isHidden?: boolean;
 }
 
 interface PostListProps {
   initialPosts: Post[];
   initialHasMore: boolean;
+  isAdmin?: boolean;
 }
 
-export default function PostList({ initialPosts, initialHasMore }: PostListProps) {
+export default function PostList({ initialPosts, initialHasMore, isAdmin = false }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,6 @@ export default function PostList({ initialPosts, initialHasMore }: PostListProps
         if (data.meta) {
             setHasMore(data.meta.hasMore);
         } else {
-            // Fallback logic if meta is missing
             setHasMore(data.data.length === 10);
         }
       } else {
@@ -58,12 +60,38 @@ export default function PostList({ initialPosts, initialHasMore }: PostListProps
     }
   };
 
+  const toggleVisibility = async (e: React.MouseEvent, post: Post) => {
+    e.preventDefault(); // 阻止链接跳转
+    e.stopPropagation();
+
+    const originalPosts = [...posts];
+    
+    // 乐观更新
+    setPosts(posts.map(p => 
+        p.id === post.id ? { ...p, isHidden: !p.isHidden } : p
+    ));
+
+    try {
+        const res = await fetch(`/api/backend/posts/${post.id}/visibility`, {
+            method: 'PATCH'
+        });
+        const json = await res.json();
+        if (!json.success) {
+            throw new Error(json.message);
+        }
+        toast.success(post.isHidden ? "文章已公开" : "文章已隐藏");
+    } catch (error) {
+        toast.error("操作失败");
+        setPosts(originalPosts); // 回滚
+    }
+  };
+
   return (
     <div className="space-y-8">
        <div className="space-y-6">
               {posts.map((post) => (
-                <Card key={post.id} className="group overflow-hidden border border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 rounded-3xl">
-                  <div className="flex flex-col md:flex-row h-full">
+                <Card key={post.id} className={`group overflow-hidden border border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 rounded-3xl ${post.isHidden ? 'opacity-70 grayscale-[0.5] border-dashed border-gray-300' : ''}`}>
+                  <div className="flex flex-col md:flex-row h-full relative">
                      {post.coverImage && (
                         <div className="md:w-64 h-48 md:h-auto relative p-3">
                           <div className="w-full h-full relative rounded-2xl overflow-hidden">
@@ -95,10 +123,24 @@ export default function PostList({ initialPosts, initialHasMore }: PostListProps
                           <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1 ml-auto">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>
+
+                          {/* 管理员控制按钮 (嵌入在元数据行末尾) */}
+                          {isAdmin && (
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6 ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                onClick={(e) => toggleVisibility(e, post)}
+                                title={post.isHidden ? "点击公开" : "点击隐藏"}
+                            >
+                                {post.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
+                          )}
                         </div>
                         
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                          <Link href={`/posts/${post.id}`}>
+                          <Link href={`/posts/${post.id}`} className="flex items-center gap-2">
+                            {post.isHidden && <Badge variant="destructive" className="text-[10px] h-5 px-1.5">Hidden</Badge>}
                             {post.title}
                           </Link>
                         </h3>

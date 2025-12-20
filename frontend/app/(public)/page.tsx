@@ -7,41 +7,40 @@ import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 import { cookies } from 'next/headers'; // 导入 cookies 工具
 
-// 强制动态渲染 (Force Dynamic)
-// 默认情况下，Next.js 会尝试在构建时静态生成页面 (Static Site Generation, SSG)。
-// 但因为我们的博客数据是经常变化的（发布新文章），而且我们需要在 Docker 内部网络中获取数据，
-// 所以设置为 "force-dynamic" 告诉 Next.js 每次用户请求时都在**服务端**重新执行此组件。
-// 这相当于 SSR (Server-Side Rendering)。
-export const dynamic = "force-dynamic";
+// 移除 force-dynamic，允许 Next.js 自动优化
+// export const dynamic = "force-dynamic";
 
 // 获取初始文章列表 (Server-Side)
 async function getInitialPosts() {
-  // 确定后端 API 地址
-  // 在 Docker 容器内部通信时，我们使用服务名 "backend" (http://backend:8080)。
-  // process.env.BACKEND_URL 通常在 docker-compose.yml 中配置。
-  // 如果是本地开发（非 Docker），则回退到 http://backend:5095 (这可能需要在 hosts 文件中映射 backend，或者直接改成 localhost)。
-  // **最佳实践**: 始终优先使用环境变量配置。
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
-
   
+  // 获取 Token 以便识别管理员
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const headers: Record<string, string> = {};
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token.value}`;
+  }
+
   try {
     // 使用 fetch API 获取数据。
-    // cache: 'no-store' 意味着不缓存结果，确保每次刷新都是最新数据（配合 dynamic = "force-dynamic"）。
+    // 如果是管理员 (有Token)，则 revalidate: 0 (实时获取，包含隐藏文章)
+    // 如果是普通用户，则 revalidate: 60 (ISR 缓存，仅公开文章)
     const res = await fetch(`${backendUrl}/api/posts?page=1&pageSize=10`, {
-       cache: 'no-store'
+       headers,
+       next: { revalidate: token ? 0 : 60 } 
     });
     
-    // 如果响应状态码不是 2xx，记录错误并返回空数据，防止页面崩溃。
+    // 如果响应状态码不是 2xx，记录错误并返回空数据
     if (!res.ok) {
         console.error(`Fetch posts failed: ${res.status} ${res.statusText}`);
         return { data: [], meta: { hasMore: false } };
     }
     
     const json = await res.json();
-
     return json.success ? json : { data: [], meta: { hasMore: false } };
   } catch (e) {
-    // 捕获网络错误（如后端未启动），返回空列表，保证页面骨架能渲染出来。
     console.error("Failed to fetch posts:", e);
     return { data: [], meta: { hasMore: false } };
   }
@@ -52,7 +51,6 @@ async function getPopularTags() {
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
   
   try {
-    // 获取当前请求的 Cookie Store
     const cookieStore = await cookies();
     const token = cookieStore.get('token');
 
@@ -66,7 +64,7 @@ async function getPopularTags() {
 
     const res = await fetch(`${backendUrl}/api/tags/popular`, {
        headers,
-       cache: 'no-store'
+       cache: 'no-store' // 标签保持实时更新
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -84,6 +82,12 @@ export default async function Home() {
   // 并行获取文章和标签数据
   const postsData = await getInitialPosts();
   const popularTags = await getPopularTags();
+
+  // 检查是否登录 (简单判断 Token)
+  // 后端会进行实际的权限验证，所以这里主要用于控制 UI 显示
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const isAdmin = !!token; // 暂时简单视为管理员 (为了显示管理按钮)
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
@@ -172,6 +176,7 @@ export default async function Home() {
           <PostList 
              initialPosts={postsData.data} 
              initialHasMore={postsData.meta ? postsData.meta.hasMore : postsData.data.length === 10} 
+             isAdmin={isAdmin}
           />
         </div>
 

@@ -47,7 +47,14 @@ export async function GET() {
     console.error('RSS Generation Error:', error);
   }
 
-  return new Response(feed.xml({ indent: true }), {
+  const xml = feed.xml({ indent: true });
+  // 注入 XSL 样式表声明，让浏览器渲染出漂亮的页面
+  const xmlWithStyle = xml.replace(
+    '<?xml version="1.0" encoding="UTF-8"?>', 
+    '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/rss-style.xsl"?>'
+  );
+
+  return new Response(xmlWithStyle, {
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
       // CDN 缓存控制
