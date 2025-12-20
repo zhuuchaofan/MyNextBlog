@@ -84,90 +84,99 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Right Side: Form Section */}
-      <div className="flex items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50">
-        <motion.div 
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.4 }}
-           className="w-full max-w-[400px] space-y-8"
-        >
-             {!submitted ? (
-                <>
-                    <div className="flex flex-col space-y-2">
-                        <Link href="/login" className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
-                            <ChevronLeft className="w-4 h-4 mr-1" /> 返回登录
-                        </Link>
-                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">忘记密码?</h1>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                          别担心，输入您的注册邮箱，我们将发送重置链接给您。
-                        </p>
-                    </div>
+      <div className="h-full flex flex-col p-8 bg-zinc-50 dark:bg-zinc-900/50">
+        {/* Mobile Brand Header - Static Position */}
+        <div className="lg:hidden flex-none w-full flex items-center gap-2 font-bold text-xl tracking-tighter text-zinc-900 dark:text-white mb-8">
+             <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-black">B</div>
+             MyNextBlog
+        </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {serverError && (
-                          <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="p-3 rounded-md bg-red-50 text-red-500 text-sm border border-red-200"
-                          >
-                            {serverError}
-                          </motion.div>
-                        )}
-
-                        <div className="space-y-2">
-                            <Label htmlFor="email">邮箱地址</Label>
-                            <div className="relative group">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
-                                <Input 
-                                    id="email" 
-                                    type="email" 
-                                    placeholder="name@example.com" 
-                                    className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    {...register('email')}
-                                />
-                            </div>
-                            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+        {/* Form Container */}
+        <div className="flex-1 flex items-center justify-center w-full">
+            <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-[400px] space-y-8"
+            >
+                {!submitted ? (
+                    <>
+                        <div className="flex flex-col space-y-2 text-center lg:text-left">
+                            <Link href="/login" className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 mb-4 transition-colors justify-center lg:justify-start">
+                                <ChevronLeft className="w-4 h-4 mr-1" /> 返回登录
+                            </Link>
+                            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">忘记密码?</h1>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                            别担心，输入您的注册邮箱，我们将发送重置链接给您。
+                            </p>
                         </div>
 
-                        <Button 
-                            type="submit" 
-                            className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <span className="flex items-center gap-2">
-                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                发送中...
-                                </span>
-                            ) : (
-                                <span className="flex items-center justify-center gap-2">
-                                发送重置链接 <ArrowRight className="w-4 h-4" />
-                                </span>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                            {serverError && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="p-3 rounded-md bg-red-50 text-red-500 text-sm border border-red-200"
+                            >
+                                {serverError}
+                            </motion.div>
                             )}
-                        </Button>
-                    </form>
-                </>
-            ) : (
-                <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center py-8"
-                >
-                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-10 h-10" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-zinc-900 mb-2">邮件已发送!</h2>
-                    <p className="text-zinc-500 mb-8 max-w-xs mx-auto">
-                        如果该邮箱存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
-                    </p>
-                    <Link href="/login">
-                        <Button variant="outline" className="w-full h-11 border-zinc-300 hover:bg-zinc-50 text-zinc-700">
-                            返回登录页面
-                        </Button>
-                    </Link>
-                </motion.div>
-            )}
-        </motion.div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="email">邮箱地址</Label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                                    <Input 
+                                        id="email" 
+                                        type="email" 
+                                        placeholder="name@example.com" 
+                                        className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        {...register('email')}
+                                    />
+                                </div>
+                                {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                            </div>
+
+                            <Button 
+                                type="submit" 
+                                className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    发送中...
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2">
+                                    发送重置链接 <ArrowRight className="w-4 h-4" />
+                                    </span>
+                                )}
+                            </Button>
+                        </form>
+                    </>
+                ) : (
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-center py-8"
+                    >
+                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-10 h-10" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-zinc-900 mb-2">邮件已发送!</h2>
+                        <p className="text-zinc-500 mb-8 max-w-xs mx-auto">
+                            如果该邮箱存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
+                        </p>
+                        <Link href="/login">
+                            <Button variant="outline" className="w-full h-11 border-zinc-300 hover:bg-zinc-50 text-zinc-700">
+                                返回登录页面
+                            </Button>
+                        </Link>
+                    </motion.div>
+                )}
+            </motion.div>
+        </div>
       </div>
     </div>
   );

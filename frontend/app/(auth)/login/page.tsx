@@ -92,13 +92,7 @@ export default function LoginPage() {
            <blockquote className="text-2xl font-medium leading-relaxed">
             &ldquo;这个博客平台改变了我记录生活的方式。极简的设计，极致的性能，让写作成为一种享受。&rdquo;
            </blockquote>
-           <div className="flex items-center gap-4">
-             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500"></div>
-             <div>
-               <p className="text-sm font-semibold">Alex Chen</p>
-               <p className="text-xs text-zinc-400">Full Stack Developer</p>
-             </div>
-           </div>
+           {/* Persona Removed as per user request */}
         </div>
 
         <div className="relative z-10 text-xs text-zinc-500">
@@ -107,111 +101,120 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side: Form Section */}
-      <div className="flex items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50">
-        <motion.div 
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5 }}
-           className="w-full max-w-[400px] space-y-8"
-        >
-           <div className="flex flex-col space-y-2 text-center">
-             <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">欢迎回来</h1>
-             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-               请输入您的凭证以访问管理后台
-             </p>
-           </div>
+      <div className="h-full flex flex-col p-8 bg-zinc-50 dark:bg-zinc-900/50">
+        {/* Mobile Brand Header - Static Position to prevent overlap */}
+        <div className="lg:hidden flex-none w-full flex items-center gap-2 font-bold text-xl tracking-tighter text-zinc-900 dark:text-white mb-8">
+             <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-black">B</div>
+             MyNextBlog
+        </div>
 
-           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {serverError && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="p-3 rounded-md bg-red-50 text-red-500 text-sm border border-red-200"
-                >
-                  {serverError}
-                </motion.div>
-              )}
+        {/* Form Container - Centered */}
+        <div className="flex-1 flex items-center justify-center w-full">
+            <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-[400px] space-y-8"
+            >
+            <div className="flex flex-col space-y-2 text-center">
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">欢迎回来</h1>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                请输入您的凭证以访问管理后台
+                </p>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="username">用户名</Label>
-                <div className="relative">
-                   <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
-                   <Input 
-                     id="username"
-                     className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
-                     placeholder="admin"
-                     {...register('username')}
-                   />
-                </div>
-                {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                 <Label htmlFor="password">密码</Label>
-                 <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
-                    <Input 
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      className="pl-10 pr-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
-                      placeholder="••••••••"
-                      {...register('password')}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-600 focus:outline-none"
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {serverError && (
+                    <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="p-3 rounded-md bg-red-50 text-red-500 text-sm border border-red-200"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                 </div>
-                 {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <label htmlFor="remember" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-600">
-                    记住我
-                  </label>
-                </div>
-                <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500 hover:underline">
-                  忘记密码?
-                </Link>
-              </div>
-
-              <Button disabled={isSubmitting} className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                {isSubmitting ? (
-                   <span className="flex items-center gap-2">
-                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                     验证中...
-                   </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                     登录 <ArrowRight className="w-4 h-4" />
-                  </span>
+                    {serverError}
+                    </motion.div>
                 )}
-              </Button>
-           </form>
 
-           <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-zinc-50 dark:bg-zinc-900 px-2 text-zinc-500">
-                  或者
-                </span>
-              </div>
-           </div>
+                <div className="space-y-2">
+                    <Label htmlFor="username">用户名</Label>
+                    <div className="relative">
+                    <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                    <Input 
+                        id="username"
+                        className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
+                        placeholder="admin"
+                        {...register('username')}
+                    />
+                    </div>
+                    {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
+                </div>
 
-           <div className="text-center text-sm">
-             <span className="text-zinc-500">还没有账号? </span>
-             <Link href="/register" className="font-semibold text-orange-600 hover:text-orange-500 hover:underline">
-               立即注册
-             </Link>
-           </div>
-        </motion.div>
+                <div className="space-y-2">
+                    <Label htmlFor="password">密码</Label>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                        <Input 
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        className="pl-10 pr-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
+                        placeholder="••••••••"
+                        {...register('password')}
+                        />
+                        <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-600 focus:outline-none"
+                        >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
+                    {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                    <Checkbox id="remember" />
+                    <label htmlFor="remember" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-600">
+                        记住我
+                    </label>
+                    </div>
+                    <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500 hover:underline">
+                    忘记密码?
+                    </Link>
+                </div>
+
+                <Button disabled={isSubmitting} className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                    {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        验证中...
+                    </span>
+                    ) : (
+                    <span className="flex items-center justify-center gap-2">
+                        登录 <ArrowRight className="w-4 h-4" />
+                    </span>
+                    )}
+                </Button>
+            </form>
+
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-zinc-50 dark:bg-zinc-900 px-2 text-zinc-500">
+                    或者
+                    </span>
+                </div>
+            </div>
+
+            <div className="text-center text-sm">
+                <span className="text-zinc-500">还没有账号? </span>
+                <Link href="/register" className="font-semibold text-orange-600 hover:text-orange-500 hover:underline">
+                立即注册
+                </Link>
+            </div>
+            </motion.div>
+        </div>
       </div>
     </div>
   );
