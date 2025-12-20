@@ -5,7 +5,7 @@ public interface IImageService
     /// <summary>
     /// 记录新上传的图片（此时未关联文章）
     /// </summary>
-    Task RecordImageAsync(string url, string storageKey);
+    Task RecordImageAsync(string url, string storageKey, int width, int height);
 
     /// <summary>
     /// 解析文章内容，将引用的图片与文章关联

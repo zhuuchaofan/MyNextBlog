@@ -20,6 +20,9 @@ public class ImageAsset
 
     public DateTime UploadTime { get; set; } = DateTime.Now;
 
+    public int Width { get; set; }
+    public int Height { get; set; }
+
     /// <summary>
     /// 关联的文章 ID。如果为空，说明图片已上传但未保存到任何文章中。
     /// </summary>

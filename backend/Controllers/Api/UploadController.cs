@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.Services;
+using SixLabors.ImageSharp;
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -34,18 +35,38 @@ public class UploadController(IStorageService storageService, IImageService imag
         if (!allowedExtensions.Contains(extension))
             return BadRequest("只支持上传图片格式");
 
-        // 3. 上传到 R2 云存储
+        // 3. 读取图片尺寸
+        int width = 0;
+        int height = 0;
+        
+        await using var stream = file.OpenReadStream();
+        try
+        {
+            // 使用 ImageSharp 只读取图片信息（不解码像素数据，速度快）
+            var imageInfo = await Image.IdentifyAsync(stream);
+            width = imageInfo.Width;
+            height = imageInfo.Height;
+        }
+        catch
+        {
+            // 如果读取失败，不阻断上传，但记录尺寸为 0
+            // 可能是非标准图片或损坏
+        }
+        
+        // 重置流位置，以便后续上传
+        stream.Position = 0;
+
+        // 4. 上传到 R2 云存储
         // 注意：我们直接传原始文件名，StorageService 内部会负责生成安全的 GUID 文件名，
         // 防止文件名冲突和路径遍历攻击。
-        await using var stream = file.OpenReadStream();
         var result = await storageService.UploadAsync(stream, file.FileName, file.ContentType);
 
-        // 4. 在数据库中记录这张图片
+        // 5. 在数据库中记录这张图片
         // 此时图片处于"游离"状态 (PostId = null)，如果在一定时间内未被任何文章引用，
         // 将被后续的清理任务清除。
-        await imageService.RecordImageAsync(result.Url, result.StorageKey);
+        await imageService.RecordImageAsync(result.Url, result.StorageKey, width, height);
 
-        // 5. 返回访问链接供前端 Markdown 编辑器插入
+        // 6. 返回访问链接供前端 Markdown 编辑器插入
         return Ok(new { url = result.Url });
     }
 

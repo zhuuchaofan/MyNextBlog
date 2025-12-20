@@ -40,8 +40,8 @@ public class GalleryService(AppDbContext context) : IGalleryService
                 i.Id,
                 i.Url,
                 i.Post!.Title,
-                800, // 占位宽度 (前端自适应)
-                600  // 占位高度
+                i.Width > 0 ? i.Width : 800,  // 如果有真实尺寸则使用，否则使用默认值
+                i.Height > 0 ? i.Height : 600
             ))
             .ToListAsync();
 

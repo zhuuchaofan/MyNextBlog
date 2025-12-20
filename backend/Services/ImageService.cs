@@ -15,18 +15,22 @@ public class ImageService(AppDbContext context, IStorageService storageService) 
     /// </summary>
     /// <param name="url">图片的公开访问 URL</param>
     /// <param name="storageKey">云存储中的唯一 Key (用于后续删除)</param>
+    /// <param name="width">图片宽度</param>
+    /// <param name="height">图片高度</param>
     /// <remarks>
     /// 此时图片处于"游离"状态 (PostId = null)，如果在一定时间内未被任何文章引用，
     /// 将被 CleanupOrphanedImagesAsync 任务清除。
     /// </remarks>
-    public async Task RecordImageAsync(string url, string storageKey)
+    public async Task RecordImageAsync(string url, string storageKey, int width, int height)
     {
         var asset = new ImageAsset
         {
             Url = url,
             StorageKey = storageKey,
             UploadTime = DateTime.Now,
-            PostId = null
+            PostId = null,
+            Width = width,
+            Height = height
         };
         context.ImageAssets.Add(asset);
         await context.SaveChangesAsync();
