@@ -151,8 +151,9 @@ function CommentItem({
     const isReplying = replyingTo === node.id;
 
     return (
-        <div className="flex gap-3 md:gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-white dark:border-zinc-800 shadow-sm flex-shrink-0">
+        <div className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* 头像 */}
+            <Avatar className="w-8 h-8 md:w-10 md:h-10 mt-1 flex-shrink-0">
                 <AvatarImage 
                     src={node.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${node.guestName || 'guest'}`} 
                     className="object-cover"
@@ -161,30 +162,37 @@ function CommentItem({
             </Avatar>
             
             <div className="flex-1 min-w-0">
-                <div className="bg-white dark:bg-zinc-900 p-4 rounded-r-2xl rounded-bl-2xl shadow-sm border border-gray-100 dark:border-zinc-800 group-hover:border-orange-100 dark:group-hover:border-orange-900/30 transition-all">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
-                            <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{node.guestName || '匿名网友'}</span>
-                            <span className="text-[10px] sm:text-xs text-gray-400 sm:text-gray-500">{node.createTime}</span>
-                        </div>
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30 -mt-0.5"
-                            onClick={() => setReplyingTo(isReplying ? null : node.id)}
-                        >
-                            <Reply className="w-3 h-3 mr-1" /> <span className="hidden sm:inline">回复</span><span className="sm:hidden">回复</span>
-                        </Button>
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm whitespace-pre-wrap break-words">
-                        {node.content}
-                    </p>
+                {/* 顶部信息行：昵称 + 时间 */}
+                <div className="flex items-baseline gap-2 mb-1 ml-1">
+                    <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+                        {node.guestName || '匿名网友'}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-gray-400">
+                        {node.createTime}
+                    </span>
+                </div>
+
+                {/* 内容气泡 */}
+                <div className="bg-gray-100 dark:bg-zinc-800 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words inline-block max-w-full hover:bg-gray-200 dark:hover:bg-zinc-700/80 transition-colors">
+                    {node.content}
+                </div>
+
+                {/* 底部操作行：回复按钮 */}
+                <div className="mt-1 ml-1 flex items-center gap-4">
+                     <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-transparent -ml-2"
+                        onClick={() => setReplyingTo(isReplying ? null : node.id)}
+                    >
+                        <Reply className="w-3 h-3 mr-1" /> 回复
+                    </Button>
                 </div>
 
                 {/* 回复框 */}
                 {isReplying && (
-                    <div className="mt-4 pl-2 border-l-2 border-orange-100 dark:border-zinc-800">
-                        <div className="text-xs text-gray-500 mb-2 pl-2">回复 @{node.guestName}:</div>
+                    <div className="mt-3 pl-1">
+                        <div className="text-xs text-gray-500 mb-2">回复 @{node.guestName}:</div>
                         <CommentForm 
                             postId={postId} 
                             parentId={node.id} 
@@ -195,22 +203,22 @@ function CommentItem({
                     </div>
                 )}
 
-                {/* 子评论 (递归) */}
+                {/* 子评论 (递归) - 调整缩进线样式 */}
                 {node.children && node.children.length > 0 && (
-                    <div className="mt-4 space-y-4 pl-3 md:pl-8 border-l-2 border-gray-100 dark:border-zinc-800/50">
-                        {node.children
-                            // .sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()) // Backend may already sort, but safe to keep if needed. API returns formatted string time, so sorting by string might be tricky if format changes. Assuming backend order is correct.
-                            .map(child => (
-                                <CommentItem 
-                                    key={child.id} 
-                                    node={child} 
-                                    postId={postId} 
-                                    replyingTo={replyingTo} 
-                                    setReplyingTo={setReplyingTo}
-                                    onSuccess={onSuccess}
-                                />
-                            ))
-                        }
+                    <div className="mt-3 space-y-4 pl-3 relative">
+                        {/* 左侧连接线，增加视觉引导 */}
+                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gray-100 dark:bg-zinc-800 rounded-full"></div>
+                        
+                        {node.children.map(child => (
+                            <CommentItem 
+                                key={child.id} 
+                                node={child} 
+                                postId={postId} 
+                                replyingTo={replyingTo} 
+                                setReplyingTo={setReplyingTo}
+                                onSuccess={onSuccess}
+                            />
+                        ))}
                     </div>
                 )}
             </div>
