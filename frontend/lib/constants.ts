@@ -2,7 +2,8 @@ export const SITE_CONFIG = {
   name: "朱超凡的技术博客",
   author: "朱超凡",
   description: "全栈开发者 / .NET / Next.js / 赴日修行中",
-  url: "https://zhuchaofan.online",
+  // 优先读取环境变量，确保 Docker 部署时域名一致
+  url: process.env.APP_URL || "https://zhuchaofan.online",
   avatar: "https://picture.zhuchaofan.online/CAT/boy_01.png",
   social: {
     github: "https://github.com/zhuuchaofan",

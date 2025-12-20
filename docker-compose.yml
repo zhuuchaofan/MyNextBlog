@@ -14,7 +14,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       # 覆盖连接字符串，指向挂载的 data 目录
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/blog.db
-      
+
       # === 敏感配置 (从 .env 读取) ===
       # Cloudflare R2
       - CloudflareR2__ServiceUrl=${R2_SERVICE_URL}
@@ -55,5 +55,7 @@ services:
       - TZ=Asia/Shanghai
       # 告诉 Next.js 后端在 Docker 网络里的名字叫 'backend'，端口是 8080
       - BACKEND_URL=http://backend:8080
+      # 注入外部定义的域名 (用于生成 RSS 链接、OpenGraph 等)
+      - APP_URL=${APP_URL}
     depends_on:
       - backend

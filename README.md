@@ -72,11 +72,20 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **分类体系**:
   - **Category (分类)**: 树状结构的强分类，一篇文章只能属于一个分类（如 "技术" vs "生活"）。
   - **Tags (标签)**: 扁平化的多维标签，一篇文章可关联多个标签（如 ".NET", "Docker", "Tutorial"）。
-- **状态机**: 文章具备 `Active` (公开) / `Hidden` (隐藏) 状态。
+
+* **状态机**: 文章具备 `Active` (公开) / `Hidden` (隐藏) 状态。
   - 管理员可在前台直接点击 "👁️" 图标快速切换可见性，无需进入后台。
+* **全站深色模式 (Dark Mode)**:
+  - 基于 `next-themes` 实现，完美适配系统设置。
+  - 支持手动切换 (Light/Dark/System)，防止夜间阅读刺眼。
 
 ### 2. 💬 互动与评论 (Interaction)
 
+- **极速点赞 (Optimistic UI)**:
+  - 采用乐观更新策略，点击即反馈，后台异步同步数据。
+  - **混合持久化**: 未登录用户使用 `localStorage` 记录状态，登录用户关联数据库账号，多端同步。
+- **一键分享**:
+  - 文章详情页支持一键复制链接 (PC) 或调用系统原生分享 (Mobile - Planned)。
 - **无限级回复**:
   - 采用 `ParentId` 邻接表设计，理论上支持无限层级嵌套。
   - 前端自动递归渲染组件树。
@@ -109,9 +118,18 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **包含内容**:
   - 最近 20 篇公开文章。
   - 包含全文摘要、发布时间、作者信息。
-  - 兼容 Feedly, Reeder 等主流阅读器。
 
-### 5. ⚙️ 超级管理后台 (Admin Dashboard)
+* 兼容 Feedly, Reeder 等主流阅读器。
+
+### 5. 🔍 搜索与归档 (Search & Archive)
+
+- **全局搜索**:
+  - 前端集成 CMD+K 快捷键唤起搜索框。
+  - 支持针对 标题、标签、摘要 的模糊检索。
+- **时间轴归档**:
+  - 按年份/月份自动聚类文章，方便追溯历史内容。
+
+### 6. ⚙️ 超级管理后台 (Admin Dashboard)
 
 - **仪表盘**: 可视化展示文章总数、评论总数、待审核数量。
 - **内容审计**:
@@ -121,7 +139,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **配置中心**:
   - (WIP) 支持在线修改网站标题、SEO 关键词。
 
-### 6. 🛡️ 运维自动化 (Ops Automation)
+### 7. 🛡️ 运维自动化 (Ops Automation)
 
 - **数据库自动备份**:
   - 内置 `DatabaseBackupService` (HostedService)，无需配置 Crontab。
