@@ -3,6 +3,7 @@ using MyNextBlog.Data;
 using MyNextBlog.Models;
 using Ganss.Xss;
 using MyNextBlog.Services.Email;
+using Microsoft.Extensions.Logging;
 
 namespace MyNextBlog.Services;
 
@@ -10,7 +11,8 @@ public class CommentService(
     AppDbContext context,
     IHtmlSanitizer sanitizer,
     IConfiguration configuration,
-    IEmailService emailService) : ICommentService
+    IEmailService emailService,
+    ILogger<CommentService> logger) : ICommentService
 {
     public async Task<CommentCreationResult> CreateCommentAsync(int postId, string content, string? guestName, int? parentId, int? userId)
     {
@@ -129,12 +131,9 @@ public class CommentService(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending notification: {ex.Message}");
+            logger.LogError(ex, "Error sending notification for comment {CommentId}", comment.Id);
         }
     }
-
-    // Removed AddCommentAsync
-
 
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {

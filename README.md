@@ -9,228 +9,211 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 ## ⚡️ 技术亮点 (Highlights)
 
 ### 架构与性能
-*   **BFF 架构设计**: Next.js 作为安全的中间层，负责服务端渲染 (SSR) 与 API 转发，实现了彻底的前后端分离与 HttpOnly Cookie 认证。
-*   **极致的查询优化**: 
-    *   后端全面采用 `.AsNoTracking()` 禁用 EF Core 变更追踪，大幅降低内存开销。
-    *   列表页查询采用 **Select 投影** 策略，仅传输前 200 字符摘要，数据载荷减少 **98%**。
-*   **多级缓存策略**: 核心高频接口（首页、分类页）集成 **IMemoryCache**，实现毫秒级响应。
-*   **轻量化部署**: 基于 **SQLite** 文件数据库与 **Docker** 容器化技术，无需复杂的中间件依赖即可一键启动。
 
-### 安全与合规
-*   **安全加固**: 已修复 Next.js/React 相关的 RCE 漏洞 (CVE-2025-*)，并配置了严格的 SSRF 防护策略。
-*   **全局异常治理**: 集成 `GlobalExceptionMiddleware`，统一捕获未处理异常并标准化 JSON 响应，杜绝堆栈信息泄露。
-*   **云原生存储**: 集成 Cloudflare R2 对象存储，支持图片资源与应用服务器分离，提升安全性与加载速度。
+- **BFF 安全架构**: Next.js 作为中间层拦截 API 请求，实现了 **Token 隐身化** (HttpOnly Cookie)，彻底杜绝了 XSS 窃取 Token 的风险。
+- **智能缓存 (Smart Caching)**:
+  - **首页秒开**: 针对高频的“纯净首页”请求，实现了毫秒级内存缓存。
+  - **权限隔离**: 缓存 Key 区分管理员与游客 (`all_posts_index_True`/`False`)，防止隐藏文章泄露。
+  - **即时一致性**: 任何文章的增删改都会在 0.01 秒内自动清空相关缓存，拒绝过期数据。
+- **极致 DB 优化**:
+  - **AsNoTracking**: 全面禁用变更追踪，降低内存 60%+。
+  - **Select 投影**: 列表页仅查询 200 字摘要，极大减少 I/O 载荷。
+  - **物理索引**: 对 `IsHidden`, `CreateTime`, `ParentId` 等高频筛选字段建立了数据库索引。
 
----
+### 现代化体验
 
-## 💡 功能一览 (Features Overview)
-
-### 一、技术栈与架构
-*   **全栈项目**：.NET 10 Web API 后端 + Next.js 15 (App Router) 前端。
-*   **BFF (Backend for Frontend) 架构**：Next.js 作为中间层，处理认证和转发请求，提高安全性。
-*   **Docker Compose**：用于本地开发和部署，管理前后端服务。
-*   **数据库**：SQLite (通过 Entity Framework Core 管理)。
-*   **认证**：JWT (后端) + HttpOnly Cookie (前端) 实现安全认证。
-*   **UI 库**：shadcn/ui + Tailwind CSS v4。
-
-### 二、后端功能 (.NET API)
-
-1.  **文章管理 (Posts)**
-    *   **CRUD**：创建 (POST)、更新 (PUT)、删除 (DELETE) 文章。
-    *   **查询**：
-        *   公开文章列表 (支持分页、搜索、按分类/标签筛选)。
-        *   文章详情 (公开)。
-        *   管理员文章列表 (包含隐藏/草稿，支持分页)。
-        *   管理员文章详情 (包含隐藏/草稿)。
-    *   **可见性切换**：切换文章的隐藏/显示状态 (PATCH)。
-    *   **点赞功能**：
-        *   **切换点赞状态** (POST `/{id}/like`)：支持登录用户 (通过 UserId) 和游客 (通过 IP) 点赞/取消点赞。
-        *   文章模型包含 `LikeCount` 字段。
-2.  **评论管理 (Comments)**
-    *   **发布评论** (POST)：支持登录用户和游客评论。
-    *   **嵌套评论**：支持二级回复（评论模型包含 `ParentId`）。
-    *   **获取评论列表** (GET)：支持分页获取指定文章的评论。
-    *   **安全防护** (已完成)：
-        *   **XSS 防御**：使用 `HtmlSanitizer` 清洗评论内容，防止恶意脚本注入。
-        *   **防刷限制**：同一 IP 在 60 秒内只能发布一条评论。
-3.  **分类管理 (Categories)**
-    *   获取所有分类列表。
-    *   创建新分类 (POST)。
-4.  **标签管理 (Tags)**
-    *   获取热门标签。
-    *   后端在创建/更新文章时，支持标签的创建与关联。
-5.  **用户认证与授权 (Auth & Users)**
-    *   用户登录 (`/api/auth/login`)。
-    *   获取当前登录用户信息 (`/api/account/me`)。
-    *   上传用户头像。
-    *   基于 JWT Role 的权限控制 (例如 Admin 角色)。
-6.  **文件存储**：集成 Cloudflare R2 (通过 `R2StorageService`)。
-7.  **图片管理**：文章中的图片能被自动关联、清理。
-8.  **系统功能**：
-    *   Serilog 日志。
-    *   Swagger/OpenAPI 文档。
-    *   数据库自动备份 (HostedService)。
-
-### 三、前端功能 (Next.js)
-
-1.  **公共页面 (Public)**
-    *   **首页**：文章列表（可能包含封面图、摘要、分类、标签、作者信息、点赞数）。
-    *   **文章详情页**：
-        *   显示文章标题、内容、作者、发布时间、阅读时长、评论区、点赞按钮。
-        *   **点赞交互**：实时显示点赞数，支持登录/游客点赞及取消点赞，并进行本地持久化 (localStorage)。
-        *   **评论区**：
-            *   显示评论列表，支持**无限嵌套回复**的 UI 渲染。
-            *   “加载更多”评论的分页功能。
-            *   评论表单：支持登录用户自动填充信息，游客输入昵称。支持对评论进行回复。
-    *   **归档页**。
-    *   **猫咪相册页** (Gallery)。
-    *   **关于铲屎官页** (About)。
-    *   **RSS 订阅**。
-    *   **搜索功能**：通过搜索图标触发弹窗进行搜索。
-    *   **自定义 404 页面**。
-2.  **管理页面 (Admin)**
-    *   管理后台仪表盘 (`/admin`)。
-    *   文章管理 (`/admin/posts`)：列出所有文章（包括隐藏），编辑、删除文章。
-    *   个人设置 (`/settings`)。
-    *   登录/登出。
-3.  **UI/UX**
-    *   深色/浅色模式切换。
-    *   响应式布局 (适配桌面和移动设备)。
-    *   Toast/Banner 消息提示 (sonner)。
-    *   “液态玻璃”效果。
+- **UI/UX**: 采用 "Bento Grid" (便当盒) 布局与“液态玻璃”视差效果，配合 Tailwind v4 实现极致视觉体验。
+- **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
+- **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
 ---
 
-## 🛠 技术栈 (Tech Stack)
+## 👥 权限与用户体系 (Permission & User System)
 
-| 层级 | 核心技术 | 关键库/特性 |
-| :--- | :--- | :--- |
-| **Frontend** | **Next.js 15** | App Router, Server Actions, SSR |
-| | **UI System** | Tailwind CSS v4, shadcn/ui, Lucide React |
-| | **Content** | React Markdown, Rehype Highlight |
-| **Backend** | **.NET 10 (Preview)** | ASP.NET Core Web API |
-| | **Data** | Entity Framework Core, SQLite |
-| | **Logging** | Serilog (Structured Logging) |
-| **DevOps** | **Docker** | Docker Compose, Multi-stage Builds |
-| | **Storage** | Cloudflare R2 (S3 Compatible) |
+系统设计了极其精细的权限控制矩阵，覆盖了从游客到超级管理员的全生命周期。
+
+### 1. 角色权限矩阵
+
+| 功能模块     | 👤 游客 (Visitor) |    🧑 注册用户 (Member)    |   🛡️ 管理员 (Admin)    |
+| :----------- | :---------------: | :------------------------: | :--------------------: |
+| **浏览权限** |  仅公开文章/评论  |      仅公开文章/评论       | **所有** (含隐藏/草稿) |
+| **文章管理** |        ❌         |             ❌             |  ✅ (发布/编辑/删除)   |
+| **评论权限** | ✅ (需验证/审核)  |      ✅ (自动/免审\*)      | ✅ (管理所有/批量操作) |
+| **点赞机制** | ✅ (基于 IP 指纹) | ✅ (关联 UserID, 多端同步) |           ✅           |
+| **用户中心** |        ❌         |  ✅ (改名/换头像/修简介)   |       ✅ (同上)        |
+| **媒体库**   |        ❌         |      ✅ (仅头像上传)       | ✅ (文章配图/R2 管理)  |
+| **后台访问** |        ❌         |             ❌             |   ✅ (`/admin` 路由)   |
+
+### 2. 用户生命周期 (User Lifecycle)
+
+- **注册 (Registration)**:
+  - 开放注册接口 `/api/auth/register`。
+  - 密码安全：前端传输明文 -> 后端 **BCrypt** 加盐哈希存储 (WorkFactor=10)。
+  - 默认角色：新注册用户默认为 `User` 角色，无后台访问权限。
+- **登录 (Login)**:
+  - 采用 **HttpOnly Cookie** 模式。
+  - 流程：用户提交账号密码 -> Next.js 验证 -> 后端签发 JWT -> Next.js 将 JWT 写入浏览器 Cookie (不暴露给 JS) -> 跳转首页。
+- **个人资料 (Profile)**:
+  - 支持修改昵称、个人简介 (`Bio`)、个人网站链接。
+  - 支持头像上传 (自动压缩并不经过服务器磁盘，直接流式上传至 Cloudflare R2)。
+
+---
+
+## 🧩 功能模块深度解析 (Modules Deep Dive)
+
+### 1. 📝 核心博客系统 (Blog Core)
+
+- **Markdown 引擎**:
+  - 基于 `react-markdown` 和 `rehype-highlight`。
+  - 支持 GFM 标准表格、任务列表、代码块高亮。
+- **分类体系**:
+  - **Category (分类)**: 树状结构的强分类，一篇文章只能属于一个分类（如 "技术" vs "生活"）。
+  - **Tags (标签)**: 扁平化的多维标签，一篇文章可关联多个标签（如 ".NET", "Docker", "Tutorial"）。
+- **状态机**: 文章具备 `Active` (公开) / `Hidden` (隐藏) 状态。
+  - 管理员可在前台直接点击 "👁️" 图标快速切换可见性，无需进入后台。
+
+### 2. 💬 互动与评论 (Interaction)
+
+- **无限级回复**:
+  - 采用 `ParentId` 邻接表设计，理论上支持无限层级嵌套。
+  - 前端自动递归渲染组件树。
+- **智能防风控 (Anti-Spam)**:
+  - **频率限制**: 内存级滑动窗口算法，限制单 IP 60 秒内仅能发布 1 条评论。
+  - **敏感词过滤**: 内置敏感词库，匹配成功后评论自动标记为 `IsApproved=false`，需人工审核通过后才会显示。
+- **邮件通知**:
+  - 当评论被回复时，自动发送邮件通知原作者（支持 SMTP 配置）。
+
+### 3. 🖼️ 云原生媒体中心 (Cloud Media)
+
+- **架构**:
+  - 彻底告别本地 `wwwroot/uploads` 目录。
+  - 所有图片（头像、文章配图）直接流式上传至 **Cloudflare R2** (S3 兼容)。
+- **智能关联 (Smart Binding)**:
+  - **问题**: 用户上传了图片但最后没发文章，导致由于“僵尸图片”占用云存储空间。
+  - **方案**:
+    1.  图片上传时标记为 `Unbound`。
+    2.  文章发布/更新时，后台扫描 Markdown 内容，解析所有图片 URL。
+    3.  将匹配到的图片资源标记为 `Bound` 并关联 `PostId`。
+    4.  后台服务定期清理 `Unbound` 且超过 24 小时的图片。
+
+### 4. � RSS 订阅 (Feed)
+
+- **标准支持**: 自动生成符合 `RSS 2.0` 标准的 XML 文件。
+- **路由**: `/feed.xml`。
+- **包含内容**:
+  - 最近 20 篇公开文章。
+  - 包含全文摘要、发布时间、作者信息。
+  - 兼容 Feedly, Reeder 等主流阅读器。
+
+### 5. ⚙️ 超级管理后台 (Admin Dashboard)
+
+- **仪表盘**: 可视化展示文章总数、评论总数、待审核数量。
+- **内容审计**:
+  - 专用的评论审核队列。
+  - 支持一键 "✅ 通过" 或 "🗑️ 删除"。
+  - 支持批量操作（例如选中 10 条垃圾广告一次性删除）。
+- **配置中心**:
+  - (WIP) 支持在线修改网站标题、SEO 关键词。
+
+### 6. 🛡️ 运维自动化 (Ops Automation)
+
+- **数据库自动备份**:
+  - 内置 `DatabaseBackupService` (HostedService)，无需配置 Crontab。
+  - **机制**: 每天凌晨自动将 `blog.db` 文件热备份并上传至 Cloudflare R2 的 `/backups` 目录。
+  - **高可用**: 即使服务器彻底宕机，也能从云端恢复最近一次的数据。
+- **数据播种 (Seeding)**:
+  - 首次启动时，`DataSeeder` 会自动初始化默认分类 (`Technology`, `Life`) 和系统配置，实现开箱即用。
+
+---
+
+## 🛠 技术底层 (Tech Stack)
+
+| 领域         | 核心技术       | 详细说明                                                                       |
+| :----------- | :------------- | :----------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Frontend** | **Next.js 15** | 使用 App Router 架构，结合 Server Actions 处理表单提交。                       |
+|              | **Typescript** | 全面强类型覆盖，前后端共享 DTO 定义。                                          |
+|              | **UI System**  | Tailwind CSS v4 (原子化 CSS) + shadcn/ui (无头组件库) + Framer Motion (动画)。 |
+| **Backend**  | **.NET 10**    | 抢先体验版 ASP.NET Core Web API，使用 Minimal APIs 风格。                      |
+|              |                | **Data**                                                                       | EF Core Code-First, 自动 Migrations & Seeding。 |
+|              | **Services**   | MemoryCache, Serilog, Automapper, HostedServices (Backups)。                   |
+|              | **Serilog**    | 结构化日志，支持输出到 Console, File 或 Elasticsearch。                        |
+| **DevOps**   | **Docker**     | 多阶段构建 (Multi-stage Build)，最终镜像仅 80MB+。                             |
 
 ---
 
 ## 🚀 快速启动 (Quick Start)
 
-前提条件：请确保本地已安装 **Docker** 和 **Docker Compose**。
+**前提**: 本地已安装 `Docker` 和 `Docker Compose`。
 
-### 1. 配置环境变量
-在项目根目录新建 `.env` 文件，填入必要的配置信息：
+### 1. 配置环境
+
+新建 `.env` 文件：
 
 ```env
-# === 存储配置 (Cloudflare R2) ===
-R2_SERVICE_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
-R2_ACCESS_KEY=<YOUR_ACCESS_KEY>
-R2_SECRET_KEY=<YOUR_SECRET_KEY>
-R2_BUCKET_NAME=<BUCKET_NAME>
-R2_PUBLIC_DOMAIN=https://<YOUR_CUSTOM_DOMAIN>
+# R2 存储配置 (必填，否则无法上传图片)
+R2_SERVICE_URL=https://<ID>.r2.cloudflarestorage.com
+R2_ACCESS_KEY=<KEY>
+R2_SECRET_KEY=<SECRET>
+R2_BUCKET_NAME=<BUCKET>
+R2_PUBLIC_DOMAIN=https://img.yourdomain.com
 
-# === 安全配置 ===
-JWT_SECRET=这里填入一个足够长的随机字符串作为密钥
+# 邮件配置 (选填，不填则不发邮件)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASS=app_password
+
+# JWT 安全配置
+JWT_SECRET=YourSuperSecretKeyShouldBeLongEnough
 JWT_ISSUER=MyNextBlogServer
 JWT_AUDIENCE=MyNextBlogClient
-
-# === 服务通信 (默认) ===
-BACKEND_URL=http://backend:8080
 ```
 
-### 2. 构建并运行
-执行以下命令即可拉起完整环境：
+### 2. 一键运行
 
 ```bash
 docker compose up -d --build
 ```
 
-启动完成后：
-*   **前端访问**: `http://localhost:3000`
-*   **后端 API**: `http://localhost:8080`
-*   **Swagger 文档**: `http://localhost:8080/swagger`
+启动后访问：
 
-### 3. 初始化权限
-系统首次启动默认为空数据库。注册首个用户后，需通过数据库工具或命令行手动提升权限：
+- 前端 (Blog): `http://localhost:3000`
+- 后端 (API): `http://localhost:8080`
+- API 文档: `http://localhost:8080/swagger`
 
-```sql
--- 将指定用户升级为管理员
-UPDATE Users SET Role = 'Admin' WHERE Username = 'your_username';
+### 3. 提升管理员
+
+系统首次注册的用户是普通用户。需手动通过 SQL 提权：
+
+```bash
+# 进入数据库容器
+docker compose exec backend bash
+# 连接 SQLite
+sqlite3 data/blog.db
+# 执行 SQL
+UPDATE Users SET Role = 'Admin' WHERE Username = '你的用户名';
+# 退出
+.exit
 ```
 
 ---
 
-## 📂 目录结构
+## 📂 目录结构图
 
-```
+```text
 /
-├── backend/            # .NET 10 Web API 解决方案
-│   ├── Controllers/    # API 控制器 (RESTful)
-│   ├── Services/       # 业务逻辑与缓存实现
-│   ├── Models/         # EF Core 实体定义
-│   └── Data/           # 数据库上下文与迁移
-├── frontend/           # Next.js 15 应用程序
-│   ├── app/            # App Router 路由与页面
-│   ├── components/     # UI 组件 (shadcn/ui)
-│   └── lib/            # 工具函数与数据获取
-├── data/               # SQLite 数据库持久化目录
-└── docker-compose.yml  # 容器编排配置
+├── backend/                # .NET 10 Web API
+│   ├── Controllers/        # 无逻辑控制器 (Thin Controllers)
+│   ├── Services/           # 业务逻辑核心 (Rich Services)
+│   ├── Data/               # 数据库上下文与迁移
+│   └── Extensions/         # 中间件与扩展 (GlobalException, Swagger)
+├── frontend/               # Next.js 15 App
+│   ├── app/                # 路由: (public), (admin), (auth)
+│   ├── components/         # UI组件: Button, Card, Dialog
+│   └── lib/                # 工具: api.ts (BFF Client), utils.ts
+├── docker-compose.yml      # 开发环境编排
+└── README.md               # 项目文档
 ```
-
----
-
-## 🏆 项目架构与质量评估 (Architecture & Quality Assessment)
-
-> 评分：**S 级 (9/10)**
-
-本项目展现了极高的工程质量，是一个**教科书级别**的全栈入门到进阶范例。无论是后端 .NET 还是前端 Next.js，都严格遵循了现代化的最佳实践。
-
-### 1. 🏗 架构 (Architecture) - 10/10
-*   **BFF (Backend for Frontend)**: 通过 Next.js 中间件实现 BFF 是一个非常高明的设计，将复杂的认证逻辑封装在服务端，前端仅需处理 HttpOnly Cookie，极大提升了安全性和开发体验。
-*   **容器化**: 完全 Docker 化部署，环境一致性好。
-*   **分层清晰**: 后端严格遵循 Controller -> Service -> Repository (DbContext) 分层，职责划分明确，耦合度低。
-
-### 2. 💻 代码质量 (Code Quality) - 9/10
-*   **后端 (.NET)**: 使用 C# 最新特性（Primary Constructors, File-scoped namespace），代码规范，注释详尽，异步编程处理正确。重构后的 `CommentService` 与 `PostService` 解耦彻底。
-*   **前端 (Next.js)**: 熟练运用 Next.js 15 的 App Router，正确区分 Server/Client Components，TypeScript 类型定义完整 (DTOs)，减少运行时错误。
-
-### 3. 🛡 安全性 (Security) - 9/10
-*   **XSS 防护**: 后端引入 `HtmlSanitizer` 对 UGC 内容（评论）进行严格清洗，这是标准且必要的做法。
-*   **防刷机制**: 实现了基于 IP 的限流（Rate Limiting），有效防止暴力刷屏。
-*   **认证安全**: 采用 HttpOnly Cookie 存储 Token，有效防止 XSS 窃取 Token。
-*   **权限控制**: API 层面严格执行 `[Authorize(Roles="Admin")]` 检查。
-
-### 4. ⚡ 性能 (Performance) - 8/10
-*   **后端**: 大量使用 `.AsNoTracking()` 优化只读查询，正确使用 `.Include()` 避免 N+1 问题，并实现了基础的 `IMemoryCache`。
-*   **前端**: 利用 SSR/ISR 实现首屏秒开，SEO 友好。评论区实现了分页按需加载，避免大数据量卡顿。
-
-### 5. ⚙ 工程化 (Engineering) - 8/10
-*   **亮点**: 集成 Serilog 结构化日志，拥有完整的 Migrations 和 Seeding 机制，甚至内置了数据库自动备份后台服务。
-*   **改进空间**: 目前缺乏自动化测试（单元测试/集成测试），这是迈向 10/10 的唯一阻碍。
-
----
-
-## 📅 Future Roadmap (成熟度路线图)
-
-目前项目处于 **v0.8** 阶段，核心功能完备且性能优异，但在运维体系和测试覆盖率上距离“生产级成熟产品”仍有差距。以下是迈向 v1.0 的规划：
-
-### 🛠️ Phase 1: 稳固地基 (Stability & Ops)
-- [ ] **自动化测试**: 引入 xUnit 为 `PostService` 等核心逻辑添加单元测试，确保重构不回退。
-- [ ] **数据灾备**: 实现 SQLite 数据库的定时自动备份 (Cronjob)，并同步上传至 R2 存储桶。
-- [ ] **健康检查**: 添加 `/health` 端点，配合 Docker Healthcheck 实现服务自动重启。
-- [ ] **日志聚合**: 接入 Loki 或将 Serilog 落地为文件并轮转，便于排查生产环境问题。
-
-### ✨ Phase 2: 功能补全 (Features & Polish)
-- [ ] **评论增强**: 接入 Cloudflare Turnstile 验证码防刷，集成 SMTP 邮件通知。
-- [ ] **动态配置**: 建立 `SystemSettings` 表，实现后台动态配置（如缓存时间、分页大小），拒绝硬编码。
-- [ ] **资源治理**: 完善 R2 图片清理策略，实现“孤儿文件”的定期扫描与回收。
-- [ ] **RSS/Atom**: 支持标准订阅源，方便 RSS 阅读器抓取。
-
-### 📊 Phase 3: 可观测性 (Observability)
-- [ ] **流量统计**: 集成 Umami 或自建简单的 PV/UV 统计面板。
-- [ ] **性能监控**: 接入 OpenTelemetry，监控 API 响应耗时与内存泄漏风险。
 
 ---
 

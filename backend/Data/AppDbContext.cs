@@ -78,5 +78,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                                                       // `OnDelete(DeleteBehavior.Cascade)` 意味着：
                                                       // 如果一个 `Post` 被删除了，那么所有属于这个 `Post` 的 `Comment` 也会
                                                       // **被自动删除**。这是一种“强”级联删除，需谨慎使用。
+
+        // --- 4. 索引配置 (Performance Indexes) ---
+        // 为高频查询字段创建索引，提升查询性能
+        modelBuilder.Entity<Post>()
+            .HasIndex(p => p.IsHidden);          // 优化可见性过滤
+        modelBuilder.Entity<Post>()
+            .HasIndex(p => p.CreateTime);        // 优化按时间排序
+        
+        modelBuilder.Entity<Comment>()
+            .HasIndex(c => c.ParentId);          // 优化子评论查找
     }
 }

@@ -22,7 +22,7 @@ async function getInitialPosts() {
   // 如果是本地开发（非 Docker），则回退到 http://backend:5095 (这可能需要在 hosts 文件中映射 backend，或者直接改成 localhost)。
   // **最佳实践**: 始终优先使用环境变量配置。
   const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
-  console.log(`Fetching posts from: ${backendUrl}/api/posts?page=1&pageSize=10`);
+
   
   try {
     // 使用 fetch API 获取数据。
@@ -38,7 +38,7 @@ async function getInitialPosts() {
     }
     
     const json = await res.json();
-    console.log(`Fetched ${json.data?.length || 0} posts`);
+
     return json.success ? json : { data: [], meta: { hasMore: false } };
   } catch (e) {
     // 捕获网络错误（如后端未启动），返回空列表，保证页面骨架能渲染出来。

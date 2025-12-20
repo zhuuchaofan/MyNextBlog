@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
+using Microsoft.Extensions.Logging;
 
 namespace MyNextBlog.Services;
 
@@ -8,7 +9,7 @@ namespace MyNextBlog.Services;
 /// 图片资源管理服务
 /// 负责跟踪图片的生命周期：上传记录 -> 关联文章 -> 清理废弃图片
 /// </summary>
-public class ImageService(AppDbContext context, IStorageService storageService) : IImageService
+public class ImageService(AppDbContext context, IStorageService storageService, ILogger<ImageService> logger) : IImageService
 {
     /// <summary>
     /// 记录新上传的图片
@@ -94,7 +95,7 @@ public class ImageService(AppDbContext context, IStorageService storageService) 
             catch (Exception ex)
             {
                 // 如果云端删除失败（比如网络波动），记录日志但不阻断后续流程
-                Console.WriteLine($"Failed to delete R2 object {image.StorageKey}: {ex.Message}");
+                logger.LogWarning(ex, "Failed to delete R2 object {StorageKey}", image.StorageKey);
             }
             
             // 3. 从数据库移除记录
@@ -129,9 +130,10 @@ public class ImageService(AppDbContext context, IStorageService storageService) 
                 context.ImageAssets.Remove(image);
                 deletedCount++;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // 忽略个别删除失败，留给下次任务处理
+                logger.LogWarning(ex, "Failed to cleanup orphaned image {StorageKey}", image.StorageKey);
             }
         }
 

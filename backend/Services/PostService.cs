@@ -27,38 +27,44 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// </summary>
     public async Task<(List<Post> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
-        // 构建基础查询
-        var query = context.Posts.AsNoTracking().AsQueryable();
+        // 0. 判断是否为“纯净首页”请求 (只有这种情况才值得缓存)
+        bool isCacheable = page == 1 && 
+                           !categoryId.HasValue && 
+                           string.IsNullOrWhiteSpace(searchTerm) && 
+                           string.IsNullOrWhiteSpace(tagName);
 
-        // 1. 过滤文章可见性
-        if (!includeHidden)
+        if (isCacheable)
         {
-            query = query.Where(p => !p.IsHidden);
-        }
-        
-        // 2. 按分类筛选
-        if (categoryId.HasValue)
-        {
-            query = query.Where(p => p.CategoryId == categoryId.Value);
-        }
-
-        // 3. 关键词搜索
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
-        }
-
-        // 4. 按标签筛选
-        if (!string.IsNullOrWhiteSpace(tagName))
-        {
-            query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
+            // 为管理员和普通用户生成不同的 Key
+            string cacheKey = $"{AllPostsCacheKey}_{includeHidden}";
+            
+            // 尝试获取缓存，如果不存在则执行后面的 Factory 方法查询并写入
+            return await cache.GetOrCreateAsync(cacheKey, async entry =>
+            {
+                // 设置相对过期时间：10分钟 (防止极端情况下的长期陈旧)
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                
+                // 执行真正的数据库查询
+                return await QueryPostsFromDbAsync();
+            });
         }
 
-        // 5. 获取总记录数 (在分页之前)
-        var totalCount = await query.CountAsync();
+        // 非缓存场景，直接查库
+        return await QueryPostsFromDbAsync();
 
-        // 6. 执行分页查询
-        var posts = await query
+        // 内部查询函数 (复用逻辑)
+        async Task<(List<Post>, int)> QueryPostsFromDbAsync()
+        {
+            var query = context.Posts.AsNoTracking().AsQueryable();
+
+            if (!includeHidden) query = query.Where(p => !p.IsHidden);
+            if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
+            if (!string.IsNullOrWhiteSpace(searchTerm)) query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
+            if (!string.IsNullOrWhiteSpace(tagName)) query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
+
+            var total = await query.CountAsync();
+            
+            var data = await query
                 .OrderByDescending(p => p.CreateTime)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -66,7 +72,6 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                 {
                     Id = p.Id,
                     Title = p.Title,
-                    // 摘要截取逻辑保持不变
                     Content = p.Content.Length > 200 ? p.Content.Substring(0, 200) : p.Content,
                     CreateTime = p.CreateTime,
                     IsHidden = p.IsHidden,
@@ -77,7 +82,8 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                 })
                 .ToListAsync();
 
-        return (posts, totalCount);
+            return (data, total);
+        }
     }
 
     /// <summary>
@@ -150,8 +156,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 更新它们的 `PostId` 字段。这对于后续清理未使用的图片（“僵尸图片”）非常重要。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
-        // 清除首页列表缓存，以便用户能立即看到新文章
-        cache.Remove(AllPostsCacheKey);
+        // 清除首页列表缓存 (包括普通用户和管理员的)
+        cache.Remove($"{AllPostsCacheKey}_False");
+        cache.Remove($"{AllPostsCacheKey}_True");
     }
 
     /// <summary>
@@ -177,8 +184,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 因此，这里再次调用 `imageService.AssociateImagesAsync`，以确保所有图片资源与最新文章内容保持同步。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
-        // 清除首页列表缓存，以反映修改
-        cache.Remove(AllPostsCacheKey);
+        // 清除首页列表缓存 (包括普通用户和管理员的)
+        cache.Remove($"{AllPostsCacheKey}_False");
+        cache.Remove($"{AllPostsCacheKey}_True");
     }
 
     /// <summary>
@@ -215,8 +223,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             // 和 `PostTag` (文章-标签关联表) 中的记录也会被自动删除。
             await context.SaveChangesAsync();
 
-            // 清除首页列表缓存
-            cache.Remove(AllPostsCacheKey);
+            // 清除首页列表缓存 (包括普通用户和管理员的)
+            cache.Remove($"{AllPostsCacheKey}_False");
+            cache.Remove($"{AllPostsCacheKey}_True");
         }
     }
 
@@ -253,8 +262,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         post.IsHidden = !post.IsHidden;
         await context.SaveChangesAsync();
 
-        // 清除首页列表缓存，以便首页立即反映可见性变化
-        cache.Remove(AllPostsCacheKey);
+        // 清除首页列表缓存 (包括普通用户和管理员的)
+        cache.Remove($"{AllPostsCacheKey}_False");
+        cache.Remove($"{AllPostsCacheKey}_True");
         
         return true;
     }
