@@ -13,5 +13,13 @@ public record UpdateProfileDto(
     string? Bio,
     
     [Url(ErrorMessage = "网站链接格式不正确")]
-    string? Website
+    string? Website,
+    
+    [StringLength(100, ErrorMessage = "所在地不能超过100个字符")]
+    string? Location,
+    
+    [StringLength(100, ErrorMessage = "职业不能超过100个字符")]
+    string? Occupation,
+    
+    DateOnly? BirthDate
 );

@@ -12,6 +12,9 @@ interface User {
   nickname?: string;
   bio?: string;
   website?: string;
+  location?: string;
+  occupation?: string;
+  birthDate?: string;
 }
 
 // 定义 AuthContext 提供的功能和数据接口
@@ -51,7 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                  email: data.user.email,
                  nickname: data.user.nickname,
                  bio: data.user.bio,
-                 website: data.user.website
+                 website: data.user.website,
+                 location: data.user.location,
+                 occupation: data.user.occupation,
+                 birthDate: data.user.birthDate
              });
           }
         }

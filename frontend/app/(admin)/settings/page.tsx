@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { uploadAvatar, updateProfile } from "@/lib/api";
-import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X, ChevronLeft } from "lucide-react";
+import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X, ChevronLeft, MapPin, Briefcase, Calendar } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, updateUser, isLoading } = useAuth();
@@ -27,7 +27,10 @@ export default function SettingsPage() {
     email: '',
     nickname: '',
     bio: '',
-    website: ''
+    website: '',
+    location: '',
+    occupation: '',
+    birthDate: ''
   });
 
   // Initialize form with user data
@@ -37,7 +40,10 @@ export default function SettingsPage() {
         email: user.email || '',
         nickname: user.nickname || '',
         bio: user.bio || '',
-        website: user.website || ''
+        website: user.website || '',
+        location: user.location || '',
+        occupation: user.occupation || '',
+        birthDate: user.birthDate || ''
       });
     }
   }, [user]);
@@ -109,7 +115,10 @@ export default function SettingsPage() {
             email: user.email || '',
             nickname: user.nickname || '',
             bio: user.bio || '',
-            website: user.website || ''
+            website: user.website || '',
+            location: user.location || '',
+            occupation: user.occupation || '',
+            birthDate: user.birthDate || ''
         });
       }
   };
@@ -225,6 +234,45 @@ export default function SettingsPage() {
                                     placeholder="https://example.com" 
                                     value={formData.website}
                                     onChange={(e) => setFormData({...formData, website: e.target.value})}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="location" className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-gray-500" /> 所在地
+                                </Label>
+                                <Input 
+                                    id="location" 
+                                    placeholder="例如：北京, 中国" 
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="occupation" className="flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-gray-500" /> 职业
+                                </Label>
+                                <Input 
+                                    id="occupation" 
+                                    placeholder="例如：全栈开发者" 
+                                    value={formData.occupation}
+                                    onChange={(e) => setFormData({...formData, occupation: e.target.value})}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="birthDate" className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-gray-500" /> 出生日期
+                                </Label>
+                                <Input 
+                                    id="birthDate" 
+                                    type="date"
+                                    value={formData.birthDate ? formData.birthDate.split('T')[0] : ''}
+                                    onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
                                     disabled={!isEditing}
                                 />
                             </div>

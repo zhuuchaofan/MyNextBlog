@@ -25,4 +25,7 @@ public class User
     
     [MaxLength(200)]
     public string? Website { get; set; } // 个人网站
+
+    // 新增：扩展资料 (1对1关系)
+    public UserProfile? UserProfile { get; set; }
 }

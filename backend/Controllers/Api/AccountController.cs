@@ -41,7 +41,11 @@ public class AccountController(IUserService userService) : ControllerBase
             user.Email,
             user.Nickname,
             user.Bio,
-            user.Website
+            user.Website,
+            // UserProfile fields
+            Location = user.UserProfile?.Location,
+            Occupation = user.UserProfile?.Occupation,
+            BirthDate = user.UserProfile?.BirthDate
         });
     }
 
@@ -57,7 +61,7 @@ public class AccountController(IUserService userService) : ControllerBase
             return Unauthorized();
         }
 
-        var result = await userService.UpdateProfileAsync(userId, dto.Email, dto.Nickname, dto.Bio, dto.Website);
+        var result = await userService.UpdateProfileAsync(userId, dto);
         
         if (!result.Success)
         {
@@ -68,7 +72,20 @@ public class AccountController(IUserService userService) : ControllerBase
         return Ok(new 
         { 
             success = true, 
-            user = new { user.Id, user.Username, user.Role, user.AvatarUrl, user.Email, user.Nickname, user.Bio, user.Website } 
+            user = new 
+            { 
+                user.Id, 
+                user.Username, 
+                user.Role, 
+                user.AvatarUrl, 
+                user.Email, 
+                user.Nickname, 
+                user.Bio, 
+                user.Website,
+                Location = user.UserProfile?.Location,
+                Occupation = user.UserProfile?.Occupation,
+                BirthDate = user.UserProfile?.BirthDate
+            } 
         });
     }
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
+using MyNextBlog.DTOs;
 using MyNextBlog.Models;
 
 namespace MyNextBlog.Services;
@@ -8,29 +9,47 @@ public class UserService(AppDbContext context, IStorageService storageService) :
 {
     public async Task<User?> GetUserByIdAsync(int userId)
     {
-        return await context.Users.FindAsync(userId);
+        return await context.Users
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-    public async Task<UserResult> UpdateProfileAsync(int userId, string? email, string? nickname, string? bio, string? website)
+    public async Task<UserResult> UpdateProfileAsync(int userId, UpdateProfileDto dto)
     {
-        var user = await context.Users.FindAsync(userId);
+        var user = await context.Users
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
         if (user == null)
         {
             return new UserResult(false, "用户不存在", null);
         }
 
-        if (email != null)
+        if (dto.Email != null)
         {
-            if (!string.IsNullOrWhiteSpace(email) && !email.Contains("@"))
+            if (!string.IsNullOrWhiteSpace(dto.Email) && !dto.Email.Contains("@"))
             {
                 return new UserResult(false, "邮箱格式不正确", null);
             }
-            user.Email = email;
+            user.Email = dto.Email;
         }
 
-        if (nickname != null) user.Nickname = nickname;
-        if (bio != null) user.Bio = bio;
-        if (website != null) user.Website = website;
+        if (dto.Nickname != null) user.Nickname = dto.Nickname;
+        if (dto.Bio != null) user.Bio = dto.Bio;
+        if (dto.Website != null) user.Website = dto.Website;
+
+        // Handle UserProfile
+        if (dto.Location != null || dto.Occupation != null || dto.BirthDate != null)
+        {
+            if (user.UserProfile == null)
+            {
+                user.UserProfile = new UserProfile { UserId = userId };
+            }
+
+            if (dto.Location != null) user.UserProfile.Location = dto.Location;
+            if (dto.Occupation != null) user.UserProfile.Occupation = dto.Occupation;
+            if (dto.BirthDate != null) user.UserProfile.BirthDate = dto.BirthDate;
+        }
 
         await context.SaveChangesAsync();
         return new UserResult(true, "更新成功", user);

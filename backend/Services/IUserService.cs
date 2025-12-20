@@ -1,3 +1,4 @@
+using MyNextBlog.DTOs;
 using MyNextBlog.Models;
 
 namespace MyNextBlog.Services;
@@ -5,7 +6,7 @@ namespace MyNextBlog.Services;
 public interface IUserService
 {
     Task<User?> GetUserByIdAsync(int userId);
-    Task<UserResult> UpdateProfileAsync(int userId, string? email, string? nickname, string? bio, string? website);
+    Task<UserResult> UpdateProfileAsync(int userId, UpdateProfileDto dto);
     Task<UserResult> UpdateAvatarAsync(int userId, Stream stream, string fileName, string contentType, long length);
 }
 
