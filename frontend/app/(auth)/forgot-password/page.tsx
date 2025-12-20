@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Mail, ArrowRight, PawPrint, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Mail, ArrowRight, ChevronLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from "framer-motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -25,34 +25,70 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-orange-50/50">
-      {/* Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    <div className="w-full h-screen lg:grid lg:grid-cols-2 overflow-hidden bg-white dark:bg-zinc-900">
+      
+      {/* Left Side: Artistic/Brand Section */}
+      <div className="hidden lg:flex flex-col justify-between bg-black text-white p-10 relative overflow-hidden">
+        {/* Abstract Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/30 via-zinc-900 to-zinc-950 z-0"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay"></div>
+        
+        {/* Animated Decor */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }} 
+          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] z-1"
+        />
 
-      <Card className="w-full max-w-[500px] overflow-hidden shadow-2xl border-0 rounded-3xl z-10 bg-white/80 backdrop-blur-sm m-4">
-        <div className="p-8 md:p-12">
-            {!submitted ? (
+        {/* Brand Content */}
+        <div className="relative z-10 flex items-center gap-2 font-bold text-xl tracking-tighter">
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black">B</div>
+          MyNextBlog
+        </div>
+
+        <div className="relative z-10 space-y-6 max-w-lg">
+           <h2 className="text-4xl font-bold tracking-tight">在这里找回您的访问权限。</h2>
+           <p className="text-zinc-400">安全第一。我们通过验证邮箱来确保是您本人在操作。</p>
+        </div>
+
+        <div className="relative z-10 text-xs text-zinc-500">
+           © 2025 MyNextBlog Inc. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Side: Form Section */}
+      <div className="flex items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50">
+        <motion.div 
+           initial={{ opacity: 0, y: 10 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.4 }}
+           className="w-full max-w-[400px] space-y-8"
+        >
+             {!submitted ? (
                 <>
-                    <div className="mb-8">
-                        <Link href="/login" className="inline-flex items-center text-sm text-gray-500 hover:text-orange-500 mb-6 transition-colors">
+                    <div className="flex flex-col space-y-2">
+                        <Link href="/login" className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
                             <ChevronLeft className="w-4 h-4 mr-1" /> 返回登录
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-900">忘记密码?</h1>
-                        <p className="text-sm text-gray-500 mt-2">别担心，输入您的注册邮箱，我们将发送重置链接给您。</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">忘记密码?</h1>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          别担心，输入您的注册邮箱，我们将发送重置链接给您。
+                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="email">邮箱地址</Label>
                             <div className="relative group">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-orange-500" />
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
                                 <Input 
                                     id="email" 
                                     type="email" 
                                     placeholder="name@example.com" 
-                                    className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 transition-all"
+                                    className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -62,19 +98,16 @@ export default function ForgotPasswordPage() {
 
                         <Button 
                             type="submit" 
-                            className="w-full h-11 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                            className="w-full h-11 bg-black hover:bg-zinc-800 text-white shadow-lg transition-all dark:bg-white dark:text-black"
                             disabled={isLoading}
                         >
                             {isLoading ? (
                                 <span className="flex items-center gap-2">
-                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 发送中...
                                 </span>
                             ) : (
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center justify-center gap-2">
                                 发送重置链接 <ArrowRight className="w-4 h-4" />
                                 </span>
                             )}
@@ -82,27 +115,26 @@ export default function ForgotPasswordPage() {
                     </form>
                 </>
             ) : (
-                <div className="text-center py-8 animate-in fade-in zoom-in duration-500">
-                    <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-8 h-8" />
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center py-8"
+                >
+                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle className="w-10 h-10" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">邮件已发送!</h2>
-                    <p className="text-gray-500 mb-8">
-                        如果 {email} 存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
+                    <h2 className="text-2xl font-bold text-zinc-900 mb-2">邮件已发送!</h2>
+                    <p className="text-zinc-500 mb-8 max-w-xs mx-auto">
+                        如果 <span className="font-semibold text-zinc-900">{email}</span> 存在于我们的系统中，您将收到一封包含重置密码说明的邮件。
                     </p>
                     <Link href="/login">
-                        <Button variant="outline" className="w-full h-11">
+                        <Button variant="outline" className="w-full h-11 border-zinc-300 hover:bg-zinc-50 text-zinc-700">
                             返回登录页面
                         </Button>
                     </Link>
-                </div>
+                </motion.div>
             )}
-        </div>
-      </Card>
-      
-      {/* 装饰图标 */}
-      <div className="absolute top-10 right-10 opacity-20 hidden md:block animate-float">
-          <PawPrint className="w-24 h-24 text-orange-300 rotate-12" />
+        </motion.div>
       </div>
     </div>
   );
