@@ -162,19 +162,19 @@ function CommentItem({
             
             <div className="flex-1 min-w-0">
                 <div className="bg-white dark:bg-zinc-900 p-4 rounded-r-2xl rounded-bl-2xl shadow-sm border border-gray-100 dark:border-zinc-800 group-hover:border-orange-100 dark:group-hover:border-orange-900/30 transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{node.guestName || '匿名网友'}</span>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-400">{node.createTime}</span>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                                onClick={() => setReplyingTo(isReplying ? null : node.id)}
-                            >
-                                <Reply className="w-3 h-3 mr-1" /> 回复
-                            </Button>
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+                            <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{node.guestName || '匿名网友'}</span>
+                            <span className="text-[10px] sm:text-xs text-gray-400 sm:text-gray-500">{node.createTime}</span>
                         </div>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30 -mt-0.5"
+                            onClick={() => setReplyingTo(isReplying ? null : node.id)}
+                        >
+                            <Reply className="w-3 h-3 mr-1" /> <span className="hidden sm:inline">回复</span><span className="sm:hidden">回复</span>
+                        </Button>
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm whitespace-pre-wrap break-words">
                         {node.content}
