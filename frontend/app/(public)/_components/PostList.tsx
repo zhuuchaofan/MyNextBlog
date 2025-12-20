@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,8 +97,13 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                         <div className="md:w-64 h-48 md:h-auto relative p-3">
                           <div className="w-full h-full relative rounded-2xl overflow-hidden">
                             <Link href={`/posts/${post.id}`} className="block w-full h-full">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                              <Image 
+                                src={post.coverImage} 
+                                alt={post.title} 
+                                fill
+                                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              />
                             </Link>
                           </div>
                         </div>
