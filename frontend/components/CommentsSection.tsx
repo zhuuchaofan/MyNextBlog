@@ -151,8 +151,8 @@ function CommentItem({
     const isReplying = replyingTo === node.id;
 
     return (
-        <div className="flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <Avatar className="w-10 h-10 border-2 border-white dark:border-zinc-800 shadow-sm flex-shrink-0">
+        <div className="flex gap-3 md:gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-white dark:border-zinc-800 shadow-sm flex-shrink-0">
                 <AvatarImage 
                     src={node.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${node.guestName || 'guest'}`} 
                     className="object-cover"
@@ -197,7 +197,7 @@ function CommentItem({
 
                 {/* 子评论 (递归) */}
                 {node.children && node.children.length > 0 && (
-                    <div className="mt-4 space-y-4 pl-4 md:pl-8 border-l-2 border-gray-50 dark:border-zinc-800/50">
+                    <div className="mt-4 space-y-4 pl-3 md:pl-8 border-l-2 border-gray-100 dark:border-zinc-800/50">
                         {node.children
                             // .sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()) // Backend may already sort, but safe to keep if needed. API returns formatted string time, so sorting by string might be tricky if format changes. Assuming backend order is correct.
                             .map(child => (
@@ -263,16 +263,16 @@ function CommentForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0 hidden sm:block">
+          <div className="flex gap-3 md:gap-4">
+            <div className="flex-shrink-0">
                {user ? (
-                 <Avatar className="w-10 h-10 border border-gray-100 dark:border-zinc-700">
+                 <Avatar className="w-8 h-8 md:w-10 md:h-10 border border-gray-100 dark:border-zinc-700">
                     <AvatarImage src={user.avatarUrl} className="object-cover" />
                     <AvatarFallback>{user.username[0]}</AvatarFallback>
                  </Avatar>
                ) : (
-                 <div className="w-10 h-10 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                   <User className="w-5 h-5" />
+                 <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                   <User className="w-4 h-4 md:w-5 md:h-5" />
                  </div>
                )}
             </div>

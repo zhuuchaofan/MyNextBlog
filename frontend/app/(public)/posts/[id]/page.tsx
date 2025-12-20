@@ -9,6 +9,7 @@ import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import MarkdownRenderer from '@/components/MarkdownRenderer'; // Markdown 渲染组件
 import PostInteractions from '@/components/PostInteractions'; // 交互组件（如点赞/分享）
+import MobileBottomBar from '@/components/MobileBottomBar'; // 移动端底部栏
 import { getPost } from '@/lib/data'; // 服务端数据获取函数
 
 // 定义页面属性接口
@@ -151,6 +152,13 @@ export default async function PostPage({ params }: Props) {
 
         </div>
       </div>
+
+      {/* 移动端底部吸附栏 */}
+      <MobileBottomBar 
+        postId={post.id} 
+        initialLikeCount={post.likeCount} 
+        commentCount={post.commentCount} 
+      />
     </div>
   );
 }
