@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore; // 引入 Entity Framework Core，用于数
 using Microsoft.Extensions.Caching.Memory; // 引入内存缓存命名空间
 using MyNextBlog.Data;              // 引入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Models;            // 引入应用程序的领域模型，如 Post, Comment, Category 等
+using MyNextBlog.DTOs;              // 引入 DTOs
 
 // `namespace` 声明了当前文件中的代码所属的命名空间。
 namespace MyNextBlog.Services;
@@ -18,7 +19,7 @@ namespace MyNextBlog.Services;
 // `public class PostService(...) : IPostService`
 // 这是服务类的定义。
 // `AppDbContext context, IImageService imageService, IMemoryCache cache`: 注入缓存服务
-public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache) : IPostService
+public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache, ITagService tagService) : IPostService
 {
     private const string AllPostsCacheKey = "all_posts_public"; // 首页文章列表的缓存 Key
 
@@ -132,61 +133,60 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// <summary>
     /// `AddPostAsync` 方法用于在数据库中创建一篇新的文章记录。
     /// </summary>
-    /// <param name="post">要添加的 `Post` 实体对象。</param>
-    /// <returns>一个 `Task`，表示异步操作的完成。</returns>
-    /// <remarks>
-    /// 在文章保存到数据库之后，此方法还会自动调用 `IImageService` 来分析文章内容中
-    /// 引用的图片链接，并将这些图片与新创建的文章建立关联。这是为了实现图片生命周期的管理。
-    /// </remarks>
-    public async Task AddPostAsync(Post post)
+    public async Task<Post> AddPostAsync(CreatePostDto dto, int? userId)
     {
-        // `context.Add(post)`: 告诉 EF Core，这个 `post` 实体是一个新的实体，需要被添加到数据库中。
-        // 此时，EF Core 只是在内存中标记这个实体为“待添加”状态，还没有真正写入数据库。
+        var post = new Post
+        {
+            Title = dto.Title,
+            Content = dto.Content,
+            CategoryId = dto.CategoryId,
+            UserId = userId,
+            CreateTime = DateTime.Now
+        };
+
+        if (dto.Tags != null && dto.Tags.Any())
+        {
+            post.Tags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
+        }
+
         context.Add(post);
-        // `await context.SaveChangesAsync()`: 异步地将所有在 `AppDbContext` 中标记为“待添加”、“待修改”或“待删除”的实体
-        // 批量保存到数据库。EF Core 会生成相应的 SQL `INSERT` 语句并执行。
-        // **重要**: 在 `SaveChangesAsync()` 执行后，`post` 对象的 `Id` 属性会被数据库自动生成的值填充。
         await context.SaveChangesAsync();
         
-        // **自动关联图片资源**
-        // 调用 `imageService` 的 `AssociateImagesAsync` 方法。
-        // 作用：扫描刚刚保存的文章的 `Content` 字段，查找其中包含的图片 URL。
-        // 如果找到，并且这些图片之前已经上传但还未关联到任何文章（即处于“游离”状态），
-        // 那么 `AssociateImagesAsync` 会将这些图片与当前这篇 `post` 关联起来，
-        // 更新它们的 `PostId` 字段。这对于后续清理未使用的图片（“僵尸图片”）非常重要。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
         // 清除首页列表缓存 (包括普通用户和管理员的)
         cache.Remove($"{AllPostsCacheKey}_False");
         cache.Remove($"{AllPostsCacheKey}_True");
+
+        return post;
     }
 
-    /// <summary>
-    /// `UpdatePostAsync` 方法用于更新数据库中已存在的文章记录。
-    /// </summary>
-    /// <param name="post">包含最新数据的 `Post` 实体对象。</param>
-    /// <returns>一个 `Task`，表示异步操作的完成。</returns>
-    /// <remarks>
-    /// 在更新文章之后，此方法会重新扫描文章内容中的图片链接，
-    /// 确保任何新增或修改的图片都能被正确关联。
-    /// </remarks>
-    public async Task UpdatePostAsync(Post post)
+    public async Task<Post> UpdatePostAsync(int id, UpdatePostDto dto)
     {
-        // `context.Update(post)`: 告诉 EF Core，这个 `post` 实体是一个已经被修改的实体，需要更新到数据库中。
-        // EF Core 会跟踪 `post` 对象的状态变化，并生成相应的 SQL `UPDATE` 语句。
+        var post = await GetPostForUpdateAsync(id);
+        if (post == null) throw new ArgumentException("文章不存在");
+
+        post.Title = dto.Title;
+        post.Content = dto.Content;
+        post.CategoryId = dto.CategoryId;
+        post.IsHidden = dto.IsHidden;
+
+        post.Tags.Clear();
+        if (dto.Tags != null && dto.Tags.Any())
+        {
+            var newTags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
+            post.Tags.AddRange(newTags);
+        }
+
         context.Update(post);
-        // `await context.SaveChangesAsync()`: 将内存中的更改同步到数据库。
         await context.SaveChangesAsync();
 
-        // **更新后重新扫描并关联图片**
-        // 即使是更新文章，也可能涉及图片内容的增删改。
-        // 例如，用户可能在编辑文章时添加了新的图片。
-        // 因此，这里再次调用 `imageService.AssociateImagesAsync`，以确保所有图片资源与最新文章内容保持同步。
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
-        // 清除首页列表缓存 (包括普通用户和管理员的)
         cache.Remove($"{AllPostsCacheKey}_False");
         cache.Remove($"{AllPostsCacheKey}_True");
+
+        return post;
     }
 
     /// <summary>

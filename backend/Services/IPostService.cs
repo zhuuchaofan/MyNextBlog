@@ -1,4 +1,5 @@
 ﻿using MyNextBlog.Models;
+using MyNextBlog.DTOs;
 
 namespace MyNextBlog.Services;
 
@@ -9,8 +10,8 @@ public interface IPostService
     Task<(List<Post> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null);
     Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false);
     Task<Post?> GetPostForUpdateAsync(int id);
-    Task AddPostAsync(Post post);
-    Task UpdatePostAsync(Post post);
+    Task<Post> AddPostAsync(CreatePostDto dto, int? userId);
+    Task<Post> UpdatePostAsync(int id, UpdatePostDto dto);
     Task DeletePostAsync(int id);
     
     Task<List<Category>> GetCategoriesAsync(); // 获取所有分类

@@ -39,7 +39,7 @@ namespace MyNextBlog.Controllers.Api;
 // 1. 对 HTTP 请求和响应的访问能力（例如 `Request`, `Response`）。
 // 2. 方便的方法来生成各种 HTTP 状态码的响应（例如 `Ok()`, `NotFound()`, `BadRequest()`, `Unauthorized()`）。
 // 3. 对模型绑定、验证和授权等功能的内置支持。
-public class PostsApiController(IPostService postService, ITagService tagService, ICommentService commentService) : ControllerBase
+public class PostsApiController(IPostService postService, ICommentService commentService) : ControllerBase
 {
     /// <summary>
     /// `GetPosts` 方法是一个**公开接口**，用于获取博客文章的列表。
@@ -200,47 +200,11 @@ public class PostsApiController(IPostService postService, ITagService tagService
     //       2. **模型验证**: 可以在 DTO 上使用 `[Required]` 等数据注解进行验证，清晰地定义了接口的输入格式。
     public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
     {
-        // 1. **获取当前登录用户 ID (从 Token Claims 中解析)**
-        // `User.FindFirst(ClaimTypes.NameIdentifier)`: `User` 对象代表当前用户的身份，
-        // `FindFirst(ClaimTypes.NameIdentifier)` 尝试从用户的身份声明 (Claims) 中查找表示用户唯一标识符的 Claim。
-        // `ClaimTypes.NameIdentifier` 是一个标准名称，通常用于存储用户 ID。
-        // `?.Value`: 获取 Claim 的值，如果 `FindFirst` 返回 `null`，则整个表达式为 `null`。
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        // `int.TryParse`: 尝试将字符串 `userIdStr` 转换为整数 `userId`。
-        // 如果转换失败（例如用户 ID 不存在或不是有效数字），则将 `userId` 设为 `0`。
         if (!int.TryParse(userIdStr, out int userId)) userId = 0; 
 
-        // 2. **构建文章实体**
-        // 根据 `CreatePostDto` 中的数据，创建一个新的 `Post` 实体对象。
-        var post = new Post
-        {
-            Title = dto.Title,
-            Content = dto.Content,
-            CategoryId = dto.CategoryId,
-            // 如果 `userId` 大于 0（即用户已登录并成功获取到 ID），则设置 `UserId`；
-            // 否则设置为 `null`，表示文章可能没有关联到特定用户（尽管对于管理员接口，通常总会有用户）。
-            UserId = userId > 0 ? userId : null,
-            CreateTime = DateTime.Now // 创建时间默认为当前时间
-        };
-
-        // 3. **处理标签关联**
-        // 如果 `CreatePostDto` 中包含了标签名称列表：
-        if (dto.Tags != null && dto.Tags.Any())
-        {
-            // `tagService.GetOrCreateTagsAsync(dto.Tags.ToArray())`: 调用标签服务，
-            // 它会检查这些标签是否已存在于数据库中。如果不存在，则会创建新的标签；
-            // 如果存在，则直接获取现有标签。最终返回一个 `Tag` 实体列表。
-            // 这样确保了标签的唯一性，并避免了重复创建。
-            post.Tags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
-        }
-
-        // 4. **保存到数据库**
-        // `await postService.AddPostAsync(post)`: 调用文章服务将新创建的 `post` 实体保存到数据库。
-        // `PostService` 内部还包含一个逻辑，即在文章保存后，会扫描文章内容，自动关联其中引用的图片。
-        await postService.AddPostAsync(post);
+        var post = await postService.AddPostAsync(dto, userId > 0 ? userId : null);
         
-        // 返回一个 `200 OK` 响应，表示文章发布成功。
-        // 响应体中包含了成功信息、新文章的 ID，以及文章的详情 DTO (包含自动生成的 Id)。
         return Ok(new { success = true, message = "发布成功", postId = post.Id, data = post.ToDetailDto() });
     }
 
@@ -248,24 +212,15 @@ public class PostsApiController(IPostService postService, ITagService tagService
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
-        // 使用 GetPostForUpdateAsync 获取开启追踪的实体，确保标签更新时不会报主键冲突
-        var post = await postService.GetPostForUpdateAsync(id);
-        if (post == null) return NotFound(new { success = false, message = "文章不存在" });
-
-        post.Title = dto.Title;
-        post.Content = dto.Content;
-        post.CategoryId = dto.CategoryId;
-        post.IsHidden = dto.IsHidden;
-
-        post.Tags.Clear();
-        if (dto.Tags != null && dto.Tags.Any())
+        try 
         {
-            var newTags = await tagService.GetOrCreateTagsAsync(dto.Tags.ToArray());
-            post.Tags.AddRange(newTags);
+            var post = await postService.UpdatePostAsync(id, dto);
+            return Ok(new { success = true, message = "更新成功", data = post.ToDetailDto() });
         }
-
-        await postService.UpdatePostAsync(post);
-        return Ok(new { success = true, message = "更新成功", data = post.ToDetailDto() });
+        catch (ArgumentException ex)
+        {
+             return NotFound(new { success = false, message = ex.Message });
+        }
     }
 
     /// <summary>
