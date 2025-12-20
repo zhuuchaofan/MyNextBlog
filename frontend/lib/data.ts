@@ -69,3 +69,26 @@ export async function getPost(id: string) {
     return undefined;
   }
 }
+
+/**
+ * 获取所有文章列表 (用于 Sitemap 生成)
+ * TODO: 如果文章数量巨大，需要分批获取或增加专用 ID 列表接口
+ */
+export async function getPostsForSitemap() {
+  try {
+    const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
+    // 请求 1000 条，基本覆盖个人博客需求
+    const res = await fetch(`${baseUrl}/api/posts?page=1&pageSize=1000`, {
+       next: { revalidate: 3600 } // Sitemap 缓存 1 小时
+    });
+    
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (!json.success) return [];
+
+    return json.data as { id: number; title: string; createTime: string }[];
+  } catch (error) {
+    console.error('Fetch sitemap posts error:', error);
+    return [];
+  }
+}
