@@ -75,7 +75,7 @@ public class PostsApiController(IPostService postService, ICommentService commen
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        var posts = allPosts.Select(p => p.ToSummaryDto()).ToList();
+        var posts = allPosts;
 
         return Ok(new
         {
@@ -105,7 +105,7 @@ public class PostsApiController(IPostService postService, ICommentService commen
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        var posts = allPosts.Select(p => p.ToSummaryDto()).ToList();
+        var posts = allPosts;
 
         return Ok(new
         {

@@ -11,6 +11,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 ### 架构与性能
 
 - **BFF 安全架构**: Next.js 作为中间层拦截 API 请求，实现了 **Token 隐身化** (HttpOnly Cookie)，彻底杜绝了 XSS 窃取 Token 的风险。
+- **Token 刷新防惊群 (Thundering Herd Protection)**: 实现了 Token 延迟轮换机制 ("按需轮换"策略)，彻底解决了 Next.js 多并发请求导致的用户意外登出问题，即使用户 Token 过期也能平滑无感刷新。
 - **智能缓存 (Smart Caching)**:
   - **前端 ISR (增量静态再生)**: 首页与详情页采用 Next.js ISR 策略，每 60 秒自动重验证。公开访问命中静态缓存，实现 CDN 级秒开体验。
   - **后端分层缓存**:
@@ -19,7 +20,8 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
     - **一致性**: 后端缓存支持即时失效，与前端 ISR 配合实现“最终一致性” (60s 延迟)。
 - **极致 DB 优化**:
   - **AsNoTracking**: 全面禁用变更追踪，降低内存 60%+。
-  - **Select 投影**: 列表页仅查询 200 字摘要，极大减少 I/O 载荷。
+  - **Select 投影 & DTO**: 列表页仅查询必要字段（300 字摘要），并在内存中映射为 `PostSummaryDto`，杜绝了“截断实体”对领域模型的污染，同时极大减少 I/O 载荷。
+  - **SQLite WAL 模式**: 默认开启 Write-Ahead Logging (WAL)，显著提升了 SQLite 的并发读写性能，避免数据库锁死。
   - **物理索引**: 对 `IsHidden`, `CreateTime`, `ParentId` 等高频筛选字段建立了数据库索引。
 
 ### 现代化体验
@@ -140,6 +142,8 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
     2.  文章发布/更新时，后台扫描 Markdown 内容，解析所有图片 URL。
     3.  将匹配到的图片资源标记为 `Bound` 并关联 `PostId`。
     4.  后台服务定期清理 `Unbound` 且超过 24 小时的图片。
+- **安全加固 (Security Hardening)**:
+  - **严格的文件校验**: `UploadController` 强制执行 `Image.IdentifyAsync` 深度文件头检查，任何无法识别为有效图片的文件（如伪装成 jpg 的 Webshell）会被直接拒绝上传。
 
 ### 4. 📊 RSS 订阅 (Feed)
 
@@ -203,6 +207,9 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - [ ] **全文 RSS**: 目前 RSS 仅输出摘要，计划增加配置项支持全文输出。
   - [ ] **AI 摘要**: 利用 LLM 自动为长文章生成 TL;DR 摘要。
   - [ ] **系列批量管理**: 在系列管理页面支持直接选择文章加入系列，实现批量添加和拖拽排序。
+- **架构升级 (Architecture 2.0)**:
+  - [ ] **PostgreSQL 迁移**: 从 SQLite 迁移到 PostgreSQL，以支持更高的并发写入和 JSONB 高级查询。([查看详细迁移方案](./MIGRATION_PLAN.md))
+  - [ ] **Redis 缓存**: 引入 Redis 替代内存缓存，实现分布式缓存和持久化，解决重启后缓存失效问题。([查看详细迁移方案](./MIGRATION_PLAN.md))
   - [x] **Security Audit**: Completed comprehensive code review for Production Readiness.
 
 ---
@@ -210,13 +217,13 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 ## 🛠 技术底层 (Tech Stack)
 
 | 领域         | 核心技术       | 详细说明                                                                             |
-| :----------- | :------------- | :----------------------------------------------------------------------------------- | ----------------------------------------------- |
+| :----------- | :------------- | :----------------------------------------------------------------------------------- |
 | **Frontend** | **Next.js 15** | 使用 App Router 架构，结合 Server Actions 处理表单提交。                             |
 |              | **Typescript** | 全面强类型覆盖，前后端共享 DTO 定义。                                                |
 |              | **UI System**  | Tailwind CSS v4 (原子化 CSS) + shadcn/ui (无头组件库) + Framer Motion (动画)。       |
 |              | **Config**     | `next.config.ts` 配置了 `standalone` 模式 (Docker 优化) 和 API Rewrites (反向代理)。 |
 | **Backend**  | **.NET 10**    | 抢先体验版 ASP.NET Core Web API，使用 Minimal APIs 风格。                            |
-|              |                | **Data**                                                                             | EF Core Code-First, 自动 Migrations & Seeding。 |
+|              | **EF Core**    | Code-First, 自动 Migrations & Seeding。                                              |
 |              | **Services**   | MemoryCache, Serilog, Automapper, HostedServices (Backups)。                         |
 |              | **Serilog**    | 结构化日志，支持输出到 Console, File 或 Elasticsearch。                              |
 | **DevOps**   | **Docker**     | 多阶段构建 (Multi-stage Build)，最终镜像仅 80MB+。                                   |

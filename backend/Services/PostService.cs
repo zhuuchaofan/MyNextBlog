@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory; // 引入内存缓存命名空间
 using MyNextBlog.Data;              // 引入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Models;            // 引入应用程序的领域模型，如 Post, Comment, Category 等
 using MyNextBlog.DTOs;              // 引入 DTOs
+using MyNextBlog.Helpers;           // 引入 Helpers (MarkdownHelper)
 
 // `namespace` 声明了当前文件中的代码所属的命名空间。
 namespace MyNextBlog.Services;
@@ -26,7 +27,10 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// <summary>
     /// 获取文章列表 (数据库级分页)
     /// </summary>
-    public async Task<(List<Post> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
+    /// <summary>
+    /// 获取文章列表 (数据库级分页)
+    /// </summary>
+    public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
         // 0. 判断是否为“纯净首页”请求 (只有这种情况才值得缓存)
         bool isCacheable = page == 1 && 
@@ -54,7 +58,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         return await QueryPostsFromDbAsync();
 
         // 内部查询函数 (复用逻辑)
-        async Task<(List<Post>, int)> QueryPostsFromDbAsync()
+        async Task<(List<PostSummaryDto>, int)> QueryPostsFromDbAsync()
         {
             var query = context.Posts.AsNoTracking().AsQueryable();
 
@@ -65,28 +69,56 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
             var total = await query.CountAsync();
             
+            // 1. 先查出数据 (Projection to Anonymous Type)
+            // 这样既能避免 SELECT 全字段，又能享受 EF Core 的部分转换能力
             var data = await query
                 .OrderByDescending(p => p.CreateTime)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(p => new Post
+                .Select(p => new 
                 {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Content = p.Content.Length > 200 ? p.Content.Substring(0, 200) : p.Content,
-                    CreateTime = p.CreateTime,
-                    IsHidden = p.IsHidden,
-                    CategoryId = p.CategoryId,
-                    Category = p.Category,
-                    User = p.User,
-                    Tags = p.Tags,
-                    Series = p.Series,
-                    SeriesId = p.SeriesId,
-                    SeriesOrder = p.SeriesOrder
+                    p.Id,
+                    p.Title,
+                    // 此处截取前 300 字符用于生成摘要和提取封面图
+                    // 注意：SQLite/SQLServer 都支持 Substring 翻译
+                    Content = p.Content.Length > 300 ? p.Content.Substring(0, 300) : p.Content,
+                    p.CreateTime,
+                    p.IsHidden,
+                    p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : "Uncategorized",
+                    p.User, // User 对象可能包含 AvatarUrl
+                    UserId = p.UserId,
+                    UserName = p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                    UserAvatar = p.User != null ? p.User.AvatarUrl : null,
+                    Tags = p.Tags.Select(t => t.Name).ToList(),
+                    p.LikeCount,
+                    SeriesName = p.Series != null ? p.Series.Name : null,
+                    p.SeriesId,
+                    p.SeriesOrder
                 })
                 .ToListAsync();
 
-            return (data, total);
+            // 2. 在内存中映射为 DTO
+            var dtos = data.Select(p => new PostSummaryDto(
+                p.Id,
+                p.Title,
+                // 摘要生成 (再截取一下确保是 150-200 左右，或者直接用 DB 返回的)
+                // 这里我们简单处理，只是加个 "..." 如果确实很长
+                p.Content.Length > 150 ? p.Content.Substring(0, 150) + "..." : p.Content,
+                p.CategoryName,
+                p.CategoryId,
+                p.UserName,
+                p.UserAvatar,
+                p.CreateTime,
+                MarkdownHelper.GetCoverImage(p.Content), // 从前300字符中提取图片
+                p.Tags,
+                p.IsHidden,
+                p.LikeCount,
+                p.SeriesName,
+                p.SeriesOrder
+            )).ToList();
+
+            return (dtos, total);
         }
     }
 

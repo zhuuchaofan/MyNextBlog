@@ -17,6 +17,29 @@ export async function middleware(request: NextRequest) {
   let accessToken = request.cookies.get('token')?.value;
   const refreshToken = request.cookies.get('refresh_token')?.value;
 
+  // JWT 解析辅助函数 (简易版，不引入外部库以减小体积)
+  function isTokenExpired(token: string): boolean {
+    try {
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return true;
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = atob(base64);
+      const payload = JSON.parse(jsonPayload);
+      
+      // 检查 exp 字段 (Unix 时间戳，秒)
+      if (!payload.exp) return true;
+      
+      // 提前 30 秒认为过期，缓冲网络延迟
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < (currentTime + 30);
+    } catch {
+      return true; // 解析失败视为过期
+    }
+  }
+
+  // 检查 Access Token 是否过期
+  const isExpired = accessToken ? isTokenExpired(accessToken) : true;
+
   // 2. 定义是否需要保护或代理的路由
   const isApiRoute = pathname.startsWith('/api/backend');
   const isProtectedPage = pathname.startsWith('/admin');
@@ -27,17 +50,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // 3. Token 刷新逻辑
-  // 触发条件：Access Token 缺失 (过期)，但 Refresh Token 存在
+  // 触发条件：Access Token 缺失或过期，且 Refresh Token 存在
   let newAccessToken: string | null = null;
   let newRefreshToken: string | null = null;
   let responseToReturn: NextResponse | null = null;
 
-  if (!accessToken && refreshToken) {
+  if ((!accessToken || isExpired) && refreshToken) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
     
     try {
-        console.log(`[Middleware] Access Token expired, attempting refresh... Path: ${pathname}`);
+        console.log(`[Middleware] Access Token missing or expired, attempting refresh... Path: ${pathname}`);
         
         // 调用后端刷新接口
         // 注意：中间件中无法直接使用 process.env.BACKEND_URL (通常为 undefined 或需要特殊配置)
@@ -50,7 +73,7 @@ export async function middleware(request: NextRequest) {
         const refreshRes = await fetch(`${backendUrl}/api/auth/refresh-token`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accessToken: "", refreshToken: refreshToken }), // DTO 要求 AccessToken, 但过期了也没事，传空或旧的? DTO其实只校验Refresh即查库。
+            body: JSON.stringify({ accessToken: accessToken || "", refreshToken: refreshToken }), 
             signal: controller.signal, // 添加超时信号
         });
 

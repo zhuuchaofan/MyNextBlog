@@ -58,18 +58,29 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             return null; // 令牌无效
         }
 
-        // 令牌轮换 (Rotation) - 生成新的一对令牌
-        var newAccessToken = GenerateJwtToken(user);
-        var newRefreshToken = GenerateRefreshToken();
+        // 核心优化：避免"惊群效应" (Thundering Herd)
+        // 策略：如果 Refresh Token 还有较长的有效期（> 3天），则**不**进行轮换 (Rotation)。
+        // 只有当有效期不足 3 天时，才生成新的 Refresh Token。
+        string newRefreshToken = dto.RefreshToken; // 默认使用旧的
+        
+        // 检查剩余有效期
+        var remainingTime = user.RefreshTokenExpiryTime - DateTime.UtcNow;
+        if (remainingTime < TimeSpan.FromDays(3))
+        {
+            // 剩余不足3天 -> 进行轮换
+            newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokenHash = HashToken(newRefreshToken);
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 重置为7天
+        }
 
-        user.RefreshTokenHash = HashToken(newRefreshToken);
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 刷新有效期
+        // 每次都生成新的 Access Token
+        var newAccessToken = GenerateJwtToken(user);
         
         await context.SaveChangesAsync();
 
         return new AuthResponseDto(
             Token: newAccessToken,
-            RefreshToken: newRefreshToken,
+            RefreshToken: newRefreshToken, // 返回决定使用的那个 (旧的或新的)
             Expiration: DateTime.UtcNow.AddMinutes(15),
             Username: user.Username,
             Role: user.Role,

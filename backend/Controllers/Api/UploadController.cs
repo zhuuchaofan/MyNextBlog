@@ -49,8 +49,8 @@ public class UploadController(IStorageService storageService, IImageService imag
         }
         catch
         {
-            // 如果读取失败，不阻断上传，但记录尺寸为 0
-            // 可能是非标准图片或损坏
+            // 安全修复：如果无法识别图片信息（可能是恶意文件伪装），直接拒绝上传！
+            return BadRequest("上传的文件不是有效的图片，或已损坏。");
         }
         
         // 重置流位置，以便后续上传
