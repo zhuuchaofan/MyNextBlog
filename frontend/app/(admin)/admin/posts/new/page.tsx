@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor'; // 自定义 Markdown 编辑器组件
 import TagInput from '@/components/TagInput';             // 自定义标签输入组件
 import CreateCategoryDialog from '@/components/CreateCategoryDialog'; // 创建分类对话框组件
-import { fetchCategories, createPost, Category } from '@/lib/api'; // 导入 API 请求函数和类型
+import { fetchCategories, createPost, Category, Series } from '@/lib/api'; // 导入 API 请求函数和类型
 import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件
 
@@ -31,6 +31,11 @@ export default function NewPostPage() {
   const [categories, setCategories] = useState<Category[]>([]); // 存储所有可用的分类列表
   const [loading, setLoading] = useState(false); // 控制表单提交的加载状态
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false); // 控制新建分类对话框的显示
+  
+  // Series states
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
+  const [seriesId, setSeriesId] = useState<number | undefined>(undefined);
+  const [seriesOrder, setSeriesOrder] = useState<number>(0);
 
   // `useEffect` 钩子，在组件挂载后执行一次，用于：
   // 1. 权限检查（尽管路由已被 middleware 保护，这里可作为额外确认或用于非管理员提示）
@@ -45,6 +50,14 @@ export default function NewPostPage() {
     fetchCategories().then(data => {
       if (data.success) setCategories(data.data);
     });
+    
+    // Load Series
+    import('@/lib/api').then(({ fetchAllSeries }) => {
+        fetchAllSeries().then(res => {
+            if(res.success) setSeriesList(res.data);
+        });
+    });
+
   }, [user, router]); // 依赖 `user` 和 `router`
 
   // 处理文章提交（发布）
@@ -61,7 +74,9 @@ export default function NewPostPage() {
         title, 
         content, 
         categoryId,
-        tags // 传递标签列表
+        tags, // 传递标签列表
+        seriesId, // Optional Series
+        seriesOrder: seriesId ? seriesOrder : 0
       });
       
       if (res.success) {
@@ -117,32 +132,64 @@ export default function NewPostPage() {
           />
         </div>
 
-        {/* 分类选择区域 */}
-        <div className="space-y-2">
-           <Label className="font-semibold dark:text-gray-200">选择分类</Label>
-           <div className="flex gap-2 flex-wrap">
-             {/* 渲染所有分类按钮 */}
-             {categories.map(cat => (
-               <Button 
-                 key={cat.id} 
-                 type="button"
-                 variant={categoryId === cat.id ? 'default' : 'outline'} // 选中状态样式
-                 onClick={() => setCategoryId(cat.id)} // 点击选中分类
-                 className={`rounded-full ${categoryId === cat.id ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
-               >
-                 {cat.name}
-               </Button>
-             ))}
-             {/* 新建分类按钮 */}
-             <Button 
-               type="button"
-               variant="outline" 
-               className="rounded-full border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-500 dark:hover:text-orange-400"
-               onClick={() => setIsCreateCategoryOpen(true)} // 打开新建分类对话框
-             >
-               <Plus className="w-4 h-4 mr-1" /> 新建
-             </Button>
-           </div>
+        {/* 分类及系列选择区域 (Grid Layout) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Category */}
+            <div className="space-y-2">
+               <Label className="font-semibold dark:text-gray-200">选择分类</Label>
+               <div className="flex gap-2 flex-wrap">
+                 {/* 渲染所有分类按钮 */}
+                 {categories.map(cat => (
+                   <Button 
+                     key={cat.id} 
+                     type="button"
+                     variant={categoryId === cat.id ? 'default' : 'outline'} // 选中状态样式
+                     onClick={() => setCategoryId(cat.id)} // 点击选中分类
+                     className={`rounded-full ${categoryId === cat.id ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+                   >
+                     {cat.name}
+                   </Button>
+                 ))}
+                 {/* 新建分类按钮 */}
+                 <Button 
+                   type="button"
+                   variant="outline" 
+                   className="rounded-full border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-500 dark:hover:text-orange-400"
+                   onClick={() => setIsCreateCategoryOpen(true)} // 打开新建分类对话框
+                 >
+                   <Plus className="w-4 h-4 mr-1" /> 新建
+                 </Button>
+               </div>
+            </div>
+
+            {/* Right: Series (Optional) */}
+            <div className="space-y-2">
+                <Label className="font-semibold dark:text-gray-200">所属系列 (可选)</Label>
+                <div className="flex gap-4 items-center">
+                    <select 
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={seriesId || ''}
+                        onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : undefined)}
+                    >
+                        <option value="">-- 不属于任何系列 --</option>
+                        {seriesList.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                    </select>
+                    
+                    {seriesId && (
+                        <div className="flex items-center gap-2 w-32 shrink-0">
+                            <span className="text-sm whitespace-nowrap">第几篇:</span>
+                            <Input 
+                                type="number" 
+                                className="w-16" 
+                                value={seriesOrder} 
+                                onChange={e => setSeriesOrder(Number(e.target.value))} 
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
 
         {/* 新建分类对话框组件 */}

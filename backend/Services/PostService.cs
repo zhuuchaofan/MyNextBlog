@@ -188,6 +188,8 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             Content = dto.Content,
             CategoryId = dto.CategoryId,
             UserId = userId,
+            SeriesId = dto.SeriesId,
+            SeriesOrder = dto.SeriesOrder,
             CreateTime = DateTime.Now
         };
 
@@ -217,6 +219,8 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         post.Content = dto.Content;
         post.CategoryId = dto.CategoryId;
         post.IsHidden = dto.IsHidden;
+        post.SeriesId = dto.SeriesId;
+        post.SeriesOrder = dto.SeriesOrder;
 
         post.Tags.Clear();
         if (dto.Tags != null && dto.Tags.Any())

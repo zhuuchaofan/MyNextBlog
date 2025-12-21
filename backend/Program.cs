@@ -137,6 +137,7 @@ builder.Services.AddSingleton<IEmailService, SmtpEmailService>(); // 真实邮�
 //   - 消息队列处理
 //   - 数据库健康检查
 //   - 这里的数据库自动备份
+builder.Services.AddScoped<ISeriesService, SeriesService>();       // 系列管理服务
 builder.Services.AddHostedService<DatabaseBackupService>();    // 数据库自动备份服务，定期将 SQLite 数据库备份到云存储。
 
 // --- 健康检查 (Health Checks) ---

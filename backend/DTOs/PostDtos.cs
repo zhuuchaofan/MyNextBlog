@@ -95,7 +95,9 @@ public record CreatePostDto(
     [Required(ErrorMessage = "标题不能为空")] string Title,    // 必填：新文章的标题
     [Required(ErrorMessage = "内容不能为空")] string Content,  // 必填：新文章的正文内容
     int? CategoryId,                                         // 可选：新文章所属分类的 ID
-    List<string>? Tags                                       // 可选：新文章关联的标签名称列表
+    List<string>? Tags,                                      // 可选：新文章关联的标签名称列表
+    int? SeriesId,                                           // 可选：所属系列 ID
+    int SeriesOrder = 0                                      // 可选：在系列中的顺序
 );
 
 /// <summary>
@@ -107,5 +109,7 @@ public record UpdatePostDto(
     [Required(ErrorMessage = "内容不能为空")] string Content,  // 必填：更新后的文章正文内容
     int? CategoryId,                                         // 可选：更新后的文章分类 ID
     List<string>? Tags,                                      // 可选：更新后的文章标签列表
-    bool IsHidden                                            // 更新后的文章可见性状态
+    bool IsHidden,                                           // 更新后的文章可见性状态
+    int? SeriesId,                                           // 可选：所属系列 ID
+    int SeriesOrder = 0                                      // 可选：在系列中的顺序
 );

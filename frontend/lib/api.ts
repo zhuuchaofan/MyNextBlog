@@ -111,6 +111,8 @@ export function createPost(postData: {
   content: string;
   categoryId?: number;
   tags?: string[];
+  seriesId?: number;
+  seriesOrder?: number;
 }) {
   return fetchClient("/api/backend/posts", {
     method: "POST",
@@ -247,3 +249,37 @@ export function batchDeleteComments(ids: number[]) {
   });
 }
 
+// [Admin] 获取所有系列
+export function fetchAllSeries() {
+  return fetchClient<{ success: boolean; data: Series[] }>("/api/backend/series");
+}
+
+// [Admin] 创建系列
+export function createSeries(name: string, description?: string) {
+  return fetchClient<{ success: boolean; message: string; data: Series }>("/api/backend/series", {
+    method: "POST",
+    body: { name, description },
+  });
+}
+
+// [Admin] 更新系列
+export function updateSeries(id: number, name: string, description?: string) {
+    return fetchClient<{ success: boolean; message: string; data: Series }>(`/api/backend/series/${id}`, {
+      method: "PUT",
+      body: { name, description },
+    });
+}
+
+// [Admin] 删除系列
+export function deleteSeries(id: number) {
+  return fetchClient<{ success: boolean; message: string }>(`/api/backend/series/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export interface Series {
+    id: number;
+    name: string;
+    description?: string;
+    postCount: number;
+}
