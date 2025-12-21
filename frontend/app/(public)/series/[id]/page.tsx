@@ -2,13 +2,24 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+import { cookies } from 'next/headers';
 
 // Backend API call for series detail with posts
 async function getSeriesWithPosts(id: string) {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
+  
+  // 获取 Token 以识别管理员
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token.value}`;
+  }
+  
   try {
     const res = await fetch(`${baseUrl}/api/series/${id}`, {
-      next: { revalidate: 60 }
+      headers,
+      next: { revalidate: token ? 0 : 60 } // 管理员不缓存
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -22,9 +33,19 @@ async function getSeriesWithPosts(id: string) {
 // Fetch posts in this series (using dedicated endpoint)
 async function getSeriesPosts(seriesId: string) {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
+  
+  // 获取 Token 以识别管理员
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token.value}`;
+  }
+  
   try {
     const res = await fetch(`${baseUrl}/api/series/${seriesId}/posts`, {
-      next: { revalidate: 60 }
+      headers,
+      next: { revalidate: token ? 0 : 60 } // 管理员不缓存
     });
     if (!res.ok) return [];
     const json = await res.json();

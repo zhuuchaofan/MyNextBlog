@@ -7,7 +7,7 @@ namespace MyNextBlog.Services;
 
 public class SeriesService(AppDbContext context) : ISeriesService
 {
-    public async Task<List<SeriesDto>> GetAllSeriesAsync()
+    public async Task<List<SeriesDto>> GetAllSeriesAsync(bool includeHidden = false)
     {
         return await context.Series
             .AsNoTracking()
@@ -15,12 +15,13 @@ public class SeriesService(AppDbContext context) : ISeriesService
                 s.Id,
                 s.Name,
                 s.Description,
-                s.Posts.Count
+                // 根据权限过滤隐藏文章
+                includeHidden ? s.Posts.Count : s.Posts.Count(p => !p.IsHidden)
             ))
             .ToListAsync();
     }
 
-    public async Task<SeriesDto?> GetSeriesByIdAsync(int id)
+    public async Task<SeriesDto?> GetSeriesByIdAsync(int id, bool includeHidden = false)
     {
         var series = await context.Series
             .AsNoTracking()
@@ -29,11 +30,16 @@ public class SeriesService(AppDbContext context) : ISeriesService
 
         if (series == null) return null;
 
+        // 根据权限过滤隐藏文章
+        var postCount = includeHidden 
+            ? series.Posts.Count 
+            : series.Posts.Count(p => !p.IsHidden);
+
         return new SeriesDto(
             series.Id,
             series.Name,
             series.Description,
-            series.Posts.Count
+            postCount
         );
     }
 

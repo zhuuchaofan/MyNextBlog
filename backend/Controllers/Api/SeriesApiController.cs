@@ -10,17 +10,20 @@ namespace MyNextBlog.Controllers.Api;
 [ApiController]
 public class SeriesApiController(ISeriesService seriesService) : ControllerBase
 {
+    // Helper: 检查是否为管理员
+    private bool IsAdmin => User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+
     [HttpGet]
     public async Task<IActionResult> GetAllSeries()
     {
-        var series = await seriesService.GetAllSeriesAsync();
+        var series = await seriesService.GetAllSeriesAsync(includeHidden: IsAdmin);
         return Ok(new { success = true, data = series });
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSeriesById(int id)
     {
-        var series = await seriesService.GetSeriesByIdAsync(id);
+        var series = await seriesService.GetSeriesByIdAsync(id, includeHidden: IsAdmin);
         if (series == null)
             return NotFound(new { success = false, message = "系列不存在" });
 
