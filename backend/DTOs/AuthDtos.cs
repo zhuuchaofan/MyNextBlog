@@ -41,7 +41,8 @@ public record AuthResponseDto(
     string RefreshToken, // Added
     DateTime Expiration,
     string Username,
-    string Role
+    string Role,
+    string? AvatarUrl // 新增：用户头像，登录后立即可用
 );
 
 public record RefreshTokenRequestDto(

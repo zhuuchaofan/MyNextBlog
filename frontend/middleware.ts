@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 4. Access Token 校验与拦截
-  // 如果经过尝试刷新后，仍然没有有效的 accessToken
+  // 仅对管理员页面进行拦截，API 请求交给后端处理权限
   if (!accessToken) {
       if (isProtectedPage) {
           // 拦截管理员页面 -> 去登录
@@ -87,10 +87,8 @@ export async function middleware(request: NextRequest) {
           url.searchParams.set('from', request.nextUrl.pathname); // 记录跳转前地址
           return NextResponse.redirect(url);
       }
-      if (isApiRoute) {
-          // 拦截 API 请求 -> 返回 401
-          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-      }
+      // API 请求不拦截，让后端 [Authorize] 特性处理权限校验
+      // 这样公开接口（如获取评论、文章列表）游客也能正常访问
   }
 
   // 5. 构造响应 (注入 Header + 更新 Cookie)

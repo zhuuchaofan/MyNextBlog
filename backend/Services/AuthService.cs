@@ -33,7 +33,8 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             RefreshToken: refreshToken, // 返回给前端的是明文
             Expiration: DateTime.UtcNow.AddMinutes(15), 
             Username: user.Username,
-            Role: user.Role
+            Role: user.Role,
+            AvatarUrl: user.AvatarUrl // 新增：立即返回头像
         );
     }
 
@@ -71,7 +72,8 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             RefreshToken: newRefreshToken,
             Expiration: DateTime.UtcNow.AddMinutes(15),
             Username: user.Username,
-            Role: user.Role
+            Role: user.Role,
+            AvatarUrl: user.AvatarUrl
         );
     }
 

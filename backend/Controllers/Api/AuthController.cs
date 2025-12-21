@@ -28,19 +28,12 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(new 
         {
             token = result.Token,
-            refreshToken = result.RefreshToken, // 返回刷新令牌
+            refreshToken = result.RefreshToken,
             user = new 
             {
-                // 使用 result 中的用户名和角色 (从 DB 获取的最新数据)
                 Username = result.Username,
                 Role = result.Role,
-                // user.Id 和 AvatarUrl 暂时无法从 AuthResponseDto 获取，
-                // 如果需要，应该扩展 AuthResponseDto 或再次查询。 
-                // 为了性能，authService.LoginAsync 内部已经查了 User。
-                // 建议优化 AuthResponseDto 包含更多用户基本信息，或者这里简化返回。
-                // 目前为了保持兼容，我们可以不返回 user.Id/AvatarUrl, 或者让 frontend 自己去 /me 接口查?
-                // 或者我们改一下 AuthResponseDto ? 
-                // 暂时保持简单，前端主要用 token.
+                AvatarUrl = result.AvatarUrl // 现在可以直接返回头像
             }
         });
     }
