@@ -211,6 +211,18 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - [ ] **PostgreSQL 迁移**: 从 SQLite 迁移到 PostgreSQL，以支持更高的并发写入和 JSONB 高级查询。([查看详细迁移方案](./MIGRATION_PLAN.md))
   - [ ] **Redis 缓存**: 引入 Redis 替代内存缓存，实现分布式缓存和持久化，解决重启后缓存失效问题。([查看详细迁移方案](./MIGRATION_PLAN.md))
   - [x] **Security Audit**: Completed comprehensive code review for Production Readiness.
+  - [ ] **GitHub OAuth**: 实现 GitHub 账号快捷登录 (WIP)。
+
+### 2025 战略评估 (Strategic Assessment)
+
+> "基准线以上，惊喜线以下"
+
+- **现状**: 代码规范，选型新 (.NET 10/Next 15)，无安全漏洞。
+- **挑战**: 缺乏核心竞争力与智能化特性。
+- **北极星指标 (North Star)**:
+  - [ ] **AI 增强**: 引入 **Vector Database** (向量数据库) 实现语义搜索。
+  - [ ] **可观测性**: 引入 **OpenTelemetry** 实现全链路追踪。
+  - [ ] **工程化**: 完善 CI/CD 与自动化测试覆盖率。
 
 ---
 
