@@ -24,7 +24,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 现代化体验
 
-- **UI/UX**: 采用 "Bento Grid" (便当盒) 布局与“液态玻璃”视差效果，配合 Tailwind v4 实现极致视觉体验。
+- **UI/UX**: 全站统一采用了 "Bento Grid" (便当盒) 布局与 **"Dot Pattern" (点阵科技)** 视觉主题（含 Auth 页面），配合 Tailwind v4 实现极致视觉体验。
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
@@ -50,11 +50,15 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 - **注册 (Registration)**:
   - 开放注册接口 `/api/auth/register`。
+  - **强制邮箱验证**: 注册时必须提供有效邮箱，用于后续密码找回。
   - 密码安全：前端传输明文 -> 后端 **BCrypt** 加盐哈希存储 (WorkFactor=10)。
   - 默认角色：新注册用户默认为 `User` 角色，无后台访问权限。
 - **登录 (Login)**:
   - 采用 **HttpOnly Cookie** 模式。
   - 流程：用户提交账号密码 -> Next.js 验证 -> 后端签发 JWT -> Next.js 将 JWT 写入浏览器 Cookie (不暴露给 JS) -> 跳转首页。
+- **找回密码 (Password Reset)**:
+  - 流程：`/forgot-password` 提交邮箱 -> 后端生成 30 分钟有效的重置 Token -> 发送邮件 -> 用户点击链接进入 `/reset-password` -> 设置新密码。
+  - 安全：Token 包含哈希签名，过期自动失效。
 - **个人资料 (Profile)**:
   - 支持修改昵称、个人简介 (`Bio`)、个人网站链接。
   - 支持头像上传 (自动压缩并不经过服务器磁盘，直接流式上传至 Cloudflare R2)。
@@ -223,6 +227,9 @@ SMTP_PASS=app_password
 JWT_SECRET=YourSuperSecretKeyShouldBeLongEnough
 JWT_ISSUER=MyNextBlogServer
 JWT_AUDIENCE=MyNextBlogClient
+
+# 应用域名 (用于生成重置密码链接)
+AppUrl=http://localhost:3000
 ```
 
 ### 2. 一键运行
