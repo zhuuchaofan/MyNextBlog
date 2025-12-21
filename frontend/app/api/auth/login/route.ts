@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'; // Next.js 用于构建 HTTP 响应的工具
-import { cookies } from 'next/headers';     // Next.js 用于在服务端操作 Cookie 的工具
+import { NextResponse } from "next/server"; // Next.js 用于构建 HTTP 响应的工具
+import { cookies } from "next/headers"; // Next.js 用于在服务端操作 Cookie 的工具
 
 // POST /api/auth/login
 // --------------------------------------------------------------------------------
@@ -17,50 +17,66 @@ import { cookies } from 'next/headers';     // Next.js 用于在服务端操作 
 export async function POST(request: Request) {
   // 解析请求体中的 JSON 数据 (包含 username, password)
   const body = await request.json();
-  
+
   // 确定后端地址 (Docker 网络内部地址)
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
+  const backendUrl = process.env.BACKEND_URL || "http://backend:8080";
 
   try {
     // 代理请求：向后端 API 发送登录请求
     const res = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
 
     // 解析后端返回的数据 (AuthResponseDto: token, username, role, expiration)
     const data = await res.json();
 
     if (res.ok) {
-        // **设置 Cookie**
-        // 获取 Cookie 存储对象
-        const cookieStore = await cookies();
-        
-        // 设置名为 'token' 的 Cookie
-        cookieStore.set('token', data.token, {
-            httpOnly: true, // 禁止客户端 JavaScript 访问 (安全核心)
-            secure: process.env.NODE_ENV === 'production', // 仅在生产环境强制 HTTPS
-            path: '/', // Cookie 在整个网站有效
-            maxAge: 60 * 60 * 24 * 7, // 有效期 7 天 (单位：秒)
+      // **设置 Cookie**
+      // 获取 Cookie 存储对象
+      const cookieStore = await cookies();
+
+      // 1. 设置 Access Token (有效期 15 分钟)
+      cookieStore.set("token", data.token, {
+        httpOnly: true, // 禁止客户端 JavaScript 访问 (安全核心)
+        secure: process.env.NODE_ENV === "production", // 仅在生产环境强制 HTTPS
+        path: "/", // Cookie 在整个网站有效
+        sameSite: "lax", // 防止 CSRF
+        maxAge: 15 * 60, // 15 分钟 (与后端保持一致)
+      });
+
+      // 2. 设置 Refresh Token (有效期 7 天)
+      // 注意：这是长期凭证，必须受到严密保护
+      if (data.refreshToken) {
+        cookieStore.set("refresh_token", data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60, // 7 天
         });
-        
-        // **安全响应**
-        // 返回给前端的数据中**剔除**了 Token。
-        // 前端只需要知道“登录成功”以及“我是谁”，不需要持有 Token。
-        // 之后的请求会自动由浏览器带上 HttpOnly Cookie。
-        return NextResponse.json({ 
-            success: true, 
-            username: data.user.username, 
-            role: data.user.role,
-            avatarUrl: data.user.avatarUrl
-        });
+      }
+
+      // **安全响应**
+      // 返回给前端的数据中**剔除**了 Token。
+      // 前端只需要知道“登录成功”以及“我是谁”，不需要持有 Token。
+      // 之后的请求会自动由浏览器带上 HttpOnly Cookie。
+      return NextResponse.json({
+        success: true,
+        username: data.user.username,
+        role: data.user.role,
+        avatarUrl: data.user.avatarUrl,
+      });
     }
 
     // 如果登录失败，原样返回后端的错误信息
     return NextResponse.json(data, { status: res.status });
   } catch (e) {
-      console.error("Login Proxy Error:", e);
-      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error("Login Proxy Error:", e);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

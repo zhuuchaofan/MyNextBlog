@@ -10,53 +10,117 @@ import type { NextRequest } from 'next/server';
 // 1. **认证代理 (Auth Proxy)**: 拦截前端对 `/api/backend` 的请求，自动注入 Authorization 头。
 // 2. **路由保护 (Route Protection)**: 保护 `/admin` 开头的路由，防止未登录用户访问。
 
-export function middleware(request: NextRequest) {
-  // 1. 拦截后端 API 请求 (API 代理逻辑辅助)
-  // 注意：实际的 URL 重写 (Rewrite) 是在 `next.config.ts` 中配置的，
-  // 但中间件在这里负责**注入身份凭证**。
-  if (request.nextUrl.pathname.startsWith('/api/backend')) {
-    // 从 Cookie 中读取 Token (HttpOnly Cookie 安全性高，JS 无法读取，但浏览器会自动发送给同源请求)
-    const token = request.cookies.get('token')?.value;
-    
-    // 创建一个新的 Headers 对象，以便修改请求头
-    const requestHeaders = new Headers(request.headers);
-    
-    // 如果 Cookie 中存在 Token，则手动添加 'Authorization' 头
-    // 格式为: Bearer <token_string>
-    if (token) {
-      requestHeaders.set('Authorization', `Bearer ${token}`);
-    }
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-    // NextResponse.next(): 允许请求继续传递到下一步（即 next.config.ts 中的 rewrite 规则）。
-    // 我们将修改后的 headers 传递下去。
-    return NextResponse.next({
+  // 1. 获取 Tokens
+  let accessToken = request.cookies.get('token')?.value;
+  const refreshToken = request.cookies.get('refresh_token')?.value;
+
+  // 2. 定义是否需要保护或代理的路由
+  const isApiRoute = pathname.startsWith('/api/backend');
+  const isProtectedPage = pathname.startsWith('/admin');
+
+  // 如果不是目标路由，直接放行 (为了性能)
+  if (!isApiRoute && !isProtectedPage) {
+     return NextResponse.next();
+  }
+
+  // 3. Token 刷新逻辑
+  // 触发条件：Access Token 缺失 (过期)，但 Refresh Token 存在
+  let newAccessToken: string | null = null;
+  let newRefreshToken: string | null = null;
+  let responseToReturn: NextResponse | null = null;
+
+  if (!accessToken && refreshToken) {
+    try {
+        console.log(`[Middleware] Access Token expired, attempting refresh... Path: ${pathname}`);
+        
+        // 调用后端刷新接口
+        // 注意：中间件中无法直接使用 process.env.BACKEND_URL (通常为 undefined 或需要特殊配置)
+        // 且中间件运行在 Edge Runtime，fetch 是原生的。
+        // 这里假设 backend 服务名在 Docker 网络中可用，或者使用 localhost 
+        // 生产环境通常需要完整的 URL。
+        // *关键*: 在 Docker Compose 内部网络中，Next.js 中间件(运行在 Node) 可以访问 http://backend:8080
+        const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
+        
+        const refreshRes = await fetch(`${backendUrl}/api/auth/refresh-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken: "", refreshToken: refreshToken }), // DTO 要求 AccessToken, 但过期了也没事，传空或旧的? DTO其实只校验Refresh即查库。
+        });
+
+        if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            newAccessToken = data.token;
+            newRefreshToken = data.refreshToken;
+            
+            // 刷新成功！更新当前作用域的 accessToken，以便后续流程使用
+            accessToken = newAccessToken!;
+            console.log("[Middleware] Token refresh successful.");
+        } else {
+            console.warn("[Middleware] Token refresh failed:", refreshRes.status);
+            // 刷新失败 (比如 Refresh Token 也过期了) -> 视为未登录 -> 继续往下走会触发重定向
+        }
+    } catch (error) {
+        console.error("[Middleware] Token refresh error:", error);
+    }
+  }
+
+  // 4. Access Token 校验与拦截
+  // 如果经过尝试刷新后，仍然没有有效的 accessToken
+  if (!accessToken) {
+      if (isProtectedPage) {
+          // 拦截管理员页面 -> 去登录
+          const url = request.nextUrl.clone();
+          url.pathname = '/login';
+          url.searchParams.set('from', request.nextUrl.pathname); // 记录跳转前地址
+          return NextResponse.redirect(url);
+      }
+      if (isApiRoute) {
+          // 拦截 API 请求 -> 返回 401
+          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
+  }
+
+  // 5. 构造响应 (注入 Header + 更新 Cookie)
+  
+  // 必须先调用 next() 来获取基础响应对象
+  // 并在 request header 中注入最新的 Token (供后端或 Server Components 使用)
+  const requestHeaders = new Headers(request.headers);
+  if (accessToken) {
+      requestHeaders.set('Authorization', `Bearer ${accessToken}`);
+  }
+
+  responseToReturn = NextResponse.next({
       request: {
-        headers: requestHeaders,
+          headers: requestHeaders,
       },
-    });
+  });
+
+  // 如果发生了刷新，需要在响应中写回新的 Cookie
+  if (newAccessToken && newRefreshToken) {
+      responseToReturn.cookies.set('token', newAccessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+          maxAge: 15 * 60, // 15 min
+      });
+      
+      responseToReturn.cookies.set('refresh_token', newRefreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
   }
-  
-  // 2. 保护管理员路由
-  // 任何访问 `/admin` 开头的 URL 都需要检查是否已登录。
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-     const token = request.cookies.get('token');
-     
-     // 如果没有 Token (未登录)，则强制重定向到登录页面。
-     if (!token) {
-        // 创建重定向 URL，指向 /login
-        return NextResponse.redirect(new URL('/login', request.url));
-     }
-     // 注意：这里只做了“是否登录”的初步检查。
-     // 具体的“是否是管理员”权限检查，仍然由后端 API (通过 [Authorize(Roles="Admin")]) 把关。
-     // 即使恶意用户伪造了 Token 绕过这里，后端也会拒绝请求。
-  }
-  
-  // 对于其他无需处理的请求，直接放行。
-  return NextResponse.next();
+
+  return responseToReturn;
 }
 
 // 配置匹配器
-// 指定中间件只对以下路径生效，避免影响静态资源（图片、CSS等）的加载速度。
 export const config = {
   matcher: ['/api/backend/:path*', '/admin/:path*'],
 };
