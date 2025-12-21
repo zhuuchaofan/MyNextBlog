@@ -37,6 +37,64 @@ public class SeriesService(AppDbContext context) : ISeriesService
         );
     }
 
+    public async Task<List<PostSummaryDto>> GetSeriesPostsAsync(int seriesId, bool includeHidden = false)
+    {
+        var query = context.Posts
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Include(p => p.User)
+            .Include(p => p.Tags)
+            .Include(p => p.Series)
+            .Where(p => p.SeriesId == seriesId);
+
+        // 非管理员只能看公开文章
+        if (!includeHidden)
+        {
+            query = query.Where(p => !p.IsHidden);
+        }
+
+        var posts = await query
+            .OrderBy(p => p.SeriesOrder)
+            .ThenBy(p => p.CreateTime)
+            .ToListAsync();
+
+        return posts.Select(p => new PostSummaryDto(
+            p.Id,
+            p.Title,
+            GetExcerpt(p.Content),
+            p.Category?.Name ?? "未分类",
+            p.CategoryId,
+            p.User?.Username ?? "未知作者",
+            p.User?.AvatarUrl,
+            p.CreateTime,
+            GetCoverImage(p.Content),
+            p.Tags.Select(t => t.Name).ToList(),
+            p.IsHidden,
+            p.LikeCount,
+            p.Series?.Name,
+            p.SeriesOrder
+        )).ToList();
+    }
+
+    // Helper: 提取摘要
+    private static string GetExcerpt(string content, int length = 200)
+    {
+        if (string.IsNullOrEmpty(content)) return "";
+        var plainText = System.Text.RegularExpressions.Regex.Replace(content, "<.*?>", "");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"!\[.*?\]\(.*?\)", "");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\[.*?\]\(.*?\)", "");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"[#*`>~\-]", "");
+        return plainText.Length > length ? plainText[..length] + "..." : plainText;
+    }
+
+    // Helper: 提取封面图
+    private static string? GetCoverImage(string content)
+    {
+        if (string.IsNullOrEmpty(content)) return null;
+        var match = System.Text.RegularExpressions.Regex.Match(content, @"!\[.*?\]\((.*?)\)");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
     public async Task<SeriesDto> CreateSeriesAsync(CreateSeriesDto dto)
     {
         var series = new Series

@@ -19,25 +19,17 @@ async function getSeriesWithPosts(id: string) {
   }
 }
 
-// Fetch posts in this series
+// Fetch posts in this series (using dedicated endpoint)
 async function getSeriesPosts(seriesId: string) {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   try {
-    // Get all posts and filter by series (or add a dedicated endpoint later)
-    const res = await fetch(`${baseUrl}/api/posts?pageSize=100`, {
+    const res = await fetch(`${baseUrl}/api/series/${seriesId}/posts`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) return [];
     const json = await res.json();
     if (!json.success) return [];
-    
-    // Filter posts that belong to this series and sort by seriesOrder
-    const seriesIdNum = parseInt(seriesId);
-    const postsInSeries = json.data
-      .filter((p: { seriesId?: number }) => p.seriesId === seriesIdNum)
-      .sort((a: { seriesOrder: number }, b: { seriesOrder: number }) => a.seriesOrder - b.seriesOrder);
-      
-    return postsInSeries;
+    return json.data;
   } catch {
     return [];
   }

@@ -64,4 +64,22 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
         var nextOrder = await seriesService.GetNextOrderAsync(id);
         return Ok(new { success = true, data = nextOrder });
     }
+
+    /// <summary>
+    /// 获取系列下的所有文章（公开接口，游客只能看公开文章）
+    /// </summary>
+    [HttpGet("{id}/posts")]
+    public async Task<IActionResult> GetSeriesPosts(int id)
+    {
+        // 检查系列是否存在
+        var series = await seriesService.GetSeriesByIdAsync(id);
+        if (series == null)
+            return NotFound(new { success = false, message = "系列不存在" });
+
+        // 判断是否为管理员（有权看隐藏文章）
+        bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        
+        var posts = await seriesService.GetSeriesPostsAsync(id, includeHidden: isAdmin);
+        return Ok(new { success = true, data = posts });
+    }
 }
