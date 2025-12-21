@@ -102,4 +102,9 @@ public class Post
     /// `PostLikes` 属性是导航属性，表示**一篇文章可以有多个点赞记录**。
     /// </summary>
     public List<PostLike> PostLikes { get; set; } = new();
+
+    // --- 系列 (Series) ---
+    public int? SeriesId { get; set; }
+    public Series? Series { get; set; }
+    public int SeriesOrder { get; set; } = 0; // 排序字段 (1, 2, 3...)
 }

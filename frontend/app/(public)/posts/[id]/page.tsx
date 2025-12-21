@@ -10,6 +10,7 @@ import CommentsSection from '@/components/CommentsSection';
 import MarkdownRenderer from '@/components/MarkdownRenderer'; // Markdown 渲染组件
 import PostInteractions from '@/components/PostInteractions'; // 交互组件（如点赞/分享）
 import MobileBottomBar from '@/components/MobileBottomBar'; // 移动端底部栏
+import { SeriesNavigation } from '@/components/SeriesNavigation'; // 引入系列导航
 import { getPost } from '@/lib/data'; // 服务端数据获取函数
 
 // 定义页面属性接口
@@ -137,6 +138,9 @@ export default async function PostPage({ params }: Props) {
 
            {/* 主内容容器 */}
            <div className="lg:col-span-11 bg-white/95 dark:bg-zinc-900/95 backdrop-blur rounded-3xl shadow-xl dark:shadow-black/50 border border-gray-100 dark:border-zinc-800 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
+              {/* 系列导航 */}
+              <SeriesNavigation seriesInfo={post.seriesInfo} />
+
               {/* Markdown 渲染器：将 Markdown 文本转换为 HTML */}
               <MarkdownRenderer content={post.content} />
               

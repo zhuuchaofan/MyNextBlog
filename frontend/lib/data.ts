@@ -16,6 +16,14 @@ export interface PostDetail {
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;
+  seriesInfo?: {
+      id: number;
+      name: string;
+      totalCount: number;
+      currentOrder: number;
+      prev?: { id: number; title: string };
+      next?: { id: number; title: string };
+  };
 }
 
 /**

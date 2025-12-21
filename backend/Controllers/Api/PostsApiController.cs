@@ -145,7 +145,14 @@ public class PostsApiController(IPostService postService, ICommentService commen
         // `post.ToDetailDto(commentCount)`: 将查询到的 `Post` 实体转换为 `PostDetailDto`。
         // `PostDetailDto` 包含了文章的完整内容和所有相关信息，以及刚刚获取到的评论总数。
         // 返回一个包含成功状态和文章详情数据的 `200 OK` 响应。
-        return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
+        
+        PostSeriesDto? seriesInfo = null;
+        if (post.SeriesId.HasValue)
+        {
+             seriesInfo = await postService.GetSeriesInfoForPostAsync(post.Id, post.SeriesId, post.SeriesOrder);
+        }
+
+        return Ok(new { success = true, data = post.ToDetailDto(commentCount, seriesInfo) });
     }
 
     /// <summary>
@@ -178,8 +185,15 @@ public class PostsApiController(IPostService postService, ICommentService commen
         // 获取文章的评论总数，用于详情页显示。
         var commentCount = await commentService.GetCommentCountAsync(id);
 
+        // 获取系列信息 (如果存在)
+        PostSeriesDto? seriesInfo = null;
+        if (post.SeriesId.HasValue)
+        {
+             seriesInfo = await postService.GetSeriesInfoForPostAsync(post.Id, post.SeriesId, post.SeriesOrder);
+        }
+
         // 返回包含成功状态和文章详情数据的 `200 OK` 响应。
-        return Ok(new { success = true, data = post.ToDetailDto(commentCount) });
+        return Ok(new { success = true, data = post.ToDetailDto(commentCount, seriesInfo) });
     }
 
     /// <summary>

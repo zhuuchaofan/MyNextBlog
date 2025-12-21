@@ -64,7 +64,24 @@ public record PostDetailDto(
     List<string> Tags,                       // 文章关联的标签名称列表
     bool IsHidden,                           // 文章是否隐藏
     int CommentCount,                        // 文章的评论总数
-    int LikeCount                            // 文章点赞数
+    int LikeCount,                           // 文章点赞数
+    PostSeriesDto? SeriesInfo                // 系列信息 (可空)
+);
+
+// 系列信息 DTO (后端计算好上一篇下一篇)
+public record PostSeriesDto(
+    int Id,              // 系列ID
+    string Name,         // 系列名
+    int TotalCount,      // 总篇数
+    int CurrentOrder,    // 当前是第几篇 (0-based or 1-based? Let's use 1-based index for display)
+    PostLinkDto? Prev,   // 上一篇
+    PostLinkDto? Next    // 下一篇
+);
+
+// 简化的文章链接 DTO
+public record PostLinkDto(
+    int Id,
+    string Title
 );
 
 /// <summary>

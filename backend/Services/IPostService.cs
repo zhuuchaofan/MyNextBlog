@@ -13,6 +13,7 @@ public interface IPostService
     Task<Post> AddPostAsync(CreatePostDto dto, int? userId);
     Task<Post> UpdatePostAsync(int id, UpdatePostDto dto);
     Task DeletePostAsync(int id);
+    Task<PostSeriesDto?> GetSeriesInfoForPostAsync(int postId, int? seriesId, int currentOrder); // Added
     
     Task<List<Category>> GetCategoriesAsync(); // 获取所有分类
     

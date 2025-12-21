@@ -95,25 +95,72 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// <returns>返回一个 `Task<Post?>`。如果找到了符合条件的文章，则返回 `Post` 实体对象；否则返回 `null`。</returns>
     public async Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false)
     {
-        // 同样将 `Posts` DbSet 转换为 `IQueryable`，以便构建查询。
-        // 使用 `.AsNoTracking()` 来优化只读查询的性能。
         var query = context.Posts.AsNoTracking().AsQueryable();
 
-        // 根据 `includeHidden` 参数，决定是否在查询中添加过滤条件，只返回公开文章。
         if (!includeHidden)
         {
             query = query.Where(p => !p.IsHidden);
         }
 
-        // `Include(...)`: 预加载文章的分类、作者和标签信息，避免后续访问时触发额外的数据库查询。
-        // `FirstOrDefaultAsync(m => m.Id == id)`: 异步执行查询。
-        //   - `FirstOrDefaultAsync`: 尝试获取满足条件的第一个元素。如果没有找到任何元素，则返回 `default(Post)` (即 `null`)。
-        //   - `m => m.Id == id`: Lambda 表达式，作为筛选条件，查找 `Id` 属性与传入 `id` 相等的文章。
-        return await query
+        var post = await query
             .Include(p => p.Category)
             .Include(p => p.User)
             .Include(p => p.Tags)
+            .Include(p => p.Series) // Include Series
             .FirstOrDefaultAsync(m => m.Id == id);
+            
+        return post;
+    }
+    
+    // Helper to get series info (used by Controller)
+    public async Task<PostSeriesDto?> GetSeriesInfoForPostAsync(int postId, int? seriesId, int currentOrder)
+    {
+        if (!seriesId.HasValue) return null;
+
+        var series = await context.Series.FindAsync(seriesId.Value);
+        if (series == null) return null;
+
+        // Fetch all posts in the series (lightweight projection)
+        // Order by SeriesOrder
+        var siblings = await context.Posts
+            .AsNoTracking()
+            .Where(p => p.SeriesId == seriesId && !p.IsHidden) // Assuming series posts should be public
+            .OrderBy(p => p.SeriesOrder)
+            .Select(p => new { p.Id, p.Title, p.SeriesOrder })
+            .ToListAsync();
+
+        var totalCount = siblings.Count;
+        var currentIndex = siblings.FindIndex(p => p.Id == postId);
+        
+        // If post is not found in the list (e.g. it's hidden but we're viewing it as admin?), handle gracefully
+        if (currentIndex == -1) return null;
+        
+        // Display order is 1-based index (Index + 1) OR use SeriesOrder if it's strict?
+        // Let's use Index + 1 for "Part X of Y" logic to be continuous even if Orders are 10, 20, 30.
+        var currentDisplayOrder = currentIndex + 1;
+
+        PostLinkDto? prev = null;
+        if (currentIndex > 0)
+        {
+            var p = siblings[currentIndex - 1];
+            prev = new PostLinkDto(p.Id, p.Title);
+        }
+
+        PostLinkDto? next = null;
+        if (currentIndex < siblings.Count - 1)
+        {
+            var p = siblings[currentIndex + 1];
+            next = new PostLinkDto(p.Id, p.Title);
+        }
+
+        return new PostSeriesDto(
+            series.Id,
+            series.Name,
+            totalCount,
+            currentDisplayOrder,
+            prev,
+            next
+        );
     }
 
     /// <summary>

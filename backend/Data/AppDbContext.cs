@@ -33,6 +33,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ImageAsset> ImageAssets { get; set; } // 对应数据库中的 ImageAssets 表，用于管理图片资源
     public DbSet<PostLike> PostLikes { get; set; }    // 对应数据库中的 PostLikes 表，用于管理文章点赞
     public DbSet<UserProfile> UserProfiles { get; set; } // 新增：用户扩展资料
+    public DbSet<Series> Series { get; set; } // 新增：系列
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。
@@ -97,5 +98,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithOne(p => p.User)
             .HasForeignKey<UserProfile>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade); // 用户删除时，扩展资料也删除
+
+        // --- 6. 配置 Series (系列) 与 Post (文章) 的一对多关系 ---
+        modelBuilder.Entity<Series>()
+            .HasMany(s => s.Posts)
+            .WithOne(p => p.Series)
+            .HasForeignKey(p => p.SeriesId)
+            .OnDelete(DeleteBehavior.SetNull); // 删除系列时，文章不删，只是解除关系
     }
 }

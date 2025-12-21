@@ -36,4 +36,15 @@ public record ResetPasswordDto(
     [Required] [StringLength(100, MinimumLength = 6)] string NewPassword
 );
 
-public record AuthResponseDto(string Token, DateTime Expiration, string Username, string Role);
+public record AuthResponseDto(
+    string Token,
+    string RefreshToken, // Added
+    DateTime Expiration,
+    string Username,
+    string Role
+);
+
+public record RefreshTokenRequestDto(
+    string AccessToken,
+    string RefreshToken
+);

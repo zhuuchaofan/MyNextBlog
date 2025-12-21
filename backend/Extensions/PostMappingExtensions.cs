@@ -38,7 +38,8 @@ public static class PostMappingExtensions
     /// 转换为详情页完整 DTO
     /// </summary>
     /// <param name="commentCount">额外的评论总数数据 (需要单独查询)</param>
-    public static PostDetailDto ToDetailDto(this Post post, int commentCount = 0)
+    /// <param name="seriesInfo">系列信息 (需要单独计算)</param>
+    public static PostDetailDto ToDetailDto(this Post post, int commentCount = 0, PostSeriesDto? seriesInfo = null)
     {
         return new PostDetailDto(
             post.Id,
@@ -52,7 +53,8 @@ public static class PostMappingExtensions
             post.Tags.Select(t => t.Name).ToList(),
             post.IsHidden,
             commentCount,
-            post.LikeCount
+            post.LikeCount,
+            seriesInfo // 传递系列信息
         );
     }
 

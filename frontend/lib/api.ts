@@ -30,6 +30,16 @@ export interface PostDetail {
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;
+  seriesInfo?: SeriesInfo;
+}
+
+export interface SeriesInfo {
+  id: number;
+  name: string;
+  totalCount: number;
+  currentOrder: number;
+  prev?: { id: number; title: string };
+  next?: { id: number; title: string };
 }
 
 // 获取文章详情 (客户端版本)
