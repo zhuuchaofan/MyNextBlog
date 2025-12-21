@@ -64,7 +64,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full h-screen lg:grid lg:grid-cols-2 overflow-hidden bg-white dark:bg-zinc-900">
+    <div className="w-full min-h-screen lg:h-screen lg:grid lg:grid-cols-2 lg:overflow-hidden bg-white dark:bg-zinc-900">
       
       {/* Left Side: Artistic/Brand Section (Tech Theme) */}
       <div className="hidden lg:flex flex-col justify-between bg-zinc-900 text-white p-10 relative overflow-hidden">
@@ -94,7 +94,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side: Form Section */}
-      <div className="h-full flex flex-col p-8 bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="min-h-screen lg:h-full flex flex-col p-8 bg-zinc-50 dark:bg-zinc-900/50">
         {/* Mobile Brand Header - Static Position to prevent overlap */}
         <div className="lg:hidden flex-none w-full flex items-center gap-2 font-bold text-xl tracking-tighter text-zinc-900 dark:text-white mb-8">
              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-black">B</div>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                     <Input 
                         id="username"
                         className="pl-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
-                        placeholder="admin"
+                        placeholder="请输入用户名"
                         {...register('username')}
                     />
                     </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         className="pl-10 pr-10 h-11 bg-white border-zinc-200 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium" 
-                        placeholder="••••••••"
+                        placeholder="请输入密码"
                         {...register('password')}
                         />
                         <button

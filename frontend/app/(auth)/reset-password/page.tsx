@@ -192,7 +192,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="w-full h-screen lg:grid lg:grid-cols-2 overflow-hidden bg-white dark:bg-zinc-900">
+    <div className="w-full min-h-screen lg:h-screen lg:grid lg:grid-cols-2 lg:overflow-hidden bg-white dark:bg-zinc-900">
       
       {/* Left Side: Artistic (Tech Theme) */}
       <div className="hidden lg:flex flex-col justify-between bg-zinc-900 text-white p-10 relative overflow-hidden">
@@ -223,7 +223,7 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Right Side: Form */}
-      <div className="flex items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="min-h-screen lg:h-full flex items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50">
         <Suspense fallback={<div>Loading...</div>}>
             <ResetPasswordContent />
         </Suspense>
