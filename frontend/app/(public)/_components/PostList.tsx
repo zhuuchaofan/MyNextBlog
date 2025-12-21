@@ -23,6 +23,8 @@ export interface Post {
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;
+  seriesName?: string;   // 新增：系列名称
+  seriesOrder?: number;  // 新增：系列中的顺序
 }
 
 interface PostListProps {
@@ -110,32 +112,34 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                      )}
                      
                      <div className="flex-1 flex flex-col p-6 md:p-8">
-                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                        {/* 第一行：定位信息（分类 + 系列）+ 时间 + 管理按钮 */}
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
                           {post.isHidden && (
-                            <Badge variant="destructive" className="h-6 px-2 text-xs border-dashed border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40">
+                            <Badge variant="destructive" className="h-6 px-2 text-xs border-dashed border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                               Hidden
                             </Badge>
                           )}
+                          
+                          {/* 分类 */}
                           <Link href={`/categories/${post.categoryId}`}>
                              <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg px-3 py-1 transition-colors">
                                 {post.categoryName || '未分类'}
                              </Badge>
                           </Link>
                           
-                          {/* 渲染标签 */}
-                          {post.tags && post.tags.map(tag => (
-                            <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
-                              <Badge variant="outline" className="text-xs text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer rounded-lg px-2 py-0.5 transition-colors">
-                                # {tag}
-                              </Badge>
-                            </Link>
-                          ))}
-
+                          {/* 系列（如果存在）*/}
+                          {post.seriesName && (
+                            <Badge variant="outline" className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2 py-0.5">
+                              📚 {post.seriesName} {post.seriesOrder ? `第${post.seriesOrder}篇` : ''}
+                            </Badge>
+                          )}
+                          
+                          {/* 时间 */}
                           <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1 ml-auto">
                             <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
                           </span>
 
-                          {/* 管理员控制按钮 (嵌入在元数据行末尾) */}
+                          {/* 管理员控制按钮 */}
                           {isAdmin && (
                             <Button 
                                 variant="ghost" 
@@ -155,9 +159,27 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                           </Link>
                         </h3>
                         
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-6 flex-grow leading-relaxed">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-grow leading-relaxed">
                           {post.excerpt || '暂无摘要...'}
                         </p>
+                        
+                        {/* 标签区（特征信息）*/}
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-4">
+                            {post.tags.slice(0, 4).map(tag => (
+                              <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
+                                <Badge variant="outline" className="text-xs text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer rounded-md px-2 py-0.5 transition-colors">
+                                  # {tag}
+                                </Badge>
+                              </Link>
+                            ))}
+                            {post.tags.length > 4 && (
+                              <Badge variant="outline" className="text-xs text-gray-400 dark:text-gray-500 border-gray-200 dark:border-zinc-700 rounded-md px-2 py-0.5">
+                                +{post.tags.length - 4}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                         
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-zinc-800/50">
                           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">

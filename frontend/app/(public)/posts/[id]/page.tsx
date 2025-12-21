@@ -97,12 +97,21 @@ export default async function PostPage({ params }: Props) {
         {/* 标题信息 (覆盖在背景之上) */}
         <div className="relative z-10 flex flex-col items-center text-center px-4 mt-8 pb-32 pt-20">
            <div className="space-y-4 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {/* 分类标签 */}
-             <Link href={`/categories/${post.categoryId}`}>
-                <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none px-3 py-1 mb-4">
-                  {post.categoryName || '未分类'}
-                </Badge>
-             </Link>
+             {/* 定位信息：分类 + 系列 */}
+             <div className="flex items-center justify-center gap-2 mb-4">
+               <Link href={`/categories/${post.categoryId}`}>
+                  <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none px-3 py-1">
+                    {post.categoryName || '未分类'}
+                  </Badge>
+               </Link>
+               {post.seriesInfo && (
+                  <Link href={`/series/${post.seriesInfo.id}`}>
+                    <Badge variant="secondary" className="bg-blue-500/30 backdrop-blur-md text-white hover:bg-blue-500/40 border-none px-3 py-1">
+                      📚 {post.seriesInfo.name} · 第{post.seriesInfo.currentOrder}篇
+                    </Badge>
+                  </Link>
+               )}
+             </div>
              
              {/* 文章标题 */}
              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
@@ -125,6 +134,19 @@ export default async function PostPage({ params }: Props) {
                   <Clock className="w-4 h-4" /> {readingTime} min read
                 </span>
              </div>
+             
+             {/* 标签（特征信息）*/}
+             {post.tags && post.tags.length > 0 && (
+               <div className="flex items-center justify-center gap-2 pt-2">
+                 {post.tags.map(tag => (
+                   <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
+                     <Badge variant="outline" className="text-xs text-white/80 border-white/30 hover:bg-white/10 cursor-pointer px-2 py-0.5 transition-colors">
+                       # {tag}
+                     </Badge>
+                   </Link>
+                 ))}
+               </div>
+             )}
            </div>
         </div>
       </div>
