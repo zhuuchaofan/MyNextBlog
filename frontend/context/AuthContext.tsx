@@ -85,7 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 调用 Next.js 的内部路由 /api/auth/logout 清除 HttpOnly Cookie
         await fetch('/api/auth/logout', { method: 'POST' });
         setUser(null); // 清空前端用户状态
-        router.push('/'); // 跳转回首页
+        
+        // 使用硬刷新跳转，确保 Server Component 完全重新渲染
+        // router.push() + router.refresh() 存在竞争条件，可能不生效
+        window.location.href = '/';
     } catch (e) {
         console.error("Logout failed", e);
     }
