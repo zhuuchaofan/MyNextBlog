@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor'; // 自定义 Markdown 编辑器组件
 import TagInput from '@/components/TagInput';             // 自定义标签输入组件
 import CreateCategoryDialog from '@/components/CreateCategoryDialog'; // 创建分类对话框组件
+import CreateSeriesDialog from '@/components/CreateSeriesDialog'; // Create Series Dialog
 import { fetchCategories, updatePost, Category, getPostWithAuth, fetchAllSeries, fetchNextSeriesOrder, Series } from '@/lib/api'; // 导入 API 请求函数和类型
 import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件
@@ -35,6 +36,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(false); // 控制表单提交的加载状态
   const [fetching, setFetching] = useState(true); // 控制文章数据初始加载状态
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false); // 控制新建分类对话框的显示
+  const [isCreateSeriesOpen, setIsCreateSeriesOpen] = useState(false); // Control create series dialog display
   
   // Series states
   const [seriesList, setSeriesList] = useState<Series[]>([]);
@@ -203,7 +205,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         {/* 系列选择区域 */}
         <div className="space-y-2">
             <Label className="font-semibold dark:text-gray-200">所属系列 (可选)</Label>
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-2 items-center w-full">
                 <select 
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={seriesId || ''}
@@ -211,10 +213,21 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 >
                     <option value="">-- 不属于任何系列 --</option>
                     {seriesList.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
+                        <option key={s.id} value={s.id}>{s.name} ({s.postCount}篇)</option>
                     ))}
                 </select>
                 
+                <Button 
+                   type="button"
+                   variant="outline"
+                   size="icon"
+                   className="shrink-0"
+                   onClick={() => setIsCreateSeriesOpen(true)}
+                   title="新建系列"
+                >
+                   <Plus className="w-4 h-4" />
+                </Button>
+
                 {seriesId && (
                     <div className="flex items-center gap-2 w-32 shrink-0">
                         <span className="text-sm whitespace-nowrap">第几篇:</span>
@@ -237,6 +250,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           onCreated={(newCat) => {
             setCategories([...categories, newCat]);
             setCategoryId(newCat.id);
+          }}
+        />
+        
+        {/* Create Series Dialog */}
+        <CreateSeriesDialog
+          open={isCreateSeriesOpen}
+          onOpenChange={setIsCreateSeriesOpen}
+          onCreated={(newSeries) => {
+             setSeriesList([...seriesList, newSeries]);
+             handleSeriesChange(newSeries.id); // Auto select and set order to 1
           }}
         />
 
