@@ -6,6 +6,7 @@ namespace MyNextBlog.Services;
 public interface IAuthService
 {
     Task<AuthResponseDto?> LoginAsync(LoginDto dto);
+    Task<AuthResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto dto);
     Task<AuthResult> RegisterAsync(string username, string password, string email);
 
     // Password Reset

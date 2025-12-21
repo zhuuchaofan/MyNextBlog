@@ -32,4 +32,8 @@ public class User
 
     // 新增：扩展资料 (1对1关系)
     public UserProfile? UserProfile { get; set; }
+
+    // JWT Refresh Token (存储哈希值更安全)
+    public string? RefreshTokenHash { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
 }
