@@ -274,6 +274,13 @@ var app = builder.Build();
 // 注册全局异常处理中间件 (必须放在管道最前面)
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
+// 0. 反向代理头处理 (必须在 HSTS 之前)
+// 关键修复: 使得应用在 Docker/Nginx 后能获取用户真实 IP
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 // 1. 全局异常处理和安全头
 // `app.Environment.IsDevelopment()`: 检查当前应用程序是否在开发环境中运行。
 // 这是根据 `ASPNETCORE_ENVIRONMENT` 环境变量判断的。

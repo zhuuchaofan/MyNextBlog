@@ -296,12 +296,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
              if (int.TryParse(userIdStr, out int uid)) userId = uid;
         }
 
-        // 获取 IP 地址 (兼容反向代理)
-        string? ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (string.IsNullOrEmpty(ipAddress))
-        {
-            ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        }
+        // 获取 IP 地址 (由 ForwardedHeadersMiddleware 统一处理)
+        string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
         // 如果既没有登录也没有 IP (极端情况)，记录为 "unknown"
         if (!userId.HasValue && string.IsNullOrEmpty(ipAddress))
