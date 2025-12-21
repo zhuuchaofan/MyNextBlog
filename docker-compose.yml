@@ -29,6 +29,7 @@ services:
       # SMTP
       - SmtpSettings__SenderEmail=${SMTP_EMAIL}
       - SmtpSettings__SenderPassword=${SMTP_PASSWORD}
+      - SmtpSettings__AdminEmail=${SMTP_EMAIL}
       # App
       - AppUrl=${APP_URL}
     volumes:
