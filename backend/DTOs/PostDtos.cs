@@ -67,6 +67,8 @@ public record PostDetailDto(
     bool IsHidden,                           // 文章是否隐藏
     int CommentCount,                        // 文章的评论总数
     int LikeCount,                           // 文章点赞数
+    int? SeriesId,                           // 系列ID（用于编辑页面）
+    int SeriesOrder,                         // 系列中的顺序（用于编辑页面）
     PostSeriesDto? SeriesInfo                // 系列信息 (可空)
 );
 

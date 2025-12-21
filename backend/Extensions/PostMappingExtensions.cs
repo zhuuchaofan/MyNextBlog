@@ -57,6 +57,8 @@ public static class PostMappingExtensions
             post.IsHidden,
             commentCount,
             post.LikeCount,
+            post.SeriesId,    // 直接传递系列ID
+            post.SeriesOrder, // 直接传递系列顺序
             seriesInfo // 传递系列信息
         );
     }
