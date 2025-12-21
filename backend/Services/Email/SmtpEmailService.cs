@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Retry;
 
 namespace MyNextBlog.Services.Email;
 
@@ -42,7 +44,21 @@ public class SmtpEmailService : IEmailService
             };
             mailMessage.To.Add(to);
 
-            await client.SendMailAsync(mailMessage);
+            var pipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    BackoffType = DelayBackoffType.Exponential,
+                    Delay = TimeSpan.FromSeconds(2),
+                    OnRetry = args =>
+                    {
+                        _logger.LogWarning($"[Email Retry] Attempt {args.AttemptNumber} failed: {args.Outcome.Exception?.Message}. Waiting {args.RetryDelay}...");
+                        return default;
+                    }
+                })
+                .Build();
+
+            await pipeline.ExecuteAsync(async ct => await client.SendMailAsync(mailMessage, ct));
             _logger.LogInformation($"Email sent successfully to {to}");
         }
         catch (Exception ex)

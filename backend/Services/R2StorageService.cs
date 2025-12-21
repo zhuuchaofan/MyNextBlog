@@ -1,6 +1,8 @@
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon.S3.Model;
+using Polly;
+using Polly.Retry;
 
 namespace MyNextBlog.Services;
 
@@ -69,7 +71,31 @@ public class R2StorageService : IStorageService
         };
 
         // 执行上传
-        await client.PutObjectAsync(putRequest);
+        // 使用 Polly 重试策略: 最多重试 3 次，每次指数退避 (2^n 秒)
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                BackoffType = DelayBackoffType.Exponential,
+                Delay = TimeSpan.FromSeconds(2),
+                OnRetry = static args =>
+                {
+                    Console.WriteLine($"[R2 Upload Retry] Attempt {args.AttemptNumber} failed. Waiting {args.RetryDelay}...");
+                    return default;
+                }
+            })
+            .Build(); // 注意: 实际项目中应将 Pipeline 注册为单例
+
+        // 使用 Pipeline 执行
+        await pipeline.ExecuteAsync(async cancellationToken => 
+        {
+            // 注意: Stream 在重试前必须重置位置，否则重试上传的是空数据或错误数据
+            if (fileStream.CanSeek)
+            {
+                fileStream.Position = 0;
+            }
+            await client.PutObjectAsync(putRequest, cancellationToken);
+        });
 
         // 构造公开访问链接
         string fileUrl;

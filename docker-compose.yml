@@ -40,6 +40,13 @@ services:
       # 挂载日志目录 (Serilog)
       - ./logs:/app/logs
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   # === 前端服务 (Next.js) ===
   frontend:
     build:
@@ -59,4 +66,5 @@ services:
       # 注入外部定义的域名 (用于生成 RSS 链接、OpenGraph 等)
       - APP_URL=${APP_URL}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
