@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import MarkdownEditor from '@/components/MarkdownEditor'; // 自定义 Markdown 编辑器组件
 import TagInput from '@/components/TagInput';             // 自定义标签输入组件
 import CreateCategoryDialog from '@/components/CreateCategoryDialog'; // 创建分类对话框组件
-import { fetchCategories, updatePost, Category, getPostWithAuth } from '@/lib/api'; // 导入 API 请求函数和类型
+import { fetchCategories, updatePost, Category, getPostWithAuth, fetchAllSeries, fetchNextSeriesOrder, Series } from '@/lib/api'; // 导入 API 请求函数和类型
 import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件
 
@@ -35,6 +35,11 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(false); // 控制表单提交的加载状态
   const [fetching, setFetching] = useState(true); // 控制文章数据初始加载状态
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false); // 控制新建分类对话框的显示
+  
+  // Series states
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
+  const [seriesId, setSeriesId] = useState<number | undefined>(undefined);
+  const [seriesOrder, setSeriesOrder] = useState<number>(0);
 
   // `useEffect` 钩子，在组件挂载后执行，用于：
   // 1. 权限检查
@@ -63,11 +68,14 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           // 如果 categoryId 为 0，则视为未分类，设为 undefined
           setCategoryId(p.categoryId === 0 ? undefined : p.categoryId); 
           setTags(p.tags || []); // 如果没有标签，设为空数组
+          // Load existing series info if available
+          setSeriesId(p.seriesId || undefined);
+          setSeriesOrder(p.seriesOrder || 0);
         } else {
           toast.error('文章不存在或无权编辑'); // 如果文章不存在或无权编辑，显示错误并跳转
           router.push('/admin/posts');
         }
-      } catch (err) {
+      } catch {
         toast.error('加载文章数据失败');
       } finally {
         setFetching(false); // 结束初始加载状态
@@ -75,7 +83,25 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     };
 
     init();
+    
+    // Load Series list
+    fetchAllSeries().then(res => {
+      if (res.success) setSeriesList(res.data);
+    });
   }, [user, router, id]); // 依赖 `user`, `router`, `id`
+
+  // Auto-fill Series Order when series is selected
+  const handleSeriesChange = async (newSeriesId: number | undefined) => {
+    setSeriesId(newSeriesId);
+    if (newSeriesId) {
+      const res = await fetchNextSeriesOrder(newSeriesId);
+      if (res.success) {
+        setSeriesOrder(res.data);
+      }
+    } else {
+      setSeriesOrder(0);
+    }
+  };
 
   // 处理文章更新提交
   const handleSubmit = async () => {
@@ -91,7 +117,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         title, 
         content, 
         categoryId,
-        tags 
+        tags,
+        seriesId,
+        seriesOrder: seriesId ? seriesOrder : 0
       });
       
       if (res.success) {
@@ -100,8 +128,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       } else {
         toast.error('更新失败: ' + res.message);
       }
-    } catch (error: any) {
-      toast.error('网络错误: ' + (error.message || "请检查后端服务"));
+    } catch (error: unknown) {
+      toast.error('网络错误: ' + ((error as Error).message || "请检查后端服务"));
     } finally {
       setLoading(false);
     }
@@ -170,6 +198,36 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                <Plus className="w-4 h-4 mr-1" /> 新建
              </Button>
            </div>
+        </div>
+
+        {/* 系列选择区域 */}
+        <div className="space-y-2">
+            <Label className="font-semibold dark:text-gray-200">所属系列 (可选)</Label>
+            <div className="flex gap-4 items-center">
+                <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={seriesId || ''}
+                    onChange={(e) => handleSeriesChange(e.target.value ? Number(e.target.value) : undefined)}
+                >
+                    <option value="">-- 不属于任何系列 --</option>
+                    {seriesList.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                </select>
+                
+                {seriesId && (
+                    <div className="flex items-center gap-2 w-32 shrink-0">
+                        <span className="text-sm whitespace-nowrap">第几篇:</span>
+                        <Input 
+                            type="number" 
+                            min="1"
+                            className="w-16" 
+                            value={seriesOrder} 
+                            onChange={e => setSeriesOrder(Math.max(1, Number(e.target.value)))} 
+                        />
+                    </div>
+                )}
+            </div>
         </div>
 
         {/* 新建分类对话框组件 */}

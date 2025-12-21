@@ -37,7 +37,7 @@ public class SeriesService(AppDbContext context) : ISeriesService
         );
     }
 
-    public async Task<Series> CreateSeriesAsync(CreateSeriesDto dto)
+    public async Task<SeriesDto> CreateSeriesAsync(CreateSeriesDto dto)
     {
         var series = new Series
         {
@@ -47,19 +47,27 @@ public class SeriesService(AppDbContext context) : ISeriesService
 
         context.Series.Add(series);
         await context.SaveChangesAsync();
-        return series;
+
+        return new SeriesDto(series.Id, series.Name, series.Description, 0);
     }
 
-    public async Task<Series> UpdateSeriesAsync(int id, UpdateSeriesDto dto)
+    public async Task<SeriesDto> UpdateSeriesAsync(int id, UpdateSeriesDto dto)
     {
         var series = await context.Series.FindAsync(id);
-        if (series == null) throw new ArgumentException("系列不存在");
+        if (series == null) throw new ArgumentException("Series not found");
 
         series.Name = dto.Name;
         series.Description = dto.Description;
 
         await context.SaveChangesAsync();
-        return series;
+        
+        // Count posts to return correct DTO? Optimally yes, but 0 or current count is fine for update response.
+        // Let's quickly count or just return what we have. 
+        // For Update response in admin, we might not show count immediately or list relies on GetAll.
+        // Let's fetch count to be safe/correct.
+        var count = await context.Posts.CountAsync(p => p.SeriesId == id);
+
+        return new SeriesDto(series.Id, series.Name, series.Description, count);
     }
 
     public async Task DeleteSeriesAsync(int id)
@@ -70,5 +78,15 @@ public class SeriesService(AppDbContext context) : ISeriesService
             context.Series.Remove(series);
             await context.SaveChangesAsync();
         }
+    }
+
+    public async Task<int> GetNextOrderAsync(int seriesId)
+    {
+        // Find the maximum SeriesOrder for this series
+        var maxOrder = await context.Posts
+            .Where(p => p.SeriesId == seriesId)
+            .MaxAsync(p => (int?)p.SeriesOrder); // Cast to nullable int to handle no posts case
+
+        return (maxOrder ?? 0) + 1;
     }
 }

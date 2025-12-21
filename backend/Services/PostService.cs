@@ -79,7 +79,10 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                     CategoryId = p.CategoryId,
                     Category = p.Category,
                     User = p.User,
-                    Tags = p.Tags
+                    Tags = p.Tags,
+                    Series = p.Series,
+                    SeriesId = p.SeriesId,
+                    SeriesOrder = p.SeriesOrder
                 })
                 .ToListAsync();
 

@@ -128,6 +128,8 @@ export function updatePost(
     content: string;
     categoryId?: number;
     tags?: string[];
+    seriesId?: number;
+    seriesOrder?: number;
   }
 ) {
   return fetchClient(`/api/backend/posts/${id}`, {
@@ -275,6 +277,11 @@ export function deleteSeries(id: number) {
   return fetchClient<{ success: boolean; message: string }>(`/api/backend/series/${id}`, {
     method: "DELETE",
   });
+}
+
+// [Admin] 获取系列下一篇文章序号
+export function fetchNextSeriesOrder(seriesId: number) {
+    return fetchClient<{ success: boolean; data: number }>(`/api/backend/series/${seriesId}/next-order`);
 }
 
 export interface Series {

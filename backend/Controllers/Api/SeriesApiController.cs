@@ -32,7 +32,7 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     public async Task<IActionResult> CreateSeries([FromBody] CreateSeriesDto dto)
     {
         var series = await seriesService.CreateSeriesAsync(dto);
-        return Ok(new { success = true, message = "创建成功", data = new SeriesDto(series.Id, series.Name, series.Description, 0) });
+        return Ok(new { success = true, message = "创建成功", data = series });
     }
 
     [HttpPut("{id}")]
@@ -42,7 +42,7 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
         try
         {
             var series = await seriesService.UpdateSeriesAsync(id, dto);
-            return Ok(new { success = true, message = "更新成功", data = new SeriesDto(series.Id, series.Name, series.Description, series.Posts?.Count ?? 0) });
+            return Ok(new { success = true, message = "更新成功", data = series });
         }
         catch (ArgumentException ex)
         {
@@ -56,5 +56,12 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     {
         await seriesService.DeleteSeriesAsync(id);
         return Ok(new { success = true, message = "删除成功" });
+    }
+
+    [HttpGet("{id}/next-order")]
+    public async Task<IActionResult> GetNextOrder(int id)
+    {
+        var nextOrder = await seriesService.GetNextOrderAsync(id);
+        return Ok(new { success = true, data = nextOrder });
     }
 }

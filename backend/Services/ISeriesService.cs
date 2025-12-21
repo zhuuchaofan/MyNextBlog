@@ -7,7 +7,8 @@ public interface ISeriesService
 {
     Task<List<SeriesDto>> GetAllSeriesAsync();
     Task<SeriesDto?> GetSeriesByIdAsync(int id);
-    Task<Series> CreateSeriesAsync(CreateSeriesDto dto);
-    Task<Series> UpdateSeriesAsync(int id, UpdateSeriesDto dto);
+    Task<SeriesDto> CreateSeriesAsync(CreateSeriesDto dto);
+    Task<SeriesDto> UpdateSeriesAsync(int id, UpdateSeriesDto dto);
     Task DeleteSeriesAsync(int id);
+    Task<int> GetNextOrderAsync(int seriesId);
 }

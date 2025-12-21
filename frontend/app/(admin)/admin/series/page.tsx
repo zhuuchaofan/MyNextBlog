@@ -88,14 +88,17 @@ export default function SeriesManagementPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除该系列吗？相关的文章不会被删除，但会解除与该系列的关联。')) return;
+  const handleDelete = async (series: Series) => {
+    const postCountWarning = series.postCount > 0 
+      ? `该系列包含 ${series.postCount} 篇文章，删除后它们将变为无系列状态。` 
+      : '';
+    if (!confirm(`确定要删除系列"${series.name}"吗？${postCountWarning}`)) return;
 
     try {
-      const res = await deleteSeries(id);
+      const res = await deleteSeries(series.id);
       if (res.success) {
          toast.success('删除成功');
-         setSeriesList(seriesList.filter(s => s.id !== id));
+         setSeriesList(seriesList.filter(s => s.id !== series.id));
       } else {
          toast.error(res.message);
       }
@@ -172,7 +175,7 @@ export default function SeriesManagementPage() {
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(series)}>
                         <Edit className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(series.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(series)}>
                         <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
                       </Button>
                     </div>

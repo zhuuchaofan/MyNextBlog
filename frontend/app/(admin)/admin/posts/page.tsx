@@ -29,6 +29,8 @@ interface Post {
   categoryName: string;
   authorName: string;
   isHidden: boolean;
+  seriesName?: string;   // New: Series name
+  seriesOrder: number;   // New: Order in series
 }
 
 /**
@@ -163,6 +165,7 @@ export default function AdminPostsPage() {
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
                   <TableHead className="text-gray-500 dark:text-gray-400">标题</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">分类</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">系列</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">发布时间</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">状态</TableHead>
@@ -181,6 +184,13 @@ export default function AdminPostsPage() {
                     </TableCell>
                     <TableCell>
                        <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">{post.categoryName || '未分类'}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {post.seriesName ? (
+                        <span className="text-sm text-orange-600 dark:text-orange-400">#{post.seriesOrder} {post.seriesName}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </TableCell>
                     <TableCell>{post.authorName}</TableCell>
                     <TableCell className="text-gray-500 dark:text-gray-500">{new Date(post.createTime).toLocaleDateString()}</TableCell>

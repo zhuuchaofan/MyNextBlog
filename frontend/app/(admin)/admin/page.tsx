@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileText, Settings, MessageSquare } from 'lucide-react';
+import { PlusCircle, FileText, Settings, MessageSquare, Layers } from 'lucide-react';
 import Link from 'next/link';
 
 // 管理后台首页 (Admin Dashboard)
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">管理后台</h1>
       
       {/* 使用 Grid 布局展示功能卡片 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         
         {/* 卡片 1: 写新文章 */}
         <Link href="/admin/posts/new" className="block h-full">
@@ -88,7 +88,22 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        {/* 卡片 4: 系统设置 */}
+        {/* 卡片 4: 系列管理 */}
+        <Link href="/admin/series" className="block h-full">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium dark:text-gray-200">系列管理</CardTitle>
+              <Layers className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold dark:text-gray-100">文章系列</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">创建和管理文章系列</p>
+              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">管理系列</Button>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* 卡片 5: 系统设置 */}
         <Link href="/settings" className="block h-full">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

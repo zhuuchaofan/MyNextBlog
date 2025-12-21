@@ -45,7 +45,9 @@ public record PostSummaryDto(
     string? CoverImage,                      // 文章封面图片的 URL (可空，从 `Content` 中提取)
     List<string> Tags,                       // 文章关联的标签名称列表
     bool IsHidden,                           // 文章是否隐藏 (true 为隐藏/草稿，false 为公开)
-    int LikeCount                            // 文章点赞数
+    int LikeCount,                           // 文章点赞数
+    string? SeriesName,                      // 系列名称 (New)
+    int SeriesOrder                          // 系列中的顺序 (New)
 );
 
 /// <summary>

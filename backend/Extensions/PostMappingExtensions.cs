@@ -21,16 +21,19 @@ public static class PostMappingExtensions
         return new PostSummaryDto(
             post.Id,
             post.Title,
-            MarkdownHelper.GetExcerpt(post.Content), // 提取摘要
-            post.Category?.Name ?? "未分类",
+            // 简单的摘要生成逻辑：截取前 150 个字符
+            post.Content.Length > 150 ? post.Content.Substring(0, 150) + "..." : post.Content,
+            post.Category?.Name ?? "Uncategorized", // 如果 Category 为空，显示默认值
             post.CategoryId,
-            GetAuthorName(post.User),
+            post.User?.Username ?? "Unknown",       // 如果 User 为空，显示 Unknown
             post.User?.AvatarUrl,
             post.CreateTime,
-            MarkdownHelper.GetCoverImage(post.Content), // 提取封面图
-            post.Tags.Select(t => t.Name).ToList(),
+            MarkdownHelper.GetCoverImage(post.Content),        // 提取封面图
+            post.Tags.Select(t => t.Name).ToList(), // 转换标签列表
             post.IsHidden,
-            post.LikeCount
+            post.LikeCount,
+            post.Series?.Name,                      // Series Name
+            post.SeriesOrder                        // Series Order
         );
     }
 

@@ -60,6 +60,21 @@ export default function NewPostPage() {
 
   }, [user, router]); // 依赖 `user` 和 `router`
 
+  // Auto-fill Series Order when series is selected
+  const handleSeriesChange = async (newSeriesId: number | undefined) => {
+    setSeriesId(newSeriesId);
+    if (newSeriesId) {
+      // Fetch next order
+      const { fetchNextSeriesOrder } = await import('@/lib/api');
+      const res = await fetchNextSeriesOrder(newSeriesId);
+      if (res.success) {
+        setSeriesOrder(res.data);
+      }
+    } else {
+      setSeriesOrder(0);
+    }
+  };
+
   // 处理文章提交（发布）
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -87,9 +102,9 @@ export default function NewPostPage() {
       } else {
         toast.error('发布失败: ' + res.message); // 显示失败通知
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Create post error:', error);
-      toast.error('网络错误: ' + (error.message || "请检查后端服务")); // 捕获网络错误
+      toast.error('网络错误: ' + ((error as Error).message || "请检查后端服务")); // 捕获网络错误
     } finally {
       setLoading(false); // 结束加载状态
     }
@@ -169,7 +184,7 @@ export default function NewPostPage() {
                     <select 
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         value={seriesId || ''}
-                        onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : undefined)}
+                        onChange={(e) => handleSeriesChange(e.target.value ? Number(e.target.value) : undefined)}
                     >
                         <option value="">-- 不属于任何系列 --</option>
                         {seriesList.map(s => (
@@ -182,9 +197,10 @@ export default function NewPostPage() {
                             <span className="text-sm whitespace-nowrap">第几篇:</span>
                             <Input 
                                 type="number" 
+                                min="1"
                                 className="w-16" 
                                 value={seriesOrder} 
-                                onChange={e => setSeriesOrder(Number(e.target.value))} 
+                                onChange={e => setSeriesOrder(Math.max(1, Number(e.target.value)))} 
                             />
                         </div>
                     )}
