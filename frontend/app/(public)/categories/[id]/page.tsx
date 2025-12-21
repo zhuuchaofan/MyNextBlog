@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation'; // Next.js 用于处理 404 错误的函数
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Folder } from "lucide-react";
+import { cookies } from 'next/headers'; // 导入 cookies 用于获取 Token
 
 // 定义文章数据的接口 (精简版，用于分类列表展示)
 interface Post {
@@ -11,33 +11,33 @@ interface Post {
   title: string;
   excerpt: string;
   createTime: string;
-  author: string; // 这里应该是 authorName，与后端 DTO 保持一致
-  category: string; // 这里应该是 categoryName，与后端 DTO 保持一致
+  author: string;
+  category: string;
   categoryId: number;
   coverImage?: string;
+  isHidden?: boolean; // 新增：用于显示隐藏标记
 }
 
 /**
  * getCategoryData 函数：用于在服务端获取分类下的文章和分类详情
- * --------------------------------------------------------------------------------
- * 这是一个异步函数，负责向后端 API 并行请求两个数据：
- * 1. 指定分类 ID 下的所有文章。
- * 2. 指定分类 ID 的详细信息（主要是分类名称）。
- *
- * @param categoryId 要查询的分类 ID (字符串格式，因为来自路由参数)
- * @returns 包含文章列表 (`posts`) 和分类名称 (`categoryName`) 的对象。
  */
 async function getCategoryData(categoryId: string) {
-  // 确定后端 API 地址 (在 Server Component 中直接调用后端)
   const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
   const postsUrl = `${baseUrl}/api/posts?categoryId=${categoryId}`;
   const categoryUrl = `${baseUrl}/api/categories/${categoryId}`;
   
+  // 获取 Token 以识别管理员
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token.value}`;
+  }
+  
   try {
-    // 使用 `Promise.all` 并行发起两个 fetch 请求，提高数据加载效率。
     const [postsRes, categoryRes] = await Promise.all([
-      fetch(postsUrl, { next: { revalidate: 60 } }), // 缓存 60 秒
-      fetch(categoryUrl, { next: { revalidate: 60 } }) // 缓存 60 秒
+      fetch(postsUrl, { headers, next: { revalidate: token ? 0 : 60 } }), // 管理员不缓存
+      fetch(categoryUrl, { headers, next: { revalidate: 60 } })
     ]);
     
     let posts: Post[] = [];
@@ -115,9 +115,9 @@ export default async function CategoryPage({ params }: { params: { id: string } 
             </Link>
           </div>
         ) : (
-          // 遍历并渲染文章卡片 (与搜索结果页类似)
+          // 遍历并渲染文章卡片
           posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 dark:border-zinc-800 group dark:bg-zinc-900">
+            <Card key={post.id} className={`overflow-hidden hover:shadow-lg transition-shadow border-gray-100 dark:border-zinc-800 group dark:bg-zinc-900 ${post.isHidden ? 'opacity-70 grayscale-[0.5] border-dashed border-gray-300' : ''}`}>
               <div className="flex flex-col md:flex-row">
                   {/* 封面图片 */}
                   {post.coverImage && (
@@ -133,6 +133,11 @@ export default async function CategoryPage({ params }: { params: { id: string } 
                   <div className="flex-1 flex flex-col p-6">
                     <CardHeader className="p-0 mb-4">
                       <div className="flex items-center gap-2 mb-2">
+                        {post.isHidden && (
+                          <Badge variant="destructive" className="text-xs border-dashed border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                            Hidden
+                          </Badge>
+                        )}
                         <Badge variant="outline" className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/50">{post.category}</Badge>
                         <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                           <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
