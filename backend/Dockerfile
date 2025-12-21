@@ -15,6 +15,9 @@ RUN dotnet publish "MyNextBlog.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
+# 安装 curl 用于健康检查
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # 1. 从构建阶段复制产物
 COPY --from=build /app/publish .
 
