@@ -138,11 +138,11 @@ export default async function PostPage({ params }: Props) {
 
            {/* 主内容容器 */}
            <div className="lg:col-span-11 bg-white/95 dark:bg-zinc-900/95 backdrop-blur rounded-3xl shadow-xl dark:shadow-black/50 border border-gray-100 dark:border-zinc-800 p-6 md:p-12 min-h-[500px] transition-colors duration-300">
-              {/* 系列导航 */}
-              <SeriesNavigation seriesInfo={post.seriesInfo} />
-
               {/* Markdown 渲染器：将 Markdown 文本转换为 HTML */}
               <MarkdownRenderer content={post.content} />
+              
+              {/* 系列导航（文章末尾） */}
+              <SeriesNavigation seriesInfo={post.seriesInfo} />
               
               <div className="border-t border-gray-100 dark:border-zinc-800 my-12"></div>
 
