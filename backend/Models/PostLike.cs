@@ -12,7 +12,7 @@ namespace MyNextBlog.Models
         public int PostId { get; set; }
         
         [ForeignKey("PostId")]
-        public Post Post { get; set; }
+        public Post? Post { get; set; }
 
         // 如果是登录用户，记录 UserId
         public int? UserId { get; set; }

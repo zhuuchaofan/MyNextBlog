@@ -75,7 +75,7 @@ public class CommentService(
         {
             var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
             var postTitle = post?.Title ?? "未命名文章";
-            var appUrl = configuration["AppUrl"]?.TrimEnd('/');
+            var appUrl = configuration["AppUrl"]?.TrimEnd('/') ?? "http://localhost:3000";
             var adminEmail = configuration["SmtpSettings:AdminEmail"];
 
             if (!comment.IsApproved)

@@ -13,9 +13,9 @@ public class GalleryService(AppDbContext context) : IGalleryService
         // 如果文章被隐藏 (IsHidden=true)，它的图片也不应该在公共图库中显示。
         var query = context.ImageAssets
             .Include(i => i.Post)
-            .ThenInclude(p => p.Category)
+            .ThenInclude(p => p!.Category)
             .Include(i => i.Post)
-            .ThenInclude(p => p.Tags)
+            .ThenInclude(p => p!.Tags)
             .Where(i => i.Post != null && !i.Post.IsHidden); 
 
         // 2. 应用搜索过滤器 (如果提供了关键词)

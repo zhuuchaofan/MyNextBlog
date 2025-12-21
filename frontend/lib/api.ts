@@ -15,6 +15,10 @@
 // **好处**: 前端代码完全不需要手动管理 Token（不需要 localStorage，不需要手动添加 Header），更加安全且简洁。
 
 import { fetchClient } from "./fetchClient";
+import type { Series } from "./types";
+
+// Re-export types for backwards compatibility
+export type { Series, Category, Comment } from "./types";
 
 export interface PostDetail {
   id: number;
@@ -52,15 +56,6 @@ export async function getPostClient(id: string) {
   }
 }
 
-export interface Comment {
-  id: number;
-  guestName: string;
-  content: string;
-  createTime: string;
-  userAvatar?: string;
-  parentId?: number;
-  children?: Comment[];
-}
 
 // 获取评论列表
 export function fetchComments(postId: number, page = 1, pageSize = 10) {
@@ -82,10 +77,6 @@ export function submitComment(
   });
 }
 
-export interface Category {
-  id: number;
-  name: string;
-}
 
 // 获取所有分类
 export function fetchCategories() {
@@ -284,9 +275,3 @@ export function fetchNextSeriesOrder(seriesId: number) {
     return fetchClient<{ success: boolean; data: number }>(`/api/backend/series/${seriesId}/next-order`);
 }
 
-export interface Series {
-    id: number;
-    name: string;
-    description?: string;
-    postCount: number;
-}
