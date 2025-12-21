@@ -30,24 +30,24 @@ export async function fetchClient<T = any>(
   if (!response.ok) {
     let errorMessage = `API Error: ${response.status} ${response.statusText}`;
     try {
-      // Try to parse error message from JSON response if valid
-      // Backend usually returns { message: "..." } or similar
-      const errorData = await response.json();
-      if (errorData && errorData.message) {
-        errorMessage = errorData.message;
-      } else {
-         // Fallback to text if JSON parse fails or no message field
-         const text = await response.text();
-         if (text) errorMessage += ` - ${text}`;
+      // Response Body 是流式的，只能消费一次
+      // 先读取 text，再尝试解析为 JSON
+      const text = await response.text();
+      if (text) {
+        try {
+          const errorData = JSON.parse(text);
+          if (errorData?.message) {
+            errorMessage = errorData.message;
+          } else {
+            errorMessage += ` - ${text}`;
+          }
+        } catch {
+          // JSON 解析失败，使用原始文本
+          errorMessage += ` - ${text}`;
+        }
       }
     } catch {
-       // If json() fails, try text()
-       try {
-         const text = await response.text();
-         if (text) errorMessage += ` - ${text}`;
-       } catch {
-         // Ignore
-       }
+      // text() 读取失败，保持默认错误信息
     }
     throw new Error(errorMessage);
   }

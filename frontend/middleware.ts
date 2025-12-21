@@ -33,6 +33,9 @@ export async function middleware(request: NextRequest) {
   let responseToReturn: NextResponse | null = null;
 
   if (!accessToken && refreshToken) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+    
     try {
         console.log(`[Middleware] Access Token expired, attempting refresh... Path: ${pathname}`);
         
@@ -48,6 +51,7 @@ export async function middleware(request: NextRequest) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accessToken: "", refreshToken: refreshToken }), // DTO 要求 AccessToken, 但过期了也没事，传空或旧的? DTO其实只校验Refresh即查库。
+            signal: controller.signal, // 添加超时信号
         });
 
         if (refreshRes.ok) {
@@ -63,7 +67,13 @@ export async function middleware(request: NextRequest) {
             // 刷新失败 (比如 Refresh Token 也过期了) -> 视为未登录 -> 继续往下走会触发重定向
         }
     } catch (error) {
-        console.error("[Middleware] Token refresh error:", error);
+        if (error instanceof Error && error.name === 'AbortError') {
+            console.error("[Middleware] Token refresh timeout (5s)");
+        } else {
+            console.error("[Middleware] Token refresh error:", error);
+        }
+    } finally {
+        clearTimeout(timeoutId);
     }
   }
 

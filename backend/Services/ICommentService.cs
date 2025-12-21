@@ -15,6 +15,7 @@ public interface ICommentService
     Task<int> BatchDeleteAsync(List<int> ids);
 
     // High-level business logic
+    bool IsRateLimited(string ipAddress); // 频率限制检查
     Task<CommentCreationResult> CreateCommentAsync(int postId, string content, string? guestName, int? parentId, int? userId);
 }
 

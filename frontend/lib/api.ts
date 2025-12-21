@@ -15,36 +15,11 @@
 // **好处**: 前端代码完全不需要手动管理 Token（不需要 localStorage，不需要手动添加 Header），更加安全且简洁。
 
 import { fetchClient } from "./fetchClient";
-import type { Series } from "./types";
+import type { Series, PostDetail } from "./types"; // 本文件内部使用
 
-// Re-export types for backwards compatibility
-export type { Series, Category, Comment } from "./types";
-
-export interface PostDetail {
-  id: number;
-  title: string;
-  content: string;
-  createTime: string;
-  categoryName?: string;
-  categoryId: number;
-  authorName?: string;
-  authorAvatar?: string;
-  commentCount: number;
-  likeCount: number;
-  coverImage?: string;
-  tags?: string[];
-  isHidden?: boolean;
-  seriesInfo?: SeriesInfo;
-}
-
-export interface SeriesInfo {
-  id: number;
-  name: string;
-  totalCount: number;
-  currentOrder: number;
-  prev?: { id: number; title: string };
-  next?: { id: number; title: string };
-}
+// Re-export all shared types from types.ts for backwards compatibility
+// This ensures consumers of api.ts don't need to know about types.ts
+export type { Series, Category, Comment, PostDetail, SeriesInfo } from "./types";
 
 // 获取文章详情 (客户端版本)
 export async function getPostClient(id: string) {

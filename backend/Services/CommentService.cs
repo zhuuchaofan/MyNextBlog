@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
 using Ganss.Xss;
@@ -13,8 +14,24 @@ public class CommentService(
     IHtmlSanitizer sanitizer,
     IConfiguration configuration,
     IEmailService emailService,
+    IMemoryCache cache,
     ILogger<CommentService> logger) : ICommentService
 {
+    private const int RateLimitSeconds = 60;
+
+    /// <summary>
+    /// 检查 IP 是否被频率限制 (60秒内只能发一条)
+    /// </summary>
+    public bool IsRateLimited(string ipAddress)
+    {
+        string cacheKey = $"comment_rate_limit_{ipAddress}";
+        if (cache.TryGetValue(cacheKey, out _))
+            return true;
+        
+        cache.Set(cacheKey, true, TimeSpan.FromSeconds(RateLimitSeconds));
+        return false;
+    }
+
     public async Task<CommentCreationResult> CreateCommentAsync(int postId, string content, string? guestName, int? parentId, int? userId)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -34,7 +51,7 @@ public class CommentService(
         {
             PostId = postId,
             Content = safeContent,
-            CreateTime = DateTime.Now,
+            CreateTime = DateTime.UtcNow, // 使用 UTC 时间，前端负责本地化显示
             ParentId = parentId,
             GuestName = guestName
         };
@@ -63,7 +80,12 @@ public class CommentService(
         context.Comments.Add(comment);
         await context.SaveChangesAsync();
 
-        _ = SendNotificationsAsync(comment);
+        // Fire-and-Forget with exception logging wrapper
+        _ = Task.Run(async () =>
+        {
+            try { await SendNotificationsAsync(comment); }
+            catch (Exception ex) { logger.LogError(ex, "Background notification failed for comment {CommentId}", comment.Id); }
+        });
 
         string message = comment.IsApproved ? "评论发表成功" : "评论包含敏感词，已进入人工审核队列";
         return new CommentCreationResult(true, message, comment);

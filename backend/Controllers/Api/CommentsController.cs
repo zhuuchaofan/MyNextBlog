@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Authorization;
 using MyNextBlog.DTOs;
 using MyNextBlog.Models;
@@ -13,7 +12,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class CommentsController(ICommentService commentService, IMemoryCache cache) : ControllerBase
+public class CommentsController(ICommentService commentService) : ControllerBase
 {
     /// <summary>
     /// 发表新评论
@@ -21,18 +20,15 @@ public class CommentsController(ICommentService commentService, IMemoryCache cac
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
-        // 0. 频率限制 (Rate Limiting)
+        // 0. 频率限制 (Rate Limiting) - 逻辑已移至 Service 层
         string ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
                            ?? HttpContext.Connection.RemoteIpAddress?.ToString() 
                            ?? "unknown";
                            
-        string cacheKey = $"comment_rate_limit_{ipAddress}";
-        if (cache.TryGetValue(cacheKey, out _))
+        if (commentService.IsRateLimited(ipAddress))
         {
             return StatusCode(429, new { success = false, message = "评论太频繁，请稍后再试 (60s)" });
         }
-        
-        cache.Set(cacheKey, true, TimeSpan.FromSeconds(60));
 
         // 1. 获取当前用户ID (如果已登录)
         int? userId = null;

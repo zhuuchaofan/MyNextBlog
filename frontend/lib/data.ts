@@ -1,30 +1,8 @@
 import { cookies } from 'next/headers'; // 导入 Next.js 的 cookies 工具，用于在 Server Components 中访问 Cookie。
+import type { PostDetail } from './types'; // 统一从 types.ts 导入，避免重复定义
 
-// 定义文章详情的数据接口
-// 这里对应后端返回的 PostDetailDto 结构
-export interface PostDetail {
-  id: number;
-  title: string;
-  content: string;
-  createTime: string;
-  categoryName?: string;
-  categoryId: number;
-  authorName?: string;
-  authorAvatar?: string;
-  commentCount: number;
-  likeCount: number;
-  coverImage?: string;
-  tags?: string[];
-  isHidden?: boolean;
-  seriesInfo?: {
-      id: number;
-      name: string;
-      totalCount: number;
-      currentOrder: number;
-      prev?: { id: number; title: string };
-      next?: { id: number; title: string };
-  };
-}
+// Re-export for backwards compatibility
+export type { PostDetail };
 
 /**
  * 获取文章详情 (Server Component 专用)
