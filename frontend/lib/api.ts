@@ -14,6 +14,8 @@
 //
 // **好处**: 前端代码完全不需要手动管理 Token（不需要 localStorage，不需要手动添加 Header），更加安全且简洁。
 
+import { fetchClient } from "./fetchClient";
+
 export interface PostDetail {
   id: number;
   title: string;
@@ -31,14 +33,11 @@ export interface PostDetail {
 }
 
 // 获取文章详情 (客户端版本)
-// 适用于 Client Component 需要获取数据的情况（例如点击查看详情时不刷新页面）
 export async function getPostClient(id: string) {
   try {
-    const res = await fetch(`/api/backend/posts/${id}`);
-    if (!res.ok) return undefined;
-    const json = await res.json();
-    return json.success ? (json.data as PostDetail) : undefined;
-  } catch (error) {
+    const json = await fetchClient<{ success: boolean; data: PostDetail }>(`/api/backend/posts/${id}`);
+    return json.success ? json.data : undefined;
+  } catch {
     return undefined;
   }
 }
@@ -54,26 +53,23 @@ export interface Comment {
 }
 
 // 获取评论列表
-export async function fetchComments(postId: number, page = 1, pageSize = 10) {
-  const res = await fetch(
+export function fetchComments(postId: number, page = 1, pageSize = 10) {
+  return fetchClient(
     `/api/backend/comments?postId=${postId}&page=${page}&pageSize=${pageSize}`
   );
-  return res.json();
 }
 
 // 提交新评论
-export async function submitComment(
+export function submitComment(
   postId: number,
   content: string,
   guestName: string,
   parentId?: number
 ) {
-  const res = await fetch("/api/backend/comments", {
+  return fetchClient("/api/backend/comments", {
     method: "POST",
-    headers: { "Content-Type": "application/json" }, // 必须指定 JSON 内容类型
-    body: JSON.stringify({ postId, content, guestName, parentId }),
+    body: { postId, content, guestName, parentId },
   });
-  return res.json();
 }
 
 export interface Category {
@@ -82,50 +78,38 @@ export interface Category {
 }
 
 // 获取所有分类
-export async function fetchCategories() {
-  const res = await fetch("/api/backend/categories");
-  return res.json();
+export function fetchCategories() {
+  return fetchClient("/api/backend/categories");
 }
 
 // 创建新分类
-export async function createCategory(name: string) {
-  const res = await fetch("/api/backend/categories", {
+export function createCategory(name: string) {
+  return fetchClient("/api/backend/categories", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: { name },
   });
-  return res.json();
 }
 
 // 获取热门标签
-export async function fetchPopularTags() {
-  const res = await fetch("/api/backend/tags/popular");
-  return res.json();
+export function fetchPopularTags() {
+  return fetchClient("/api/backend/tags/popular");
 }
 
 // 发布新文章
-export async function createPost(postData: {
+export function createPost(postData: {
   title: string;
   content: string;
   categoryId?: number;
   tags?: string[];
 }) {
-  const res = await fetch("/api/backend/posts", {
+  return fetchClient("/api/backend/posts", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(postData),
+    body: postData,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
-  }
-
-  return res.json();
 }
 
 // 更新文章
-export async function updatePost(
+export function updatePost(
   id: number,
   postData: {
     title: string;
@@ -134,88 +118,53 @@ export async function updatePost(
     tags?: string[];
   }
 ) {
-  const res = await fetch(`/api/backend/posts/${id}`, {
+  return fetchClient(`/api/backend/posts/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(postData),
+    body: postData,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
-  }
-
-  return res.json();
 }
 
 // 删除文章
-export async function deletePost(id: number) {
-  const res = await fetch(`/api/backend/posts/${id}`, {
+export function deletePost(id: number) {
+  return fetchClient(`/api/backend/posts/${id}`, {
     method: "DELETE",
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
-  }
-
-  return res.json();
 }
 
 // 切换文章可见性
-export async function togglePostVisibility(id: number) {
-  const res = await fetch(`/api/backend/posts/${id}/visibility`, {
+export function togglePostVisibility(id: number) {
+  return fetchClient(`/api/backend/posts/${id}/visibility`, {
     method: "PATCH",
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
-  }
-
-  return res.json();
 }
 
 // 管理员获取文章列表 (包含隐藏文章)
-export async function fetchPostsWithAuth(page = 1, pageSize = 10) {
-  const res = await fetch(
-    `/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`
-  );
-  return res.json();
+export function fetchPostsWithAuth(page = 1, pageSize = 10) {
+  return fetchClient(`/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`);
 }
 
 // 管理员获取文章详情
-export async function getPostWithAuth(id: number) {
-  const res = await fetch(`/api/backend/posts/admin/${id}`);
-  return res.json();
+export function getPostWithAuth(id: number) {
+  return fetchClient(`/api/backend/posts/admin/${id}`);
 }
 
 // 获取当前登录用户信息
-export async function fetchCurrentUser() {
-  const res = await fetch("/api/backend/account/me");
-  return res.json();
+export function fetchCurrentUser() {
+  return fetchClient("/api/backend/account/me");
 }
 
 // 上传用户头像
-export async function uploadAvatar(file: File) {
+export function uploadAvatar(file: File) {
   const formData = new FormData();
-  formData.append("file", file); // 必须使用 FormData 来上传文件
-
-  const res = await fetch("/api/backend/account/avatar", {
+  formData.append("file", file);
+  return fetchClient("/api/backend/account/avatar", {
     method: "POST",
-    body: formData, // fetch 会自动设置 Content-Type 为 multipart/form-data
+    body: formData,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Upload failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
 }
 
 // 更新个人资料
-export async function updateProfile(data: {
+export function updateProfile(data: {
   email?: string;
   nickname?: string;
   bio?: string;
@@ -224,40 +173,29 @@ export async function updateProfile(data: {
   occupation?: string;
   birthDate?: string;
 }) {
-  const res = await fetch("/api/backend/account/profile", {
+  return fetchClient("/api/backend/account/profile", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: data,
   });
-  return res.json();
 }
 
 // 注册新用户
-export async function registerUser(username: string, password: string) {
-  const res = await fetch("/api/auth/register", {
+export function registerUser(username: string, password: string) {
+  return fetchClient("/api/auth/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: { username, password },
   });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "注册失败");
-  }
-
-  return res.json();
 }
 
 // 切换文章点赞状态
-export async function toggleLike(postId: number) {
-  const res = await fetch(`/api/backend/posts/${postId}/like`, {
+export function toggleLike(postId: number) {
+  return fetchClient(`/api/backend/posts/${postId}/like`, {
     method: "POST",
   });
-  return res.json();
 }
 
 // [Admin] 获取所有评论
-export async function fetchAllCommentsAdmin(
+export function fetchAllCommentsAdmin(
   page = 1,
   pageSize = 20,
   isApproved?: boolean
@@ -266,42 +204,36 @@ export async function fetchAllCommentsAdmin(
   if (isApproved !== undefined) {
     url += `&isApproved=${isApproved}`;
   }
-  const res = await fetch(url);
-  return res.json();
+  return fetchClient(url);
 }
 
 // [Admin] 切换评论审核状态
-export async function toggleCommentApproval(id: number) {
-  const res = await fetch(`/api/backend/comments/${id}/approval`, {
+export function toggleCommentApproval(id: number) {
+  return fetchClient(`/api/backend/comments/${id}/approval`, {
     method: "PATCH",
   });
-  return res.json();
 }
 
 // [Admin] 删除评论
-export async function deleteCommentAdmin(id: number) {
-  const res = await fetch(`/api/backend/comments/${id}`, {
+export function deleteCommentAdmin(id: number) {
+  return fetchClient(`/api/backend/comments/${id}`, {
     method: "DELETE",
   });
-  return res.json();
 }
 
 // [Admin] 批量批准评论
-export async function batchApproveComments(ids: number[]) {
-  const res = await fetch("/api/backend/comments/batch-approve", {
+export function batchApproveComments(ids: number[]) {
+  return fetchClient("/api/backend/comments/batch-approve", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ids),
+    body: ids,
   });
-  return res.json();
 }
 
 // [Admin] 批量删除评论
-export async function batchDeleteComments(ids: number[]) {
-  const res = await fetch("/api/backend/comments/batch-delete", {
+export function batchDeleteComments(ids: number[]) {
+  return fetchClient("/api/backend/comments/batch-delete", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ids),
+    body: ids,
   });
-  return res.json();
 }
+
