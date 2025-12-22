@@ -16,7 +16,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **前端 ISR (增量静态再生)**: 首页与详情页采用 Next.js ISR 策略，每 60 秒自动重验证。公开访问命中静态缓存，实现 CDN 级秒开体验。
   - **后端分层缓存**:
     - **内存缓存**: 针对高频的“纯净首页”请求，后端实现了毫秒级内存缓存。
-    - **权限隔离**: 缓存 Key 区分管理员与游客 (`all_posts_index_True`/`False`)，防止隐藏文章泄露。
+    - **权限隔离**: 缓存 Key 严谨区分 (`all_posts_index_True`/`False`)，确保管理员看到的隐藏文章绝对不会因为缓存污染而泄露给普通用户。
     - **一致性**: 后端缓存支持即时失效，与前端 ISR 配合实现“最终一致性” (60s 延迟)。
 - **极致 DB 优化**:
   - **AsNoTracking**: 全面禁用变更追踪，降低内存 60%+。
@@ -61,12 +61,15 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **登录 (Login)**:
   - 采用 **HttpOnly Cookie** 模式。
   - 流程：用户提交账号密码 -> Next.js 验证 -> 后端签发 JWT -> Next.js 将 JWT 写入浏览器 Cookie (不暴露给 JS) -> 跳转首页。
+  - **会话互斥 (Single Session)**: 为确保账户安全，系统实行**单设备登录**策略。新设备登录会自动使旧设备的 Refresh Token 失效（即“顶号”机制），防止 Token 泄露后的长期风险。
 - **找回密码 (Password Reset)**:
   - 流程：`/forgot-password` 提交邮箱 -> 后端生成 30 分钟有效的重置 Token -> 发送邮件 -> 用户点击链接进入 `/reset-password` -> 设置新密码。
   - 安全：Token 包含哈希签名，过期自动失效。
 - **个人资料 (Profile)**:
-  - 支持修改昵称、个人简介 (`Bio`)、个人网站链接。
-  - 支持头像上传 (自动压缩并不经过服务器磁盘，直接流式上传至 Cloudflare R2)。
+  - **设置页面 (`/settings`)**: 提供完整的个人信息管理面板。
+  - **支持字段**: 昵称 (`Nickname`)、职业 (`Occupation`)、所在地 (`Location`)、生日、个人简介 (`Bio`)、个人网站。
+  - **即时更新**: 修改资料后，全局状态立即同步，无需刷新页面。
+  - **头像上传**: 自动压缩并不经过服务器磁盘，直接流式上传至 Cloudflare R2。
 
 ---
 
@@ -95,6 +98,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **内容组织**: 将多篇相关文章归入同一系列（如 "Next.js 实战教程"）。
   - **系列导航**: 文章详情页底部自动显示系列信息和上一篇/下一篇链接。
   - **系列目录页**: 每个系列有独立的 `/series/[id]` 汇总页面，展示全部文章。
+  - **动态序号计算**: 后端 `SeriesService` 实时计算文章在当前可见列表中的序号（Part X of Y），确保即使有中间文章被隐藏，前台展示的序号依然连续且正确。
   - **专用 API**: 后端提供 `GET /api/series/{id}/posts` 端点，避免前端过滤，支持权限控制。
   - **智能序号**: 新建文章时选择系列后，自动填入下一篇的序号。
   - **移动端优化**: 系列导航在移动端采用垂直堆叠布局，阅读更流畅。
@@ -143,7 +147,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
     3.  将匹配到的图片资源标记为 `Bound` 并关联 `PostId`。
     4.  后台服务定期清理 `Unbound` 且超过 24 小时的图片。
 - **安全加固 (Security Hardening)**:
-  - **严格的文件校验**: `UploadController` 强制执行 `Image.IdentifyAsync` 深度文件头检查，任何无法识别为有效图片的文件（如伪装成 jpg 的 Webshell）会被直接拒绝上传。
+  - **严格的文件校验**: `UploadController` 强制执行 `Image.IdentifyAsync` 深度文件头检查，确保上传的二进制数据确实是有效图片。这比单纯检查文件扩展名安全得多，能有效防御 WebShell 伪装攻击。
 
 ### 4. 📊 RSS 订阅 (Feed)
 
@@ -310,10 +314,12 @@ UPDATE Users SET Role = 'Admin' WHERE Username = '你的用户名';
 │   ├── Controllers/        # 无逻辑控制器 (Thin Controllers)
 │   ├── Services/           # 业务逻辑核心 (Rich Services)
 │   ├── Data/               # 数据库上下文与迁移
+│   ├── DTOs/               # 数据传输对象 (Data Transfer Objects)
 │   └── Extensions/         # 中间件与扩展 (GlobalException, Swagger)
 ├── frontend/               # Next.js 15 App
 │   ├── app/                # 路由: (public), (admin), (auth)
 │   ├── components/         # UI组件: Button, Card, Dialog
+│   ├── context/            # 全局状态: AuthContext
 │   └── lib/                # 工具: api.ts (BFF Client), utils.ts
 ├── docker-compose.yml      # 开发环境编排
 └── README.md               # 项目文档

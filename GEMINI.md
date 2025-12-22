@@ -86,6 +86,9 @@ docker compose up -d --build
     - **Auth**: Implemented mandatory Email for registration. Added Token-based Password Reset flow (`/forgot-password` -> Email -> `/reset-password`).
     - **UI Unification**: Standardized all Auth pages (Login/Register/Reset) to use the **"Dot Pattern + Frosted Glass"** Tech Theme, replacing abstract gradients.
     - **Mobile**: Fixed specific mobile layout issues (background cut-off, logo overlap) on Auth pages.
+5.  **Settings Page Fix (Dec 22 2025)**:
+    - **Issue**: User profile data (bio, location) was missing after login until refresh.
+    - **Fix**: Updated `AuthResponseDto`, `AuthService`, and `AuthController` to return full profile. Updated Frontend `AuthContext` to consume it immediately.
 
 ## Common Tasks Checklist
 
