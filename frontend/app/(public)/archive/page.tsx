@@ -117,7 +117,7 @@ export default function ArchivePage() {
                     {/* 3. 文章卡片 */}
                     <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-8">
                       <Link href={`/posts/${post.id}`} className="group block">
-                        <Card className="p-5 hover:shadow-lg transition-all duration-300 border-gray-100 dark:border-zinc-800 group-hover:border-orange-200 dark:group-hover:border-orange-800 bg-white dark:bg-zinc-900 relative overflow-hidden">
+                        <Card className="p-5 hover:shadow-lg transition-all duration-300 border-gray-100 dark:border-zinc-800 group-hover:border-orange-200 dark:group-hover:border-orange-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm relative overflow-hidden">
                           <div className="absolute top-0 right-0 w-16 h-16 bg-orange-50 dark:bg-orange-950/30 rounded-bl-full -mr-8 -mt-8 transition-all group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40"></div>
                           
                           <div className="relative z-10">

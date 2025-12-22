@@ -117,7 +117,7 @@ export default async function CategoryPage({ params }: { params: { id: string } 
         ) : (
           // 遍历并渲染文章卡片
           posts.map((post) => (
-            <Card key={post.id} className={`overflow-hidden hover:shadow-lg transition-shadow border-gray-100 dark:border-zinc-800 group dark:bg-zinc-900 ${post.isHidden ? 'opacity-70 grayscale-[0.5] border-dashed border-gray-300' : ''}`}>
+            <Card key={post.id} className={`overflow-hidden hover:shadow-lg transition-shadow border-gray-100 dark:border-zinc-800 group bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm ${post.isHidden ? 'opacity-70 grayscale-[0.5] border-dashed border-gray-300' : ''}`}>
               <div className="flex flex-col md:flex-row">
                   {/* 封面图片 */}
                   {post.coverImage && (
