@@ -134,91 +134,177 @@ export default function CommentsSection({ postId }: { postId: number }) {
   );
 }
 
-// 单个评论项组件 (递归渲染)
+// 将嵌套树结构扁平化为单层列表
+function flattenReplies(children: Comment[], parentName: string): { comment: Comment; replyTo: string }[] {
+    const result: { comment: Comment; replyTo: string }[] = [];
+    
+    for (const child of children) {
+        result.push({ comment: child, replyTo: parentName });
+        if (child.children && child.children.length > 0) {
+            result.push(...flattenReplies(child.children, child.guestName || '匿名网友'));
+        }
+    }
+    
+    return result;
+}
+
+// 单个评论项组件 (YouTube 风格：单层嵌套)
 function CommentItem({ 
     node, 
     postId, 
     replyingTo, 
     setReplyingTo, 
-    onSuccess 
+    onSuccess
 }: { 
     node: Comment, 
     postId: number, 
     replyingTo: number | null, 
     setReplyingTo: (id: number | null) => void,
-    onSuccess: (c: Comment) => void 
+    onSuccess: (c: Comment) => void
 }) {
     const isReplying = replyingTo === node.id;
+    
+    // 将所有嵌套回复扁平化
+    const flattenedReplies = node.children && node.children.length > 0 
+        ? flattenReplies(node.children, node.guestName || '匿名网友')
+        : [];
 
     return (
-        <div className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {/* 头像 */}
-            <Avatar className="w-8 h-8 md:w-10 md:h-10 mt-1 flex-shrink-0">
+        <div className="space-y-4">
+            {/* 根评论 */}
+            <div className="flex gap-3 group">
+                <Avatar className="w-10 h-10 md:w-11 md:h-11 flex-shrink-0">
+                    <AvatarImage 
+                        src={node.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${node.guestName || 'guest'}`} 
+                        className="object-cover"
+                    />
+                    <AvatarFallback>{(node.guestName && node.guestName[0]) || 'G'}</AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-1">
+                        <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+                            {node.guestName || '匿名网友'}
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-gray-400">
+                            {node.createTime}
+                        </span>
+                    </div>
+
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+                        {node.content}
+                    </p>
+
+                    <div className="mt-2 flex items-center gap-4">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-transparent -ml-2"
+                            onClick={() => setReplyingTo(isReplying ? null : node.id)}
+                        >
+                            <Reply className="w-3.5 h-3.5 mr-1" /> 回复
+                        </Button>
+                    </div>
+
+                    {isReplying && (
+                        <div className="mt-3">
+                            <div className="text-xs text-gray-500 mb-2">回复 @{node.guestName}:</div>
+                            <CommentForm 
+                                postId={postId} 
+                                parentId={node.id} 
+                                autoFocus 
+                                onSuccess={onSuccess} 
+                                onCancel={() => setReplyingTo(null)}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 所有回复（扁平化显示，只有一层缩进） */}
+            {flattenedReplies.length > 0 && (
+                <div className="ml-6 md:ml-8 pl-4 border-l-2 border-gray-100 dark:border-zinc-800 space-y-4">
+                    {flattenedReplies.map(({ comment, replyTo }) => (
+                        <ReplyItem 
+                            key={comment.id} 
+                            comment={comment} 
+                            replyTo={replyTo}
+                            postId={postId}
+                            replyingTo={replyingTo}
+                            setReplyingTo={setReplyingTo}
+                            onSuccess={onSuccess}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// 单个回复项组件（扁平化后的回复）
+function ReplyItem({
+    comment,
+    replyTo,
+    postId,
+    replyingTo,
+    setReplyingTo,
+    onSuccess
+}: {
+    comment: Comment,
+    replyTo: string,
+    postId: number,
+    replyingTo: number | null,
+    setReplyingTo: (id: number | null) => void,
+    onSuccess: (c: Comment) => void
+}) {
+    const isReplying = replyingTo === comment.id;
+
+    return (
+        <div className="flex gap-3 group animate-in fade-in duration-300">
+            <Avatar className="w-8 h-8 flex-shrink-0">
                 <AvatarImage 
-                    src={node.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${node.guestName || 'guest'}`} 
+                    src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName || 'guest'}`} 
                     className="object-cover"
                 />
-                <AvatarFallback>{(node.guestName && node.guestName[0]) || 'G'}</AvatarFallback>
+                <AvatarFallback>{(comment.guestName && comment.guestName[0]) || 'G'}</AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
-                {/* 顶部信息行：昵称 + 时间 */}
-                <div className="flex items-baseline gap-2 mb-1 ml-1">
-                    <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">
-                        {node.guestName || '匿名网友'}
+                <div className="flex items-baseline gap-2 mb-1">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                        {comment.guestName || '匿名网友'}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-gray-400">
-                        {node.createTime}
+                    <span className="text-[10px] text-gray-400">
+                        {comment.createTime}
                     </span>
                 </div>
 
-                {/* 内容气泡 */}
-                <div className="bg-gray-100 dark:bg-zinc-800 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words inline-block max-w-full hover:bg-gray-200 dark:hover:bg-zinc-700/80 transition-colors">
-                    {node.content}
-                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+                    <span className="text-orange-500 font-medium">@{replyTo}</span>{' '}
+                    {comment.content}
+                </p>
 
-                {/* 底部操作行：回复按钮 */}
-                <div className="mt-1 ml-1 flex items-center gap-4">
-                     <Button 
+                <div className="mt-1.5 flex items-center">
+                    <Button 
                         variant="ghost" 
                         size="sm" 
                         className="h-6 px-2 text-xs text-gray-400 hover:text-orange-500 hover:bg-transparent -ml-2"
-                        onClick={() => setReplyingTo(isReplying ? null : node.id)}
+                        onClick={() => setReplyingTo(isReplying ? null : comment.id)}
                     >
                         <Reply className="w-3 h-3 mr-1" /> 回复
                     </Button>
                 </div>
 
-                {/* 回复框 */}
                 {isReplying && (
-                    <div className="mt-3 pl-1">
-                        <div className="text-xs text-gray-500 mb-2">回复 @{node.guestName}:</div>
+                    <div className="mt-3">
+                        <div className="text-xs text-gray-500 mb-2">回复 @{comment.guestName}:</div>
                         <CommentForm 
                             postId={postId} 
-                            parentId={node.id} 
+                            parentId={comment.id} 
                             autoFocus 
                             onSuccess={onSuccess} 
                             onCancel={() => setReplyingTo(null)}
                         />
-                    </div>
-                )}
-
-                {/* 子评论 (递归) - 调整缩进线样式 */}
-                {node.children && node.children.length > 0 && (
-                    <div className="mt-3 space-y-4 pl-3 relative">
-                        {/* 左侧连接线，增加视觉引导 */}
-                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gray-100 dark:bg-zinc-800 rounded-full"></div>
-                        
-                        {node.children.map(child => (
-                            <CommentItem 
-                                key={child.id} 
-                                node={child} 
-                                postId={postId} 
-                                replyingTo={replyingTo} 
-                                setReplyingTo={setReplyingTo}
-                                onSuccess={onSuccess}
-                            />
-                        ))}
                     </div>
                 )}
             </div>
