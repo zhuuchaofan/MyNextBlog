@@ -34,7 +34,14 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             Expiration: DateTime.UtcNow.AddMinutes(15), 
             Username: user.Username,
             Role: user.Role,
-            AvatarUrl: user.AvatarUrl // 新增：立即返回头像
+            AvatarUrl: user.AvatarUrl, // 新增：立即返回头像
+            Nickname: user.Nickname,
+            Bio: user.Bio,
+            Website: user.Website,
+            Location: user.UserProfile?.Location,
+            Occupation: user.UserProfile?.Occupation,
+            BirthDate: user.UserProfile?.BirthDate?.ToString("yyyy-MM-dd"),
+            Email: user.Email
         );
     }
 
@@ -46,7 +53,10 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         var userIdStr = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(userIdStr, out int userId)) return null;
 
-        var user = await context.Users.FindAsync(userId);
+        var user = await context.Users
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
         if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow || string.IsNullOrEmpty(user.RefreshTokenHash))
         {
             return null; // 用户不存在 或 令牌过期 或 未登录
@@ -84,7 +94,14 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             Expiration: DateTime.UtcNow.AddMinutes(15),
             Username: user.Username,
             Role: user.Role,
-            AvatarUrl: user.AvatarUrl
+            AvatarUrl: user.AvatarUrl,
+            Nickname: user.Nickname,
+            Bio: user.Bio,
+            Website: user.Website,
+            Location: user.UserProfile?.Location,
+            Occupation: user.UserProfile?.Occupation,
+            BirthDate: user.UserProfile?.BirthDate?.ToString("yyyy-MM-dd"),
+            Email: user.Email
         );
     }
 
@@ -244,7 +261,10 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
 
     public async Task<User?> AuthenticateAsync(string username, string password)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        var user = await context.Users
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Username == username);
+
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
             return null;

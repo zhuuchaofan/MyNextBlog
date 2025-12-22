@@ -67,6 +67,13 @@ export async function POST(request: Request) {
         username: data.user.username,
         role: data.user.role,
         avatarUrl: data.user.avatarUrl,
+        nickname: data.user.nickname,
+        bio: data.user.bio,
+        website: data.user.website,
+        location: data.user.location,
+        occupation: data.user.occupation,
+        birthDate: data.user.birthDate,
+        email: data.user.email,
       });
     }
 

@@ -33,7 +33,14 @@ public class AuthController(IAuthService authService) : ControllerBase
             {
                 Username = result.Username,
                 Role = result.Role,
-                AvatarUrl = result.AvatarUrl // 现在可以直接返回头像
+                AvatarUrl = result.AvatarUrl,
+                Nickname = result.Nickname,
+                Bio = result.Bio,
+                Website = result.Website,
+                Location = result.Location,
+                Occupation = result.Occupation,
+                BirthDate = result.BirthDate,
+                Email = result.Email
             }
         });
     }

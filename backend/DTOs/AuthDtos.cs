@@ -42,7 +42,14 @@ public record AuthResponseDto(
     DateTime Expiration,
     string Username,
     string Role,
-    string? AvatarUrl // 新增：用户头像，登录后立即可用
+    string? AvatarUrl, // 新增：用户头像，登录后立即可用
+    string? Nickname,
+    string? Bio,
+    string? Website,
+    string? Location,
+    string? Occupation,
+    string? BirthDate,
+    string? Email
 );
 
 public record RefreshTokenRequestDto(

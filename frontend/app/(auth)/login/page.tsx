@@ -45,15 +45,15 @@ export default function LoginPage() {
       if (res.ok) {
         login({ 
           username: data.username, 
-          role: data.user?.role || data.role,
+          role: data.role,
           avatarUrl: data.avatarUrl,
-          email: data.user?.email,
-          nickname: data.user?.nickname,
-          bio: data.user?.bio,
-          website: data.user?.website,
-          location: data.user?.location,
-          occupation: data.user?.occupation,
-          birthDate: data.user?.birthDate
+          email: data.email,
+          nickname: data.nickname,
+          bio: data.bio,
+          website: data.website,
+          location: data.location,
+          occupation: data.occupation,
+          birthDate: data.birthDate
         });
       } else {
         setServerError(data.message || '账号或密码错误，请检查');
