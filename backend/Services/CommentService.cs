@@ -166,16 +166,40 @@ public class CommentService(
 
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {
-        return await context.Comments
+        // 1. 获取该文章所有已审核的评论（扁平化加载）
+        var allComments = await context.Comments
             .AsNoTracking()
             .Include(c => c.User)
-            .Include(c => c.Children.Where(child => child.IsApproved)) // Filter children!
-                .ThenInclude(r => r.User)
-            .Where(c => c.PostId == postId && c.ParentId == null && c.IsApproved) // Only approved root comments
+            .Where(c => c.PostId == postId && c.IsApproved)
+            .ToListAsync();
+
+        // 2. 在内存中构建树形结构
+        var rootComments = BuildCommentTree(allComments);
+
+        // 3. 分页（只对根评论分页）
+        return rootComments
             .OrderByDescending(c => c.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToList();
+    }
+
+    /// <summary>
+    /// 在内存中构建评论树形结构（支持无限层嵌套）
+    /// </summary>
+    private static List<Comment> BuildCommentTree(List<Comment> flatComments)
+    {
+        // 创建 ParentId -> Children 的查找表
+        var lookup = flatComments.ToLookup(c => c.ParentId);
+        
+        // 为每个评论填充其子评论
+        foreach (var comment in flatComments)
+        {
+            comment.Children = lookup[comment.Id].OrderBy(c => c.CreateTime).ToList();
+        }
+        
+        // 返回根评论（ParentId == null）
+        return flatComments.Where(c => c.ParentId == null).ToList();
     }
 
     public async Task<int> GetCommentCountAsync(int postId)

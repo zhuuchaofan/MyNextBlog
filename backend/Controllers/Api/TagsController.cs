@@ -18,11 +18,8 @@ public class TagsController(ITagService tagService) : ControllerBase
     [HttpGet("popular")]
     public async Task<IActionResult> GetPopular(int count = 10)
     {
-        // 判断当前用户是否为管理员
-        // 注意：此接口允许匿名访问，User 可能为空或未认证，这没关系
-        bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
-
-        var tags = await tagService.GetPopularTagsAsync(count, includeHidden: isAdmin);
+        // 热门标签作为展示型数据，始终只统计公开文章，保持数据一致性
+        var tags = await tagService.GetPopularTagsAsync(count, includeHidden: false);
         return Ok(new { success = true, data = tags.Select(t => t.Name) });
     }
 }

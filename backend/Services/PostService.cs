@@ -98,7 +98,11 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                 })
                 .ToListAsync();
 
-            // 2. 在内存中映射为 DTO
+            // 2. 计算每篇文章在所属系列中的可见序号
+            var seriesIds = data.Where(p => p.SeriesId.HasValue).Select(p => p.SeriesId!.Value).Distinct().ToList();
+            var visibleSeriesOrders = await CalculateVisibleSeriesOrdersAsync(seriesIds);
+
+            // 3. 在内存中映射为 DTO
             var dtos = data.Select(p => new PostSummaryDto(
                 p.Id,
                 p.Title,
@@ -115,11 +119,43 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                 p.IsHidden,
                 p.LikeCount,
                 p.SeriesName,
-                p.SeriesOrder
+                // 使用计算后的可见序号，如果没有则为 0
+                visibleSeriesOrders.GetValueOrDefault(p.Id, 0)
             )).ToList();
 
             return (dtos, total);
         }
+    }
+
+    /// <summary>
+    /// 计算一组系列中所有文章的可见序号
+    /// </summary>
+    private async Task<Dictionary<int, int>> CalculateVisibleSeriesOrdersAsync(List<int> seriesIds)
+    {
+        if (!seriesIds.Any()) return new Dictionary<int, int>();
+
+        // 一次性查询所有相关系列的可见文章
+        var seriesPostsMap = await context.Posts
+            .AsNoTracking()
+            .Where(p => p.SeriesId.HasValue && seriesIds.Contains(p.SeriesId.Value) && !p.IsHidden)
+            .OrderBy(p => p.SeriesOrder)
+            .Select(p => new { p.Id, SeriesId = p.SeriesId!.Value })
+            .ToListAsync();
+
+        // 按系列分组，计算每篇文章的可见序号
+        var result = new Dictionary<int, int>();
+        var groupedBySeries = seriesPostsMap.GroupBy(p => p.SeriesId);
+        
+        foreach (var group in groupedBySeries)
+        {
+            var orderedPosts = group.ToList();
+            for (int i = 0; i < orderedPosts.Count; i++)
+            {
+                result[orderedPosts[i].Id] = i + 1; // 1-based index
+            }
+        }
+
+        return result;
     }
 
     /// <summary>
