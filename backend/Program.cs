@@ -17,6 +17,11 @@ using Ganss.Xss;                                    // 引入 XSS 清洗库
 // ==================================================================
 // 程序的入口点：创建 WebApplicationBuilder
 // ==================================================================
+// PostgreSQL 时间戳兼容性开关 (必须在 CreateBuilder 之前设置)
+// Npgsql 6.0+ 对 DateTimeKind.Unspecified 非常严格，会抛出异常。
+// 此开关启用旧版行为，允许使用 DateTime.Now (Kind=Local/Unspecified)。
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // 这一行代码是 ASP.NET Core 程序的起点，它创建了一个 `WebApplicationBuilder` 实例。
 // `builder` 对象负责：
 // 1. 读取应用程序的配置（例如 appsettings.json, 环境变量等）。
@@ -193,6 +198,9 @@ builder.Services.AddCors(options =>
 // `AppDbContext` 是我们自定义的数据库上下文类，继承自 EF Core 的 `DbContext`。
 // 它代表了数据库会话，包含了数据库中的所有实体集（`DbSet`，可以理解为数据库中的表）。
 builder.Services.AddDbContext<AppDbContext>(options =>
+    // 使用 PostgreSQL 数据库 (通过 Npgsql 提供者)
+    // 连接字符串格式: "Host=<server>;Database=<db>;Username=<user>;Password=<pass>"
+    // options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     // `options.UseSqlite(...)`: 指定使用 SQLite 数据库。EF Core 支持多种数据库，
     // 例如 SQL Server, PostgreSQL, MySQL 等，只需更换相应的 `Use...` 方法即可。
     // `builder.Configuration.GetConnectionString("DefaultConnection")`: 从配置文件

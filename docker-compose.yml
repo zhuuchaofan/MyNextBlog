@@ -1,4 +1,24 @@
 services:
+  # === 数据库服务 (PostgreSQL) ===
+  db:
+    image: postgres:15-alpine
+    container_name: mynextblog-db
+    restart: always
+    environment:
+      POSTGRES_USER: blog_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: my_blog
+      TZ: Asia/Shanghai
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog_admin -d my_blog"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"  # 主机5433映射到容器5432，避免与本地PostgreSQL冲突
+
   # === 后端服务 (.NET API) ===
   backend:
     build: ./backend
@@ -7,6 +27,9 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       # 设置时区为上海
       - TZ=Asia/Shanghai
@@ -68,3 +91,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+volumes:
+  pg_data:
