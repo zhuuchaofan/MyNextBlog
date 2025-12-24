@@ -2,7 +2,7 @@
 
 > 基于 **.NET 10** 与 **Next.js 15** 构建的高性能、安全、现代化的全栈博客引擎。
 
-MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headless 内容管理系统。它旨在为开发者提供一个**生产级**的博客解决方案，在保持极简部署（Docker + SQLite）的同时，实现了企业级的性能优化与安全标准。
+MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headless 内容管理系统。它旨在为开发者提供一个**生产级**的博客解决方案，采用 **Docker + PostgreSQL** 架构，实现了企业级的性能优化与安全标准。
 
 ---
 
@@ -21,7 +21,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **极致 DB 优化**:
   - **AsNoTracking**: 全面禁用变更追踪，降低内存 60%+。
   - **Select 投影 & DTO**: 列表页仅查询必要字段（300 字摘要），并在内存中映射为 `PostSummaryDto`，杜绝了“截断实体”对领域模型的污染，同时极大减少 I/O 载荷。
-  - **SQLite WAL 模式**: 默认开启 Write-Ahead Logging (WAL)，显著提升了 SQLite 的并发读写性能，避免数据库锁死。
+  - **PostgreSQL**: 使用 PostgreSQL 作为主数据库，支持高并发读写和 JSONB 高级查询。
   - **物理索引**: 对 `IsHidden`, `CreateTime`, `ParentId` 等高频筛选字段建立了数据库索引。
 
 ### 现代化体验
@@ -94,6 +94,10 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **前台管理**: 管理员登录后，文章卡片会出现 "👁️" 切换按钮。
   - **极速响应**: 点击即时切换可见性 (Optimistic UI)，无需刷新页面。
   - **数据穿透**: 管理员身份会自动绕过 ISR 缓存，实时获取所有文章状态。
+* **文章时效性 (UpdatedAt)**:
+  - **修改时间记录**: 每篇文章除了 `CreateTime` 外，还记录 `UpdatedAt` 最后修改时间。
+  - **前端展示**: 文章详情页 Hero 区域显示 "更新于 xxxx"，帮助读者判断内容时效性。
+  - **SEO 优化**: 支持 sitemap `<lastmod>` 标签，提升搜索引擎排名。
 * **系列文章 (Article Series)**:
   - **内容组织**: 将多篇相关文章归入同一系列（如 "Next.js 实战教程"）。
   - **系列导航**: 文章详情页底部自动显示系列信息和上一篇/下一篇链接。
@@ -212,9 +216,10 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - [ ] **AI 摘要**: 利用 LLM 自动为长文章生成 TL;DR 摘要。
   - [ ] **系列批量管理**: 在系列管理页面支持直接选择文章加入系列，实现批量添加和拖拽排序。
 - **架构升级 (Architecture 2.0)**:
-  - [ ] **PostgreSQL 迁移**: 从 SQLite 迁移到 PostgreSQL，以支持更高的并发写入和 JSONB 高级查询。([查看详细迁移方案](./MIGRATION_PLAN.md))
-  - [ ] **Redis 缓存**: 引入 Redis 替代内存缓存，实现分布式缓存和持久化，解决重启后缓存失效问题。([查看详细迁移方案](./MIGRATION_PLAN.md))
+  - [x] **PostgreSQL 迁移**: 已从 SQLite 迁移到 PostgreSQL，支持更高的并发写入和 JSONB 高级查询。
+  - [ ] **Redis 缓存**: 引入 Redis 替代内存缓存，实现分布式缓存和持久化，解决重启后缓存失效问题。
   - [x] **Security Audit**: Completed comprehensive code review for Production Readiness.
+  - [x] **UpdatedAt 字段**: 为文章添加了最后修改时间字段，完善内容时效性追踪。
   - [ ] **GitHub OAuth**: 实现 GitHub 账号快捷登录 (WIP)。
 
 ### 2025 战略评估 (Strategic Assessment)
@@ -240,6 +245,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 |              | **Config**     | `next.config.ts` 配置了 `standalone` 模式 (Docker 优化) 和 API Rewrites (反向代理)。 |
 | **Backend**  | **.NET 10**    | 抢先体验版 ASP.NET Core Web API，使用 Minimal APIs 风格。                            |
 |              | **EF Core**    | Code-First, 自动 Migrations & Seeding。                                              |
+|              | **PostgreSQL** | 主数据库，支持高并发和复杂查询。                                                     |
 |              | **Services**   | MemoryCache, Serilog, Automapper, HostedServices (Backups)。                         |
 |              | **Serilog**    | 结构化日志，支持输出到 Console, File 或 Elasticsearch。                              |
 | **DevOps**   | **Docker**     | 多阶段构建 (Multi-stage Build)，最终镜像仅 80MB+。                                   |

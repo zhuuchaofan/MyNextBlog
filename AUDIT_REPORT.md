@@ -82,11 +82,10 @@ export async function verifyToken(token: string) {
 
 ### 🟡 中优先级 (功能增强)
 
-- [ ] **P3**: 为 `Post` 模型添加 `UpdatedAt` 字段（修改时间）
-  - 目前只有 `CreateTime`，缺少最后修改时间
-  - SEO 需要（sitemap `<lastmod>`）
-  - 用户体验需要（判断内容时效性）
-  - 代码中已有注释占位：`// public DateTime？ FinalEditTime { get; set; }`
+- [x] **P3**: 为 `Post` 模型添加 `UpdatedAt` 字段（修改时间） ✅ **已完成 (2024-12-24)**
+  - 已添加 `DateTime? UpdatedAt` 字段
+  - 编辑文章时自动设置时间戳
+  - 前端详情页显示 "更新于 xxxx"
 
 ### 🟢 低优先级
 
@@ -96,6 +95,8 @@ export async function verifyToken(token: string) {
 
 ## 📅 审计日志
 
-| 日期       | 操作         | 备注                 |
-| :--------- | :----------- | :------------------- |
-| 2024-12-24 | 初始审计报告 | 完成安全性与架构审查 |
+| 日期       | 操作            | 备注                        |
+| :--------- | :-------------- | :-------------------------- |
+| 2024-12-24 | 初始审计报告    | 完成安全性与架构审查        |
+| 2024-12-24 | UpdatedAt 实现  | 完成文章修改时间功能        |
+| 2024-12-24 | PostgreSQL 迁移 | 从 SQLite 迁移到 PostgreSQL |
