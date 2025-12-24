@@ -42,7 +42,12 @@ public class Post
     /// </summary>
     public DateTime CreateTime { get; set; } = DateTime.Now;
     
-    // public DateTime？ FinalEditTime { get; set; } = DateTime.Now;    // 这是被注释掉的代码，用于表示最后一次修改时间，目前未使用。
+    /// <summary>
+    /// `UpdatedAt` 属性记录文章的最后修改时间。
+    /// `DateTime?`: 可空类型，null 表示文章自创建以来从未被修改过。
+    /// 仅在调用 `UpdatePostAsync` 时才会被设置。
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
     
     // --- 导航属性 (Navigation Properties) ---
     // 导航属性是 EF Core 中用来表示实体之间关系（如一对多、多对多）的属性。

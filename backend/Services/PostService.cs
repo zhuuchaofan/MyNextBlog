@@ -83,6 +83,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                     // 注意：SQLite/SQLServer 都支持 Substring 翻译
                     Content = p.Content.Length > 300 ? p.Content.Substring(0, 300) : p.Content,
                     p.CreateTime,
+                    p.UpdatedAt,
                     p.IsHidden,
                     p.CategoryId,
                     CategoryName = p.Category != null ? p.Category.Name : "Uncategorized",
@@ -114,6 +115,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
                 p.UserName,
                 p.UserAvatar,
                 p.CreateTime,
+                p.UpdatedAt,
                 MarkdownHelper.GetCoverImage(p.Content), // 从前300字符中提取图片
                 p.Tags,
                 p.IsHidden,
@@ -292,6 +294,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         post.IsHidden = dto.IsHidden;
         post.SeriesId = dto.SeriesId;
         post.SeriesOrder = dto.SeriesOrder;
+        post.UpdatedAt = DateTime.UtcNow; // 自动记录修改时间
 
         post.Tags.Clear();
         if (dto.Tags != null && dto.Tags.Any())

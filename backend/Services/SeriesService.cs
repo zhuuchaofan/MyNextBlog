@@ -73,6 +73,7 @@ public class SeriesService(AppDbContext context) : ISeriesService
             p.User?.Username ?? "未知作者",
             p.User?.AvatarUrl,
             p.CreateTime,
+            p.UpdatedAt,
             GetCoverImage(p.Content),
             p.Tags.Select(t => t.Name).ToList(),
             p.IsHidden,

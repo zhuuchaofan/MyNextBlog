@@ -28,6 +28,7 @@ public static class PostMappingExtensions
             post.User?.Username ?? "Unknown",       // 如果 User 为空，显示 Unknown
             post.User?.AvatarUrl,
             post.CreateTime,
+            post.UpdatedAt,                         // 最后修改时间
             MarkdownHelper.GetCoverImage(post.Content),        // 提取封面图
             post.Tags.Select(t => t.Name).ToList(), // 转换标签列表
             post.IsHidden,
@@ -53,6 +54,7 @@ public static class PostMappingExtensions
             GetAuthorName(post.User),
             post.User?.AvatarUrl,
             post.CreateTime,
+            post.UpdatedAt,                         // 最后修改时间
             post.Tags.Select(t => t.Name).ToList(),
             post.IsHidden,
             commentCount,

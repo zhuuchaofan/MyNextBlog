@@ -123,7 +123,7 @@ export default async function PostPage({ params }: Props) {
              </h1>
 
              {/* 元信息：作者、时间、阅读时长 */}
-             <div className="flex items-center justify-center gap-6 text-white/90 text-sm md:text-base">
+             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-white/90 text-sm md:text-base">
                 <div className="flex items-center gap-2">
                    <Avatar className="w-8 h-8 border-2 border-white/50">
                      <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} className="object-cover" />
@@ -133,8 +133,13 @@ export default async function PostPage({ params }: Props) {
                 </div>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" /> {new Date(post.createTime).toLocaleDateString()}
+                  {post.updatedAt && (
+                    <span className="text-white/70 ml-1">
+                      (更新于 {new Date(post.updatedAt).toLocaleDateString()})
+                    </span>
+                  )}
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="hidden sm:flex items-center gap-1">
                   <Clock className="w-4 h-4" /> {readingTime} min read
                 </span>
              </div>

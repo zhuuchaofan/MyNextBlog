@@ -12,6 +12,7 @@ export interface PostDetail {
   title: string;
   content: string;
   createTime: string;
+  updatedAt?: string;  // 文章最后修改时间 (可空)
   categoryName?: string;
   categoryId: number;
   authorName?: string;
@@ -90,6 +91,7 @@ export interface Post {
   authorName?: string;
   authorAvatar?: string;
   createTime: string;
+  updatedAt?: string;  // 文章最后修改时间 (可空)
   coverImage?: string;
   tags?: string[];
   isHidden?: boolean;
