@@ -139,8 +139,8 @@ export default async function PostPage({ params }: Props) {
                     </span>
                   )}
                 </span>
-                <span className="hidden sm:flex items-center gap-1">
-                  <Clock className="w-4 h-4" /> {readingTime} min read
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> {readingTime} min
                 </span>
              </div>
              
