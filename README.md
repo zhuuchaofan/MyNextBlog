@@ -221,6 +221,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - [x] **Security Audit**: Completed comprehensive code review for Production Readiness.
   - [x] **UpdatedAt 字段**: 为文章添加了最后修改时间字段，完善内容时效性追踪。
   - [ ] **GitHub OAuth**: 实现 GitHub 账号快捷登录 (WIP)。
+  - [ ] **Admin Initialization**: 实现 "First-User Policy"，首个注册用户自动提权为管理员，免去 SQL 操作。
 
 ### 2025 战略评估 (Strategic Assessment)
 
@@ -297,17 +298,17 @@ docker compose up -d --build
 
 ### 3. 提升管理员
 
-系统首次注册的用户是普通用户。需手动通过 SQL 提权：
+### 3. 提升管理员 (Promote to Admin)
+
+目前采用临时方案，需手动修改数据库。
+
+> **注意**: 这种手动操作 **不符合生产环境最佳实践**。
+> 未来计划引入 **"First User Policy"** (首个注册用户自动成为管理员) 或 **CLI Seeding Tool** 以优化体验。
 
 ```bash
-# 进入数据库容器
-docker compose exec backend bash
-# 连接 SQLite
-sqlite3 data/blog.db
-# 执行 SQL
-UPDATE Users SET Role = 'Admin' WHERE Username = '你的用户名';
-# 退出
-.exit
+# 进入数据库容器执行 SQL (PostgreSQL)
+# 注意：表名和字段名在 PostgreSQL 中区分大小写，需加双引号
+docker compose exec db psql -U blog_admin -d my_blog -c "UPDATE \"Users\" SET \"Role\" = 'Admin' WHERE \"Username\" = '你的用户名';"
 ```
 
 ---
