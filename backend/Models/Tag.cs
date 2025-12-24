@@ -7,6 +7,7 @@ public class Tag
     public int Id { get; set; }
 
     [Required]
+    [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
 
     // 多对多关系：一个标签可以对应多篇文章

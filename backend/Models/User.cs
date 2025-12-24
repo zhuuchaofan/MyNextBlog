@@ -1,39 +1,48 @@
-using System.ComponentModel.DataAnnotations; // Added this line
+using System.ComponentModel.DataAnnotations;
 
 namespace MyNextBlog.Models;
 
 public class User
 {
     public int Id { get; set; }
+    
+    [Required]
+    [MaxLength(50)]
     public string Username { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty; // 以后存加密密码
+    
+    [Required]
+    [MaxLength(256)] // BCrypt/Argon2 哈希长度
+    public string PasswordHash { get; set; } = string.Empty;
 
-    // 新增：角色字段，默认是 "User" (普通用户)
+    [MaxLength(20)]
     public string Role { get; set; } = "User";
 
-    // 新增：用户头像 URL (可空，未设置则使用默认或随机头像)
-    public string? AvatarUrl { get; set; } // 用户头像 URL
+    [MaxLength(500)] // URL 上限
+    public string? AvatarUrl { get; set; }
 
-    public string? Email { get; set; } // 用户邮箱
+    [MaxLength(254)] // RFC 5321 邮箱地址标准最大长度
+    public string? Email { get; set; }
     
     // 密码重置相关
+    [MaxLength(256)]
     public string? PasswordResetToken { get; set; }
     public DateTime? ResetTokenExpires { get; set; }
 
     // 扩展资料
     [MaxLength(50)]
-    public string? Nickname { get; set; } // 昵称 (显示名)
+    public string? Nickname { get; set; }
     
     [MaxLength(200)]
-    public string? Bio { get; set; } // 个人简介
+    public string? Bio { get; set; }
     
     [MaxLength(200)]
-    public string? Website { get; set; } // 个人网站
+    public string? Website { get; set; }
 
-    // 新增：扩展资料 (1对1关系)
+    // 扩展资料 (1对1关系)
     public UserProfile? UserProfile { get; set; }
 
-    // JWT Refresh Token (存储哈希值更安全)
+    // JWT Refresh Token (存储哈希值)
+    [MaxLength(256)]
     public string? RefreshTokenHash { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
 }

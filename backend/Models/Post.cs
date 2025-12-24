@@ -26,7 +26,8 @@ public class Post
     /// `.NET 6+` 中，`string` 默认是不可空的，`= string.Empty` 确保 `Title` 始终有一个空字符串的初始值，
     /// 避免 `null` 引用警告。
     /// </summary>
-    [Required] 
+    [Required]
+    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;    
     
     /// <summary>
