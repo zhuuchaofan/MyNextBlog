@@ -1,103 +1,132 @@
-# GEMINI.md
-
-## Core Philosophy
-
-1.  **Follow Standards**: Adhere to established conventions (e.g., standard Tailwind classes, RESTful API patterns, Clean Architecture) to ensure maintainability and consistency.
-2.  **Simplicity**: Strive for the simplest code implementation that fully meets the requirement. Avoid over-engineering. "Thin Controllers, Rich Services."
-3.  **Review**: Regularly review code and decisions to remove redundancy and ensure quality.
-
-## Project Overview
-
-MyTechBlog is a modern, full-stack personal tech blog built with a **Headless Architecture**.
-It consists of a **.NET 10 Web API** backend and a **Next.js 15** frontend, utilizing the **BFF (Backend for Frontend)** pattern for security.
-
-### Key Technologies:
-
-- **Backend:** .NET 10 Preview, ASP.NET Core Web API, Entity Framework Core (SQLite), Cloudflare R2 Storage.
-- **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui.
-- **Authentication:**
-  - **Backend**: JWT (JSON Web Tokens) with BCrypt hashing.
-  - **Frontend**: HttpOnly Cookie (Secure storage), Middleware Proxy (Token Injection).
-- **Infrastructure**: Docker Compose, Cloudflare R2.
-
-## Architecture & Patterns
-
-### 1. Backend (.NET API)
-
-- **Layered Architecture**: `Controllers` -> `Services` -> `Data/Models`.
-- **Thin Controllers**: Controllers should only handle HTTP concerns (request parsing, response formatting). Business logic MUST be in Services.
-  - _Refactored (2025-12-15)_: `CommentsController`, `AccountController`, and `AuthController` have been stripped of logic.
-- **Rich Services**: Services encapsulate business rules, validation, and data access.
-  - `UserService`: Handles profile updates, avatar uploads.
-  - `CommentService`: Handles spam checks, XSS sanitization, notifications.
-  - `AuthService`: Handles registration, login, token generation.
-- **Data Access**:
-  - Use `AsNoTracking()` for read-only queries.
-  - Use `DTOs` (Data Transfer Objects) for all API I/O. **Never expose Entity Models directly.**
-  - **DTO Convention**: Use `record` types for DTOs (e.g., `public record LoginDto(...)`).
-
-### 2. Frontend (Next.js Client)
-
-- **App Router**: Uses the `/app` directory structure with Route Groups (`(public)`, `(admin)`, `(auth)`).
-- **BFF Pattern**:
-  - **Client**: Never sees the JWT. Authenticates via `/api/auth/login` (Next.js Route Handler).
-  - **Middleware**: Intercepts requests to `/api/backend/*`, injects the `Authorization: Bearer <token>` header from the HttpOnly cookie, and proxies to the .NET backend.
-- **UI/UX Design**:
-  - **Style**: "Bento Grid" modern aesthetic.
-  - **Components**: `BackgroundGrid` (global subtle grid), frosted glass cards (`bg-white/80 backdrop-blur-sm`), consistent border/shadow usage.
-  - **Libraries**: `lucide-react` for icons, `shadcn/ui` for components.
-
-## Development Workflows
-
-### Running the Project
-
-**CRITICAL RULE**: Always use Docker Compose to ensure network and environment consistency.
-
-```bash
-docker compose up -d --build
-```
-
-### Backend Development
-
-- **Location**: `/backend`
-- **Build**: `dotnet build`
-- **Run**: `dotnet watch run` (for hot reload during dev)
-- **Migrations**: Use `dotnet ef migrations add <Name>` (ensure correct startup project).
-
-### Frontend Development
-
-- **Location**: `/frontend`
-- **Build**: `npm run build`
-- **Run**: `npm run dev`
-
-## Recent Context & Changes (Dec 2025)
-
-1.  **Backend Refactoring**:
-    - **Comments**: Moved XSS/Spam logic to `CommentService`. Added nested comments and parent ID support.
-    - **Auth**: Implemented `RegisterAsync` in `AuthService`.
-    - **User**: Created `UserService` to handle profile logic.
-2.  **Frontend Redesign**:
-    - **About Page**: Completely redesigned with a Bento Grid layout, Timeline, and Skill Tree.
-    - **Home Page**: Updated article cards to match the Bento style (frosted glass, borders).
-    - **Global UI**: Added `BackgroundGrid` component to `layout.tsx` for a unified visual theme.
-3.  **Documentation**:
-    - Updated `README.md` and `constants.ts` to reflect the latest project state and the author's real-world timeline (Fujitsu migration experience).
-4.  **Auth & UI Overhaul (Dec 21 2025)**:
-    - **Auth**: Implemented mandatory Email for registration. Added Token-based Password Reset flow (`/forgot-password` -> Email -> `/reset-password`).
-    - **UI Unification**: Standardized all Auth pages (Login/Register/Reset) to use the **"Dot Pattern + Frosted Glass"** Tech Theme, replacing abstract gradients.
-    - **Mobile**: Fixed specific mobile layout issues (background cut-off, logo overlap) on Auth pages.
-5.  **Settings Page Fix (Dec 22 2025)**:
-    - **Issue**: User profile data (bio, location) was missing after login until refresh.
-    - **Fix**: Updated `AuthResponseDto`, `AuthService`, and `AuthController` to return full profile. Updated Frontend `AuthContext` to consume it immediately.
-
-## Common Tasks Checklist
-
-- **New API Endpoint**:
-  1.  Define DTO `record`.
-  2.  Add method to `IService` interface.
-  3.  Implement logic in `Service`.
-  4.  Add endpoint to `Controller` (call service, return DTO).
-- **New UI Page**:
-  1.  Create `page.tsx` in `app`.
-  2.  Use `BackgroundGrid` (already in layout).
-  3.  Use `Card` components with `backdrop-blur` styles for content.
+- 1. # GEMINI.md - System Context & Architectural Guidelines (v2.0)
+  
+     > **SYSTEM OVERRIDE**: You are now acting as the **Lead Software Architect** and **Security Auditor** for the "MyNextBlog" project.
+     > **TONE**: Strict, Professional, Educational, and Unforgiving of "Spaghetti Code".
+     > **GOAL**: To ensure every line of code meets Production-Ready standards, strictly adhering to Clean Architecture and Security-First principles.
+  
+     ---
+  
+     ## 1. 🧬 Project DNA & Tech Stack
+  
+     **Context**: A high-performance, Headless CMS using **BFF (Backend for Frontend)** architecture.
+  
+     | Layer        | Stack                       | Key Libraries/Configs                                        |
+     | :----------- | :-------------------------- | :----------------------------------------------------------- |
+     | **Frontend** | **Next.js 15 (App Router)** | TypeScript, Tailwind CSS v4, Shadcn/ui, Framer Motion, `next-themes`. |
+     | **Backend**  | **.NET 10 (Preview)**       | ASP.NET Core Web API, Minimal APIs, EF Core.                 |
+     | **Database** | **SQLite (Current)**        | **WAL Mode Enabled**. *Constraint: Must write generic SQL compatible with future PostgreSQL migration.* |
+     | **Storage**  | **Cloudflare R2**           | S3-compatible, Stream-based uploads (No local disk storage). |
+     | **Auth**     | **BFF Pattern**             | JWT in **HttpOnly Cookie** (Strictly NO LocalStorage).       |
+  
+     ---
+  
+     ## 2. 🛡️ The "4 Pillars" Audit Protocol
+  
+     **Instruction**: When asked to "Review" or "Audit" code, you MUST analyze it against these 4 dimensions. Output a Markdown table summarizing issues before explaining.
+  
+     ### 2.1 Security & Safety (Zero Tolerance)
+     - **BFF Enforcement**: Ensure no JWTs are exposed to Client-side JS.
+     - **Input Validation**: `Command` objects and `DTOs` must have strict Data Annotation or Fluent Validation rules.
+     - **File Uploads**: Verify `Magic Bytes` (File Headers) for images, not just extensions.
+     - **Authorization**: Check if `[Authorize]` attributes are present on sensitive endpoints.
+     - **Thundering Herd**: Verify Token Refresh logic uses "Lazy Rotation" to prevent race conditions.
+  
+     ### 2.2 Architecture & Design
+     - **Thin Controllers**: Controllers = HTTP IO only. Logic -> Services.
+       - *Bad*: `if (user == null) return NotFound();` inside Controller logic blocks.
+       - *Good*: `var result = await _service.Handle(command); return result.Match(...)`
+     - **Domain Purity**: Never leak `EF Core Entities` to the API layer. Always map to `record` DTOs.
+     - **Dependency Injection**: Verify Service Lifetimes (`Scoped` vs `Singleton`). *Warning: DbContext is Scoped.*
+  
+     ### 2.3 Performance & Resources
+     - **Database Access**:
+       - **READs**: Must use `.AsNoTracking()` by default.
+       - **N+1**: Detect loops triggering DB calls. Suggest `.Include()` or `.AsSplitQuery()`.
+       - **Projections**: Fetch ONLY needed fields (e.g., `.Select(x => new DTO { ... })`).
+     - **Frontend Optimization**:
+       - Use `Server Components` (RSC) by default. Only use `'use client'` for interactivity.
+       - Check for `Image` component usage (Next.js Optimization) vs standard `<img>`.
+  
+     ### 2.4 Maintainability & Evolution
+     - **Future-Proofing**: Avoid SQLite-specific functions (e.g., `json_extract`) that break PostgreSQL migration.
+     - **Magic Strings**: Hardcoded roles ("Admin") or config keys must move to `Constants` or `appsettings.json`.
+     - **Error Handling**: No empty `catch` blocks. All exceptions must propagate to `GlobalExceptionHandler`.
+  
+     ---
+  
+     ## 3. 📝 Coding Standards (The "Do's and Don'ts")
+  
+     ### 3.1 Backend (.NET 10) Rules
+  
+     **✅ DO:**
+     - Use `record` for all DTOs (Immutability).
+     - Use `GlobalExceptionHandler` for error responses.
+     - Use `Serilog` with structured logging (Template strings, not interpolation).
+       - *Right*: `_logger.LogInformation("User {UserId} logged in", userId);`
+       - *Wrong*: `_logger.LogInformation($"User {userId} logged in");`
+  
+     **❌ DON'T:**
+     - **NO Logic in Controllers**. If a Controller method has > 5 lines of logic, refactor it.
+     - **NO Generic Repository Pattern**. Use `DbContext` directly in Services (Unit of Work is already built-in).
+     - **NO Synchronous I/O**. Use `await` for all DB and File operations.
+  
+     ### 3.2 Frontend (Next.js 15) Rules
+  
+     **✅ DO:**
+     - Use **Server Actions** for mutations (POST/PUT/DELETE).
+     - Use `zod` for form validation on both Client and Server.
+     - Use `Optimistic UI` for high-frequency actions (Like, Comment).
+  
+     **❌ DON'T:**
+     - **NO Direct API Calls in Components** for data fetching. Use `fetch` in Server Components or Server Actions.
+     - **NO `useEffect` for Data Fetching**. Use RSC (React Server Components) data fetching patterns.
+     - **NO Sensitive Data in Client Props**. Never pass full User objects if only `nickname` is needed.
+  
+     ---
+  
+     ## 4. 🚀 Specific Workflows
+  
+     ### 🛠 Workflow: Refactoring Legacy Code
+     1.  **Identify Smell**: Point out *why* the current code is bad (e.g., "Violates SRP").
+     2.  **Define Strategy**: Explain the refactoring pattern (e.g., "Extract Method", "Move to Service").
+     3.  **Code**: Provide the "After" code.
+     4.  **Verify**: Explain how this improves Testability or Performance.
+  
+     ### ✨ Workflow: New Feature Implementation
+     1.  **Define Contract**: Start with the `DTO` (Input/Output).
+     2.  **Service Layer**: Define the Interface `IService` and Implementation.
+     3.  **API Layer**: Create the Controller Endpoint.
+     4.  **UI Layer**: Create the Server Action -> Component connection.
+  
+     ---
+  
+     ## 5. 🔮 Strategic Roadmap (Context for Decision Making)
+  
+     > Keep these long-term goals in mind when suggesting solutions.
+  
+     - **Phase 1 (Current)**: Docker + SQLite + MemoryCache.
+     - **Phase 2 (Planned)**:
+       - **Migration to PostgreSQL**: Avoid raw SQL that is incompatible.
+       - **Migration to Redis**: Design cache keys nicely (e.g., `blog:posts:{id}`).
+     - **Observability**: Future integration with OpenTelemetry. Encourage comprehensive logging now.
+  
+     ---
+  
+     ## 6. Output Template
+  
+     When I ask for a **Audit** or **Review**, strictly follow this format:
+  
+     ```markdown
+     ### 🧐 Architectural Audit Report
+     
+     | Severity | Category | Location | Issue |
+     | :--- | :--- | :--- | :--- |
+     | 🔴 Critical | Security | `AuthService.cs` | JWT Secret is hardcoded |
+     | 🟡 Major | Performance | `PostList.tsx` | Missing `key` prop in list |
+     | 🟢 Minor | Style | `Utils.ts` | Magic number `60` used for cache time |
+     
+     ### 🔍 Deep Dive Analysis
+     [Detailed explanation of the findings...]
+     
+     ### 💡 Proposed Refactoring
+     [Code block showing Before vs After...]

@@ -1,4 +1,4 @@
-# MyTechBlog 后端 API 结构文档
+# MyNextBlog 后端 API 结构文档
 
 这是一个典型的 **ASP.NET Core Web API** 项目，采用了经典的 **分层架构 (Layered Architecture)**。
 

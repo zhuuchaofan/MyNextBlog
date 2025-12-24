@@ -4,11 +4,11 @@
 
 当前状态: ⏸️ 已暂停 (代码回滚至 SQLite，PostgreSQL 容器保留)
 
-执行人: MyTechBlog Dev Team
+执行人: MyNextBlog Dev Team
 
 ## 1. 🎯 迁移目标
 
-将 MyTechBlog 项目的底层存储从轻量级 SQLite 迁移至企业级 PostgreSQL，旨在解决以下痛点：
+将 MyNextBlog 项目的底层存储从轻量级 SQLite 迁移至企业级 PostgreSQL，旨在解决以下痛点：
 
 - 提升高并发下的写入性能。
 - 利用 PostgreSQL 强大的 JSONB 和全文检索功能。
