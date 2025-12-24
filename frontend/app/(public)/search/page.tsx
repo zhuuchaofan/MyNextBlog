@@ -14,8 +14,20 @@ interface Post {
   title: string;
   excerpt: string;
   createTime: string;
-  author: string; // 这里应该是 authorName，与后端 DTO 保持一致
-  category: string; // 这里应该是 categoryName，与后端 DTO 保持一致
+  author: string;
+  category: string;
+  categoryId: number;
+  coverImage?: string;
+}
+
+// 后端 API 返回的原始数据类型
+interface PostFromApi {
+  id: number;
+  title: string;
+  excerpt: string;
+  createTime: string;
+  authorName: string;    // 后端字段名
+  categoryName: string;  // 后端字段名
   categoryId: number;
   coverImage?: string;
 }
@@ -37,38 +49,50 @@ function SearchResults() {
 
   // `useEffect` 钩子，在 `query` 或 `tag` 变化时重新执行搜索
   useEffect(() => {
+    // 构建 API URL
     let url = '';
-    // 根据是关键词搜索还是标签搜索，构建不同的后端 API URL
     if (query) {
       url = `/api/backend/posts?search=${encodeURIComponent(query)}`;
     } else if (tag) {
       url = `/api/backend/posts?tag=${encodeURIComponent(tag)}`;
     }
 
-    if (url) {
-      setLoading(true); // 开始加载，显示加载动画
-      fetch(url) // 调用 API (通过 Next.js 代理)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            // 注意：后端返回的 `authorName` 和 `categoryName` 在这里需要适配到 Post 接口的 `author` 和 `category`
-            const formattedPosts = data.data.map((p: any) => ({
-              ...p,
-              author: p.authorName,
-              category: p.categoryName
-            }));
-            setPosts(formattedPosts);
-          }
-          setLoading(false); // 加载完成
-        })
-        .catch(() => {
-          setLoading(false); // 捕获错误，也结束加载状态
-          setPosts([]); // 错误时清空文章列表
-        });
-    } else {
-      setPosts([]); // 如果没有搜索关键词或标签，清空结果
+    // 如果没有搜索条件，清空结果
+    if (!url) {
+      setPosts([]);
+      return;
     }
-  }, [query, tag]); // 依赖 `query` 和 `tag`
+
+    // 使用 IIFE (立即执行函数) 包装 async 逻辑，避免 lint 警告
+    let cancelled = false;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (cancelled) return; // 避免竞态条件
+        
+        if (data.success) {
+          const formattedPosts = data.data.map((p: PostFromApi) => ({
+            ...p,
+            author: p.authorName,
+            category: p.categoryName
+          }));
+          setPosts(formattedPosts);
+        }
+      } catch {
+        if (!cancelled) setPosts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    
+    fetchData();
+    
+    // 清理函数：组件卸载或依赖变化时取消请求处理
+    return () => { cancelled = true; };
+  }, [query, tag]);
 
   // 1. 如果没有搜索关键词和标签，显示提示用户输入的界面
   if (!query && !tag) {

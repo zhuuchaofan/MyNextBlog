@@ -11,7 +11,7 @@ import MarkdownRenderer from '@/components/MarkdownRenderer'; // Markdown 渲染
 import PostInteractions from '@/components/PostInteractions'; // 交互组件（如点赞/分享）
 import MobileBottomBar from '@/components/MobileBottomBar'; // 移动端底部栏
 import { SeriesNavigation } from '@/components/SeriesNavigation'; // 引入系列导航
-import { getPost } from '@/lib/data'; // 服务端数据获取函数
+import { getPost, getCommentsServer } from '@/lib/data'; // 服务端数据获取函数
 
 // 定义页面属性接口
 // `params` 是一个 Promise，这是 Next.js 15 的新特性，路由参数需要异步获取。
@@ -63,6 +63,10 @@ export default async function PostPage({ params }: Props) {
   if (!post) {
     notFound();
   }
+
+  // 在服务端获取首屏评论 (RSC 模式)
+  // 这样首屏 HTML 就包含评论，提升 SEO 和性能
+  const commentsData = await getCommentsServer(post.id);
 
   // 简单估算阅读时间：假设每分钟阅读 300 字
   const readingTime = Math.ceil(post.content.length / 300);
@@ -171,7 +175,12 @@ export default async function PostPage({ params }: Props) {
               {/* 评论区组件 */}
               <div id="comments" className="max-w-3xl mx-auto">
                  <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-3xl p-6 md:p-8 border border-transparent dark:border-zinc-800">
-                    <CommentsSection postId={post.id} />
+                    <CommentsSection 
+                      postId={post.id} 
+                      initialComments={commentsData.comments}
+                      initialTotalCount={commentsData.totalCount}
+                      initialHasMore={commentsData.hasMore}
+                    />
                  </div>
               </div>
            </div>

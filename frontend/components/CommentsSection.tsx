@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,35 +10,44 @@ import { MessageSquare, User, Send, Reply, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useAuth } from '@/context/AuthContext';
 
-export default function CommentsSection({ postId }: { postId: number }) {
-  const [allComments, setAllComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
+// RSC 模式：首屏数据由 Server Component 传入
+interface CommentsSectionProps {
+  postId: number;
+  initialComments: Comment[];    // 服务端获取的首屏评论
+  initialTotalCount: number;     // 总评论数
+  initialHasMore: boolean;       // 是否有更多
+}
+
+export default function CommentsSection({ 
+  postId, 
+  initialComments, 
+  initialTotalCount, 
+  initialHasMore 
+}: CommentsSectionProps) {
+  const [allComments, setAllComments] = useState<Comment[]>(initialComments);
+  const [loading, setLoading] = useState(false); // 首屏无需 loading
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   
   // 回复状态：当前正在回复哪个评论 ID
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
 
-  // 初始化加载
-  const loadData = useCallback(async (pageNum: number) => {
+  // 加载更多评论（仅在用户点击时触发）
+  const loadMore = useCallback(async () => {
+    const nextPage = page + 1;
     setLoading(true);
     try {
-      const data = await fetchComments(postId, pageNum);
+      const data = await fetchComments(postId, nextPage);
       if (data.success) {
-        if (pageNum === 1) {
-          setAllComments(data.comments);
-        } else {
-          // 简单的去重合并 (防止重复 key)
-          setAllComments(prev => {
-            const existingIds = new Set(prev.map(c => c.id));
-            const newComments = data.comments.filter((c: Comment) => !existingIds.has(c.id));
-            return [...prev, ...newComments];
-          });
-        }
-        setTotalCount(data.totalCount);
+        // 去重合并
+        setAllComments(prev => {
+          const existingIds = new Set(prev.map(c => c.id));
+          const newComments = data.comments.filter((c: Comment) => !existingIds.has(c.id));
+          return [...prev, ...newComments];
+        });
         setHasMore(data.hasMore);
-        setPage(pageNum);
+        setPage(nextPage);
       }
     } catch (error) {
       console.error(error);
@@ -46,15 +55,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
     } finally {
       setLoading(false);
     }
-  }, [postId]);
-
-  useEffect(() => {
-    loadData(1);
-  }, [loadData, postId]);
-
-  const handleLoadMore = () => {
-    loadData(page + 1);
-  };
+  }, [postId, page]);
 
   // 递归插入新评论
   const addCommentToTree = (nodes: Comment[], newComment: Comment): Comment[] => {
@@ -122,7 +123,7 @@ export default function CommentsSection({ postId }: { postId: number }) {
           
           {hasMore && (
             <div className="text-center pt-4">
-                <Button variant="ghost" onClick={handleLoadMore} disabled={loading} className="text-gray-500 dark:text-gray-400 hover:text-orange-500">
+                <Button variant="ghost" onClick={loadMore} disabled={loading} className="text-gray-500 dark:text-gray-400 hover:text-orange-500">
                     {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     加载更多评论
                 </Button>

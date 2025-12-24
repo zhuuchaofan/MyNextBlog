@@ -18,6 +18,19 @@ interface Post {
   isHidden?: boolean; // 新增：用于显示隐藏标记
 }
 
+// 后端 API 返回的原始数据类型
+interface PostFromApi {
+  id: number;
+  title: string;
+  excerpt: string;
+  createTime: string;
+  authorName: string;    // 后端字段名
+  categoryName: string;  // 后端字段名
+  categoryId: number;
+  coverImage?: string;
+  isHidden?: boolean;
+}
+
 /**
  * getCategoryData 函数：用于在服务端获取分类下的文章和分类详情
  */
@@ -48,7 +61,7 @@ async function getCategoryData(categoryId: string) {
       const postsJson = await postsRes.json();
       if (postsJson.success) {
         // 适配数据接口 (后端返回的是 categoryName，前端 Post 接口中可能是 category)
-        posts = postsJson.data.map((p: any) => ({
+        posts = postsJson.data.map((p: PostFromApi) => ({
           ...p,
           author: p.authorName,
           category: p.categoryName

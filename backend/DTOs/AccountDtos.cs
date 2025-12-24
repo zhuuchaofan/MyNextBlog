@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MyNextBlog.Models;
 
 namespace MyNextBlog.DTOs;
 
@@ -23,3 +24,39 @@ public record UpdateProfileDto(
     
     DateOnly? BirthDate
 );
+
+/// <summary>
+/// 用户信息 DTO
+/// 用于统一 API 响应格式，避免在 Controller 中构建匿名对象
+/// </summary>
+public record UserDto(
+    int Id,
+    string Username,
+    string Role,
+    string? AvatarUrl,
+    string? Email,
+    string? Nickname,
+    string? Bio,
+    string? Website,
+    string? Location,
+    string? Occupation,
+    DateOnly? BirthDate
+)
+{
+    /// <summary>
+    /// 从 User 实体转换为 UserDto
+    /// </summary>
+    public static UserDto FromEntity(User user) => new(
+        user.Id,
+        user.Username,
+        user.Role,
+        user.AvatarUrl,
+        user.Email,
+        user.Nickname,
+        user.Bio,
+        user.Website,
+        user.UserProfile?.Location,
+        user.UserProfile?.Occupation,
+        user.UserProfile?.BirthDate
+    );
+}

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.DTOs;
+using MyNextBlog.Extensions;
 using MyNextBlog.Services;
-using System.Security.Claims;
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -20,33 +20,13 @@ public class AccountController(IUserService userService) : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
-        {
-            return Unauthorized();
-        }
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var user = await userService.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            return NotFound("User not found");
-        }
+        var user = await userService.GetUserByIdAsync(userId.Value);
+        if (user == null) return NotFound("User not found");
 
-        return Ok(new
-        {
-            user.Id,
-            user.Username,
-            user.Role,
-            user.AvatarUrl,
-            user.Email,
-            user.Nickname,
-            user.Bio,
-            user.Website,
-            // UserProfile fields
-            Location = user.UserProfile?.Location,
-            Occupation = user.UserProfile?.Occupation,
-            BirthDate = user.UserProfile?.BirthDate
-        });
+        return Ok(UserDto.FromEntity(user));
     }
 
     /// <summary>
@@ -55,38 +35,17 @@ public class AccountController(IUserService userService) : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
-        {
-            return Unauthorized();
-        }
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var result = await userService.UpdateProfileAsync(userId, dto);
+        var result = await userService.UpdateProfileAsync(userId.Value, dto);
         
         if (!result.Success)
         {
              return BadRequest(new { success = false, message = result.Message });
         }
 
-        var user = result.User!;
-        return Ok(new 
-        { 
-            success = true, 
-            user = new 
-            { 
-                user.Id, 
-                user.Username, 
-                user.Role, 
-                user.AvatarUrl, 
-                user.Email, 
-                user.Nickname, 
-                user.Bio, 
-                user.Website,
-                Location = user.UserProfile?.Location,
-                Occupation = user.UserProfile?.Occupation,
-                BirthDate = user.UserProfile?.BirthDate
-            } 
-        });
+        return Ok(new { success = true, user = UserDto.FromEntity(result.User!) });
     }
 
     /// <summary>
@@ -98,14 +57,11 @@ public class AccountController(IUserService userService) : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest("请选择文件");
 
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
-        {
-            return Unauthorized();
-        }
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
 
         await using var stream = file.OpenReadStream();
-        var result = await userService.UpdateAvatarAsync(userId, stream, file.FileName, file.ContentType, file.Length);
+        var result = await userService.UpdateAvatarAsync(userId.Value, stream, file.FileName, file.ContentType, file.Length);
 
         if (!result.Success)
         {
