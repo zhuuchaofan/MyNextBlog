@@ -143,7 +143,8 @@ builder.Services.AddSingleton<IEmailService, SmtpEmailService>(); // 真实邮�
 //   - 数据库健康检查
 //   - 这里的数据库自动备份
 builder.Services.AddScoped<ISeriesService, SeriesService>();       // 系列管理服务
-builder.Services.AddHostedService<DatabaseBackupService>();    // 数据库自动备份服务，定期将 SQLite 数据库备份到云存储。
+// TODO: PostgreSQL 备份需使用 pg_dump，暂时禁用 SQLite 备份服务
+// builder.Services.AddHostedService<DatabaseBackupService>();
 
 // --- 健康检查 (Health Checks) ---
 // ------------------------------------------------------------------
@@ -200,13 +201,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     // 使用 PostgreSQL 数据库 (通过 Npgsql 提供者)
     // 连接字符串格式: "Host=<server>;Database=<db>;Username=<user>;Password=<pass>"
-    // options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-    // `options.UseSqlite(...)`: 指定使用 SQLite 数据库。EF Core 支持多种数据库，
-    // 例如 SQL Server, PostgreSQL, MySQL 等，只需更换相应的 `Use...` 方法即可。
-    // `builder.Configuration.GetConnectionString("DefaultConnection")`: 从配置文件
-    // （例如 `appsettings.json`）中读取名为 "DefaultConnection" 的数据库连接字符串。
-    // 连接字符串包含了数据库的路径、认证信息等。
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    // SQLite 配置 (已停用)
+    // options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // --- 身份认证 (Authentication) 配置 ---
 // ------------------------------------------------------------------

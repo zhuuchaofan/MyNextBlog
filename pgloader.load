@@ -1,0 +1,32 @@
+LOAD DATABASE
+    FROM sqlite:///Volumes/fanxiang/MyTechBlog/data/blog.db
+    INTO postgresql://blog_admin:MySecureBlogDB2024!@localhost:5433/my_blog
+
+WITH data only, reset sequences, truncate
+
+SET work_mem to '128MB', maintenance_work_mem to '512 MB'
+
+CAST type integer to integer drop typemod,
+     type text to text drop typemod
+
+BEFORE LOAD DO
+    $$ SET session_replication_role = 'replica'; $$
+
+AFTER LOAD DO
+    $$ SET session_replication_role = 'origin'; $$
+
+INCLUDING ONLY TABLE NAMES MATCHING
+    'Categories', 'Tags', 'Series', 'Users', 'UserProfiles', 
+    'Posts', 'Comments', 'ImageAssets', 'PostLikes', 'PostTag'
+
+ALTER TABLE NAMES MATCHING 'Categories' RENAME TO "Categories"
+ALTER TABLE NAMES MATCHING 'Tags' RENAME TO "Tags"
+ALTER TABLE NAMES MATCHING 'Series' RENAME TO "Series"
+ALTER TABLE NAMES MATCHING 'Users' RENAME TO "Users"
+ALTER TABLE NAMES MATCHING 'UserProfiles' RENAME TO "UserProfiles"
+ALTER TABLE NAMES MATCHING 'Posts' RENAME TO "Posts"
+ALTER TABLE NAMES MATCHING 'Comments' RENAME TO "Comments"
+ALTER TABLE NAMES MATCHING 'ImageAssets' RENAME TO "ImageAssets"
+ALTER TABLE NAMES MATCHING 'PostLikes' RENAME TO "PostLikes"
+ALTER TABLE NAMES MATCHING 'PostTag' RENAME TO "PostTag"
+;

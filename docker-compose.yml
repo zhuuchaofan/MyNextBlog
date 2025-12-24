@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5433:5432"  # 主机5433映射到容器5432，避免与本地PostgreSQL冲突
+      - "5433:5432" # 主机5433映射到容器5432，避免与本地PostgreSQL冲突
 
   # === 后端服务 (.NET API) ===
   backend:
@@ -35,8 +35,8 @@ services:
       - TZ=Asia/Shanghai
       # 监听 8080 端口
       - ASPNETCORE_URLS=http://+:8080
-      # 覆盖连接字符串，指向挂载的 data 目录
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/blog.db
+      # 覆盖连接字符串，指向 PostgreSQL 容器
+      - ConnectionStrings__DefaultConnection=Host=db;Database=my_blog;Username=blog_admin;Password=${DB_PASSWORD}
 
       # === 敏感配置 (从 .env 读取) ===
       # Cloudflare R2
