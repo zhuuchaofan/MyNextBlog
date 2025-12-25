@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +32,19 @@ export default function CommentsSection({
   
   // 回复状态：当前正在回复哪个评论 ID
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
+
+  // 监听 MobileBottomBar 发出的评论成功事件
+  useEffect(() => {
+    const handleCommentAdded = (e: CustomEvent<Comment>) => {
+      setAllComments(prev => addCommentToTree(prev, e.detail));
+      setTotalCount(prev => prev + 1);
+    };
+
+    window.addEventListener('comment-added', handleCommentAdded as EventListener);
+    return () => {
+      window.removeEventListener('comment-added', handleCommentAdded as EventListener);
+    };
+  }, []);
 
   // 加载更多评论（仅在用户点击时触发）
   const loadMore = useCallback(async () => {
