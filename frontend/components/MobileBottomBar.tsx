@@ -13,6 +13,7 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerDescription,
 } from "@/components/ui/drawer";
 
 interface MobileBottomBarProps {
@@ -38,6 +39,18 @@ export default function MobileBottomBar({
   const [guestName, setGuestName] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  
+  // 评论计数（可变状态）
+  const [displayCommentCount, setDisplayCommentCount] = useState(commentCount);
+  
+  // 监听评论成功事件，同步更新计数
+  useEffect(() => {
+    const handleCommentAdded = () => {
+      setDisplayCommentCount(prev => prev + 1);
+    };
+    window.addEventListener('comment-added', handleCommentAdded);
+    return () => window.removeEventListener('comment-added', handleCommentAdded);
+  }, []);
 
   useEffect(() => {
     try {
@@ -153,9 +166,9 @@ export default function MobileBottomBar({
             >
               <div className="relative">
                 <MessageSquare className="w-6 h-6" />
-                {commentCount > 0 && (
+                {displayCommentCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] h-4 min-w-[16px] px-0.5 rounded-full flex items-center justify-center">
-                    {commentCount > 99 ? "99+" : commentCount}
+                    {displayCommentCount > 99 ? "99+" : displayCommentCount}
                   </span>
                 )}
               </div>
@@ -194,6 +207,9 @@ export default function MobileBottomBar({
         <DrawerContent className="px-4 pb-8">
           <DrawerHeader className="text-left">
             <DrawerTitle>发表评论</DrawerTitle>
+            <DrawerDescription className="text-sm text-gray-500">
+              分享你的想法，与作者和其他读者交流
+            </DrawerDescription>
           </DrawerHeader>
 
           <div className="space-y-4 px-4">
