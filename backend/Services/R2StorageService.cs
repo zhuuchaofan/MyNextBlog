@@ -50,7 +50,7 @@ public class R2StorageService : IStorageService
         // 如果调用方指定了 customPrefix (如头像上传)，则使用它；
         // 否则默认按 yyyy/MM/dd 格式归档，方便按时间管理。
         var prefix = string.IsNullOrEmpty(customPrefix) 
-            ? DateTime.Now.ToString("yyyy/MM/dd") 
+            ? DateTime.UtcNow.ToString("yyyy/MM/dd") 
             : customPrefix.TrimEnd('/');
 
         // 策略 2: 安全重命名

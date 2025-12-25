@@ -18,7 +18,7 @@ public class ImageAsset
     [MaxLength(100)]
     public string StorageKey { get; set; } = string.Empty;
 
-    public DateTime UploadTime { get; set; } = DateTime.Now;
+    public DateTime UploadTime { get; set; } = DateTime.UtcNow;
 
     public int Width { get; set; }
     public int Height { get; set; }

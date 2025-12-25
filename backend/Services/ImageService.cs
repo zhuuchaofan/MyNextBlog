@@ -28,7 +28,7 @@ public class ImageService(AppDbContext context, IStorageService storageService, 
         {
             Url = url,
             StorageKey = storageKey,
-            UploadTime = DateTime.Now,
+            UploadTime = DateTime.UtcNow,
             PostId = null,
             Width = width,
             Height = height
@@ -49,7 +49,7 @@ public class ImageService(AppDbContext context, IStorageService storageService, 
         // 优化策略：只查询最近 7 天内上传且尚未关联文章的图片。
         // 假设：作者不会引用一张 1 年前上传但一直没用过的"僵尸"图片。
         // 收益：避免全表扫描，提升保存文章时的性能。
-        var sevenDaysAgo = DateTime.Now.AddDays(-7);
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
         var pendingImages = await context.ImageAssets
             .Where(i => i.PostId == null && i.UploadTime > sevenDaysAgo)
             .ToListAsync();
@@ -115,7 +115,7 @@ public class ImageService(AppDbContext context, IStorageService storageService, 
     /// </remarks>
     public async Task<int> CleanupOrphanedImagesAsync()
     {
-        var threshold = DateTime.Now.AddHours(-24);
+        var threshold = DateTime.UtcNow.AddHours(-24);
 
         var orphans = await context.ImageAssets
             .Where(i => i.PostId == null && i.UploadTime < threshold)

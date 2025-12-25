@@ -269,7 +269,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             UserId = userId,
             SeriesId = dto.SeriesId,
             SeriesOrder = dto.SeriesOrder,
-            CreateTime = DateTime.Now
+            CreateTime = DateTime.UtcNow
         };
 
         if (dto.Tags != null && dto.Tags.Any())
@@ -329,7 +329,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         if (post != null)
         {
             post.IsDeleted = true;
-            post.DeletedAt = DateTime.Now;
+            post.DeletedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
 
             // 清除首页列表缓存

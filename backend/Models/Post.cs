@@ -38,9 +38,9 @@ public class Post
 
     /// <summary>
     /// `CreateTime` 属性记录文章的创建时间。
-    /// `= DateTime.Now`: 在创建 `Post` 实例时，自动将其初始化为当前系统时间。
+    /// `= DateTime.UtcNow`: 在创建 `Post` 实例时，自动将其初始化为当前 UTC 时间。
     /// </summary>
-    public DateTime CreateTime { get; set; } = DateTime.Now;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
     
     /// <summary>
     /// `UpdatedAt` 属性记录文章的最后修改时间。

@@ -9,7 +9,7 @@ public class Comment
     [Required]
     [MaxLength(1000)]
     public string Content { get; set; } = string.Empty;
-    public DateTime CreateTime { get; set; } = DateTime.Now;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 
     // 关系：属于哪篇文章
     public int PostId { get; set; }
