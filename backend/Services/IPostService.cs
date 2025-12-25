@@ -28,4 +28,7 @@ public interface IPostService
     Task<(List<PostSummaryDto> Posts, int TotalCount)> GetDeletedPostsAsync(int page, int pageSize);
     Task<bool> RestorePostAsync(int id);
     Task PermanentDeletePostAsync(int id);
+
+    // --- 相关文章推荐 ---
+    Task<List<PostSummaryDto>> GetRelatedPostsAsync(int postId, int count = 4);
 }

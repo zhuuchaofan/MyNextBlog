@@ -270,3 +270,8 @@ export function permanentDeletePost(id: number) {
     method: "DELETE",
   });
 }
+
+// 获取相关文章推荐
+export function fetchRelatedPosts(postId: number, count = 4) {
+  return fetchClient(`/api/backend/posts/${postId}/related?count=${count}`);
+}

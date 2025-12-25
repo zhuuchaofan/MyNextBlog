@@ -11,6 +11,7 @@ import MarkdownRenderer from '@/components/MarkdownRenderer'; // Markdown 渲染
 import PostInteractions from '@/components/PostInteractions'; // 交互组件（如点赞/分享）
 import MobileBottomBar from '@/components/MobileBottomBar'; // 移动端底部栏
 import { SeriesNavigation } from '@/components/SeriesNavigation'; // 引入系列导航
+import RelatedPosts from '@/components/RelatedPosts'; // 相关文章推荐
 import { getPost, getCommentsServer } from '@/lib/data'; // 服务端数据获取函数
 
 // 定义页面属性接口
@@ -175,6 +176,9 @@ export default async function PostPage({ params }: Props) {
               {/* 系列导航（文章末尾） */}
               <SeriesNavigation seriesInfo={post.seriesInfo} />
               
+              {/* 相关文章推荐 */}
+              <RelatedPosts postId={post.id} />
+
               <div className="border-t border-gray-100 dark:border-zinc-800 my-12"></div>
 
               {/* 评论区组件 */}

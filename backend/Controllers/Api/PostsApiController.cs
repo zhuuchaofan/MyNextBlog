@@ -375,4 +375,16 @@ public class PostsApiController(IPostService postService, ICommentService commen
         await postService.PermanentDeletePostAsync(id);
         return Ok(new { success = true, message = "文章已永久删除" });
     }
+
+    // --- 相关文章推荐 ---
+
+    /// <summary>
+    /// 获取与指定文章相关的推荐文章（公开接口）
+    /// </summary>
+    [HttpGet("{id}/related")]
+    public async Task<IActionResult> GetRelatedPosts(int id, [FromQuery] int count = 4)
+    {
+        var posts = await postService.GetRelatedPostsAsync(id, count);
+        return Ok(new { success = true, data = posts });
+    }
 }

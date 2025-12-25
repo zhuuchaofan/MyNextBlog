@@ -351,19 +351,13 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         return await context.Categories.AsNoTracking().ToListAsync();
     }
 
-        /// <summary>
-
-        /// `TogglePostVisibilityAsync` 方法用于快速切换指定文章的可见性状态。
-
-        /// （即将 `IsHidden` 从 `true` 改为 `false`，或从 `false` 改为 `true`）。
-
-        /// </summary>
-
-        /// <param name="id">要切换状态的文章的整数 ID。</param>
-
-        /// <returns>返回一个 `Task<bool>`。如果文章存在并成功切换了状态，则返回 `true`；否则返回 `false`。</returns>
-
-            public async Task<bool> TogglePostVisibilityAsync(int id)
+    /// <summary>
+    /// `TogglePostVisibilityAsync` 方法用于快速切换指定文章的可见性状态。
+    /// （即将 `IsHidden` 从 `true` 改为 `false`，或从 `false` 改为 `true`）。
+    /// </summary>
+    /// <param name="id">要切换状态的文章的整数 ID。</param>
+    /// <returns>返回一个 `Task<bool>`。如果文章存在并成功切换了状态，则返回 `true`；否则返回 `false`。</returns>
+    public async Task<bool> TogglePostVisibilityAsync(int id)
     {
         var post = await context.Posts.FindAsync(id);
         if (post == null) return false;
@@ -507,6 +501,121 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             cache.Remove($"{AllPostsCacheKey}_False");
             cache.Remove($"{AllPostsCacheKey}_True");
         }
+    }
+
+    // --- 相关文章推荐 ---
+
+    /// <summary>
+    /// 获取与指定文章相关的推荐文章
+    /// 算法：优先同系列 > 同分类 > 同标签
+    /// </summary>
+    public async Task<List<PostSummaryDto>> GetRelatedPostsAsync(int postId, int count = 4)
+    {
+        // 1. 获取当前文章信息
+        var currentPost = await context.Posts
+            .AsNoTracking()
+            .Include(p => p.Tags)
+            .FirstOrDefaultAsync(p => p.Id == postId && !p.IsDeleted);
+
+        if (currentPost == null) return new List<PostSummaryDto>();
+
+        var relatedIds = new HashSet<int>();
+        var result = new List<PostSummaryDto>();
+
+        // 2. 优先级 1: 同系列的文章
+        if (currentPost.SeriesId.HasValue)
+        {
+            var seriesPosts = await context.Posts
+                .AsNoTracking()
+                .Where(p => p.SeriesId == currentPost.SeriesId 
+                         && p.Id != postId 
+                         && !p.IsDeleted 
+                         && !p.IsHidden)
+                .OrderBy(p => p.SeriesOrder)
+                .Take(count)
+                .Select(p => new PostSummaryDto(
+                    p.Id, p.Title,
+                    p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content,
+                    p.Category != null ? p.Category.Name : "未分类",
+                    p.CategoryId,
+                    p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                    p.User != null ? p.User.AvatarUrl : null,
+                    p.CreateTime, p.UpdatedAt, null,
+                    new List<string>(), p.IsHidden, p.LikeCount, null, 0
+                ))
+                .ToListAsync();
+
+            foreach (var post in seriesPosts)
+            {
+                if (relatedIds.Add(post.Id)) result.Add(post);
+            }
+        }
+
+        // 3. 优先级 2: 同分类的文章
+        if (result.Count < count && currentPost.CategoryId.HasValue)
+        {
+            var categoryPosts = await context.Posts
+                .AsNoTracking()
+                .Where(p => p.CategoryId == currentPost.CategoryId 
+                         && p.Id != postId 
+                         && !p.IsDeleted 
+                         && !p.IsHidden)
+                .OrderByDescending(p => p.CreateTime)
+                .Take(count)
+                .Select(p => new PostSummaryDto(
+                    p.Id, p.Title,
+                    p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content,
+                    p.Category != null ? p.Category.Name : "未分类",
+                    p.CategoryId,
+                    p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                    p.User != null ? p.User.AvatarUrl : null,
+                    p.CreateTime, p.UpdatedAt, null,
+                    new List<string>(), p.IsHidden, p.LikeCount, null, 0
+                ))
+                .ToListAsync();
+
+            foreach (var post in categoryPosts)
+            {
+                if (result.Count >= count) break;
+                if (relatedIds.Add(post.Id)) result.Add(post);
+            }
+        }
+
+        // 4. 优先级 3: 同标签的文章
+        if (result.Count < count)
+        {
+            var tagIds = currentPost.Tags.Select(t => t.Id).ToList();
+            if (tagIds.Any())
+            {
+                var tagPosts = await context.Posts
+                    .AsNoTracking()
+                    .Where(p => p.Tags.Any(t => tagIds.Contains(t.Id))
+                             && p.Id != postId 
+                             && !p.IsDeleted 
+                             && !p.IsHidden)
+                    .OrderByDescending(p => p.CreateTime)
+                    .Take(count)
+                    .Select(p => new PostSummaryDto(
+                        p.Id, p.Title,
+                        p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content,
+                        p.Category != null ? p.Category.Name : "未分类",
+                        p.CategoryId,
+                        p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                        p.User != null ? p.User.AvatarUrl : null,
+                        p.CreateTime, p.UpdatedAt, null,
+                        new List<string>(), p.IsHidden, p.LikeCount, null, 0
+                    ))
+                    .ToListAsync();
+
+                foreach (var post in tagPosts)
+                {
+                    if (result.Count >= count) break;
+                    if (relatedIds.Add(post.Id)) result.Add(post);
+                }
+            }
+        }
+
+        return result.Take(count).ToList();
     }
 }
 
