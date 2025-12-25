@@ -113,4 +113,15 @@ public class Post
     public int? SeriesId { get; set; }
     public Series? Series { get; set; }
     public int SeriesOrder { get; set; } = 0; // 排序字段 (1, 2, 3...)
+
+    // --- 软删除 (Soft Delete) ---
+    /// <summary>
+    /// 软删除标记。true 表示已删除（在回收站中），false 表示正常
+    /// </summary>
+    public bool IsDeleted { get; set; } = false;
+    
+    /// <summary>
+    /// 删除时间，用于回收站排序和定期清理
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
 }

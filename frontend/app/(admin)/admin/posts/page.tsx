@@ -313,7 +313,7 @@ export default function AdminPostsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>确定要删除这篇文章吗？</AlertDialogTitle>
             <AlertDialogDescription>
-              文章 <span className="font-bold text-gray-900 dark:text-gray-100">“{postToDelete?.title}”</span> 将被永久删除，且无法恢复。
+              文章 <span className="font-bold text-gray-900 dark:text-gray-100">&ldquo;{postToDelete?.title}&rdquo;</span> 将被移至回收站，可在回收站中恢复或永久删除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

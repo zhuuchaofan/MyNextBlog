@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileText, Settings, MessageSquare, Layers } from 'lucide-react';
+import { PlusCircle, FileText, Settings, MessageSquare, Layers, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 // 管理后台首页 (Admin Dashboard)
@@ -114,6 +114,21 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold dark:text-gray-100">偏好设置</div>
               <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">分类管理、友链设置等</p>
               <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">进入设置</Button>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* 卡片 6: 回收站 */}
+        <Link href="/admin/trash" className="block h-full">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium dark:text-gray-200">回收站</CardTitle>
+              <Trash2 className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold dark:text-gray-100">已删除文章</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">恢复或永久删除文章</p>
+              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">查看回收站</Button>
             </CardContent>
           </Card>
         </Link>

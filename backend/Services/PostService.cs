@@ -61,6 +61,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         async Task<(List<PostSummaryDto>, int)> QueryPostsFromDbAsync()
         {
             var query = context.Posts.AsNoTracking().AsQueryable();
+            
+            // 排除已软删除的文章
+            query = query.Where(p => !p.IsDeleted);
 
             if (!includeHidden) query = query.Where(p => !p.IsHidden);
             if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
@@ -139,7 +142,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 一次性查询所有相关系列的可见文章
         var seriesPostsMap = await context.Posts
             .AsNoTracking()
-            .Where(p => p.SeriesId.HasValue && seriesIds.Contains(p.SeriesId.Value) && !p.IsHidden)
+            .Where(p => p.SeriesId.HasValue && seriesIds.Contains(p.SeriesId.Value) && !p.IsHidden && !p.IsDeleted)
             .OrderBy(p => p.SeriesOrder)
             .Select(p => new { p.Id, SeriesId = p.SeriesId!.Value })
             .ToListAsync();
@@ -169,6 +172,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     public async Task<Post?> GetPostByIdAsync(int id, bool includeHidden = false)
     {
         var query = context.Posts.AsNoTracking().AsQueryable();
+        
+        // 排除已软删除的文章
+        query = query.Where(p => !p.IsDeleted);
 
         if (!includeHidden)
         {
@@ -197,7 +203,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // Order by SeriesOrder
         var siblings = await context.Posts
             .AsNoTracking()
-            .Where(p => p.SeriesId == seriesId && !p.IsHidden) // Assuming series posts should be public
+            .Where(p => p.SeriesId == seriesId && !p.IsHidden && !p.IsDeleted) // Exclude hidden and deleted
             .OrderBy(p => p.SeriesOrder)
             .Select(p => new { p.Id, p.Title, p.SeriesOrder })
             .ToListAsync();
@@ -315,40 +321,18 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     }
 
     /// <summary>
-    /// `DeletePostAsync` 方法用于从数据库中删除指定 ID 的文章。
+    /// 软删除文章 - 将文章移至回收站
     /// </summary>
-    /// <param name="id">要删除的文章的整数 ID。</param>
-    /// <returns>一个 `Task`，表示异步操作的完成。</returns>
-    /// <remarks>
-    /// 这是一个复杂的删除操作，因为它涉及到级联删除逻辑：
-    ///   - **图片资源清理**: 首先会调用 `IImageService` 来清理与该文章关联的所有云端图片资源，
-    ///     防止云存储中遗留“垃圾”文件。
-    ///   - **数据库记录删除**: 然后从数据库中删除文章实体本身。
-    ///   - **EF Core 级联**: 对于文章的评论和标签关系，由于在 `AppDbContext` 中配置了
-    ///     数据库的外键级联删除规则，EF Core 会自动处理这些关联记录的删除。
-    /// </remarks>
     public async Task DeletePostAsync(int id)
     {
-        // `context.Posts.FindAsync(id)`: 异步地根据主键 ID 查找文章。
-        // `FindAsync` 是一种高效的查找方式，它会先检查 EF Core 的 Change Tracker (内存缓存) 中是否有该实体，
-        // 如果没有再查询数据库。
         var post = await context.Posts.FindAsync(id);
-        if (post != null) // 确保文章存在才执行删除
+        if (post != null)
         {
-            // 1. **清理云端图片资源 (防止产生垃圾文件)**
-            // 在删除数据库中的文章记录之前，先调用 `imageService` 来删除云存储中与此文章关联的所有图片。
-            // 这样可以确保数据的一致性，防止只删除了数据库记录，而云端文件还在的情况。
-            await imageService.DeleteImagesForPostAsync(id);
-
-            // 2. **删除文章实体**
-            // `context.Posts.Remove(post)`: 告诉 EF Core，这个 `post` 实体需要从数据库中删除。
-            context.Posts.Remove(post);
-            // `await context.SaveChangesAsync()`: 将删除操作同步到数据库。
-            // 此时，根据 `AppDbContext` 中配置的级联删除规则，与此 `post` 关联的 `Comment` 实体
-            // 和 `PostTag` (文章-标签关联表) 中的记录也会被自动删除。
+            post.IsDeleted = true;
+            post.DeletedAt = DateTime.Now;
             await context.SaveChangesAsync();
 
-            // 清除首页列表缓存 (包括普通用户和管理员的)
+            // 清除首页列表缓存
             cache.Remove($"{AllPostsCacheKey}_False");
             cache.Remove($"{AllPostsCacheKey}_True");
         }
@@ -444,6 +428,85 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // cache.Remove(AllPostsCacheKey); 
 
         return (isLiked, post.LikeCount);
+    }
+
+    // --- 回收站功能 (Trash) ---
+
+    /// <summary>
+    /// 获取回收站中的文章列表
+    /// </summary>
+    public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetDeletedPostsAsync(int page, int pageSize)
+    {
+        var query = context.Posts
+            .AsNoTracking()
+            .Where(p => p.IsDeleted);
+
+        var total = await query.CountAsync();
+
+        var data = await query
+            .OrderByDescending(p => p.DeletedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PostSummaryDto(
+                p.Id,
+                p.Title,
+                p.Content.Length > 150 ? p.Content.Substring(0, 150) + "..." : p.Content,
+                p.Category != null ? p.Category.Name : "未分类",
+                p.CategoryId,
+                p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                p.User != null ? p.User.AvatarUrl : null,
+                p.CreateTime,
+                p.UpdatedAt,
+                null, // CoverImage
+                new List<string>(), // Tags
+                p.IsHidden,
+                p.LikeCount,
+                null, // SeriesName
+                0 // SeriesOrder
+            ))
+            .ToListAsync();
+
+        return (data, total);
+    }
+
+    /// <summary>
+    /// 恢复回收站中的文章
+    /// </summary>
+    public async Task<bool> RestorePostAsync(int id)
+    {
+        var post = await context.Posts.FindAsync(id);
+        if (post == null || !post.IsDeleted) return false;
+
+        post.IsDeleted = false;
+        post.DeletedAt = null;
+        await context.SaveChangesAsync();
+
+        // 清除缓存
+        cache.Remove($"{AllPostsCacheKey}_False");
+        cache.Remove($"{AllPostsCacheKey}_True");
+
+        return true;
+    }
+
+    /// <summary>
+    /// 永久删除文章（物理删除 + 清理云端图片）
+    /// </summary>
+    public async Task PermanentDeletePostAsync(int id)
+    {
+        var post = await context.Posts.FindAsync(id);
+        if (post != null)
+        {
+            // 清理云端图片资源
+            await imageService.DeleteImagesForPostAsync(id);
+
+            // 物理删除
+            context.Posts.Remove(post);
+            await context.SaveChangesAsync();
+
+            // 清除缓存
+            cache.Remove($"{AllPostsCacheKey}_False");
+            cache.Remove($"{AllPostsCacheKey}_True");
+        }
     }
 }
 

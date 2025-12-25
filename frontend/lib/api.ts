@@ -250,3 +250,23 @@ export function fetchNextSeriesOrder(seriesId: number) {
     return fetchClient<{ success: boolean; data: number }>(`/api/backend/series/${seriesId}/next-order`);
 }
 
+// --- 回收站功能 (Trash) ---
+
+// [Admin] 获取回收站中的文章列表
+export function fetchDeletedPosts(page = 1, pageSize = 10) {
+  return fetchClient(`/api/backend/posts/trash?page=${page}&pageSize=${pageSize}`);
+}
+
+// [Admin] 恢复文章
+export function restorePost(id: number) {
+  return fetchClient(`/api/backend/posts/${id}/restore`, {
+    method: "POST",
+  });
+}
+
+// [Admin] 永久删除文章
+export function permanentDeletePost(id: number) {
+  return fetchClient(`/api/backend/posts/${id}/permanent`, {
+    method: "DELETE",
+  });
+}

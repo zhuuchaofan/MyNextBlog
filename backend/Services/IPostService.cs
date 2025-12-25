@@ -23,4 +23,9 @@ public interface IPostService
     // 切换点赞状态 (Toggle)
     // 返回值: (IsLiked: 当前是否已赞, NewLikeCount: 最新的点赞总数)
     Task<(bool IsLiked, int NewLikeCount)> ToggleLikeAsync(int postId, int? userId, string? ipAddress);
+
+    // --- 回收站功能 (Trash) ---
+    Task<(List<PostSummaryDto> Posts, int TotalCount)> GetDeletedPostsAsync(int page, int pageSize);
+    Task<bool> RestorePostAsync(int id);
+    Task PermanentDeletePostAsync(int id);
 }

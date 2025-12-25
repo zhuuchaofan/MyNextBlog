@@ -329,4 +329,50 @@ public class PostsApiController(IPostService postService, ICommentService commen
             return NotFound(new { success = false, message = "文章不存在" });
         }
     }
+
+    // --- 回收站功能 (Trash) ---
+
+    /// <summary>
+    /// 获取回收站中的文章列表
+    /// </summary>
+    [HttpGet("trash")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetDeletedPosts(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var (posts, totalCount) = await postService.GetDeletedPostsAsync(page, pageSize);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return Ok(new
+        {
+            success = true,
+            data = posts,
+            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages }
+        });
+    }
+
+    /// <summary>
+    /// 恢复回收站中的文章
+    /// </summary>
+    [HttpPost("{id}/restore")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> RestorePost(int id)
+    {
+        var success = await postService.RestorePostAsync(id);
+        if (!success) return NotFound(new { success = false, message = "文章不存在或未被删除" });
+
+        return Ok(new { success = true, message = "文章已恢复" });
+    }
+
+    /// <summary>
+    /// 永久删除文章（物理删除）
+    /// </summary>
+    [HttpDelete("{id}/permanent")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> PermanentDeletePost(int id)
+    {
+        await postService.PermanentDeletePostAsync(id);
+        return Ok(new { success = true, message = "文章已永久删除" });
+    }
 }
