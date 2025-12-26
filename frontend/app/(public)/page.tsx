@@ -95,11 +95,12 @@ async function getSiteContent(key: string): Promise<string | null> {
 // 数据获取发生在服务端，浏览器接收到的是已经填充好数据的 HTML。
 export default async function Home() {
   // 并行获取文章、标签和主页内容
-  const [postsData, popularTags, homepageIntro, authorJson] = await Promise.all([
+  const [postsData, popularTags, homepageIntro, authorJson, petsJson] = await Promise.all([
     getInitialPosts(),
     getPopularTags(),
     getSiteContent('homepage_intro'),
-    getSiteContent('about_author')
+    getSiteContent('about_author'),
+    getSiteContent('about_pets')
   ]);
 
   // 解析作者信息
@@ -111,6 +112,18 @@ export default async function Home() {
   if (authorJson) {
     try {
       author = JSON.parse(authorJson);
+    } catch { /* 使用默认值 */ }
+  }
+
+  // 解析宠物信息
+  interface PetItem { name: string; avatar: string; role?: string; description?: string; }
+  let pets: PetItem[] = [
+    { name: PETS.qiuqiu.name, avatar: PETS.qiuqiu.avatar },
+    { name: PETS.pudding.name, avatar: PETS.pudding.avatar }
+  ];
+  if (petsJson) {
+    try {
+      pets = JSON.parse(petsJson);
     } catch { /* 使用默认值 */ }
   }
 
@@ -138,7 +151,7 @@ export default async function Home() {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
-              {PETS.qiuqiu.name} & {PETS.pudding.name}的 <br/>
+              {pets[0]?.name || "猫咪"} & {pets[1]?.name || "猫咪"}的 <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600 dark:from-orange-400 dark:to-pink-500">
                 技术后花园
               </span>
@@ -170,23 +183,27 @@ export default async function Home() {
           <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white dark:from-orange-900/20 dark:to-zinc-800/20 rounded-full animate-pulse"></div>
             <div className="relative w-full h-full bg-white/50 dark:bg-zinc-800/50 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-zinc-700/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
+               {pets[0]?.avatar && (
                <Image 
-                 src={PETS.qiuqiu.avatar} 
-                 alt={PETS.qiuqiu.name} 
+                 src={pets[0].avatar} 
+                 alt={pets[0].name} 
                  fill 
                  priority={true} // 优先级加载 (LCP 优化)
                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                  className="object-cover rounded-3xl transition-transform duration-700 group-hover:scale-110" 
                />
+               )}
+               {pets[1]?.avatar && (
                <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl overflow-hidden shadow-2xl animate-bounce duration-1000">
                  <Image 
-                   src={PETS.pudding.avatar} 
-                   alt={PETS.pudding.name} 
+                   src={pets[1].avatar} 
+                   alt={pets[1].name} 
                    fill 
                    sizes="20vw" // Smaller image
                    className="object-cover" 
                  />
                </div>
+               )}
             </div>
           </div>
         </div>
