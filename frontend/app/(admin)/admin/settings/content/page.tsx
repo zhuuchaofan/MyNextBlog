@@ -197,17 +197,17 @@ export default function ContentSettingsPage() {
                         </div>
                       )}
                       
-                      {/* 内容输入框 */}
+                      {/* 内容输入框 - 移动端使用更小的高度 */}
                       <Textarea
                         id={key}
                         value={contents[key] || ""}
                         onChange={(e) => setContents({ ...contents, [key]: e.target.value })}
-                        rows={isJson ? 8 : 4}
+                        rows={isJson ? 6 : 3}
                         placeholder={isJson 
                           ? "输入 JSON 格式数据" 
                           : "输入内容，支持 HTML 标签"
                         }
-                        className="font-mono text-sm resize-y flex-grow"
+                        className={`font-mono text-sm resize-y flex-grow ${isJson ? "min-h-[150px] md:min-h-[200px]" : "min-h-[80px]"}`}
                       />
                       
                       {/* 操作按钮 */}
