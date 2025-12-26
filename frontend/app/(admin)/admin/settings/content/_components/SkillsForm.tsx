@@ -124,8 +124,8 @@ export default function SkillsForm({ value, onChange }: SkillsFormProps) {
             <div className="p-2 space-y-1.5">
               {cat.skills.map((skill, skillIndex) => (
                 <div key={skillIndex} className="flex items-center gap-1.5">
-                  <Select value={skill.icon} onValueChange={(v) => updateSkill(catIndex, skillIndex, "icon", v)}>
-                    <SelectTrigger className="w-20 h-7 text-[10px]">
+                  <Select value={skill.icon} onValueChange={(v: string) => updateSkill(catIndex, skillIndex, "icon", v)}>
+                    <SelectTrigger className="w-24 h-7 text-[10px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -140,8 +140,8 @@ export default function SkillsForm({ value, onChange }: SkillsFormProps) {
                     placeholder="技能名"
                     className="flex-1 h-7 text-xs"
                   />
-                  <Select value={skill.level} onValueChange={(v) => updateSkill(catIndex, skillIndex, "level", v)}>
-                    <SelectTrigger className="w-16 h-7 text-[10px]">
+                  <Select value={skill.level} onValueChange={(v: string) => updateSkill(catIndex, skillIndex, "level", v)}>
+                    <SelectTrigger className="w-20 h-7 text-[10px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

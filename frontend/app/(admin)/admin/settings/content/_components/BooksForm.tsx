@@ -48,8 +48,8 @@ export default function BooksForm({ value, onChange }: BooksFormProps) {
     <div className="space-y-3">
       {books.map((book, index) => (
         <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
-          <Select value={book.cover} onValueChange={(v) => updateBook(index, "cover", v)}>
-            <SelectTrigger className="w-14 h-8 text-lg">
+          <Select value={book.cover} onValueChange={(v: string) => updateBook(index, "cover", v)}>
+            <SelectTrigger className="w-16 h-8 text-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -64,8 +64,8 @@ export default function BooksForm({ value, onChange }: BooksFormProps) {
             placeholder="书名"
             className="flex-1 h-8 text-sm"
           />
-          <Select value={book.status} onValueChange={(v) => updateBook(index, "status", v)}>
-            <SelectTrigger className="w-24 h-8 text-xs">
+          <Select value={book.status} onValueChange={(v: string) => updateBook(index, "status", v)}>
+            <SelectTrigger className="w-20 h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
