@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Save, Loader2, RefreshCw, Home, User, ChevronLeft } from "lucide-react";
+import { Save, Loader2, RefreshCw, Home, User, ChevronLeft, Wrench, Clock, BookOpen, Cpu, Cat, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -17,9 +17,23 @@ interface SiteContent {
   updatedAt: string;
 }
 
-const CONTENT_KEYS = [
+interface ContentKeyConfig {
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+  isJson?: boolean; // 是否为 JSON 格式
+}
+
+const CONTENT_KEYS: ContentKeyConfig[] = [
   { key: "homepage_intro", label: "主页介绍", icon: Home, description: "显示在首页 Hero 区域的欢迎文字" },
   { key: "about_intro", label: "关于我介绍", icon: User, description: "显示在关于我页面的个人介绍" },
+  { key: "about_author", label: "作者信息", icon: UserCircle, description: "作者基本信息（名字、头像、位置、社交链接）", isJson: true },
+  { key: "about_skills", label: "技能树", icon: Wrench, description: "技能分类和熟练度", isJson: true },
+  { key: "about_timeline", label: "个人经历", icon: Clock, description: "时间线形式的个人经历", isJson: true },
+  { key: "about_books", label: "阅读书单", icon: BookOpen, description: "正在阅读或计划阅读的书籍", isJson: true },
+  { key: "about_gears", label: "装备清单", icon: Cpu, description: "使用的硬件和软件", isJson: true },
+  { key: "about_pets", label: "宠物信息", icon: Cat, description: "宠物介绍（猫主子们）", isJson: true },
 ];
 
 export default function ContentSettingsPage() {
@@ -109,36 +123,80 @@ export default function ContentSettingsPage() {
         </div>
       ) : (
         <div className="grid gap-6">
-          {CONTENT_KEYS.map(({ key, label, icon: Icon, description }) => (
+          {CONTENT_KEYS.map(({ key, label, icon: Icon, description, isJson }) => (
             <Card key={key} className="border-gray-100 dark:border-zinc-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Icon className="w-5 h-5 text-orange-500" />
                   {label}
+                  {isJson && (
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-normal">
+                      JSON
+                    </span>
+                  )}
                 </CardTitle>
                 <CardDescription>{description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor={key}>内容 (支持 HTML)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={key}>
+                      {isJson ? "JSON 内容" : "内容 (支持 HTML)"}
+                    </Label>
+                    {isJson && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-gray-500"
+                        onClick={() => {
+                          try {
+                            const formatted = JSON.stringify(JSON.parse(contents[key] || "{}"), null, 2);
+                            setContents({ ...contents, [key]: formatted });
+                            toast.success("JSON 已格式化");
+                          } catch {
+                            toast.error("JSON 格式无效，无法格式化");
+                          }
+                        }}
+                      >
+                        格式化 JSON
+                      </Button>
+                    )}
+                  </div>
                   <Textarea
                     id={key}
                     value={contents[key] || ""}
                     onChange={(e) => setContents({ ...contents, [key]: e.target.value })}
-                    rows={6}
-                    placeholder="输入内容，支持 HTML 标签如 <strong>, <br/>, <code> 等"
+                    rows={isJson ? 12 : 6}
+                    placeholder={isJson 
+                      ? "输入 JSON 格式数据" 
+                      : "输入内容，支持 HTML 标签如 <strong>, <br/>, <code> 等"
+                    }
                     className="font-mono text-sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <Link 
-                    href={key === "homepage_intro" ? "/" : "/about"} 
+                    href="/about" 
                     target="_blank"
                     className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     预览页面 →
                   </Link>
-                  <Button onClick={() => handleSave(key)} disabled={saving === key}>
+                  <Button 
+                    onClick={() => {
+                      // JSON 类型保存前校验
+                      if (isJson && contents[key]) {
+                        try {
+                          JSON.parse(contents[key]);
+                        } catch {
+                          toast.error("JSON 格式无效，请检查后再保存");
+                          return;
+                        }
+                      }
+                      handleSave(key);
+                    }} 
+                    disabled={saving === key}
+                  >
                     {saving === key ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (

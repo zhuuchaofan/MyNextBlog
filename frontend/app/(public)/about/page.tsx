@@ -54,8 +54,88 @@ async function getSiteContent(key: string): Promise<string | null> {
   }
 }
 
+// 解析 JSON 配置，失败时返回默认值
+function parseJsonConfig<T>(jsonStr: string | null, defaultValue: T): T {
+  if (!jsonStr) return defaultValue;
+  try {
+    return JSON.parse(jsonStr) as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+// 定义类型
+interface AuthorConfig {
+  name: string;
+  avatar: string;
+  location: string;
+  description: string;
+  social: { github: string; twitter: string; email: string };
+}
+
+interface SkillCategory {
+  title: string;
+  skills: { name: string; icon: string; level: string }[];
+}
+
+interface TimelineItem {
+  year: string;
+  title: string;
+  description: string;
+}
+
+interface BookItem {
+  title: string;
+  status: string;
+  cover: string;
+}
+
+interface GearCategory {
+  category: string;
+  items: string[];
+}
+
+interface PetInfo {
+  name: string;
+  role: string;
+  avatar: string;
+  description: string;
+}
+
+// 获取关于页面所有配置数据
+async function getAboutPageData() {
+  const [aboutIntro, authorJson, skillsJson, timelineJson, booksJson, gearsJson, petsJson] = await Promise.all([
+    getSiteContent('about_intro'),
+    getSiteContent('about_author'),
+    getSiteContent('about_skills'),
+    getSiteContent('about_timeline'),
+    getSiteContent('about_books'),
+    getSiteContent('about_gears'),
+    getSiteContent('about_pets'),
+  ]);
+
+  // 使用 constants.ts 中的值作为默认回退
+  const author = parseJsonConfig<AuthorConfig>(authorJson, {
+    name: SITE_CONFIG.author,
+    avatar: SITE_CONFIG.avatar,
+    location: "日本·东京 (出向中)",
+    description: SITE_CONFIG.description,
+    social: SITE_CONFIG.social,
+  });
+
+  return {
+    aboutIntro: aboutIntro || `${SITE_CONFIG.description}。欢迎一起交流！`,
+    author,
+    skills: parseJsonConfig<SkillCategory[]>(skillsJson, SKILL_CATEGORIES),
+    timeline: parseJsonConfig<TimelineItem[]>(timelineJson, TIMELINE),
+    books: parseJsonConfig<BookItem[]>(booksJson, BOOKS),
+    gears: parseJsonConfig<GearCategory[]>(gearsJson, GEARS),
+    pets: parseJsonConfig<PetInfo[]>(petsJson, Object.values(PETS)),
+  };
+}
+
 export default async function AboutPage() {
-  const aboutIntro = await getSiteContent('about_intro');
+  const { aboutIntro, author, skills, timeline, books, gears, pets } = await getAboutPageData();
   return (
     <div className="relative min-h-screen">
       {/* 背景装饰：已移至全局 Layout */}
@@ -68,7 +148,7 @@ export default async function AboutPage() {
              <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
              <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full border-4 border-white dark:border-zinc-900 shadow-2xl overflow-hidden bg-white">
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={SITE_CONFIG.avatar} alt="Avatar" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+               <img src={author.avatar} alt="Avatar" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
              </div>
              <div className="absolute bottom-2 right-2 bg-white dark:bg-zinc-800 p-2.5 rounded-full shadow-lg text-2xl border border-gray-100 dark:border-zinc-700 animate-bounce delay-1000 duration-3000">
                👨‍💻
@@ -78,34 +158,32 @@ export default async function AboutPage() {
           <div className="text-center md:text-left flex-1 space-y-5">
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight mb-3">
-                你好，我是 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">{SITE_CONFIG.author}</span>
+                你好，我是 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">{author.name}</span>
                 <span className="ml-3 text-3xl inline-block animate-wave origin-[70%_70%]">👋</span>
               </h1>
               <p className="text-xl text-gray-500 dark:text-gray-400 font-medium flex flex-wrap justify-center md:justify-start gap-2 items-center">
-                <MapPin className="w-5 h-5" /> 日本·东京 (出向中)
+                <MapPin className="w-5 h-5" /> {author.location}
               </p>
             </div>
             
             <p 
               className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed"
-              dangerouslySetInnerHTML={{ 
-                __html: aboutIntro || `${SITE_CONFIG.description}。欢迎一起交流！` 
-              }}
+              dangerouslySetInnerHTML={{ __html: aboutIntro }}
             />
   
             <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
               <Button className="rounded-full gap-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 shadow-sm" asChild>
-                <Link href={SITE_CONFIG.social.github} target="_blank">
+                <Link href={author.social.github} target="_blank">
                    <Github className="w-4 h-4" /> Github
                 </Link>
               </Button>
               <Button variant="outline" className="rounded-full gap-2 hover:bg-gray-100 dark:hover:bg-zinc-800" asChild>
-                <Link href={SITE_CONFIG.social.twitter} target="_blank">
+                <Link href={author.social.twitter} target="_blank">
                   <Twitter className="w-4 h-4 text-blue-400" /> Twitter
                 </Link>
               </Button>
               <Button variant="outline" className="rounded-full gap-2 hover:bg-gray-100 dark:hover:bg-zinc-800" asChild>
-                <Link href={`mailto:${SITE_CONFIG.social.email}`}>
+                <Link href={`mailto:${author.social.email}`}>
                   <Mail className="w-4 h-4 text-orange-500" /> Email
                 </Link>
               </Button>
@@ -121,7 +199,7 @@ export default async function AboutPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {SKILL_CATEGORIES.map((category, index) => (
+            {skills.map((category, index) => (
               <Card key={category.title} className="border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all duration-300 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
                 <CardHeader className="pb-3 border-b border-gray-50 dark:border-zinc-800/50">
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -162,7 +240,7 @@ export default async function AboutPage() {
                   </CardTitle>
                </CardHeader>
                <CardContent className="space-y-5">
-                  {GEARS.map(g => (
+                  {gears.map(g => (
                     <div key={g.category}>
                       <h4 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">{g.category}</h4>
                       <ul className="space-y-2">
@@ -186,8 +264,8 @@ export default async function AboutPage() {
                    </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                   {BOOKS.length > 0 ? (
-                     BOOKS.map((book) => (
+                   {books.length > 0 ? (
+                     books.map((book) => (
                        <div key={book.title} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                           <div className="text-xl flex-shrink-0 mt-0.5">{book.cover}</div>
                           <div className="min-w-0">
@@ -217,7 +295,7 @@ export default async function AboutPage() {
                </CardHeader>
                <CardContent>
                  <div className="relative border-l border-gray-200 dark:border-zinc-700 ml-8 space-y-8 pl-6 py-2">
-                   {TIMELINE.map((item, index) => (
+                   {timeline.map((item, index) => (
                      <div key={index} className="relative group">
                        <span className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-zinc-900 ${index === 0 ? "bg-orange-500" : "bg-gray-300 dark:bg-zinc-600"} group-hover:scale-110 transition-transform`}></span>
                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
@@ -243,7 +321,7 @@ export default async function AboutPage() {
                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">猫主子</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {Object.values(PETS).map((pet) => (
+                  {pets.map((pet) => (
                     <Card key={pet.name} className="overflow-hidden border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:border-orange-200 dark:hover:border-orange-900 transition-colors group">
                        <CardContent className="p-4 flex gap-4 items-start relative">
                          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-50 to-transparent dark:from-orange-900/10 rounded-bl-full opacity-50"></div>
