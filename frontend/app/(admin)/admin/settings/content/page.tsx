@@ -145,7 +145,7 @@ export default function ContentSettingsPage() {
               {/* 配置项列表 - JSON 类型使用两列 */}
               <div className={`grid gap-4 ${group.items[0]?.isJson ? "md:grid-cols-2" : ""}`}>
                 {group.items.map(({ key, label, icon: Icon, description, isJson, previewUrl }) => (
-                  <Card key={key} className="border-gray-100 dark:border-zinc-800">
+                  <Card key={key} className="border-gray-100 dark:border-zinc-800 h-full flex flex-col">
                     <CardHeader className="pb-3">
                       <CardTitle className="flex items-center gap-2 text-base">
                         <Icon className="w-4 h-4 text-orange-500" />
@@ -158,7 +158,7 @@ export default function ContentSettingsPage() {
                       </CardTitle>
                       <CardDescription className="text-xs">{description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3 pt-0">
+                    <CardContent className="space-y-3 pt-0 flex-grow flex flex-col">
                       {/* JSON 操作按钮 */}
                       {isJson && (
                         <div className="flex items-center gap-2">
@@ -202,12 +202,12 @@ export default function ContentSettingsPage() {
                         id={key}
                         value={contents[key] || ""}
                         onChange={(e) => setContents({ ...contents, [key]: e.target.value })}
-                        rows={isJson ? 10 : 4}
+                        rows={isJson ? 8 : 4}
                         placeholder={isJson 
                           ? "输入 JSON 格式数据" 
                           : "输入内容，支持 HTML 标签"
                         }
-                        className="font-mono text-sm resize-y"
+                        className="font-mono text-sm resize-y flex-grow"
                       />
                       
                       {/* 操作按钮 */}
