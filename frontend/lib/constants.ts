@@ -43,7 +43,7 @@ export const SKILL_CATEGORIES = [
     title: "前端 (业余)",
     skills: [
       { name: "React", icon: "Layout", level: "掌握" },
-      { name: "Next.js 15", icon: "Globe", level: "掌握" },
+      { name: "Next.js 16", icon: "Globe", level: "掌握" },
       { name: "TypeScript", icon: "Code2", level: "掌握" },
       { name: "Tailwind CSS", icon: "Palette", level: "掌握" }
     ]

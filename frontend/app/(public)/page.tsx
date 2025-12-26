@@ -115,8 +115,10 @@ export default async function Home() {
             </h1>
             
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl">
-              这里不仅有 .NET 与 Next.js 的硬核技术干货，还有两只猫主子的软萌日常。
-              在这个数字化的角落，我们用代码构建世界，用猫毛点缀生活。
+              欢迎来到 <strong>.NET 10</strong> ✖️ <strong>Next.js 16</strong> 的代码小窝！🚀<br/><br/>
+              这儿不是什么严肃实验室，更像是一个全栈开发者的「玩乐高」现场：后端搭城堡，前端涂颜色，偶尔用 Docker 打包成礼物，扔到云上飘一飘～<br/><br/>
+              不管你是摸爬滚打多年的技术大神，还是刚刚好奇探出小脑袋的新手，都欢迎来坐坐！茶水自备，代码共写——我家两只猫主子已经蹲在键盘旁监工了 🐱👩‍💻（它们主要负责给代码「踩踩」优化）<br/><br/>
+              一起愉快地搞点有意思的东西吧！
             </p>
             
             <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">

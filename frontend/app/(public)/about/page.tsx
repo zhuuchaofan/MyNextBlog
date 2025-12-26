@@ -71,12 +71,13 @@ export default function AboutPage() {
             </div>
             
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
-              {SITE_CONFIG.description}。
-              热衷于构建高性能 Web 应用，目前专注于 
-              <code className="mx-1.5 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-mono text-base border border-blue-100 dark:border-blue-800">.NET</code> 
+              {SITE_CONFIG.description}。<br/>
+              我相信最好的学习方式是「边做边学」——这个博客就是我的技术试验田 🌱<br/>
+              专注于 
+              <code className="mx-1.5 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-mono text-base border border-blue-100 dark:border-blue-800">.NET 10</code> 
               与 
-              <code className="mx-1.5 px-2 py-0.5 rounded bg-black dark:bg-zinc-100 text-white dark:text-black font-mono text-base border border-gray-800">Next.js</code> 
-              生态。
+              <code className="mx-1.5 px-2 py-0.5 rounded bg-black dark:bg-zinc-100 text-white dark:text-black font-mono text-base border border-gray-800">Next.js 16</code> 
+              生态，从实战中总结经验，与你分享成长路上的点滴。欢迎一起交流！
             </p>
   
             <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
