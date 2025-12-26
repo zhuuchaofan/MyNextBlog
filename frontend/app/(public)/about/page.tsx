@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Github, Mail, Twitter, 
   Code2, Database, Layout, Server, Terminal, Cpu, Globe, Palette, Cloud, Container, GitGraph,
-  BookOpen, Wrench, Briefcase, GraduationCap, MapPin, Calendar
+  BookOpen, Wrench, Briefcase, MapPin, Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG, PETS, SKILL_CATEGORIES, BOOKS, TIMELINE, GEARS } from "@/lib/constants"; 
@@ -39,7 +39,23 @@ const skillLevelColors: Record<string, string> = {
   "初学": "bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 border-gray-200",
 };
 
-export default function AboutPage() {
+// 获取站点配置内容 (Server-Side)
+async function getSiteContent(key: string): Promise<string | null> {
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  try {
+    const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
+      next: { revalidate: 60 }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.success ? json.data.value : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function AboutPage() {
+  const aboutIntro = await getSiteContent('about_intro');
   return (
     <div className="relative min-h-screen">
       {/* 背景装饰：已移至全局 Layout */}
@@ -70,15 +86,12 @@ export default function AboutPage() {
               </p>
             </div>
             
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
-              {SITE_CONFIG.description}。<br/>
-              我相信最好的学习方式是「边做边学」——这个博客就是我的技术试验田 🌱<br/>
-              专注于 
-              <code className="mx-1.5 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-mono text-base border border-blue-100 dark:border-blue-800">.NET 10</code> 
-              与 
-              <code className="mx-1.5 px-2 py-0.5 rounded bg-black dark:bg-zinc-100 text-white dark:text-black font-mono text-base border border-gray-800">Next.js 16</code> 
-              生态，从实战中总结经验，与你分享成长路上的点滴。欢迎一起交流！
-            </p>
+            <p 
+              className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed"
+              dangerouslySetInnerHTML={{ 
+                __html: aboutIntro || `${SITE_CONFIG.description}。欢迎一起交流！` 
+              }}
+            />
   
             <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
               <Button className="rounded-full gap-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 shadow-sm" asChild>

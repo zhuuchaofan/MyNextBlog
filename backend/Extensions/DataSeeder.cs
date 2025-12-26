@@ -54,6 +54,26 @@ public static class DataSeederExtensions
                     // 所有的 Add/Update 操作都只是在内存中标记，只有调用 SaveChanges 才会生成 SQL 语句并发给数据库。
                     context.SaveChanges();
                 }
+
+                // 播种站点内容配置
+                if (!context.SiteContents.Any())
+                {
+                    context.SiteContents.AddRange(
+                        new SiteContent 
+                        { 
+                            Key = "homepage_intro", 
+                            Description = "主页介绍文字",
+                            Value = "欢迎来到 <strong>.NET 10</strong> ✖️ <strong>Next.js 16</strong> 的代码小窝！🚀<br/><br/>这儿不是什么严肃实验室，更像是一个全栈开发者的「玩乐高」现场：后端搭城堡，前端涂颜色，偶尔用 Docker 打包成礼物，扔到云上飘一飘～<br/><br/>不管你是摸爬滚打多年的技术大神，还是刚刚好奇探出小脑袋的新手，都欢迎来坐坐！茶水自备，代码共写——我家两只猫主子已经蹲在键盘旁监工了 🐱👩‍💻（它们主要负责给代码「踩踩」优化）<br/><br/>一起愉快地搞点有意思的东西吧！"
+                        },
+                        new SiteContent 
+                        { 
+                            Key = "about_intro", 
+                            Description = "关于我页面介绍",
+                            Value = "我相信最好的学习方式是「边做边学」——这个博客就是我的技术试验田 🌱<br/>专注于 <code>.NET 10</code> 与 <code>Next.js 16</code> 生态，从实战中总结经验，与你分享成长路上的点滴。欢迎一起交流！"
+                        }
+                    );
+                    context.SaveChanges();
+                }
             }
             catch (Exception ex)
             {

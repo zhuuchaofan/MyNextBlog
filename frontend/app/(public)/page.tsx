@@ -75,13 +75,31 @@ async function getPopularTags() {
   }
 }
 
+// 获取站点配置内容 (Server-Side)
+async function getSiteContent(key: string): Promise<string | null> {
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  try {
+    const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
+      next: { revalidate: 60 } // 缓存 60 秒
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.success ? json.data.value : null;
+  } catch {
+    return null;
+  }
+}
+
 // 首页组件 (Server Component)
 // 这是一个 Async 组件，可以直接在组件内部使用 `await` 获取数据。
 // 数据获取发生在服务端，浏览器接收到的是已经填充好数据的 HTML。
 export default async function Home() {
-  // 并行获取文章和标签数据
-  const postsData = await getInitialPosts();
-  const popularTags = await getPopularTags();
+  // 并行获取文章、标签和主页内容
+  const [postsData, popularTags, homepageIntro] = await Promise.all([
+    getInitialPosts(),
+    getPopularTags(),
+    getSiteContent('homepage_intro')
+  ]);
 
   // 检查是否登录 (简单判断 Token)
   // 后端会进行实际的权限验证，所以这里主要用于控制 UI 显示
@@ -114,12 +132,12 @@ export default async function Home() {
               <span className="ml-2 text-4xl md:text-6xl align-middle">🏡</span>
             </h1>
             
-            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl">
-              欢迎来到 <strong>.NET 10</strong> ✖️ <strong>Next.js 16</strong> 的代码小窝！🚀<br/><br/>
-              这儿不是什么严肃实验室，更像是一个全栈开发者的「玩乐高」现场：后端搭城堡，前端涂颜色，偶尔用 Docker 打包成礼物，扔到云上飘一飘～<br/><br/>
-              不管你是摸爬滚打多年的技术大神，还是刚刚好奇探出小脑袋的新手，都欢迎来坐坐！茶水自备，代码共写——我家两只猫主子已经蹲在键盘旁监工了 🐱👩‍💻（它们主要负责给代码「踩踩」优化）<br/><br/>
-              一起愉快地搞点有意思的东西吧！
-            </p>
+            <p 
+              className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl"
+              dangerouslySetInnerHTML={{ 
+                __html: homepageIntro || '欢迎来到这里！' 
+              }}
+            />
             
             <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
               <Link href="/archive">
