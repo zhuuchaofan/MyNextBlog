@@ -83,14 +83,29 @@ export default function ContentSettingsPage() {
   }, [fetchContents]);
 
   // 保存单个内容
-  const handleSave = async (key: string) => {
+  const handleSave = async (key: string, isJson?: boolean) => {
+    let valueToSave = contents[key] || "";
+    
+    // JSON 类型自动格式化
+    if (isJson && valueToSave) {
+      try {
+        const parsed = JSON.parse(valueToSave);
+        valueToSave = JSON.stringify(parsed, null, 2);
+        // 同时更新本地状态
+        setContents(prev => ({ ...prev, [key]: valueToSave }));
+      } catch {
+        toast.error("JSON 格式无效，请检查后再保存");
+        return;
+      }
+    }
+    
     setSaving(key);
     try {
       const res = await fetch(`/api/backend/site-content/${key}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ value: contents[key] || "" }),
+        body: JSON.stringify({ value: valueToSave }),
       });
 
       if (res.ok) {
@@ -107,7 +122,7 @@ export default function ContentSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl overflow-x-hidden">
       {/* 头部导航 - 与文章管理、评论管理一致 */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
@@ -222,17 +237,7 @@ export default function ContentSettingsPage() {
                         </Link>
                         <Button 
                           size="sm"
-                          onClick={() => {
-                            if (isJson && contents[key]) {
-                              try {
-                                JSON.parse(contents[key]);
-                              } catch {
-                                toast.error("JSON 格式无效");
-                                return;
-                              }
-                            }
-                            handleSave(key);
-                          }} 
+                          onClick={() => handleSave(key, isJson)} 
                           disabled={saving === key}
                         >
                           {saving === key ? (
