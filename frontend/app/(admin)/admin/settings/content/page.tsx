@@ -9,6 +9,24 @@ import { Save, Loader2, RefreshCw, Home, User, ChevronLeft, Wrench, Clock, BookO
 import { toast } from "sonner";
 import Link from "next/link";
 
+// 表单组件
+import AuthorForm from "./_components/AuthorForm";
+import BooksForm from "./_components/BooksForm";
+import GearsForm from "./_components/GearsForm";
+import PetsForm from "./_components/PetsForm";
+import TimelineForm from "./_components/TimelineForm";
+import SkillsForm from "./_components/SkillsForm";
+
+// 表单组件映射
+const FORM_COMPONENTS: Record<string, React.ComponentType<{ value: string; onChange: (json: string) => void }>> = {
+  about_author: AuthorForm,
+  about_books: BooksForm,
+  about_gears: GearsForm,
+  about_pets: PetsForm,
+  about_timeline: TimelineForm,
+  about_skills: SkillsForm,
+};
+
 interface SiteContent {
   key: string;
   value: string;
@@ -174,57 +192,29 @@ export default function ContentSettingsPage() {
                       <CardDescription className="text-xs">{description}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-0 flex-grow flex flex-col">
-                      {/* JSON 操作按钮 */}
-                      {isJson && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => {
-                              try {
-                                const formatted = JSON.stringify(JSON.parse(contents[key] || "{}"), null, 2);
-                                setContents({ ...contents, [key]: formatted });
-                                toast.success("已格式化");
-                              } catch {
-                                toast.error("JSON 格式无效");
-                              }
-                            }}
-                          >
-                            格式化
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => {
-                              try {
-                                const minified = JSON.stringify(JSON.parse(contents[key] || "{}"));
-                                setContents({ ...contents, [key]: minified });
-                                toast.success("已压缩");
-                              } catch {
-                                toast.error("JSON 格式无效");
-                              }
-                            }}
-                          >
-                            压缩
-                          </Button>
-                        </div>
+                      {/* 根据类型渲染不同的编辑器 */}
+                      {isJson && FORM_COMPONENTS[key] ? (
+                        // 使用表单组件
+                        (() => {
+                          const FormComponent = FORM_COMPONENTS[key];
+                          return (
+                            <FormComponent
+                              value={contents[key] || ""}
+                              onChange={(json) => setContents({ ...contents, [key]: json })}
+                            />
+                          );
+                        })()
+                      ) : (
+                        // 普通文本使用 Textarea
+                        <Textarea
+                          id={key}
+                          value={contents[key] || ""}
+                          onChange={(e) => setContents({ ...contents, [key]: e.target.value })}
+                          rows={3}
+                          placeholder="输入内容，支持 HTML 标签"
+                          className="font-mono text-sm resize-y flex-grow w-full min-h-[80px]"
+                        />
                       )}
-                      
-                      {/* 内容输入框 - 移动端使用更小的高度 */}
-                      <Textarea
-                        id={key}
-                        value={contents[key] || ""}
-                        onChange={(e) => setContents({ ...contents, [key]: e.target.value })}
-                        rows={isJson ? 6 : 3}
-                        placeholder={isJson 
-                          ? "输入 JSON 格式数据" 
-                          : "输入内容，支持 HTML 标签"
-                        }
-                        className={`font-mono text-sm resize-y flex-grow w-full break-all overflow-x-hidden ${isJson ? "min-h-[150px] md:min-h-[200px]" : "min-h-[80px]"}`}
-                        style={{ wordBreak: "break-all" }}
-                      />
                       
                       {/* 操作按钮 */}
                       <div className="flex items-center justify-between pt-1">
