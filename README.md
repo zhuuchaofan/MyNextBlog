@@ -194,7 +194,9 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **永久删除**: 物理删除记录并清理关联的云端图片资源。
   - **安全过滤**: 所有公开查询自动排除已删除文章。
 - **配置中心**:
-  - (WIP) 支持在线修改网站标题、SEO 关键词。
+  - **内容配置 (`/admin/settings/content`)**: 支持在线编辑主页介绍和关于我页面的介绍文字，无需修改代码即可动态更新站点内容。
+  - 支持 HTML 标签（`<strong>`, `<code>`, `<br/>` 等），实现富文本效果。
+  - 配置项存储于 `SiteContent` 表，API 自动处理默认值回退。
 
 ### 7. 🛡️ 运维自动化 (Ops Automation)
 
