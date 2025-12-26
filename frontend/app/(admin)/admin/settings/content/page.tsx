@@ -207,7 +207,8 @@ export default function ContentSettingsPage() {
                           ? "输入 JSON 格式数据" 
                           : "输入内容，支持 HTML 标签"
                         }
-                        className={`font-mono text-sm resize-y flex-grow ${isJson ? "min-h-[150px] md:min-h-[200px]" : "min-h-[80px]"}`}
+                        className={`font-mono text-sm resize-y flex-grow w-full break-all overflow-x-hidden ${isJson ? "min-h-[150px] md:min-h-[200px]" : "min-h-[80px]"}`}
+                        style={{ wordBreak: "break-all" }}
                       />
                       
                       {/* 操作按钮 */}
