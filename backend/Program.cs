@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Extensions;
 using Serilog;
+using Microsoft.AspNetCore.DataProtection;
 
 // ==================================================================
 // PostgreSQL 兼容性设置 (必须在 CreateBuilder 之前)
@@ -42,6 +43,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // JWT 认证 (拆分到 Extensions/AuthenticationExtensions.cs)
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// ==================================================================
+// Data Protection (防止 Docker 重启导致 Cookie/Tokens 失效)
+// ==================================================================
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "data", "keys")))
+    .SetApplicationName("MyNextBlog");
 
 // ==================================================================
 // 构建应用
