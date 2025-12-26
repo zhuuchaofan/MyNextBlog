@@ -142,8 +142,8 @@ export default function ContentSettingsPage() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">{group.description}</p>
               </div>
               
-              {/* 配置项列表 */}
-              <div className="grid gap-4">
+              {/* 配置项列表 - JSON 类型使用两列 */}
+              <div className={`grid gap-4 ${group.items[0]?.isJson ? "md:grid-cols-2" : ""}`}>
                 {group.items.map(({ key, label, icon: Icon, description, isJson, previewUrl }) => (
                   <Card key={key} className="border-gray-100 dark:border-zinc-800">
                     <CardHeader className="pb-3">
