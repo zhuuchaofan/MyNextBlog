@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SITE_CONFIG } from "@/lib/constants";
 import { toast } from "sonner";
 
 export interface Post {
@@ -31,9 +30,10 @@ interface PostListProps {
   initialPosts: Post[];
   initialHasMore: boolean;
   isAdmin?: boolean;
+  defaultAuthor?: string; // 默认作者名
 }
 
-export default function PostList({ initialPosts, initialHasMore, isAdmin = false }: PostListProps) {
+export default function PostList({ initialPosts, initialHasMore, isAdmin = false, defaultAuthor = "Admin" }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
@@ -187,7 +187,7 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                                <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorName || 'admin'}`} className="object-cover"/>
                                <AvatarFallback>User</AvatarFallback>
                              </Avatar>
-                             <span>{post.authorName || SITE_CONFIG.author}</span>
+                             <span>{post.authorName || defaultAuthor}</span>
                           </div>
                           <Link href={`/posts/${post.id}`}>
                             <span className="inline-flex items-center text-sm font-bold text-orange-700 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 transition-colors group/btn">

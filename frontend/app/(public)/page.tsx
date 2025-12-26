@@ -95,11 +95,24 @@ async function getSiteContent(key: string): Promise<string | null> {
 // 数据获取发生在服务端，浏览器接收到的是已经填充好数据的 HTML。
 export default async function Home() {
   // 并行获取文章、标签和主页内容
-  const [postsData, popularTags, homepageIntro] = await Promise.all([
+  const [postsData, popularTags, homepageIntro, authorJson] = await Promise.all([
     getInitialPosts(),
     getPopularTags(),
-    getSiteContent('homepage_intro')
+    getSiteContent('homepage_intro'),
+    getSiteContent('about_author')
   ]);
+
+  // 解析作者信息
+  let author = {
+    name: SITE_CONFIG.author,
+    avatar: SITE_CONFIG.avatar,
+    social: SITE_CONFIG.social
+  };
+  if (authorJson) {
+    try {
+      author = JSON.parse(authorJson);
+    } catch { /* 使用默认值 */ }
+  }
 
   // 检查是否登录 (简单判断 Token)
   // 后端会进行实际的权限验证，所以这里主要用于控制 UI 显示
@@ -197,6 +210,7 @@ export default async function Home() {
              initialPosts={postsData.data} 
              initialHasMore={postsData.meta ? postsData.meta.hasMore : postsData.data.length === 10} 
              isAdmin={isAdmin}
+             defaultAuthor={author.name}
           />
         </div>
 
@@ -207,10 +221,10 @@ export default async function Home() {
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 opacity-50"></div>
               <div className="relative z-10 -mt-4 mb-4">
                  <div className="w-20 h-20 mx-auto bg-white dark:bg-zinc-800 rounded-full p-1 shadow-lg">
-                    <div className="w-full h-full bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden bg-cover bg-center" style={{backgroundImage: `url('${SITE_CONFIG.avatar}')`}}></div>
+                    <div className="w-full h-full bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden bg-cover bg-center" style={{backgroundImage: `url('${author.avatar}')`}}></div>
                  </div>
               </div>
-              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{SITE_CONFIG.author}</h3>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{author.name}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Fullstack Developer</p>
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
                 写代码，撸猫，记录生活。
@@ -219,7 +233,7 @@ export default async function Home() {
               </p>
               <div className="flex justify-center gap-3">
                  <Button variant="outline" size="icon" className="rounded-full w-8 h-8 border-gray-200 dark:border-zinc-700 dark:hover:bg-zinc-800" asChild>
-                   <Link href={SITE_CONFIG.social.github} target="_blank">
+                   <Link href={author.social?.github || SITE_CONFIG.social.github} target="_blank">
                      <Github className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                    </Link>
                  </Button>

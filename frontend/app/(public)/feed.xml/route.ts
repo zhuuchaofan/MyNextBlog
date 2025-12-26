@@ -4,23 +4,48 @@ import { SITE_CONFIG } from '@/lib/constants';
 // 强制动态渲染，保证获取最新文章
 export const dynamic = 'force-dynamic';
 
+// 获取站点配置
+async function getSiteContent(key: string): Promise<string | null> {
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  try {
+    const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.success ? json.data.value : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  
+  // 获取作者配置
+  const authorJson = await getSiteContent('about_author');
+  let author = {
+    name: SITE_CONFIG.author,
+    avatar: SITE_CONFIG.avatar,
+  };
+  if (authorJson) {
+    try {
+      author = JSON.parse(authorJson);
+    } catch { /* 使用默认值 */ }
+  }
+
   const feed = new RSS({
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
     site_url: SITE_CONFIG.url,
     feed_url: `${SITE_CONFIG.url}/feed.xml`,
-    copyright: `Copyright ${new Date().getFullYear()} ${SITE_CONFIG.author}`,
+    copyright: `Copyright ${new Date().getFullYear()} ${author.name}`,
     language: 'zh-CN',
     pubDate: new Date(),
-    image_url: SITE_CONFIG.avatar, 
+    image_url: author.avatar, 
   });
 
   try {
-    // Docker 内部通信，后端服务名为 backend
-    // 注意：这里的 fetch 是在服务端执行的，所以可以直接访问 Docker 网络
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
-    
     // 获取最新的 20 篇文章
     const res = await fetch(`${backendUrl}/api/posts?page=1&pageSize=20`, {
       next: { revalidate: 3600 } // Next.js 缓存 1 小时
@@ -35,10 +60,9 @@ export async function GET() {
             description: post.excerpt || '点击阅读全文...',
             url: `${SITE_CONFIG.url}/posts/${post.id}`,
             guid: `${SITE_CONFIG.url}/posts/${post.id}`,
-            author: post.authorName || SITE_CONFIG.author,
+            author: post.authorName || author.name,
             date: new Date(post.createTime),
             categories: post.categoryName ? [post.categoryName] : [],
-            // 以后如果有全文内容，可以在这里通过 content: post.content 添加
           });
         });
       }
