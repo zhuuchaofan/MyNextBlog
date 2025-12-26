@@ -36,6 +36,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { GoogleAnalytics } from "@next/third-parties/google";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -60,6 +62,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
       </body>
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
     </html>
   );
 }
