@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
+import StatsWidget from "./_components/StatsWidget";
 import { cookies } from 'next/headers'; // 导入 cookies 工具
 
 // 移除 force-dynamic，允许 Next.js 自动优化
@@ -276,6 +277,9 @@ export default async function Home() {
                  )}
               </div>
            </div>
+
+           {/* 流量统计仪表盘 (新增) */}
+           <StatsWidget />
         </div>
       </div>
     </div>

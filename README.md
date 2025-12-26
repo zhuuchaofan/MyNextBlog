@@ -28,6 +28,7 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 - **UI/UX**: 全站统一采用了 "Bento Grid" (便当盒) 布局与 **"Dot Pattern" (点阵科技)** 视觉主题（含 Auth 页面），配合 Tailwind v4 实现极致视觉体验。
 - **系列文章 (Series)**: 支持将相关文章组织成系列，提供系列导航、目录页和自动序号功能。
+- **Dashboard Widget**: 首页集成 Cyberpunk 风格的系统监控挂件，实时展示服务器时间、累计访问量 (Atomic Count) 和系统负载动画。
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
@@ -213,8 +214,9 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ## 🔮 未来规划 (Roadmap)
 
-- [ ] **流量统计 (Analytics)**:
-  - 计划集成 **Google Analytics 4** 或 **Vercel Analytics**，补充缺失的访客行为数据。
+- **流量统计 (Analytics)**:
+  - [x] **Google Analytics 4**: 集成 Google Analytics，追踪用户行为与来源。
+  - [x] **自研 Dashboard**: 实现基于原子计数器 (Atomic Counter) 的实时访问量统计组件，包含 Sparkline 趋势图。
   - 目前仅有 Search Console 的搜索点击数据。
 - **移动端体验升级**:
   - [ ] **原生分享**: 适配移动端 `navigator.share` API，调用系统级分享菜单。

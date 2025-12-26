@@ -275,3 +275,10 @@ export function permanentDeletePost(id: number) {
 export function fetchRelatedPosts(postId: number, count = 4) {
   return fetchClient(`/api/backend/posts/${postId}/related?count=${count}`);
 }
+
+// 流量统计心跳
+export function pulseStats() {
+  return fetchClient<{ visits: number }>("/api/backend/stats/pulse", {
+    method: "POST",
+  });
+}
