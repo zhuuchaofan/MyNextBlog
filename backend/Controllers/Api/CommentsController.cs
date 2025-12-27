@@ -5,6 +5,7 @@ using MyNextBlog.DTOs;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
 using MyNextBlog.Extensions;
+using MyNextBlog.Mappers;  // 引入映射器（使用 Func 委托模式）
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -44,10 +45,11 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         }
 
         // 3. 返回结果
+        // 使用 CommentMappers.ToDto 委托进行映射
         return Ok(new
         {
             success = true,
-            comment = MapToDto(result.Comment!),
+            comment = CommentMappers.ToDto(result.Comment!),
             message = result.Message
         });
     }
@@ -66,7 +68,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         {
             success = true,
             totalCount, 
-            comments = comments.Select(MapToDto),
+            // 使用 CommentMappers.ToDto 委托：支持在 LINQ Select 中直接使用
+            comments = comments.Select(CommentMappers.ToDto),
             hasMore
         });
     }
@@ -84,18 +87,9 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         {
             success = true,
             totalCount,
-            comments = comments.Select(c => new
-            {
-                c.Id,
-                c.Content,
-                c.CreateTime,
-                c.GuestName,
-                c.GuestEmail,
-                c.IsApproved,
-                PostTitle = c.Post?.Title,
-                PostId = c.PostId,
-                UserAvatar = c.User?.AvatarUrl
-            })
+            // 使用 CommentMappers.ToAdminDto 委托：统一管理员视图映射
+            // 替代之前的匿名类型，确保类型安全和可维护性
+            comments = comments.Select(CommentMappers.ToAdminDto)
         });
     }
 
@@ -145,26 +139,10 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         return Ok(new { success = true, count });
     }
 
-    private static CommentDto MapToDto(Comment c)
-    {
-        string authorName = "匿名";
-        if (c.User != null)
-        {
-            authorName = !string.IsNullOrEmpty(c.User.Nickname) ? c.User.Nickname : c.User.Username;
-        }
-        else if (!string.IsNullOrEmpty(c.GuestName))
-        {
-            authorName = c.GuestName;
-        }
-
-        return new CommentDto(
-            c.Id,
-            authorName,
-            c.Content,
-            c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
-            c.User?.AvatarUrl,
-            c.ParentId,
-            c.Children.Select(MapToDto).ToList()
-        );
-    }
+    // ✅ 已删除私有 MapToDto 方法
+    // 映射逻辑已迁移到 CommentMappers 静态类中，使用 Func 委托模式统一管理
+    // 优势：
+    //   1. 可在 Controller 和 Service 层复用
+    //   2. 类型安全且性能优异（编译器内联优化）
+    //   3. 支持 LINQ 链式调用（如 .Select(CommentMappers.ToDto)）
 }
