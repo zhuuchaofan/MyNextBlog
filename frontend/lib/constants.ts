@@ -7,7 +7,7 @@ export const SITE_CONFIG = {
   avatar: "https://picture.zhuchaofan.online/CAT/boy_01.png",
   social: {
     github: "https://github.com/zhuuchaofan",
-    twitter: "https://twitter.com/zhuchaofan",
+    twitter: "https://twitter.com/zhuuchaofan",
     email: "zhuuchaofan@gmail.com"
   }
 };

@@ -49,6 +49,22 @@ const BASIC_CONTENT_KEYS: ContentKeyConfig[] = [
   { key: "about_intro", label: "关于我介绍", icon: User, description: "显示在关于我页面的个人介绍", previewUrl: "/about" },
 ];
 
+// 首页 Hero 配置
+const HOMEPAGE_HERO_KEYS: ContentKeyConfig[] = [
+  { key: "homepage_slogan", label: "首页 Slogan", icon: Home, description: "顶部标签文案（如：探索 • 记录 • 分享）", previewUrl: "/" },
+  { key: "homepage_title_suffix", label: "标题后缀", icon: Home, description: "主标题后缀（如：技术后花园）", previewUrl: "/" },
+  { key: "homepage_cta_primary", label: "主按钮文案", icon: Home, description: "首页主按钮文案（如：开始阅读）", previewUrl: "/" },
+  { key: "homepage_cta_secondary", label: "次要按钮文案", icon: Home, description: "首页次要按钮文案（如：认识博主）", previewUrl: "/" },
+];
+
+// 系统监控组件配置
+const STATS_WIDGET_KEYS: ContentKeyConfig[] = [
+  { key: "stats_system_status", label: "系统状态", icon: Cpu, description: "系统监控状态文案（如：系统运转正常）", previewUrl: "/" },
+  { key: "stats_total_visits", label: "访问量标签", icon: Cpu, description: "累计访问量标签文案", previewUrl: "/" },
+  { key: "stats_server_time", label: "时间标签", icon: Clock, description: "服务器时间标签文案", previewUrl: "/" },
+  { key: "stats_cpu_load", label: "CPU 标签", icon: Cpu, description: "CPU 负载标签文案", previewUrl: "/" },
+];
+
 // 关于页面详细配置
 const ABOUT_PAGE_KEYS: ContentKeyConfig[] = [
   { key: "about_author", label: "作者信息", icon: UserCircle, description: "名字、头像、位置、社交链接", isJson: true, previewUrl: "/about" },
@@ -62,6 +78,8 @@ const ABOUT_PAGE_KEYS: ContentKeyConfig[] = [
 // 配置组定义
 const CONTENT_GROUPS = [
   { title: "基础内容", description: "主页和关于页面的介绍文字", items: BASIC_CONTENT_KEYS },
+  { title: "首页 Hero 配置", description: "首页顶部区域的文案和按钮", items: HOMEPAGE_HERO_KEYS },
+  { title: "系统监控组件", description: "Dashboard 小组件的标签文案", items: STATS_WIDGET_KEYS },
   { title: "关于页面配置", description: "技能、经历、书单等详细信息 (JSON 格式)", items: ABOUT_PAGE_KEYS },
 ];
 
