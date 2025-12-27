@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Color_Emoji } from "next/font/google"; // 引入 Noto Color Emoji
+import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { BackgroundGrid } from "@/components/ui/BackgroundGrid";
+import TwemojiProvider from "@/components/TwemojiProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,13 +16,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// 配置 Noto Color Emoji
-const notoEmoji = Noto_Color_Emoji({
-  variable: "--font-noto-emoji",
-  weight: "400",
-  subsets: ["emoji"],
 });
 
 export const metadata: Metadata = {
@@ -36,8 +31,6 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-import { GoogleAnalytics } from "@next/third-parties/google";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,8 +39,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body
-        // 将 emoji 字体变量加入 class 列表
-        className={`${geistSans.variable} ${geistMono.variable} ${notoEmoji.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
       >
         <ThemeProvider
           attribute="class"
@@ -56,6 +48,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <TwemojiProvider />
             <BackgroundGrid />
             {children}
             <Toaster />
