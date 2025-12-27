@@ -2,11 +2,12 @@
 
 这是一个典型的 **ASP.NET Core Web API** 项目，采用了经典的 **分层架构 (Layered Architecture)**。
 
-整体架构清晰地分为三层：
+整体架构清晰地分为四层：
 
 1.  **API 层 (Controllers)**: 处理 HTTP 请求，验证身份，调用业务逻辑。
-2.  **业务逻辑层 (Services)**: 封装核心业务规则，协调数据访问。
-3.  **数据访问层 (Data/Models)**: 定义数据结构，直接操作数据库。
+2.  **映射层 (Mappers)**: 使用 Func 委托模式，统一管理实体到 DTO 的映射逻辑。 ✨ **新增**
+3.  **业务逻辑层 (Services)**: 封装核心业务规则，协调数据访问。
+4.  **数据访问层 (Data/Models)**: 定义数据结构，直接操作数据库。
 
 ---
 
@@ -52,6 +53,90 @@ API 层位于 `Controllers/Api` 目录下，负责接收 HTTP 请求，解析请
 | **TagsController**       | `/api/tags`       | 标签管理          | `GET /popular?count={}`: 获取热门标签列表                                                             | 无 (公开)                |
 | **UploadController**     | `/api/upload`     | 文件上传服务      | `POST /`: 上传图片文件到 R2 存储                                                                      | JWT (登录用户) 或 Cookie |
 |                          |                   |                   | `POST /cleanup`: 手动触发清理未关联文章的“僵尸图片”                                                   | JWT (登录用户) 或 Cookie |
+
+---
+
+## 2.5. 映射层 (Mappers) ✨ 新增
+
+映射层位于 `Mappers` 目录，使用 **Func 委托模式**统一管理实体模型（Entity）到数据传输对象（DTO）的映射逻辑。
+
+### 设计理念
+
+**问题**: 在引入 Mappers 层之前，DTO 映射逻辑分散在 Controller 和 Service 中，导致：
+
+- 代码重复（同一实体的映射逻辑在多处出现）
+- 不一致性（公开 API 和管理员 API 使用不同的映射方式）
+- 难以维护（修改 DTO 字段需要修改多处代码）
+
+**解决方案**: 使用 `Func<TEntity, TDto>` 委托模式，将映射逻辑集中管理。
+
+### 核心优势
+
+1. **类型安全**: 强类型委托，编译期检查，避免运行时错误
+2. **性能优异**: 编译器内联优化，性能接近手写代码（比 AutoMapper 更快）
+3. **LINQ 友好**: 可直接在 `.Select()` 中使用，语法简洁
+4. **集中管理**: 修改映射逻辑只需修改一处
+5. **可复用**: Controller 和 Service 层均可使用
+
+### 实现示例
+
+```csharp
+// Mappers/CommentMappers.cs
+public static class CommentMappers
+{
+    // 标准映射委托
+    public static readonly Func<Comment, CommentDto> ToDto = c => new CommentDto(
+        c.Id,
+        GetAuthorName(c),
+        c.Content,
+        c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
+        c.User?.AvatarUrl,
+        c.ParentId,
+        // 递归映射：委托可以自引用
+        (c.Children ?? Enumerable.Empty<Comment>()).Select(ToDto).ToList()
+    );
+
+    // 管理员视图映射委托
+    public static readonly Func<Comment, AdminCommentDto> ToAdminDto = c => new AdminCommentDto(
+        c.Id,
+        c.Content,
+        c.CreateTime,
+        c.GuestName,
+        c.GuestEmail,
+        c.IsApproved,
+        c.Post?.Title,
+        c.PostId,
+        c.User?.AvatarUrl
+    );
+
+    // 私有辅助方法
+    private static string GetAuthorName(Comment c) { /* ... */ }
+}
+```
+
+### 使用方式
+
+```csharp
+// 在 Controller 中使用
+public async Task<IActionResult> GetComments(int postId, int page = 1)
+{
+    var comments = await commentService.GetCommentsAsync(postId, page);
+
+    return Ok(new
+    {
+        success = true,
+        comments = comments.Select(CommentMappers.ToDto)  // ✅ 直接使用委托
+    });
+}
+```
+
+### 已实现的映射器
+
+| 映射器类           | 委托         | 用途                   |
+| ------------------ | ------------ | ---------------------- |
+| **CommentMappers** | `ToDto`      | 标准评论映射（含嵌套） |
+|                    | `ToAdminDto` | 管理员视图评论映射     |
+|                    | `ToSummary`  | 轻量级评论摘要         |
 
 ---
 
