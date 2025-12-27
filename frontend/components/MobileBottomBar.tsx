@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, Heart, Share2, Send, Loader2 } from "lucide-react";
-import { toggleLike, submitComment, Comment } from "@/lib/api";
+import { toggleLike, Comment } from "@/lib/api";
+import { submitCommentAction } from "@/lib/actions/comment";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -120,7 +121,8 @@ export default function MobileBottomBar({
         return;
       }
 
-      const data = await submitComment(postId, content, nameToSubmit);
+      // 使用 Server Action 提交评论（会触发 revalidatePath）
+      const data = await submitCommentAction(postId, content, nameToSubmit);
 
       if (data.success) {
         setContent("");

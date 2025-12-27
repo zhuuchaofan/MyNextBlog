@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { fetchComments, submitComment, Comment } from '@/lib/api';
+import { fetchComments, Comment } from '@/lib/api';
+import { submitCommentAction } from '@/lib/actions/comment';
 import { MessageSquare, User, Send, Reply, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useAuth } from '@/context/AuthContext';
@@ -354,7 +355,8 @@ function CommentForm({
         setSubmitting(true);
         try {
           const nameToSubmit = user ? user.username : guestName;
-          const data = await submitComment(postId, content, nameToSubmit, parentId);
+          // 使用 Server Action 提交评论（会触发 revalidatePath）
+          const data = await submitCommentAction(postId, content, nameToSubmit, parentId);
           
           if (data.success) {
             setContent(''); 
