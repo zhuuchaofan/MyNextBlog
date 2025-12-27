@@ -62,12 +62,13 @@ public class PostsApiController(IPostService postService, ICommentService commen
         [FromQuery] string? tag = null,
         [FromQuery] int? categoryId = null)
     {
-        bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        // 修复：公开API永远只返回公开文章（!IsHidden && !IsDeleted）
+        // 不论访问者是谁（游客或管理员），公开页面都应该显示相同的内容
+        // 管理员想查看草稿请访问 /api/posts/admin
         
-        // 调用支持数据库级分页的新接口，直接获取 (数据, 总条数)
         var (allPosts, totalCount) = await postService.GetAllPostsAsync(
             page, pageSize, 
-            includeHidden: isAdmin, 
+            includeHidden: false,  // 永远不包含隐藏文章
             categoryId: categoryId, 
             searchTerm: search, 
             tagName: tag
