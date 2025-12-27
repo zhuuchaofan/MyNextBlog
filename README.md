@@ -36,13 +36,14 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 最新更新 (2025-12-27)
 
+- 🎨 **Twemoji 集成**: 使用 Twitter 开源 Emoji 替代系统原生 Emoji，解决了 iOS/macOS 上 Emoji 显示异常的问题，实现跨平台统一的 Emoji 样式
+- 🐛 **修复邮件通知**: 修复评论邮件通知不发送的 Bug（`ObjectDisposedException`），重构后台任务使用 `IServiceScopeFactory` 创建独立 DI 作用域
+- 🐛 **修复评论缓存**: 新建评论后刷新页面不显示的问题已修复，使用 Server Action + `revalidatePath` 清除 ISR 缓存
+- 🔧 **代码清理**: 删除 `api.ts` 中 3 个未使用的函数（`submitComment`, `getPostClient`, `registerUser`），移除 `globals.css` 中废弃的字体配置
+- 📊 **Dashboard 重构**: 管理后台首页采用 Hero + 分组卡片布局，移动端适配垂直堆叠
 - 🔐 **认证系统重构**: 创建 `lib/auth-config.ts` 统一管理 Token/Cookie 配置，前端代码精简 30%
 - ✨ **无感刷新修复**: 后端 `RefreshTokenAsync` 重构为纯 TokenHash 模式，不再依赖旧 Access Token
 - ✨ **多设备登录支持**: 重构认证系统，一个用户可在多个设备同时登录，RefreshToken 采用一对多关系
-- 🐛 **修复公开页面权限问题**: 公开 API 永远只返回公开文章，消除管理员/游客看到不同内容的 bug
-- 📊 **管理后台统计**: 新增 Dashboard 统计卡片（已发布/草稿/评论/系列/分类/标签）
-- 🔧 **优化统计查询**: 统一使用 `!IsHidden && !IsDeleted` 过滤条件，确保数据一致性
-- 🖥️ **Logout 完善**: 注销时彻底清除 `token` 和 `refresh_token` 双 Cookie
 
 ---
 
