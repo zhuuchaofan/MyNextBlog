@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using MyNextBlog.DTOs;
 using MyNextBlog.Models;
 using MyNextBlog.Services;
+using MyNextBlog.Extensions;
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -18,7 +19,7 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// 发表新评论
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
+    public async Task<IActionResult> CreateComment([FromBody] CreateCommentDto dto)
     {
         // 0. 频率限制 (Rate Limiting) - 逻辑已移至 Service 层
         string ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
@@ -31,15 +32,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         }
 
         // 1. 获取当前用户ID (如果已登录)
-        int? userId = null;
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (int.TryParse(userIdStr, out int uid))
-            {
-                userId = uid;
-            }
-        }
+        // 使用扩展方法获取用户ID
+        int? userId = User.GetUserId();
 
         // 2. 调用服务层创建评论
         var result = await commentService.CreateCommentAsync(dto.PostId, dto.Content, dto.GuestName, dto.ParentId, userId);

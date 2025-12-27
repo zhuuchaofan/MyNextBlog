@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.DTOs;
 using MyNextBlog.Services;
+using MyNextBlog.Extensions;
 
 namespace MyNextBlog.Controllers.Api;
 
@@ -10,8 +11,8 @@ namespace MyNextBlog.Controllers.Api;
 [ApiController]
 public class SeriesApiController(ISeriesService seriesService) : ControllerBase
 {
-    // Helper: 检查是否为管理员
-    private bool IsAdmin => User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+    // 使用扩展方法简化权限判断
+    private bool IsAdmin => User.IsAdmin();
 
     [HttpGet]
     public async Task<IActionResult> GetAllSeries()
@@ -79,8 +80,8 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
         if (series == null)
             return NotFound(new { success = false, message = "系列不存在" });
 
-        // 判断是否为管理员（有权看隐藏文章）
-        bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        // 使用扩展方法判断权限
+        bool isAdmin = User.IsAdmin();
         
         var posts = await seriesService.GetSeriesPostsAsync(id, includeHidden: isAdmin);
         return Ok(new { success = true, data = posts });

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;                      // 引入 ASP.NET Core MVC 
 using MyNextBlog.Models;                             // 引入应用程序的领域模型，如 Post
 using MyNextBlog.Services;                           // 引入业务服务层接口，如 IPostService, ITagService
 using MyNextBlog.DTOs;                              // 引入数据传输对象，用于 API 请求和响应
-using MyNextBlog.Extensions;                         // 引入自定义扩展方法
+using MyNextBlog.Extensions;                         // 引入自定义扩展方法（权限判断等）
 using System.Security.Claims;                       // 引入安全声明，用于获取用户身份信息
 
 // `namespace` 声明了当前文件中的代码所属的命名空间。
@@ -166,11 +166,11 @@ public class PostsApiController(IPostService postService, ICommentService commen
     public async Task<IActionResult> GetPost(int id)
     {
         // 1. **确定权限上下文**
-        // 同样检查当前用户是否已登录并且是 "Admin" 角色。
-        // 这决定了后续调用 `GetPostByIdAsync` 时 `includeHidden` 参数的值：
+        // 检查当前用户是否已登录并且是 "Admin" 角色。
+        // 使用扩展方法简化权限判断逻辑
         //   - 如果是 Admin，则可以获取隐藏文章。
         //   - 如果不是 Admin（包括未登录用户），则只能获取公开文章。
-        bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+        bool isAdmin = User.IsAdmin();
         
         // 2. **获取文章详情 (根据权限过滤隐藏文章)**
         // 调用 `postService.GetPostByIdAsync`，`includeHidden` 参数动态地根据 `isAdmin` 决定。
@@ -303,13 +303,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpPost("{id}/like")]
     public async Task<IActionResult> ToggleLike(int id)
     {
-        int? userId = null;
-        // 尝试获取登录用户 ID
-        if (User.Identity?.IsAuthenticated == true)
-        {
-             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-             if (int.TryParse(userIdStr, out int uid)) userId = uid;
-        }
+        // 使用扩展方法获取用户ID（如果已认证）
+        int? userId = User.GetUserId();
 
         // 获取 IP 地址 (由 ForwardedHeadersMiddleware 统一处理)
         string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
