@@ -55,37 +55,29 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
 
     public async Task<AuthResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto dto)
     {
-        var principal = GetPrincipalFromExpiredToken(dto.AccessToken);
-        if (principal == null) return null; // 无效的 AccessToken 格式
-
-        var userIdStr = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!int.TryParse(userIdStr, out int userId)) return null;
-
-        var user = await context.Users
-            .Include(u => u.UserProfile)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user == null) return null;
-
-        // ===== 多设备登录支持：查询有效的 RefreshToken =====
+        // 方案 B 重构：不再依赖 Access Token 提取用户信息
+        // 直接通过 Refresh Token 查找关联的 User 和 Session
+        
         var tokenHash = HashToken(dto.RefreshToken);
+        
         var storedToken = await context.RefreshTokens
-            .FirstOrDefaultAsync(rt => 
-                rt.UserId == userId && 
-                rt.TokenHash == tokenHash && 
-                rt.ExpiryTime > DateTime.UtcNow);
+            .Include(rt => rt.User)             // 级联加载 User (基础信息)
+            .ThenInclude(u => u.UserProfile)    // 级联加载 UserProfile (详细信息)
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
 
-        if (storedToken == null)
+        // 1. 验证 Token 是否存在且未过期
+        if (storedToken == null || storedToken.ExpiryTime <= DateTime.UtcNow)
         {
-            return null; // Token 不存在或已过期
+            return null; // 无效或已过期
         }
 
-        // 核心优化：避免"惊群效应" (Thundering Herd)
-        // 策略：如果 Refresh Token 还有较长的有效期（> 3天），则**不**进行轮换 (Rotation)。
-        // 只有当有效期不足 3 天时，才生成新的 Refresh Token。
+        var user = storedToken.User;
+        if (user == null) return null; // 极端情况：用户已被删除
+
+        // 2. 轮换策略 (Rotation Strategy)
+        // 避免"惊群效应"：如果 Refresh Token 还有较长的有效期（> 3天），则**不**进行轮换。
         string newRefreshToken = dto.RefreshToken; // 默认使用旧的
         
-        // 检查剩余有效期
         var remainingTime = storedToken.ExpiryTime - DateTime.UtcNow;
         if (remainingTime < TimeSpan.FromDays(3))
         {
@@ -110,7 +102,7 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             storedToken.LastUsedAt = DateTime.UtcNow;
         }
 
-        // 每次都生成新的 Access Token
+        // 3. 生成新的 Access Token
         var newAccessToken = GenerateJwtToken(user);
         
         await context.SaveChangesAsync();
@@ -118,7 +110,7 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         return new AuthResponseDto(
             Token: newAccessToken,
             RefreshToken: newRefreshToken, // 返回决定使用的那个 (旧的或新的)
-            Expiration: DateTime.UtcNow.AddMinutes(15),
+            Expiration: DateTime.UtcNow.AddMinutes(15), // 15 分钟
             Username: user.Username,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl,
@@ -130,37 +122,6 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             BirthDate: user.UserProfile?.BirthDate?.ToString("yyyy-MM-dd"),
             Email: user.Email
         );
-    }
-
-    private ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token)
-    {
-        var jwtSettings = configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"];
-        
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true, // 这里保持一致
-            ValidAudience = jwtSettings["Audience"],
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
-            ValidateLifetime = false // *** 关键：允许过期 Token ***
-        };
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        try 
-        {
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                throw new SecurityTokenException("Invalid token");
-
-            return principal;
-        }
-        catch
-        {
-            return null;
-        }
     }
 
     private string GenerateRefreshToken()
@@ -176,12 +137,6 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         using var sha256 = SHA256.Create();
         var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(bytes);
-    }
-    
-    private bool VerifyTokenHash(string token, string hash)
-    {
-        var newHash = HashToken(token);
-        return newHash == hash;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(string username, string password, string email)
@@ -350,7 +305,7 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15), // 修改为 15 分钟
+            expires: DateTime.UtcNow.AddMinutes(15), // 正式配置: 15 分钟
             signingCredentials: creds
         );
 

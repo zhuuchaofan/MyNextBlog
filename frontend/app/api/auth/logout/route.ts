@@ -14,6 +14,7 @@ export async function POST() {
   // 删除名为 'token' 的 Cookie
   // 这会向浏览器发送一个 Set-Cookie 头，将过期时间设置为过去的时间，从而使 Cookie 失效。
   cookieStore.delete('token');
+  cookieStore.delete('refresh_token');
   
   return NextResponse.json({ success: true });
 }
