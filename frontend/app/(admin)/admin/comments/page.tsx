@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, CheckCircle, XCircle, Trash2, CheckSquare, ChevronLeft } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Trash2, CheckSquare, ChevronLeft, MessageCircle } from 'lucide-react';
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -169,6 +169,12 @@ export default function AdminCommentsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             评论管理
         </h1>
+        {!loading && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            <MessageCircle className="w-3.5 h-3.5" />
+            共 {totalCount} 条
+          </span>
+        )}
       </div>
 
       {/* 筛选器 */}

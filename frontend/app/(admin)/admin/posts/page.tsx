@@ -152,16 +152,18 @@ export default function AdminPostsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* 页面标题和“写新文章”按钮 */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-4 mb-8">
         <div className="flex items-center gap-4">
            {/* 返回按钮 */}
            <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
            </Button>
            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">文章管理</h1>
-           {/* 统计徽章 */}
+        </div>
+        {/* 第二行：统计徽章 + 按钮 */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
            {statsPublished !== null && (
-             <div className="flex items-center gap-2 ml-4">
+             <div className="flex items-center gap-2">
                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                  <Eye className="w-3.5 h-3.5" />
                  已发布 {statsPublished}
@@ -172,13 +174,12 @@ export default function AdminPostsPage() {
                </span>
              </div>
            )}
-        </div>
-        {/* 跳转到新建文章页面 */}
         <Link href="/admin/posts/new">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+          <Button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white">
             <Plus className="w-4 h-4 mr-2" /> 写新文章
           </Button>
         </Link>
+        </div>
       </div>
 
       {/* 加载状态或文章列表 */}

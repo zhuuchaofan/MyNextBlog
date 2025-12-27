@@ -16,7 +16,14 @@ import {
   ChevronRight,
   Sparkles
 } from 'lucide-react';
-import AdminStatsWidget, { DashboardStats } from './_components/AdminStatsWidget';
+// 统计数据类型定义
+interface DashboardStats {
+  posts: {
+    total: number;
+    published: number;
+    draft: number;
+  };
+}
 
 /**
  * AdminDashboard - 管理后台首页
@@ -26,9 +33,8 @@ export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   
-  // 统计数据状态 - 统一在此请求，传递给子组件
+  // 统计数据状态 - Hero 卡片展示核心统计
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
 
   // 权限检查
   useEffect(() => {
@@ -52,8 +58,6 @@ export default function AdminDashboard() {
         }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
-      } finally {
-        setStatsLoading(false);
       }
     };
     fetchStats();
@@ -64,12 +68,7 @@ export default function AdminDashboard() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-24 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
-            ))}
-          </div>
+          <div className="h-28 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
           <div className="grid gap-6 md:grid-cols-2">
             <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
             <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
@@ -120,9 +119,6 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-
-      {/* 统计 Widget */}
-      <AdminStatsWidget stats={stats} loading={statsLoading} />
 
       {/* 功能分组 */}
       <div className="grid gap-6 md:grid-cols-2">

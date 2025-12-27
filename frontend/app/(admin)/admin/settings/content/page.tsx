@@ -162,8 +162,9 @@ export default function ContentSettingsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl overflow-x-hidden">
-      {/* 头部导航 - 与文章管理、评论管理一致 */}
-      <div className="flex items-center justify-between mb-8">
+      {/* 头部导航 */}
+      <div className="flex flex-col gap-4 mb-8">
+        {/* 第一行：返回按钮 + 标题 */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
             <ChevronLeft className="w-4 h-4 mr-1" /> 返回
@@ -175,7 +176,8 @@ export default function ContentSettingsPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={fetchContents} disabled={loading} className="border-gray-200 dark:border-zinc-700">
+        {/* 第二行：刷新按钮 */}
+        <Button variant="outline" onClick={fetchContents} disabled={loading} className="w-full sm:w-auto border-gray-200 dark:border-zinc-700">
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           刷新
         </Button>
