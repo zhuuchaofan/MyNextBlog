@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, FileText, Settings, MessageSquare, Layers, Trash2, PenSquare } from 'lucide-react';
 import Link from 'next/link';
+import AdminStatsWidget from './_components/AdminStatsWidget';
 
 // 管理后台首页 (Admin Dashboard)
 // --------------------------------------------------------------------------------
@@ -39,6 +40,11 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">管理后台</h1>
+      
+      {/* 统计卡片 */}
+      <div className="mb-8">
+        <AdminStatsWidget />
+      </div>
       
       {/* 使用 Grid 布局展示功能卡片 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
