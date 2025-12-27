@@ -43,10 +43,12 @@ interface ContentKeyConfig {
   previewUrl?: string; // 预览链接
 }
 
+
 // 基础内容配置
 const BASIC_CONTENT_KEYS: ContentKeyConfig[] = [
   { key: "homepage_intro", label: "主页介绍", icon: Home, description: "显示在首页 Hero 区域的欢迎文字", previewUrl: "/" },
   { key: "about_intro", label: "关于我介绍", icon: User, description: "显示在关于我页面的个人介绍", previewUrl: "/about" },
+  { key: "site_launch_date", label: "网站起始日期", icon: Clock, description: "网站上线日期（格式：2024-12-01），用于计算运行天数", previewUrl: "/" },
 ];
 
 // 首页 Hero 配置

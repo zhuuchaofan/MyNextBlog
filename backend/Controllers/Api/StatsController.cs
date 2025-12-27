@@ -52,25 +52,27 @@ public class StatsController(AppDbContext context) : ControllerBase
         var visits = content?.Value ?? "1";
         
         // 4. 获取额外统计数据（真实数据）
-        // 文章总数（仅公开且未删除的文章）
-        var postsCount = await context.Posts
+        // 复用公共查询基础：排除隐藏和软删除的文章
+        var postsQuery = context.Posts
             .AsNoTracking()
-            .Where(p => !p.IsHidden && !p.IsDeleted)
-            .CountAsync();
+            .Where(p => !p.IsHidden && !p.IsDeleted);
+        
+        var postsCount = await postsQuery.CountAsync();
         
         // 评论总数
         var commentsCount = await context.Comments
             .AsNoTracking()
             .CountAsync();
         
-        // 运行天数（从配置读取起始日期，默认从 2025-01-01 开始）
+        // 运行天数（从配置读取起始日期）
+        // 默认: 2025-01-01 -> 2025-12-27 约 360 天（正常）
         var launchDateContent = await context.SiteContents
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Key == "site_launch_date");
         
         var launchDate = DateTime.TryParse(launchDateContent?.Value, out var parsed) 
             ? parsed 
-            : new DateTime(2025, 1, 1);
+            : new DateTime(2025, 12, 1);
         
         var runningDays = (int)(DateTime.UtcNow - launchDate).TotalDays;
         

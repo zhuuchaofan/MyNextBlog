@@ -110,6 +110,10 @@ public static class DataSeederExtensions
                 
                 SeedSiteContentIfNotExists(context, "about_thanks_content", "关于页面-致谢内容",
                     "感谢你在中国对我全方位的支持与陪伴。即使相隔千里，你的鼓励与理解始终是我前行的动力。这个博客的每一行代码、每一篇文章，都承载着你的温暖与祝福。❤️");
+
+                // 系统配置
+                SeedSiteContentIfNotExists(context, "site_launch_date", "网站起始日期",
+                    "2025-12-01");
             }
             catch (Exception ex)
             {
