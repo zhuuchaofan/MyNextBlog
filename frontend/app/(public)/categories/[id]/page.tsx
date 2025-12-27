@@ -35,7 +35,7 @@ interface PostFromApi {
  * getCategoryData 函数：用于在服务端获取分类下的文章和分类详情
  */
 async function getCategoryData(categoryId: string) {
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5095';
+  const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   const postsUrl = `${baseUrl}/api/posts?categoryId=${categoryId}`;
   const categoryUrl = `${baseUrl}/api/categories/${categoryId}`;
   

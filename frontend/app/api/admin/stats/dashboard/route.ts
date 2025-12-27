@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:5095';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8080';
 
 // GET /api/admin/stats/dashboard
 export async function GET() {

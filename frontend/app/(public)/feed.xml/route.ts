@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 // 获取站点配置
 async function getSiteContent(key: string): Promise<string | null> {
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
   try {
     const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
       next: { revalidate: 3600 }
@@ -20,7 +20,7 @@ async function getSiteContent(key: string): Promise<string | null> {
 }
 
 export async function GET() {
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
   
   // 获取作者配置
   const authorJson = await getSiteContent('about_author');

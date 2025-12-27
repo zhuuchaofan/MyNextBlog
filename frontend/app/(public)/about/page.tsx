@@ -41,7 +41,7 @@ const skillLevelColors: Record<string, string> = {
 
 // 获取站点配置内容 (Server-Side)
 async function getSiteContent(key: string): Promise<string | null> {
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:5095';
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
   try {
     const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
       next: { revalidate: 60 }

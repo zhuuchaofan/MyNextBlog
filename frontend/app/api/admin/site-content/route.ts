@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:5095';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8080';
 
 // GET /api/admin/site-content - 获取所有配置
 // GET /api/admin/site-content/[key] - 获取单个配置
