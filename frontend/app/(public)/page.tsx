@@ -108,8 +108,7 @@ export default async function Home() {
     homepageCtaSecondary,
     statsSystemStatus,
     statsTotalVisits,
-    statsServerTime,
-    statsCpuLoad
+    statsServerTime
   ] = await Promise.all([
     getInitialPosts(),
     getPopularTags(),
@@ -122,8 +121,7 @@ export default async function Home() {
     getSiteContent('homepage_cta_secondary'),
     getSiteContent('stats_system_status'),
     getSiteContent('stats_total_visits'),
-    getSiteContent('stats_server_time'),
-    getSiteContent('stats_cpu_load')
+    getSiteContent('stats_server_time')
   ]);
 
   // 解析作者信息
@@ -305,7 +303,6 @@ export default async function Home() {
              systemStatus={statsSystemStatus || "系统运转正常"}
              totalVisitsLabel={statsTotalVisits || "累计访问量"}
              serverTimeLabel={statsServerTime || "服务器时间"}
-             cpuLoadLabel={statsCpuLoad || "CPU 负载"}
            />
         </div>
       </div>

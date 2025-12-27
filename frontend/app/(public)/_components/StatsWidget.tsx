@@ -2,26 +2,26 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { pulseStats } from '@/lib/api';
-import { Activity, Cpu, Server, Clock, BarChart3 } from 'lucide-react';
+import { Activity, Clock, BarChart3, BookOpen, MessageCircle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 
 interface StatsWidgetProps {
   className?: string;
   systemStatus?: string;
   totalVisitsLabel?: string;
   serverTimeLabel?: string;
-  cpuLoadLabel?: string;
 }
 
 export default function StatsWidget({ 
   className,
   systemStatus = "系统运转正常",
   totalVisitsLabel = "累计访问量",
-  serverTimeLabel = "服务器时间",
-  cpuLoadLabel = "CPU 负载"
+  serverTimeLabel = "服务器时间"
 }: StatsWidgetProps) {
   const [visits, setVisits] = useState<number | null>(null);
+  const [postsCount, setPostsCount] = useState<number>(0);
+  const [commentsCount, setCommentsCount] = useState<number>(0);
+  const [runningDays, setRunningDays] = useState<number>(0);
   const [time, setTime] = useState<string>('');
   const [sparklineData, setSparklineData] = useState<number[]>(() => 
     Array.from({ length: 15 }, () => 20 + Math.random() * 30)
@@ -29,13 +29,16 @@ export default function StatsWidget({
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    // 1. 获取访问量 (Strict Mode 防抖)
+    // 1. 获取统计数据 (Strict Mode 防抖)
     if (!hasFetched.current) {
         hasFetched.current = true;
         pulseStats()
             .then(data => {
                 if (data && typeof data.visits === 'number') {
                     setVisits(data.visits);
+                    setPostsCount(data.postsCount || 0);
+                    setCommentsCount(data.commentsCount || 0);
+                    setRunningDays(data.runningDays || 0);
                 }
             })
             .catch(err => console.error("Stats pulse failed:", err));
@@ -153,22 +156,39 @@ export default function StatsWidget({
         {/* 装饰性分割线 */}
         <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-zinc-800 to-transparent my-6" />
 
-        {/* 底部信息: 时间 & 模拟负载 */}
+        {/* 底部信息: 时间 & 真实统计 */}
         <div className="space-y-4">
-             {/* 模拟 CPU 负载 */}
-             <div className="space-y-1.5">
-                <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-600">
-                    <span className="flex items-center gap-1"><Cpu className="w-3 h-3" /> {cpuLoadLabel}</span>
-                    <span>12%</span>
-                </div>
-                <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <motion.div 
-                        className="h-full bg-blue-500 dark:bg-blue-600 rounded-full"
-                        initial={{ width: "10%" }}
-                        animate={{ width: ["10%", "35%", "15%", "40%", "12%"] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                    />
-                </div>
+             {/* 文章总数 */}
+             <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-500 font-medium">
+                     <BookOpen className="w-3.5 h-3.5" />
+                     文章总数
+                 </div>
+                 <div className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">
+                     {postsCount}
+                 </div>
+             </div>
+
+             {/* 评论总数 */}
+             <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-500 font-medium">
+                     <MessageCircle className="w-3.5 h-3.5" />
+                     评论总数
+                 </div>
+                 <div className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">
+                     {commentsCount}
+                 </div>
+             </div>
+
+             {/* 运行天数 */}
+             <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-500 font-medium">
+                     <Zap className="w-3.5 h-3.5" />
+                     运行天数
+                 </div>
+                 <div className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">
+                     {runningDays} 天
+                 </div>
              </div>
 
              {/* 服务器时间 */}

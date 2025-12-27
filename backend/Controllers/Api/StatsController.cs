@@ -10,15 +10,13 @@ namespace MyNextBlog.Controllers.Api;
 public class StatsController(AppDbContext context) : ControllerBase
 {
     // POST /api/stats/pulse
-    // 用于前端组件的心跳/计数
+    // 用于前端组件的心跳/计数，返回多项统计数据
     [HttpPost("pulse")]
     public async Task<IActionResult> Pulse()
     {
         const string key = "sys_stats_visits";
         
-        // 1. 尝试原子更新 (+1)
-        // 使用通用 SQL (SQLite/Postgres 兼容 CAST)
-        // 注意：UpdatedAt 即使是 Update 语句也需要更新
+        // 1. 尝试原子更新 (+1) 累计访问量
         var rowsAffected = await context.Database.ExecuteSqlRawAsync(
             "UPDATE \"SiteContents\" SET \"Value\" = CAST(CAST(\"Value\" AS INTEGER) + 1 AS TEXT), \"UpdatedAt\" = {0} WHERE \"Key\" = {1}",
             DateTime.UtcNow,
@@ -28,7 +26,6 @@ public class StatsController(AppDbContext context) : ControllerBase
         if (rowsAffected == 0)
         {
             // 2. 如果 Key 不存在，则初始化
-            // 为了防止并发插入导致的异常，使用 try-catch 或简单的检查
             if (!await context.SiteContents.AnyAsync(s => s.Key == key))
             {
                 context.SiteContents.Add(new SiteContent
@@ -40,26 +37,48 @@ public class StatsController(AppDbContext context) : ControllerBase
                 try 
                 {
                     await context.SaveChangesAsync();
-                    return Ok(new { visits = 1 });
                 }
                 catch
                 {
-                    // 并发插入冲突，忽略，假装成功（下一次请求会修正）
+                    // 并发插入冲突，忽略
                 }
             }
-            
-            // 重新查询最新值
         }
 
-        // 3. 返回最新计数 (脏读即可，无需事务强一致)
-        // 使用 AsNoTracking 减少开销
+        // 3. 获取最新访问量
         var content = await context.SiteContents
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Key == key);
-
-        // 如果还是空的(极端情况)，返回 1
         var visits = content?.Value ?? "1";
         
-        return Ok(new { visits = int.Parse(visits) });
+        // 4. 获取额外统计数据（真实数据）
+        // 文章总数（仅公开文章）
+        var postsCount = await context.Posts
+            .AsNoTracking()
+            .Where(p => !p.IsHidden)
+            .CountAsync();
+        
+        // 评论总数
+        var commentsCount = await context.Comments
+            .AsNoTracking()
+            .CountAsync();
+        
+        // 运行天数（从配置读取起始日期，默认从 2025-01-01 开始）
+        var launchDateContent = await context.SiteContents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Key == "site_launch_date");
+        
+        var launchDate = DateTime.TryParse(launchDateContent?.Value, out var parsed) 
+            ? parsed 
+            : new DateTime(2025, 1, 1);
+        
+        var runningDays = (int)(DateTime.UtcNow - launchDate).TotalDays;
+        
+        return Ok(new { 
+            visits = int.Parse(visits),
+            postsCount,
+            commentsCount,
+            runningDays
+        });
     }
 }
