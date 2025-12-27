@@ -76,9 +76,9 @@ export async function verifyToken(token: string) {
 
 ### 🔴 高优先级
 
-- [ ] **P1**: 审查 `GlobalExceptionMiddleware.cs` 确认生产环境堆栈信息屏蔽
+- [x] **P1**: 审查 `GlobalExceptionMiddleware.cs` 确认生产环境堆栈信息屏蔽 ✅ **已确认 (2025-12-27)**
 - [ ] **P1**: 重构 `middleware.ts` 的 Token 解析逻辑，使用 `jose` 库
-- [ ] **P2**: 加固 CORS 配置，限制后端 API 的可访问性
+- [x] **P2**: 加固 CORS 配置，限制后端 API 的可访问性 ✅ **已完成 (2025-12-27)**
 
 ### 🟡 中优先级 (功能增强)
 
@@ -86,6 +86,7 @@ export async function verifyToken(token: string) {
   - 已添加 `DateTime? UpdatedAt` 字段
   - 编辑文章时自动设置时间戳
   - 前端详情页显示 "更新于 xxxx"
+- [x] **P3**: PostgreSQL 迁移 ✅ **已完成 (2024-12-24)**
 
 ### 🟢 低优先级
 
@@ -95,8 +96,11 @@ export async function verifyToken(token: string) {
 
 ## 📅 审计日志
 
-| 日期       | 操作            | 备注                        |
-| :--------- | :-------------- | :-------------------------- |
-| 2024-12-24 | 初始审计报告    | 完成安全性与架构审查        |
-| 2024-12-24 | UpdatedAt 实现  | 完成文章修改时间功能        |
-| 2024-12-24 | PostgreSQL 迁移 | 从 SQLite 迁移到 PostgreSQL |
+| 日期       | 操作                 | 备注                                              |
+| :--------- | :------------------- | :------------------------------------------------ |
+| 2024-12-24 | 初始审计报告         | 完成安全性与架构审查                              |
+| 2024-12-24 | UpdatedAt 实现       | 完成文章修改时间功能                              |
+| 2024-12-24 | PostgreSQL 迁移      | 从 SQLite 迁移到 PostgreSQL                       |
+| 2025-12-27 | 文档清理与技术栈同步 | 归档过时文档，修复多处文档中的数据库描述不一致    |
+| 2025-12-27 | CORS 配置加固        | 确认 `Program.cs` 中 CORS 白名单已正确配置        |
+| 2025-12-27 | 异常处理审查         | 确认 `GlobalExceptionMiddleware` 生产环境安全配置 |
