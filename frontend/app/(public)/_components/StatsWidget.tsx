@@ -6,10 +6,26 @@ import { Activity, Cpu, Server, Clock, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-export default function StatsWidget({ className }: { className?: string }) {
+interface StatsWidgetProps {
+  className?: string;
+  systemStatus?: string;
+  totalVisitsLabel?: string;
+  serverTimeLabel?: string;
+  cpuLoadLabel?: string;
+}
+
+export default function StatsWidget({ 
+  className,
+  systemStatus = "系统运转正常",
+  totalVisitsLabel = "累计访问量",
+  serverTimeLabel = "服务器时间",
+  cpuLoadLabel = "CPU 负载"
+}: StatsWidgetProps) {
   const [visits, setVisits] = useState<number | null>(null);
   const [time, setTime] = useState<string>('');
-  const [sparklineData, setSparklineData] = useState<number[]>([]);
+  const [sparklineData, setSparklineData] = useState<number[]>(() => 
+    Array.from({ length: 15 }, () => 20 + Math.random() * 30)
+  );
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -38,10 +54,7 @@ export default function StatsWidget({ className }: { className?: string }) {
     updateTime();
     const timer = setInterval(updateTime, 1000);
 
-    // 3. 生成伪造的 Sparkline 数据 (仅作为视觉装饰)
-    const initialData = Array.from({ length: 15 }, () => 20 + Math.random() * 30);
-    setSparklineData(initialData);
-
+    // 3. Sparkline 数据更新
     const sparkTimer = setInterval(() => {
         setSparklineData(prev => {
            const newData = [...prev.slice(1), 20 + Math.random() * 40];
@@ -95,7 +108,7 @@ export default function StatsWidget({ className }: { className?: string }) {
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-sm"></span>
                 </span>
                 <span className="text-xs font-bold tracking-wide text-green-700 dark:text-green-400">
-                    系统运转正常
+                    {systemStatus}
                 </span>
             </div>
             <Activity className="w-4 h-4 text-gray-400 dark:text-zinc-600 animate-pulse" />
@@ -107,7 +120,7 @@ export default function StatsWidget({ className }: { className?: string }) {
             <div className="space-y-1">
                 <div className="text-[10px] text-gray-500 dark:text-zinc-500 font-medium mb-1 flex items-center gap-1.5">
                     <BarChart3 className="w-3 h-3" />
-                    累计访问量
+                    {totalVisitsLabel}
                 </div>
                 <div className="text-2xl font-black text-gray-900 dark:text-gray-100 tabular-nums tracking-tight">
                     {formattedVisits}
@@ -145,7 +158,7 @@ export default function StatsWidget({ className }: { className?: string }) {
              {/* 模拟 CPU 负载 */}
              <div className="space-y-1.5">
                 <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-600">
-                    <span className="flex items-center gap-1"><Cpu className="w-3 h-3" /> CPU 负载</span>
+                    <span className="flex items-center gap-1"><Cpu className="w-3 h-3" /> {cpuLoadLabel}</span>
                     <span>12%</span>
                 </div>
                 <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -162,7 +175,7 @@ export default function StatsWidget({ className }: { className?: string }) {
              <div className="flex items-center justify-between pt-2">
                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-500 font-medium">
                      <Clock className="w-3.5 h-3.5" />
-                     服务器时间
+                     {serverTimeLabel}
                  </div>
                  <div className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                      {time}

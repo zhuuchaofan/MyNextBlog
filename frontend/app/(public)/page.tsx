@@ -96,12 +96,34 @@ async function getSiteContent(key: string): Promise<string | null> {
 // 数据获取发生在服务端，浏览器接收到的是已经填充好数据的 HTML。
 export default async function Home() {
   // 并行获取文章、标签和主页内容
-  const [postsData, popularTags, homepageIntro, authorJson, petsJson] = await Promise.all([
+  const [
+    postsData, 
+    popularTags, 
+    homepageIntro, 
+    authorJson, 
+    petsJson,
+    homepageSlogan,
+    homepageTitleSuffix,
+    homepageCtaPrimary,
+    homepageCtaSecondary,
+    statsSystemStatus,
+    statsTotalVisits,
+    statsServerTime,
+    statsCpuLoad
+  ] = await Promise.all([
     getInitialPosts(),
     getPopularTags(),
     getSiteContent('homepage_intro'),
     getSiteContent('about_author'),
-    getSiteContent('about_pets')
+    getSiteContent('about_pets'),
+    getSiteContent('homepage_slogan'),
+    getSiteContent('homepage_title_suffix'),
+    getSiteContent('homepage_cta_primary'),
+    getSiteContent('homepage_cta_secondary'),
+    getSiteContent('stats_system_status'),
+    getSiteContent('stats_total_visits'),
+    getSiteContent('stats_server_time'),
+    getSiteContent('stats_cpu_load')
   ]);
 
   // 解析作者信息
@@ -148,13 +170,13 @@ export default async function Home() {
           <div className="flex-1 space-y-6 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-orange-100 dark:border-orange-900 text-orange-600 dark:text-orange-400 text-sm font-medium shadow-sm">
               <Sparkles className="w-4 h-4" />
-              <span>探索 • 记录 • 分享</span>
+              <span>{homepageSlogan || "探索 • 记录 • 分享"}</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
               {pets[0]?.name || "猫咪"} & {pets[1]?.name || "猫咪"}的 <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600 dark:from-orange-400 dark:to-pink-500">
-                技术后花园
+                {homepageTitleSuffix || "技术后花园"}
               </span>
               <span className="ml-2 text-4xl md:text-6xl align-middle">🏡</span>
             </h1>
@@ -169,12 +191,12 @@ export default async function Home() {
             <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
               <Link href="/archive">
                 <Button className="rounded-full h-12 px-8 bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-white text-white dark:text-gray-900 shadow-lg hover:shadow-xl transition-all">
-                  开始阅读
+                  {homepageCtaPrimary || "开始阅读"}
                 </Button>
               </Link>
               <Link href="/about">
                 <Button variant="outline" className="rounded-full h-12 px-8 border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 hover:border-orange-200 dark:hover:border-orange-900 text-gray-700 dark:text-gray-300">
-                  认识博主
+                  {homepageCtaSecondary || "认识博主"}
                 </Button>
               </Link>
             </div>
@@ -279,7 +301,12 @@ export default async function Home() {
            </div>
 
            {/* 流量统计仪表盘 (新增) */}
-           <StatsWidget />
+           <StatsWidget 
+             systemStatus={statsSystemStatus || "系统运转正常"}
+             totalVisitsLabel={statsTotalVisits || "累计访问量"}
+             serverTimeLabel={statsServerTime || "服务器时间"}
+             cpuLoadLabel={statsCpuLoad || "CPU 负载"}
+           />
         </div>
       </div>
     </div>

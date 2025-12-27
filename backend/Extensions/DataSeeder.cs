@@ -80,6 +80,32 @@ public static class DataSeederExtensions
 
                 SeedSiteContentIfNotExists(context, "about_pets", "宠物信息 (JSON)",
                     """[{"name":"球球","role":"CTO / 首席监工","avatar":"https://picture.zhuchaofan.online/CAT/cat07_moyou_kijitora.png","description":"高冷狸花猫。代码审查极其严格，只要饭盆空了就会抛出 NullFoodException。"},{"name":"布丁","role":"HR / 气氛组","avatar":"https://picture.zhuchaofan.online/CAT/cat01_moyou_black.png","description":"粘人黑猫。负责在深夜提供呼噜声白噪音，偶尔帮忙按压 Enter 键发布未完成的代码。"}]""");
+
+                // 首页 Hero 区域配置
+                SeedSiteContentIfNotExists(context, "homepage_slogan", "首页 Slogan",
+                    "探索 • 记录 • 分享");
+                
+                SeedSiteContentIfNotExists(context, "homepage_title_suffix", "首页标题后缀",
+                    "技术后花园");
+                
+                SeedSiteContentIfNotExists(context, "homepage_cta_primary", "首页主按钮文案",
+                    "开始阅读");
+                
+                SeedSiteContentIfNotExists(context, "homepage_cta_secondary", "首页次要按钮文案",
+                    "认识博主");
+
+                // StatsWidget 组件配置
+                SeedSiteContentIfNotExists(context, "stats_system_status", "系统监控-状态文案",
+                    "系统运转正常");
+                
+                SeedSiteContentIfNotExists(context, "stats_total_visits", "系统监控-访问量文案",
+                    "累计访问量");
+                
+                SeedSiteContentIfNotExists(context, "stats_server_time", "系统监控-时间文案",
+                    "服务器时间");
+                
+                SeedSiteContentIfNotExists(context, "stats_cpu_load", "系统监控-CPU文案",
+                    "CPU 负载");
             }
             catch (Exception ex)
             {

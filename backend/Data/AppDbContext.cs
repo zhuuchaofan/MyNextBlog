@@ -35,6 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserProfile> UserProfiles { get; set; } // 新增：用户扩展资料
     public DbSet<Series> Series { get; set; } // 系列
     public DbSet<SiteContent> SiteContents { get; set; } // 站点内容配置
+    public DbSet<RefreshToken> RefreshTokens { get; set; } // Refresh Token 多设备登录支持
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。
@@ -68,7 +69,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .OnDelete(DeleteBehavior.SetNull);        // **级联删除行为配置**:
                                                       // `OnDelete(DeleteBehavior.SetNull)` 意味着：
                                                       // 如果一个 `Category` 被删除了，那么所有原本属于这个分类的 `Post` 的 `CategoryId`
-                                                      // 将会被设置为 `NULL`。文章本身不会被删除，只是变成了“未分类”状态。
+                                                      // 将会被设置为 `NULL`。文章本身不会被删除，只是变成了"未分类"状态。
                                                       // 这是相对安全的级联删除策略，避免误删数据。
 
         // --- 3. 配置 Post (文章) 与 Comment (评论) 的一对多关系 ---
@@ -80,7 +81,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .OnDelete(DeleteBehavior.Cascade);        // **级联删除行为配置**:
                                                       // `OnDelete(DeleteBehavior.Cascade)` 意味着：
                                                       // 如果一个 `Post` 被删除了，那么所有属于这个 `Post` 的 `Comment` 也会
-                                                      // **被自动删除**。这是一种“强”级联删除，需谨慎使用。
+                                                      // **被自动删除**。这是一种"强"级联删除，需谨慎使用。
 
         // --- 4. 索引配置 (Performance Indexes) ---
         // 为高频查询字段创建索引，提升查询性能
@@ -111,5 +112,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<SiteContent>()
             .HasIndex(s => s.Key)
             .IsUnique(); // Key 必须唯一
+
+        // --- 8. 配置 User 与 RefreshToken 的一对多关系 (多设备登录) ---
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.RefreshTokens)
+            .WithOne(rt => rt.User)
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // 用户删除时，所有 Token 也删除
+        
+        // 为 RefreshToken 添加索引
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.UserId); // 优化按用户查询
+        
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.ExpiryTime); // 优化清理过期 Token
     }
 }

@@ -41,8 +41,7 @@ public class User
     // 扩展资料 (1对1关系)
     public UserProfile? UserProfile { get; set; }
 
-    // JWT Refresh Token (存储哈希值)
-    [MaxLength(256)]
-    public string? RefreshTokenHash { get; set; }
-    public DateTime? RefreshTokenExpiryTime { get; set; }
+    // ===== 多设备登录支持 =====
+    // Refresh Tokens (1对多关系) - 每个设备一个独立的 Token
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

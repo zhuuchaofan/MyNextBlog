@@ -22,10 +22,18 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
         
-        // 保存刷新令牌 (哈希存储)
-        user.RefreshTokenHash = HashToken(refreshToken);
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 7天有效期
+        // ===== 多设备登录支持：添加新的 RefreshToken 到集合 =====
+        var refreshTokenEntity = new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = HashToken(refreshToken),
+            ExpiryTime = DateTime.UtcNow.AddDays(7), // 7天有效期
+            DeviceInfo = null, // 可以从 User-Agent 解析，暂时为空
+            CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow
+        };
         
+        context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync();
 
         return new AuthResponseDto(
@@ -34,7 +42,7 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             Expiration: DateTime.UtcNow.AddMinutes(15), 
             Username: user.Username,
             Role: user.Role,
-            AvatarUrl: user.AvatarUrl, // 新增：立即返回头像
+            AvatarUrl: user.AvatarUrl,
             Nickname: user.Nickname,
             Bio: user.Bio,
             Website: user.Website,
@@ -57,15 +65,19 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
             .Include(u => u.UserProfile)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow || string.IsNullOrEmpty(user.RefreshTokenHash))
-        {
-            return null; // 用户不存在 或 令牌过期 或 未登录
-        }
+        if (user == null) return null;
 
-        // 验证 Refresh Token (比对哈希)
-        if (!VerifyTokenHash(dto.RefreshToken, user.RefreshTokenHash))
+        // ===== 多设备登录支持：查询有效的 RefreshToken =====
+        var tokenHash = HashToken(dto.RefreshToken);
+        var storedToken = await context.RefreshTokens
+            .FirstOrDefaultAsync(rt => 
+                rt.UserId == userId && 
+                rt.TokenHash == tokenHash && 
+                rt.ExpiryTime > DateTime.UtcNow);
+
+        if (storedToken == null)
         {
-            return null; // 令牌无效
+            return null; // Token 不存在或已过期
         }
 
         // 核心优化：避免"惊群效应" (Thundering Herd)
@@ -74,13 +86,28 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         string newRefreshToken = dto.RefreshToken; // 默认使用旧的
         
         // 检查剩余有效期
-        var remainingTime = user.RefreshTokenExpiryTime - DateTime.UtcNow;
+        var remainingTime = storedToken.ExpiryTime - DateTime.UtcNow;
         if (remainingTime < TimeSpan.FromDays(3))
         {
-            // 剩余不足3天 -> 进行轮换
+            // 剩余不足3天 -> 进行轮换：删除旧 Token，创建新 Token
+            context.RefreshTokens.Remove(storedToken);
+            
             newRefreshToken = GenerateRefreshToken();
-            user.RefreshTokenHash = HashToken(newRefreshToken);
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 重置为7天
+            var newTokenEntity = new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = HashToken(newRefreshToken),
+                ExpiryTime = DateTime.UtcNow.AddDays(7), // 重置为7天
+                DeviceInfo = storedToken.DeviceInfo,
+                CreatedAt = DateTime.UtcNow,
+                LastUsedAt = DateTime.UtcNow
+            };
+            context.RefreshTokens.Add(newTokenEntity);
+        }
+        else
+        {
+            // 只更新最后使用时间
+            storedToken.LastUsedAt = DateTime.UtcNow;
         }
 
         // 每次都生成新的 Access Token
@@ -182,24 +209,25 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        // 注册后暂不自动登录 (如果需要自动登录，也应该生成 RefreshToken)
-        // 为了简化，这里返回 Success 但不包含 Token，让前端引导去登录？
-        // 或者也生成一套 Token。这里我们保持原样仅仅生成 Token (Access Only) or Fix it?
-        // 原逻辑返回了 Token。我们这里也生成一套完整的吧。
-        
+        // 注册后自动登录：生成 Access Token 和 Refresh Token
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
-        user.RefreshTokenHash = HashToken(refreshToken);
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        
+        var refreshTokenEntity = new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = HashToken(refreshToken),
+            ExpiryTime = DateTime.UtcNow.AddDays(7),
+            DeviceInfo = null,
+            CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow
+        };
+        
+        context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync();
 
         return new AuthResult(true, "注册成功", user, accessToken); 
-        // Note: AuthResult struct needs update if we want to return RefreshToken via Register too, 
-        // or just let them login. The original AuthResult only has one Token string. 
-        // Let's keep it simple: Register returns AccessToken, but user can Login to get RefreshToken?
-        // Better: Login after Register. 
-        // But for maintaining 'AuthResult' signature (it's a record/class), I won't change it deeply now.
-        // The implementation_plan didn't say we change AuthResult signature extensively.
+        // Note: AuthResult 只返回 AccessToken，RefreshToken 在登录接口返回
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(string email)
@@ -250,9 +278,12 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         user.PasswordHash = HashPassword(newPassword);
         user.PasswordResetToken = null;
         user.ResetTokenExpires = null;
-        // 重置密码后，为了安全，应该废弃旧的 Refresh Token，让所有设备重新登录
-        user.RefreshTokenHash = null;
-        user.RefreshTokenExpiryTime = null;
+        
+        // 重置密码后，为了安全，废弃所有设备的 Refresh Token，让所有设备重新登录
+        var userTokens = await context.RefreshTokens
+            .Where(rt => rt.UserId == user.Id)
+            .ToListAsync();
+        context.RefreshTokens.RemoveRange(userTokens);
 
         await context.SaveChangesAsync();
 
