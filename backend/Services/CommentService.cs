@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using MyNextBlog.Data;
 using MyNextBlog.Models;
 using Ganss.Xss;
@@ -13,9 +14,9 @@ public class CommentService(
     AppDbContext context,
     IHtmlSanitizer sanitizer,
     IConfiguration configuration,
-    IEmailService emailService,
     IMemoryCache cache,
-    ILogger<CommentService> logger) : ICommentService
+    ILogger<CommentService> logger,
+    IServiceScopeFactory scopeFactory) : ICommentService
 {
     private const int RateLimitSeconds = 60;
 
@@ -80,60 +81,91 @@ public class CommentService(
         context.Comments.Add(comment);
         await context.SaveChangesAsync();
 
-        // Fire-and-Forget with exception logging wrapper
+        // Fire-and-Forget with new scope to avoid DbContext disposed issue
+        // 捕获必要的值（使用不同变量名避免与参数冲突）
+        var savedCommentId = comment.Id;
+        var savedPostId = comment.PostId;
+        var savedGuestName = comment.GuestName;
+        var savedContent = comment.Content;
+        var savedParentId = comment.ParentId;
+        var savedIsApproved = comment.IsApproved;
+        var savedUserId = comment.UserId;
+        
         _ = Task.Run(async () =>
         {
-            try { await SendNotificationsAsync(comment); }
-            catch (Exception ex) { logger.LogError(ex, "Background notification failed for comment {CommentId}", comment.Id); }
+            try 
+            { 
+                // 创建新的 DI 作用域，获取新的 DbContext 实例
+                using var scope = scopeFactory.CreateScope();
+                var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                
+                await SendNotificationsAsync(scopedContext, scopedEmailService, savedCommentId, savedPostId, savedGuestName, savedContent, savedParentId, savedIsApproved, savedUserId); 
+            }
+            catch (Exception ex) 
+            { 
+                logger.LogError(ex, "Background notification failed for comment {CommentId}", savedCommentId); 
+            }
         });
 
         string message = comment.IsApproved ? "评论发表成功" : "评论包含敏感词，已进入人工审核队列";
         return new CommentCreationResult(true, message, comment);
     }
 
-    private async Task SendNotificationsAsync(Comment comment)
+    private async Task SendNotificationsAsync(
+        AppDbContext scopedContext, 
+        IEmailService scopedEmailService,
+        int commentId,
+        int postId,
+        string? guestName,
+        string content,
+        int? parentId,
+        bool isApproved,
+        int? userId)
     {
         try 
         {
-            var post = await context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == comment.PostId);
+            var post = await scopedContext.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == postId);
             var postTitle = post?.Title ?? "未命名文章";
             var appUrl = configuration["AppUrl"]?.TrimEnd('/') ?? "http://localhost:3000";
             var adminEmail = configuration["SmtpSettings:AdminEmail"];
+            
+            // 获取用户信息（如果有）
+            User? user = null;
+            string? commenterEmail = null;
+            if (userId.HasValue)
+            {
+                user = await scopedContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId.Value);
+                commenterEmail = user?.Email;
+            }
 
-            if (!comment.IsApproved)
+            if (!isApproved)
             {
                 if (!string.IsNullOrEmpty(adminEmail))
                 {
                     string subject = $"🚨 [待审核] 敏感词拦截：{postTitle}";
-                    string body = EmailTemplateBuilder.BuildAdminSpamNotification(postTitle, comment.GuestName ?? "Unknown", comment.Content, appUrl);
-                    await emailService.SendEmailAsync(adminEmail, subject, body);
+                    string body = EmailTemplateBuilder.BuildAdminSpamNotification(postTitle, guestName ?? "Unknown", content, appUrl);
+                    await scopedEmailService.SendEmailAsync(adminEmail, subject, body);
                 }
             }
             else
             {
-                // 3. 正常评论通知站长 (新增逻辑)
-                // 只要是审核通过的评论，且发布者不是管理员自己（防止自己收到自己的邮件），都通知站长
-                // 简单的判断：如果评论者邮箱不等于管理员邮箱（假设配置了）
-                // 更严谨的判断需要 User Role，但这里我们尽量简化
+                // 正常评论通知站长
                 if (!string.IsNullOrEmpty(adminEmail))
                 {
-                     // 避免通知自己：如果当前评论者就是 AdminEmail，则不发
-                     // 注意：这里 comment.GuestEmail 可能是空的，或者 comment.User.Email
-                     var commenterEmail = comment.User?.Email ?? comment.GuestEmail;
-                     
                      if (commenterEmail != adminEmail) 
                      {
                         string subject = $"💬 [新评论] {postTitle}";
-                        string body = EmailTemplateBuilder.BuildNewCommentNotification(postTitle, comment.Content, comment.GuestName ?? "Unknown", comment.PostId, comment.Id, appUrl);
-                         await emailService.SendEmailAsync(adminEmail, subject, body);
+                        string body = EmailTemplateBuilder.BuildNewCommentNotification(postTitle, content, guestName ?? "Unknown", postId, commentId, appUrl);
+                        await scopedEmailService.SendEmailAsync(adminEmail, subject, body);
                      }
                 }
             }
 
-            // 恢复原本的 else if 逻辑，改为独立的 if，因为我们希望 Admin 和 被回复者 同时收到通知
-            if (comment.ParentId.HasValue && comment.IsApproved)
+            // 回复评论通知被回复者
+            if (parentId.HasValue && isApproved)
             {
-                var parentComment = await context.Comments.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == comment.ParentId.Value);
+                var parentComment = await scopedContext.Comments.Include(c => c.User).AsNoTracking().FirstOrDefaultAsync(c => c.Id == parentId.Value);
                 if (parentComment != null)
                 {
                     string? recipientEmail = null;
@@ -152,15 +184,15 @@ public class CommentService(
                     if (!string.IsNullOrWhiteSpace(recipientEmail))
                     {
                         string subject = $"👋 您的评论在 [{postTitle}] 收到了回复";
-                        string body = EmailTemplateBuilder.BuildReplyNotification(recipientName, postTitle, comment.Content, comment.GuestName ?? "Unknown", comment.PostId, comment.Id, appUrl);
-                        await emailService.SendEmailAsync(recipientEmail, subject, body);
+                        string body = EmailTemplateBuilder.BuildReplyNotification(recipientName, postTitle, content, guestName ?? "Unknown", postId, commentId, appUrl);
+                        await scopedEmailService.SendEmailAsync(recipientEmail, subject, body);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error sending notification for comment {CommentId}", comment.Id);
+            logger.LogError(ex, "Error sending notification for comment {CommentId}", commentId);
         }
     }
 

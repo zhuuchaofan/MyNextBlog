@@ -15,21 +15,13 @@
 // **好处**: 前端代码完全不需要手动管理 Token（不需要 localStorage，不需要手动添加 Header），更加安全且简洁。
 
 import { fetchClient } from "./fetchClient";
-import type { Series, PostDetail } from "./types"; // 本文件内部使用
+import type { Series } from "./types";
 
 // Re-export all shared types from types.ts for backwards compatibility
 // This ensures consumers of api.ts don't need to know about types.ts
 export type { Series, Category, Comment, PostDetail, SeriesInfo } from "./types";
 
-// 获取文章详情 (客户端版本)
-export async function getPostClient(id: string) {
-  try {
-    const json = await fetchClient<{ success: boolean; data: PostDetail }>(`/api/backend/posts/${id}`);
-    return json.success ? json.data : undefined;
-  } catch {
-    return undefined;
-  }
-}
+
 
 
 // 获取评论列表
@@ -39,18 +31,6 @@ export function fetchComments(postId: number, page = 1, pageSize = 10) {
   );
 }
 
-// 提交新评论
-export function submitComment(
-  postId: number,
-  content: string,
-  guestName: string,
-  parentId?: number
-) {
-  return fetchClient("/api/backend/comments", {
-    method: "POST",
-    body: { postId, content, guestName, parentId },
-  });
-}
 
 
 // 获取所有分类
@@ -159,13 +139,7 @@ export function updateProfile(data: {
   });
 }
 
-// 注册新用户
-export function registerUser(username: string, password: string) {
-  return fetchClient("/api/auth/register", {
-    method: "POST",
-    body: { username, password },
-  });
-}
+
 
 // 切换文章点赞状态
 export function toggleLike(postId: number) {
