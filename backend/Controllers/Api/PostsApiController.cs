@@ -6,7 +6,6 @@ using MyNextBlog.Models;                             // 引入应用程序的领
 using MyNextBlog.Services;                           // 引入业务服务层接口，如 IPostService, ITagService
 using MyNextBlog.DTOs;                              // 引入数据传输对象，用于 API 请求和响应
 using MyNextBlog.Extensions;                         // 引入自定义扩展方法（权限判断等）
-using System.Security.Claims;                       // 引入安全声明，用于获取用户身份信息
 
 // `namespace` 声明了当前文件中的代码所属的命名空间。
 // 命名空间有助于组织代码，避免命名冲突。
@@ -207,10 +206,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     //       2. **模型验证**: 可以在 DTO 上使用 `[Required]` 等数据注解进行验证，清晰地定义了接口的输入格式。
     public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
     {
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!int.TryParse(userIdStr, out int userId)) userId = 0; 
+        var userId = User.GetUserId();
 
-        var post = await postService.AddPostAsync(dto, userId > 0 ? userId : null);
+        var post = await postService.AddPostAsync(dto, userId);
         
         return Ok(new { success = true, message = "发布成功", postId = post.Id, data = post.ToDetailDto() });
     }
