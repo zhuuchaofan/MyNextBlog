@@ -52,10 +52,10 @@ public class StatsController(AppDbContext context) : ControllerBase
         var visits = content?.Value ?? "1";
         
         // 4. 获取额外统计数据（真实数据）
-        // 文章总数（仅公开文章）
+        // 文章总数（仅公开且未删除的文章）
         var postsCount = await context.Posts
             .AsNoTracking()
-            .Where(p => !p.IsHidden)
+            .Where(p => !p.IsHidden && !p.IsDeleted)
             .CountAsync();
         
         // 评论总数

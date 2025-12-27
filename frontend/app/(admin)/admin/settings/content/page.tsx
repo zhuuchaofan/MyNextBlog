@@ -61,8 +61,7 @@ const HOMEPAGE_HERO_KEYS: ContentKeyConfig[] = [
 const STATS_WIDGET_KEYS: ContentKeyConfig[] = [
   { key: "stats_system_status", label: "系统状态", icon: Cpu, description: "系统监控状态文案（如：系统运转正常）", previewUrl: "/" },
   { key: "stats_total_visits", label: "访问量标签", icon: Cpu, description: "累计访问量标签文案", previewUrl: "/" },
-  { key: "stats_server_time", label: "时间标签", icon: Clock, description: "服务器时间标签文案", previewUrl: "/" },
-  { key: "stats_cpu_load", label: "CPU 标签", icon: Cpu, description: "CPU 负载标签文案", previewUrl: "/" },
+  { key: "stats_server_time", label: "时间标签", icon: Clock, description: "服务器时间标签文案", previewUrl: "/" }
 ];
 
 // 关于页面详细配置
@@ -73,6 +72,8 @@ const ABOUT_PAGE_KEYS: ContentKeyConfig[] = [
   { key: "about_books", label: "阅读书单", icon: BookOpen, description: "正在阅读或计划阅读的书籍", isJson: true, previewUrl: "/about" },
   { key: "about_gears", label: "装备清单", icon: Cpu, description: "使用的硬件和软件", isJson: true, previewUrl: "/about" },
   { key: "about_pets", label: "宠物信息", icon: Cat, description: "宠物介绍", isJson: true, previewUrl: "/about" },
+  { key: "about_thanks_title", label: "致谢标题", icon: User, description: "特别致谢部分的标题（如：致我的女朋友）", previewUrl: "/about" },
+  { key: "about_thanks_content", label: "致谢内容", icon: User, description: "特别致谢部分的正文内容", previewUrl: "/about" },
 ];
 
 // 配置组定义

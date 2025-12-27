@@ -104,7 +104,8 @@ interface PetInfo {
 
 // 获取关于页面所有配置数据
 async function getAboutPageData() {
-  const [aboutIntro, authorJson, skillsJson, timelineJson, booksJson, gearsJson, petsJson] = await Promise.all([
+  // 获取所有配置内容
+  const [introContent, authorJson, skillsJson, timelineJson, booksJson, gearsJson, petsJson, thanksTitle, thanksContent] = await Promise.all([
     getSiteContent('about_intro'),
     getSiteContent('about_author'),
     getSiteContent('about_skills'),
@@ -112,6 +113,8 @@ async function getAboutPageData() {
     getSiteContent('about_books'),
     getSiteContent('about_gears'),
     getSiteContent('about_pets'),
+    getSiteContent('about_thanks_title'),
+    getSiteContent('about_thanks_content')
   ]);
 
   // 使用 constants.ts 中的值作为默认回退
@@ -124,18 +127,20 @@ async function getAboutPageData() {
   });
 
   return {
-    aboutIntro: aboutIntro || `${SITE_CONFIG.description}。欢迎一起交流！`,
+    aboutIntro: introContent || `${SITE_CONFIG.description}。欢迎一起交流！`,
     author,
     skills: parseJsonConfig<SkillCategory[]>(skillsJson, SKILL_CATEGORIES),
     timeline: parseJsonConfig<TimelineItem[]>(timelineJson, TIMELINE),
     books: parseJsonConfig<BookItem[]>(booksJson, BOOKS),
     gears: parseJsonConfig<GearCategory[]>(gearsJson, GEARS),
     pets: parseJsonConfig<PetInfo[]>(petsJson, Object.values(PETS)),
+    thanksTitle: thanksTitle || "致我的女朋友",
+    thanksContent: thanksContent || "感谢你在中国对我全方位的支持与陪伴。即使相隔千里，你的鼓励与理解始终是我前行的动力。这个博客的每一行代码、每一篇文章，都承载着你的温暖与祝福。❤️"
   };
 }
 
 export default async function AboutPage() {
-  const { aboutIntro, author, skills, timeline, books, gears, pets } = await getAboutPageData();
+  const { aboutIntro, author, skills, timeline, books, gears, pets, thanksTitle, thanksContent } = await getAboutPageData();
   return (
     <div className="relative min-h-screen">
       {/* 背景装饰：已移至全局 Layout */}
@@ -313,7 +318,32 @@ export default async function AboutPage() {
                  </div>
                </CardContent>
              </Card>
-  
+                          {/* 特别致谢（可配置） */}
+              <section className="mb-12">
+                <div className="flex items-center gap-3 mb-6">
+                   <span className="text-2xl">💝</span> 
+                   <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">特别致谢</h2>
+                </div>
+                <Card className="border-pink-100 dark:border-pink-900/30 bg-gradient-to-br from-pink-50/50 to-white dark:from-pink-950/10 dark:to-zinc-900/50 overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200/30 to-transparent dark:from-pink-500/10 rounded-bl-full"></div>
+                  <CardContent className="p-6 relative z-10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <span className="text-2xl">❤️</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">
+                          {thanksTitle}
+                        </h3>
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {thanksContent}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+             </section>
+
              {/* 猫主子 */}
              <section>
                 <div className="flex items-center gap-3 mb-4 px-1">

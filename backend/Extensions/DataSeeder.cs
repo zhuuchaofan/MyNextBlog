@@ -103,9 +103,13 @@ public static class DataSeederExtensions
                 
                 SeedSiteContentIfNotExists(context, "stats_server_time", "系统监控-时间文案",
                     "服务器时间");
+
+                // 关于页面-致谢部分配置
+                SeedSiteContentIfNotExists(context, "about_thanks_title", "关于页面-致谢标题",
+                    "致我的女朋友");
                 
-                SeedSiteContentIfNotExists(context, "stats_cpu_load", "系统监控-CPU文案",
-                    "CPU 负载");
+                SeedSiteContentIfNotExists(context, "about_thanks_content", "关于页面-致谢内容",
+                    "感谢你在中国对我全方位的支持与陪伴。即使相隔千里，你的鼓励与理解始终是我前行的动力。这个博客的每一行代码、每一篇文章，都承载着你的温暖与祝福。❤️");
             }
             catch (Exception ex)
             {
