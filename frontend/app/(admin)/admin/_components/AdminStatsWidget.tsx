@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, MessageCircle, FolderOpen, Tag, BookOpen } from 'lucide-react';
 
-interface DashboardStats {
+// 统计数据类型定义
+export interface DashboardStats {
   posts: {
     total: number;
     published: number;
@@ -16,35 +16,25 @@ interface DashboardStats {
   series: number;
 }
 
-export default function AdminStatsWidget() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+// 组件 Props 定义
+interface AdminStatsWidgetProps {
+  stats: DashboardStats | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/admin/stats/dashboard');
-      const data = await res.json();
-      if (data.success) {
-        setStats(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch admin stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+/**
+ * AdminStatsWidget - 受控统计卡片组件
+ * 数据由父组件传入，不再内部请求
+ */
+export default function AdminStatsWidget({ stats, loading }: AdminStatsWidgetProps) {
+  // 加载状态：显示骨架屏
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map(i => (
-          <Card key={i} className="animate-pulse">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <Card key={i} className="animate-pulse border-gray-200 dark:border-zinc-800">
             <CardContent className="p-6">
-              <div className="h-20 bg-gray-100 dark:bg-zinc-800 rounded"></div>
+              <div className="h-16 bg-gray-100 dark:bg-zinc-800 rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -52,8 +42,10 @@ export default function AdminStatsWidget() {
     );
   }
 
+  // 无数据时不渲染
   if (!stats) return null;
 
+  // 统计卡片配置
   const statCards = [
     {
       title: '已发布',

@@ -50,6 +50,8 @@ export default function AdminPostsPage() {
   const [hasMore, setHasMore] = useState(false); // 是否有更多数据可加载 (分页)
   const [totalCount, setTotalCount] = useState(0); // 文章总数
   const [totalPages, setTotalPages] = useState(0); // 总页数
+  const [statsPublished, setStatsPublished] = useState<number | null>(null); // 已发布数
+  const [statsDraft, setStatsDraft] = useState<number | null>(null); // 草稿数
   const pageSize = 10; // 每页显示的文章数量
   
   // 删除确认对话框相关状态
@@ -59,7 +61,20 @@ export default function AdminPostsPage() {
   // `useEffect` 钩子，在 `page` 状态变化时（即用户切换页码时）重新加载文章
   useEffect(() => {
     loadPosts(page);
-  }, [page]); // 依赖数组包含 `page`，确保当页码改变时重新触发 `loadPosts`
+  }, [page]);
+
+  // 加载统计数据
+  useEffect(() => {
+    fetch('/api/admin/stats/dashboard')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setStatsPublished(data.data.posts.published);
+          setStatsDraft(data.data.posts.draft);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // 核心函数：加载文章列表
   const loadPosts = (currentPage: number) => {
@@ -144,6 +159,19 @@ export default function AdminPostsPage() {
              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
            </Button>
            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">文章管理</h1>
+           {/* 统计徽章 */}
+           {statsPublished !== null && (
+             <div className="flex items-center gap-2 ml-4">
+               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                 <Eye className="w-3.5 h-3.5" />
+                 已发布 {statsPublished}
+               </span>
+               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                 <EyeOff className="w-3.5 h-3.5" />
+                 草稿 {statsDraft}
+               </span>
+             </div>
+           )}
         </div>
         {/* 跳转到新建文章页面 */}
         <Link href="/admin/posts/new">

@@ -1,158 +1,196 @@
-'use client'; // 标记为客户端组件，因为需要使用 Hooks 和处理用户交互
+'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileText, Settings, MessageSquare, Layers, Trash2, PenSquare } from 'lucide-react';
-import Link from 'next/link';
-import AdminStatsWidget from './_components/AdminStatsWidget';
+import { 
+  PenSquare, 
+  FileText, 
+  MessageSquare, 
+  Layers, 
+  Settings, 
+  Trash2,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
+import AdminStatsWidget, { DashboardStats } from './_components/AdminStatsWidget';
 
-// 管理后台首页 (Admin Dashboard)
-// --------------------------------------------------------------------------------
-// 这是管理员登录后看到的第一个页面，提供了各个管理功能的快捷入口。
+/**
+ * AdminDashboard - 管理后台首页
+ * 布局: Hero 卡片 + 统计 Widget + 功能分组
+ */
 export default function AdminDashboard() {
-  const { user, isLoading } = useAuth(); // 获取全局用户状态
-  const router = useRouter(); // 获取路由实例，用于跳转
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  
+  // 统计数据状态 - 统一在此请求，传递给子组件
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  // **权限检查 (客户端保护)**
-  // 虽然 middleware.ts 已经做了路由保护，但在组件内部再次检查用户角色是一个双重保险。
-  // 特别是对于 'Admin' 角色的检查，因为 middleware 可能只检查了是否有 token。
+  // 权限检查
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        // 未登录，跳转到登录页
         router.push('/login');
       } else if (user.role !== 'Admin') {
-        // 已登录但不是管理员，跳转回首页
-        router.push('/'); 
+        router.push('/');
       }
     }
-  }, [user, isLoading, router]); // 依赖项变化时重新执行检查
+  }, [user, isLoading, router]);
 
-  // 在加载权限或用户未就绪时，显示加载提示
+  // 统一获取统计数据
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/admin/stats/dashboard');
+        const data = await res.json();
+        if (data.success) {
+          setStats(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Loading 骨架屏 - 避免内容闪烁
   if (isLoading || !user) {
-    return <div className="flex justify-center py-20">加载权限中...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="h-24 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
+            ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
+            <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // 渲染仪表盘布局
+  // 功能分组数据
+  const contentLinks = [
+    { href: '/admin/posts', icon: FileText, label: '文章管理', desc: '编辑、隐藏或删除文章' },
+    { href: '/admin/comments', icon: MessageSquare, label: '评论管理', desc: '审核用户评论' },
+    { href: '/admin/series', icon: Layers, label: '系列管理', desc: '创建和管理文章系列' },
+  ];
+
+  const systemLinks = [
+    { href: '/admin/settings/content', icon: PenSquare, label: '内容配置', desc: '编辑主页、关于页介绍' },
+    { href: '/settings', icon: Settings, label: '系统设置', desc: '分类管理、友链设置' },
+    { href: '/admin/trash', icon: Trash2, label: '回收站', desc: '恢复或永久删除文章' },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">管理后台</h1>
+    <div className="container mx-auto px-4 py-8 space-y-6">
       
-      {/* 统计卡片 */}
-      <div className="mb-8">
-        <AdminStatsWidget />
-      </div>
-      
-      {/* 使用 Grid 布局展示功能卡片 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Hero 卡片 - 写新文章入口 + 核心统计 */}
+      <Card className="border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50 to-white dark:from-zinc-900 dark:to-zinc-900 dark:border-zinc-800">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-orange-500" />
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">管理后台</h1>
+              </div>
+              {stats && (
+                <p className="text-gray-600 dark:text-gray-400">
+                  已发布 <span className="font-semibold text-green-600 dark:text-green-400">{stats.posts.published}</span> 篇 · 
+                  草稿 <span className="font-semibold text-orange-600 dark:text-orange-400">{stats.posts.draft}</span> 篇
+                </p>
+              )}
+            </div>
+            <Link href="/admin/posts/new">
+              <Button size="lg" className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white shadow-md">
+                <PenSquare className="w-4 h-4 mr-2" />
+                写新文章
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 统计 Widget */}
+      <AdminStatsWidget stats={stats} loading={statsLoading} />
+
+      {/* 功能分组 */}
+      <div className="grid gap-6 md:grid-cols-2">
         
-        {/* 卡片 1: 写新文章 */}
-        <Link href="/admin/posts/new" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-orange-500 h-full dark:bg-zinc-900 dark:border-zinc-800 dark:border-l-orange-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">写新文章</CardTitle>
-              <PlusCircle className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">撰写文章</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">支持 Markdown 编辑与图片上传</p>
-              <Button className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white pointer-events-none">开始写作</Button>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* 内容管理组 */}
+        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-500" />
+              内容管理
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1">
+              {contentLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                      <link.icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{link.label}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">{link.desc}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* 卡片 2: 内容管理 */}
-        <Link href="/admin/posts" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">内容管理</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">管理文章</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">修改、隐藏或删除现有文章</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">查看列表</Button>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* 系统设置组 */}
+        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-purple-500" />
+              系统设置
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1">
+              {systemLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
+                      <link.icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{link.label}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">{link.desc}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* 卡片 3: 评论管理 */}
-        <Link href="/admin/comments" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">评论管理</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">评论审核</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">审核、删除用户评论</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">管理评论</Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* 卡片 4: 系列管理 */}
-        <Link href="/admin/series" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">系列管理</CardTitle>
-              <Layers className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">文章系列</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">创建和管理文章系列</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">管理系列</Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* 卡片 5: 内容配置 */}
-        <Link href="/admin/settings/content" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">内容配置</CardTitle>
-              <PenSquare className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">页面内容</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">编辑主页、关于页介绍文字</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">编辑内容</Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* 卡片 6: 系统设置 */}
-        <Link href="/settings" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">系统设置</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">偏好设置</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">分类管理、友链设置等</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">进入设置</Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* 卡片 7: 回收站 */}
-        <Link href="/admin/trash" className="block h-full">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">回收站</CardTitle>
-              <Trash2 className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">已删除文章</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">恢复或永久删除文章</p>
-              <Button variant="outline" className="w-full mt-4 pointer-events-none border-gray-200 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800">查看回收站</Button>
-            </CardContent>
-          </Card>
-        </Link>
       </div>
     </div>
   );
