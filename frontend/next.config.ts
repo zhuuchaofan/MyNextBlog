@@ -31,9 +31,9 @@ const nextConfig: NextConfig = {
       },
       // 🔧 修复：添加通用的 API 代理规则
       // 将所有 /api/* 请求转发到后端，但排除 Next.js 自己的 Route Handlers
-      // 排除路径：/api/auth/*, /api/admin/* (这些是 Next.js Route Handlers)
+      // 排除路径：/api/auth/*, /api/admin/*, /api/backend/* (已在上面处理)
       {
-        source: '/api/:path((?!auth|admin).*)*',
+        source: '/api/:path((?!auth|admin|backend).*)*',
         destination: `${process.env.BACKEND_URL || 'http://backend:8080'}/api/:path*`,
       },
     ];

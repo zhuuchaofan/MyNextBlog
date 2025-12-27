@@ -23,10 +23,22 @@ namespace MyNextBlog.Services;
 public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache, ITagService tagService) : IPostService
 {
     private const string AllPostsCacheKey = "all_posts_public"; // 首页文章列表的缓存 Key
-
+    
+    // 常用的 pageSize 值（用于缓存清除）
+    private static readonly int[] CommonPageSizes = [10, 20, 50, 100];
+    
     /// <summary>
-    /// 获取文章列表 (数据库级分页)
+    /// 清除所有文章列表相关的缓存
     /// </summary>
+    private void InvalidatePostListCache()
+    {
+        foreach (var pageSize in CommonPageSizes)
+        {
+            cache.Remove($"{AllPostsCacheKey}_False_{pageSize}");
+            cache.Remove($"{AllPostsCacheKey}_True_{pageSize}");
+        }
+    }
+
     /// <summary>
     /// 获取文章列表 (数据库级分页)
     /// </summary>
@@ -40,8 +52,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         if (isCacheable)
         {
-            // 为管理员和普通用户生成不同的 Key
-            string cacheKey = $"{AllPostsCacheKey}_{includeHidden}";
+            // 🔧 修复：缓存 key 必须包含 pageSize，否则不同 pageSize 的请求会共享缓存
+            // 例如：首页 pageSize=10 和归档页 pageSize=100 需要分开缓存
+            string cacheKey = $"{AllPostsCacheKey}_{includeHidden}_{pageSize}";
             
             // 尝试获取缓存，如果不存在则执行后面的 Factory 方法查询并写入
             return await cache.GetOrCreateAsync(cacheKey, async entry =>
@@ -283,8 +296,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
         // 清除首页列表缓存 (包括普通用户和管理员的)
-        cache.Remove($"{AllPostsCacheKey}_False");
-        cache.Remove($"{AllPostsCacheKey}_True");
+        InvalidatePostListCache();
 
         return post;
     }
@@ -314,8 +326,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         await imageService.AssociateImagesAsync(post.Id, post.Content);
 
-        cache.Remove($"{AllPostsCacheKey}_False");
-        cache.Remove($"{AllPostsCacheKey}_True");
+        InvalidatePostListCache();
 
         return post;
     }
@@ -333,8 +344,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             await context.SaveChangesAsync();
 
             // 清除首页列表缓存
-            cache.Remove($"{AllPostsCacheKey}_False");
-            cache.Remove($"{AllPostsCacheKey}_True");
+            InvalidatePostListCache();
         }
     }
 
@@ -366,8 +376,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         await context.SaveChangesAsync();
 
         // 清除首页列表缓存 (包括普通用户和管理员的)
-        cache.Remove($"{AllPostsCacheKey}_False");
-        cache.Remove($"{AllPostsCacheKey}_True");
+        InvalidatePostListCache();
         
         return true;
     }
@@ -476,8 +485,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         await context.SaveChangesAsync();
 
         // 清除缓存
-        cache.Remove($"{AllPostsCacheKey}_False");
-        cache.Remove($"{AllPostsCacheKey}_True");
+        InvalidatePostListCache();
 
         return true;
     }
@@ -498,8 +506,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             await context.SaveChangesAsync();
 
             // 清除缓存
-            cache.Remove($"{AllPostsCacheKey}_False");
-            cache.Remove($"{AllPostsCacheKey}_True");
+            InvalidatePostListCache();
         }
     }
 
