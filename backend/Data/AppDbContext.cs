@@ -95,11 +95,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasIndex(c => c.ParentId);          // 优化子评论查找
 
         // --- 5. 配置 User (用户) 与 UserProfile (扩展资料) 的一对一关系 ---
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.UserProfile)
-            .WithOne(p => p.User)
-            .HasForeignKey<UserProfile>(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade); // 用户删除时，扩展资料也删除
+        modelBuilder.Entity<User>(entity =>
+        {
+            // Email 唯一索引（允许 NULL，但不允许重复）
+            entity.HasIndex(u => u.Email)
+                .IsUnique()
+                .HasFilter("\"Email\" IS NOT NULL"); // SQLite/PostgreSQL 语法
+
+            entity.HasOne(u => u.UserProfile)
+                .WithOne(p => p.User)
+                .HasForeignKey<UserProfile>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // 用户删除时，扩展资料也删除
+        });
 
         // --- 6. 配置 Series (系列) 与 Post (文章) 的一对多关系 ---
         modelBuilder.Entity<Series>()

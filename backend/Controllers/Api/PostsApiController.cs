@@ -165,21 +165,13 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPost(int id)
     {
-        // 1. **确定权限上下文**
-        // 检查当前用户是否已登录并且是 "Admin" 角色。
-        // 使用扩展方法简化权限判断逻辑
-        //   - 如果是 Admin，则可以获取隐藏文章。
-        //   - 如果不是 Admin（包括未登录用户），则只能获取公开文章。
-        bool isAdmin = User.IsAdmin();
-        
-        // 2. **获取文章详情 (根据权限过滤隐藏文章)**
-        // 调用 `postService.GetPostByIdAsync`，`includeHidden` 参数动态地根据 `isAdmin` 决定。
-        var post = await postService.GetPostByIdAsync(id, includeHidden: isAdmin);
+        // 公开API：永远只返回公开文章（!IsHidden && !IsDeleted）
+        // 管理员查看草稿请使用 GET /api/posts/admin/{id}
+        var post = await postService.GetPostByIdAsync(id, includeHidden: false);
         
         if (post == null)
         {
-            // 如果文章不存在，或者对于非管理员用户来说文章是隐藏的，则返回 `404 Not Found`。
-            return NotFound(new { success = false, message = "文章不存在或已隐藏" });
+            return NotFound(new { success = false, message = "文章不存在" });
         }
 
         // 3. **补充评论总数**

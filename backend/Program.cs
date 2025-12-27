@@ -64,6 +64,24 @@ app.UseApplicationPipeline();
 // ==================================================================
 // 数据初始化 & 启动
 // ==================================================================
+// ==================================================================
+// 自动数据库迁移 (Auto Migration)
+// ==================================================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate(); // 应用迁移
+        Log.Information("✅ Database migrated successfully.");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "❌ Database migration failed.");
+    }
+}
+
 app.SeedDatabase();
 app.MapHealthChecks("/health");
 app.Run();

@@ -12,35 +12,85 @@ import { cookies } from 'next/headers';
 // 4. 如果后端验证 Token 有效并返回用户信息，则将其转发给前端。
 export async function GET() {
   const cookieStore = await cookies();
-  const token = cookieStore.get('token');
-
-  // 如果 Cookie 中没有 Token，直接返回未登录状态
-  if (!token) {
-    return NextResponse.json({ user: null }, { status: 401 });
-  }
+  let token = cookieStore.get('token')?.value;
+  const refreshToken = cookieStore.get('refresh_token')?.value;
 
   // 确定后端地址
   const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
-  
+
+  // 1. 如果没有 AccessToken 但有 RefreshToken，尝试直接刷新
+  // 或者有 AccessToken 但可能已过期（这里简单起见，如果请求失败再刷新）
+  if (!token && !refreshToken) {
+    return NextResponse.json({ user: null }, { status: 401 });
+  }
+
   try {
-      // 代理请求：带着 Token 去问后端“我是谁？”
-      const res = await fetch(`${backendUrl}/api/account/me`, {
+      // 2. 尝试请求后端用户信息
+      let res = await fetch(`${backendUrl}/api/account/me`, {
         headers: {
-            // 将 Cookie 中的 token 值放入 Authorization 头中
-            'Authorization': `Bearer ${token.value}`
+            'Authorization': `Bearer ${token}`
         }
       });
 
-    // 如果后端验证成功
+      // 3. 如果返回 401 (Unauthorized) 且我们有 RefreshToken，尝试刷新
+      if (res.status === 401 && refreshToken) {
+          console.log("[Auth/Me] Token expired, attempting refresh...");
+          const refreshRes = await fetch(`${backendUrl}/api/auth/refresh-token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accessToken: token || "", refreshToken: refreshToken }),
+          });
+
+          if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              token = refreshData.token;
+              const newRefreshToken = refreshData.refreshToken;
+
+              // 刷新成功后，用新 Token 再次请求用户信息
+              res = await fetch(`${backendUrl}/api/account/me`, {
+                  headers: {
+                      'Authorization': `Bearer ${token}`
+                  }
+              });
+              
+              if (res.ok) {
+                  const userData = await res.json();
+                  // 构造响应，并写入新的 Cookie
+                  const response = NextResponse.json({ user: userData });
+                  
+                  response.cookies.set('token', token!, {
+                      httpOnly: true,
+                      secure: process.env.NODE_ENV === 'production',
+                      path: '/',
+                      sameSite: 'lax',
+                      maxAge: 15 * 60 // 15 min
+                  });
+
+                  response.cookies.set('refresh_token', newRefreshToken, {
+                      httpOnly: true,
+                      secure: process.env.NODE_ENV === 'production',
+                      path: '/',
+                      sameSite: 'lax',
+                      maxAge: 7 * 24 * 60 * 60 // 7 days
+                  });
+
+                  console.log("[Auth/Me] Refresh successful, cookies updated.");
+                  return response;
+              }
+          } else {
+              console.warn("[Auth/Me] Refresh failed.");
+          }
+      }
+
+    // 4. 常规成功响应 (Token 有效)
     if (res.ok) {
         const data = await res.json();
-        // 返回用户信息给前端
         return NextResponse.json({ user: data }); 
     }
   } catch (e) {
       console.error("Session Check Error:", e);
   }
   
-  // 如果后端返回错误（Token 过期/无效）或发生异常，视为未登录
+  // 5. 失败兜底
   return NextResponse.json({ user: null }, { status: 401 });
 }

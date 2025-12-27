@@ -70,25 +70,15 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        var result = await authService.RegisterAsync(dto.Username, dto.Password, dto.Email);
-
-        if (!result.Success)
+        var response = await authService.RegisterAsync(dto.Username, dto.Password, dto.Email);
+        
+        if (response == null)
         {
-            return BadRequest(new { message = result.Message });
+            return BadRequest(new { success = false, message = "注册失败，用户名或邮箱已存在" });
         }
 
-        var user = result.User!;
-        return Ok(new 
-        {
-            token = result.Token,
-            user = new 
-            {
-                user.Id,
-                user.Username,
-                user.Role,
-                user.AvatarUrl 
-            }
-        });
+        // 返回完整的认证信息（包含 RefreshToken）
+        return Ok(new { success = true, data = response });
     }
 
     /// <summary>

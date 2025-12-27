@@ -184,24 +184,28 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         return newHash == hash;
     }
 
-    public async Task<AuthResult> RegisterAsync(string username, string password, string email)
+    public async Task<AuthResponseDto?> RegisterAsync(string username, string password, string email)
     {
         if (await context.Users.AnyAsync(u => u.Username == username))
         {
-            return new AuthResult(false, "用户名已存在", null, null);
+            return null;
         }
 
         if (await context.Users.AnyAsync(u => u.Email == email))
         {
-            return new AuthResult(false, "该邮箱已被注册", null, null);
+            return null;
         }
 
         var user = new User
         {
             Username = username,
-            Email = email, // Added
+            Email = email, 
             Role = "User", // Default role
-            AvatarUrl = null
+            AvatarUrl = null,
+            UserProfile = new UserProfile 
+            {
+                // CreatedAt not available in model
+            }
         };
         
         user.PasswordHash = HashPassword(password);
@@ -226,8 +230,22 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync();
 
-        return new AuthResult(true, "注册成功", user, accessToken); 
-        // Note: AuthResult 只返回 AccessToken，RefreshToken 在登录接口返回
+        // 返回完整的认证响应
+        return new AuthResponseDto(
+            Token: accessToken,
+            RefreshToken: refreshToken,
+            Expiration: DateTime.UtcNow.AddMinutes(15),
+            Username: user.Username,
+            Role: user.Role,
+            AvatarUrl: user.AvatarUrl,
+            Nickname: user.Nickname,
+            Bio: user.Bio,
+            Website: user.Website,
+            Location: null,
+            Occupation: null,
+            BirthDate: null,
+            Email: user.Email
+        );
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(string email)
