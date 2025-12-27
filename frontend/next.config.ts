@@ -27,7 +27,14 @@ const nextConfig: NextConfig = {
       {
         source: '/api/backend/:path*',
         // 优先读取环境变量 (Docker 内部通信)，默认使用 Docker 服务名
-        destination: `${process.env.BACKEND_URL || 'http://backend:8080'}/api/:path*`,
+        destination: `${process.env.BACKEND_URL || 'http://backend:5095'}/api/:path*`,
+      },
+      // 🔧 修复：添加通用的 API 代理规则
+      // 将所有 /api/* 请求转发到后端，但排除 Next.js 自己的 Route Handlers
+      // 排除路径：/api/auth/*, /api/admin/* (这些是 Next.js Route Handlers)
+      {
+        source: '/api/:path((?!auth|admin).*)*',
+        destination: `${process.env.BACKEND_URL || 'http://backend:5095'}/api/:path*`,
       },
     ];
   },
