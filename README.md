@@ -34,7 +34,14 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
-### 最新更新 (2025-12-27)
+### 最新更新 (2025-12-28)
+
+- 🎉 **纪念日浮动挂件**: 首页新增纪念日显示组件，支持多纪念日管理，纪念日当天自动播放烟花动画
+- ✨ **智能时间显示**: 支持"时长"(5 年 7 个月)和"年龄"(31 岁)两种显示格式，自动根据天数调整单位
+- 📱 **移动端适配**: 纪念日挂件在移动端底部居中显示，桌面端右下角浮动
+- 🔐 **防重复烟花**: 使用 localStorage 记录，同一天内不会重复自动播放庆祝动画
+
+### 历史更新 (2025-12-27)
 
 - 🎨 **Twemoji 集成**: 使用 Twitter 开源 Emoji 替代系统原生 Emoji，解决了 iOS/macOS 上 Emoji 显示异常的问题，实现跨平台统一的 Emoji 样式
 - 🐛 **修复邮件通知**: 修复评论邮件通知不发送的 Bug（`ObjectDisposedException`），重构后台任务使用 `IServiceScopeFactory` 创建独立 DI 作用域
@@ -123,6 +130,13 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 * **全站深色模式 (Dark Mode)**:
   - 基于 `next-themes` 实现，完美适配系统设置。
   - 支持手动切换 (Light/Dark/System)，防止夜间阅读刺眼。
+* **纪念日挂件 (Anniversary Widget)**:
+  - **浮动显示**: 首页右下角浮动挂件，点击展开查看所有纪念日。
+  - **多纪念日管理**: 支持每年/每月/一次性重复类型。
+  - **智能显示格式**: 支持"时长"(5 年 7 个月)和"年龄"(31 岁)两种模式。
+  - **庆祝动画**: 纪念日当天自动播放烟花/撞花效果 (使用 canvas-confetti)。
+  - **防重复机制**: localStorage 记录已庆祝的纪念日，同一天不重复自动播放。
+  - **管理后台**: `/admin/settings/anniversaries` 支持 CRUD 操作。
 
 ### 2. 💬 互动与评论 (Interaction)
 
@@ -214,6 +228,10 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **可配置项**: 作者信息、技能树、个人经历、阅读书单、装备清单、宠物信息。
   - **动态化范围**: 主页侧边栏、主页 Hero 区猫咪、关于页面、RSS Feed。
   - **基础内容**: 主页介绍、关于我介绍（支持 HTML 标签）。
+- **纪念日配置 (`/admin/settings/anniversaries`)**:
+  - **CRUD 管理**: 创建、编辑、删除纪念日。
+  - **显示选项**: 切换启用/禁用状态，选择显示格式(时长/年龄)。
+  - **Emoji 选择器**: 支持 10+ 常用 Emoji 图标。
 
 ### 7. 🛡️ 运维自动化 (Ops Automation)
 
