@@ -79,7 +79,7 @@ public class HomeController(
                             totalCount
                         }
                     },
-                    tags,
+                    tags = tags.Select(t => t.Name).ToList(), // 仅返回标签名称，与前端期望格式一致
                     content = contentDict
                 }
             });
