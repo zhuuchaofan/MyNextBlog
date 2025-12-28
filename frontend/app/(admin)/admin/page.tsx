@@ -14,7 +14,8 @@ import {
   Settings, 
   Trash2,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Mail
 } from 'lucide-react';
 // 统计数据类型定义
 interface DashboardStats {
@@ -83,11 +84,12 @@ export default function AdminDashboard() {
     { href: '/admin/posts', icon: FileText, label: '文章管理', desc: '编辑、隐藏或删除文章' },
     { href: '/admin/comments', icon: MessageSquare, label: '评论管理', desc: '审核用户评论' },
     { href: '/admin/series', icon: Layers, label: '系列管理', desc: '创建和管理文章系列' },
+    { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
   ];
 
   const systemLinks = [
     { href: '/admin/settings/content', icon: PenSquare, label: '内容配置', desc: '编辑主页、关于页介绍' },
-    { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
+    { href: '/admin/settings/email-templates', icon: Mail, label: '邮件模板', desc: '自定义系统邮件内容' },
     { href: '/settings', icon: Settings, label: '系统设置', desc: '分类管理、友链设置' },
     { href: '/admin/trash', icon: Trash2, label: '回收站', desc: '恢复或永久删除文章' },
   ];
