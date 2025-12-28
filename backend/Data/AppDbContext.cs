@@ -37,6 +37,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<SiteContent> SiteContents { get; set; } // 站点内容配置
     public DbSet<RefreshToken> RefreshTokens { get; set; } // Refresh Token 多设备登录支持
     public DbSet<Anniversary> Anniversaries { get; set; } // 纪念日
+    public DbSet<AnniversaryNotification> AnniversaryNotifications { get; set; } // 纪念日提醒记录
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。

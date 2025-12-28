@@ -33,12 +33,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ISeriesService, SeriesService>();
         services.AddScoped<IAnniversaryService, AnniversaryService>();
+        services.AddScoped<IAnniversaryReminderService, AnniversaryReminderService>();
         
         // --- 单例服务 ---
         services.AddSingleton<IEmailService, SmtpEmailService>();
         
+        // --- 后台服务 ---
         // TODO: PostgreSQL 备份需使用 pg_dump，暂时禁用
         // services.AddHostedService<DatabaseBackupService>();
+        services.AddHostedService<AnniversaryReminderHostedService>();
 
         return services;
     }

@@ -30,23 +30,31 @@ public record AnniversaryAdminDto(
     bool IsActive,
     int DisplayOrder,
     int DaysSinceStart,     // 已过天数
+    // 邮件提醒配置
+    bool EnableReminder,
+    string? ReminderEmail,
+    string ReminderDays,    // "30,15,7,1,0"
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
 
 /// <summary>
-/// 创建/更新纪念日请求
+/// 创建纪念日请求
 /// </summary>
 public record CreateAnniversaryDto(
     string Title,
     string Emoji,
     string StartDate,       // "2024-06-01" 格式
     string RepeatType,
-    string DisplayType      // "duration" | "age"
+    string DisplayType,     // "duration" | "age"
+    // 邮件提醒配置
+    bool EnableReminder = false,
+    string? ReminderEmail = null,
+    string ReminderDays = "7,1,0"
 );
 
 /// <summary>
-/// 更新纪念日请求（含可选的启用状态和排序）
+/// 更新纪念日请求（含可选字段）
 /// </summary>
 public record UpdateAnniversaryDto(
     string Title,
@@ -55,6 +63,11 @@ public record UpdateAnniversaryDto(
     string RepeatType,
     string DisplayType,
     bool? IsActive,
-    int? DisplayOrder
+    int? DisplayOrder,
+    // 邮件提醒配置
+    bool? EnableReminder,
+    string? ReminderEmail,
+    string? ReminderDays
 );
+
 

@@ -59,6 +59,9 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
                 a.IsActive,
                 a.DisplayOrder,
                 today.DayNumber - a.StartDate.DayNumber,  // 已过天数
+                a.EnableReminder,
+                a.ReminderEmail,
+                a.ReminderDays,
                 a.CreatedAt,
                 a.UpdatedAt
             ))
@@ -85,6 +88,9 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
             StartDate = DateOnly.Parse(dto.StartDate),
             RepeatType = dto.RepeatType,
             DisplayType = dto.DisplayType,
+            EnableReminder = dto.EnableReminder,
+            ReminderEmail = dto.ReminderEmail,
+            ReminderDays = dto.ReminderDays,
             IsActive = true,
             DisplayOrder = 0,
             CreatedAt = DateTime.UtcNow,
@@ -116,6 +122,16 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
         
         if (dto.DisplayOrder.HasValue)
             anniversary.DisplayOrder = dto.DisplayOrder.Value;
+        
+        // 邮件提醒配置
+        if (dto.EnableReminder.HasValue)
+            anniversary.EnableReminder = dto.EnableReminder.Value;
+        
+        if (dto.ReminderEmail != null)
+            anniversary.ReminderEmail = dto.ReminderEmail;
+        
+        if (dto.ReminderDays != null)
+            anniversary.ReminderDays = dto.ReminderDays;
         
         anniversary.UpdatedAt = DateTime.UtcNow;
         

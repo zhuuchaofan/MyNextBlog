@@ -278,6 +278,10 @@ export interface Anniversary {
 export interface AnniversaryAdmin extends Anniversary {
   isActive: boolean;
   displayOrder: number;
+  // 邮件提醒配置
+  enableReminder: boolean;
+  reminderEmail: string | null;
+  reminderDays: string;  // "30,15,7,1,0"
   createdAt: string;
   updatedAt: string;
 }
@@ -299,6 +303,9 @@ export function createAnniversary(data: {
   startDate: string;
   repeatType: string;
   displayType: string;
+  enableReminder?: boolean;
+  reminderEmail?: string;
+  reminderDays?: string;
 }) {
   return fetchClient("/api/backend/anniversaries", {
     method: "POST",
@@ -315,6 +322,9 @@ export function updateAnniversary(id: number, data: {
   displayType: string;
   isActive?: boolean;
   displayOrder?: number;
+  enableReminder?: boolean;
+  reminderEmail?: string;
+  reminderDays?: string;
 }) {
   return fetchClient(`/api/backend/anniversaries/${id}`, {
     method: "PUT",
@@ -328,5 +338,6 @@ export function deleteAnniversary(id: number) {
     method: "DELETE",
   });
 }
+
 
 

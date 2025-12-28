@@ -45,6 +45,24 @@ public class Anniversary
     /// </summary>
     public int DisplayOrder { get; set; } = 0;
     
+    // --- 邮件提醒配置 ---
+    
+    /// <summary>
+    /// 是否开启邮件提醒
+    /// </summary>
+    public bool EnableReminder { get; set; } = false;
+    
+    /// <summary>
+    /// 提醒邮箱地址
+    /// </summary>
+    public string? ReminderEmail { get; set; }
+    
+    /// <summary>
+    /// 提前提醒天数，逗号分隔，如 "30,15,7,1,0"
+    /// 0 表示当天提醒
+    /// </summary>
+    public string ReminderDays { get; set; } = "7,1,0";
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
