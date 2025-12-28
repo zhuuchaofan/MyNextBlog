@@ -34,6 +34,7 @@ import {
   type AnniversaryAdmin,
 } from "@/lib/api";
 import { formatDaysSmart } from "@/lib/dateUtils";
+import { SwipeableItem } from "@/components/ui/swipeable-item";
 
 // 重复类型选项
 const REPEAT_TYPES = [
@@ -408,40 +409,55 @@ export default function AnniversariesPage() {
       ) : (
         <div className="space-y-3">
           {anniversaries.map((ann) => (
-            <Card
+            <SwipeableItem
               key={ann.id}
-              className={`transition-all ${!ann.isActive ? "opacity-50" : ""}`}
+              onEdit={() => handleOpenEdit(ann)}
+              onDelete={() => handleDelete(ann.id)}
+              className="rounded-xl"
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-3 text-lg">
-                    <span className="text-2xl">{ann.emoji}</span>
-                    <span>{ann.title}</span>
-                    {!ann.isActive && (
-                      <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
-                        已禁用
-                      </span>
-                    )}
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={ann.isActive}
-                      onCheckedChange={() => handleToggleActive(ann)}
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(ann)}>
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => handleDelete(ann.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+              <Card
+                className={`transition-all border-none shadow-none rounded-none sm:border sm:shadow-sm sm:rounded-xl ${!ann.isActive ? "opacity-50" : ""}`}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-3 text-lg">
+                      <span className="text-2xl">{ann.emoji}</span>
+                      <span>{ann.title}</span>
+                      {!ann.isActive && (
+                        <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
+                          已禁用
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Switch
+                          checked={ann.isActive}
+                          onCheckedChange={() => handleToggleActive(ann)}
+                        />
+                      </div>
+                      {/* Desktop Buttons */}
+                      <div className="hidden sm:flex items-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(ann)}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDelete(ann.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {/* Mobile Hint */}
+                      <div className="sm:hidden text-xs text-muted-foreground opacity-50">
+                        <ChevronLeft className="w-4 h-4 inline" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
+                </CardHeader>
+
               <CardContent className="pt-0">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -458,6 +474,7 @@ export default function AnniversariesPage() {
                 </div>
               </CardContent>
             </Card>
+          </SwipeableItem>
           ))}
         </div>
       )}
