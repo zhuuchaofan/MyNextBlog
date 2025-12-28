@@ -316,6 +316,12 @@ public class CommentService(
 
         comment.IsApproved = !comment.IsApproved;
         await context.SaveChangesAsync();
+        
+        logger.LogInformation(
+            "Comment approval toggled: CommentId={CommentId}, IsApproved={IsApproved}",
+            id, comment.IsApproved
+        );
+        
         return true;
     }
 
@@ -323,6 +329,11 @@ public class CommentService(
     {
         var comment = await context.Comments.FindAsync(id);
         if (comment == null) return false;
+
+        logger.LogInformation(
+            "Deleting comment: CommentId={CommentId}, Author={Author}",
+            id, comment.GuestName ?? "User"
+        );
 
         context.Comments.Remove(comment);
         await context.SaveChangesAsync();
@@ -333,6 +344,11 @@ public class CommentService(
     {
         var comments = await context.Comments.Where(c => ids.Contains(c.Id) && !c.IsApproved).ToListAsync();
         if (!comments.Any()) return 0;
+
+        logger.LogInformation(
+            "Batch approving comments: Count={Count}, CommentIds={CommentIds}",
+            comments.Count, string.Join(", ", ids)
+        );
 
         foreach (var c in comments)
         {

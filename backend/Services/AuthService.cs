@@ -4,6 +4,7 @@ using System.Text;
 using System.Security.Cryptography; // Added for RNG and SHA256
 using Microsoft.EntityFrameworkCore;   
 using Microsoft.Extensions.Configuration; 
+using Microsoft.Extensions.Logging; // 引入日志命名空间
 using Microsoft.IdentityModel.Tokens;  
 using MyNextBlog.Data;                 
 using MyNextBlog.DTOs;                 
@@ -12,12 +13,22 @@ using MyNextBlog.Services.Email;
 
 namespace MyNextBlog.Services;
 
-public class AuthService(AppDbContext context, IConfiguration configuration, IEmailService emailService) : IAuthService
+public class AuthService(
+    AppDbContext context, 
+    IConfiguration configuration, 
+    IEmailService emailService,
+    ILogger<AuthService> logger) : IAuthService
 {
     public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
     {
+        logger.LogInformation("User login attempt: {Username}", dto.Username);
+        
         var user = await AuthenticateAsync(dto.Username, dto.Password);
-        if (user == null) return null;
+        if (user == null)
+        {
+            logger.LogWarning("Login failed for user: {Username} - Invalid credentials", dto.Username);
+            return null;
+        }
 
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
@@ -35,6 +46,11 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         
         context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync();
+
+        logger.LogInformation(
+            "User logged in successfully: UserId={UserId}, Username={Username}, Role={Role}",
+            user.Id, user.Username, user.Role
+        );
 
         return new AuthResponseDto(
             Token: accessToken,
@@ -68,6 +84,7 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         // 1. 验证 Token 是否存在且未过期
         if (storedToken == null || storedToken.ExpiryTime <= DateTime.UtcNow)
         {
+            logger.LogWarning("Token refresh failed: Invalid or expired refresh token");
             return null; // 无效或已过期
         }
 
@@ -107,6 +124,11 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         
         await context.SaveChangesAsync();
 
+        logger.LogInformation(
+            "Token refreshed successfully: UserId={UserId}, Username={Username}, Rotated={Rotated}",
+            user.Id, user.Username, newRefreshToken != dto.RefreshToken
+        );
+
         return new AuthResponseDto(
             Token: newAccessToken,
             RefreshToken: newRefreshToken, // 返回决定使用的那个 (旧的或新的)
@@ -141,13 +163,20 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
 
     public async Task<AuthResponseDto?> RegisterAsync(string username, string password, string email)
     {
+        logger.LogInformation(
+            "User registration attempt: Username={Username}, Email={Email}",
+            username, email
+        );
+        
         if (await context.Users.AnyAsync(u => u.Username == username))
         {
+            logger.LogWarning("Registration failed: Username {Username} already exists", username);
             return null;
         }
 
         if (await context.Users.AnyAsync(u => u.Email == email))
         {
+            logger.LogWarning("Registration failed: Email {Email} already exists", email);
             return null;
         }
 
@@ -184,6 +213,11 @@ public class AuthService(AppDbContext context, IConfiguration configuration, IEm
         
         context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync();
+
+        logger.LogInformation(
+            "User registered successfully: UserId={UserId}, Username={Username}",
+            user.Id, user.Username
+        );
 
         // 返回完整的认证响应
         return new AuthResponseDto(

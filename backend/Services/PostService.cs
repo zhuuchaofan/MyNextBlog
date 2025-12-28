@@ -1,6 +1,7 @@
 // `using` 语句用于导入必要的命名空间，以便在当前文件中使用其中定义的类型。
 using Microsoft.EntityFrameworkCore; // 引入 Entity Framework Core，用于数据库操作
 using Microsoft.Extensions.Caching.Memory; // 引入内存缓存命名空间
+using Microsoft.Extensions.Logging; // 引入日志命名空间
 using MyNextBlog.Data;              // 引入数据访问层命名空间，包含 AppDbContext
 using MyNextBlog.Models;            // 引入应用程序的领域模型，如 Post, Comment, Category 等
 using MyNextBlog.DTOs;              // 引入 DTOs
@@ -20,7 +21,7 @@ namespace MyNextBlog.Services;
 // `public class PostService(...) : IPostService`
 // 这是服务类的定义。
 // `AppDbContext context, IImageService imageService, IMemoryCache cache`: 注入缓存服务
-public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache, ITagService tagService) : IPostService
+public class PostService(AppDbContext context, IImageService imageService, IMemoryCache cache, ITagService tagService, ILogger<PostService> logger) : IPostService
 {
     private const string AllPostsCacheKey = "all_posts_public"; // 首页文章列表的缓存 Key
     
@@ -274,6 +275,11 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// </summary>
     public async Task<Post> AddPostAsync(CreatePostDto dto, int? userId)
     {
+        logger.LogInformation(
+            "Creating post: {Title} by UserId={UserId}, CategoryId={CategoryId}, Tags={TagCount}",
+            dto.Title, userId ?? 0, dto.CategoryId, dto.Tags?.Count ?? 0
+        );
+        
         var post = new Post
         {
             Title = dto.Title,
@@ -298,11 +304,17 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 清除首页列表缓存 (包括普通用户和管理员的)
         InvalidatePostListCache();
 
+        logger.LogInformation("Post created successfully: PostId={PostId}", post.Id);
         return post;
     }
 
     public async Task<Post> UpdatePostAsync(int id, UpdatePostDto dto)
     {
+        logger.LogInformation(
+            "Updating post: PostId={PostId}, NewTitle={Title}, IsHidden={IsHidden}",
+            id, dto.Title, dto.IsHidden
+        );
+        
         var post = await GetPostForUpdateAsync(id);
         if (post == null) throw new ArgumentException("文章不存在");
 
@@ -328,6 +340,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         InvalidatePostListCache();
 
+        logger.LogInformation("Post updated successfully: PostId={PostId}", id);
         return post;
     }
 
@@ -339,12 +352,16 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         var post = await context.Posts.FindAsync(id);
         if (post != null)
         {
+            logger.LogInformation("Soft deleting post: PostId={PostId}, Title={Title}", id, post.Title);
+            
             post.IsDeleted = true;
             post.DeletedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
 
             // 清除首页列表缓存
             InvalidatePostListCache();
+            
+            logger.LogInformation("Post moved to trash: PostId={PostId}", id);
         }
     }
 
@@ -480,6 +497,8 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         var post = await context.Posts.FindAsync(id);
         if (post == null || !post.IsDeleted) return false;
 
+        logger.LogInformation("Restoring post from trash: PostId={PostId}, Title={Title}", id, post.Title);
+        
         post.IsDeleted = false;
         post.DeletedAt = null;
         await context.SaveChangesAsync();
@@ -487,6 +506,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 清除缓存
         InvalidatePostListCache();
 
+        logger.LogInformation("Post restored successfully: PostId={PostId}", id);
         return true;
     }
 
@@ -498,6 +518,11 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         var post = await context.Posts.FindAsync(id);
         if (post != null)
         {
+            logger.LogWarning(
+                "Permanently deleting post: PostId={PostId}, Title={Title}",
+                id, post.Title
+            );
+            
             // 清理云端图片资源
             await imageService.DeleteImagesForPostAsync(id);
 
@@ -507,6 +532,8 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
             // 清除缓存
             InvalidatePostListCache();
+            
+            logger.LogWarning("Post permanently deleted: PostId={PostId}", id);
         }
     }
 
