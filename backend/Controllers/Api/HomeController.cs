@@ -32,11 +32,16 @@ public class HomeController(
 
         try
         {
-            // 1. 并行获取文章和标签
+            // 1. 先并行获取文章和标签（它们通过 Service，内部已封装 DbContext 访问）
             var postsTask = postService.GetAllPostsAsync(page, pageSize, includeHidden);
-            var tagsTask = tagService.GetPopularTagsAsync(10, includeHidden: false); // 获取前 10 个热门标签
+            var tagsTask = tagService.GetPopularTagsAsync(10, includeHidden: false);
+            
+            await Task.WhenAll(postsTask, tagsTask);
+            
+            var (posts, totalCount) = await postsTask;
+            var tags = await tagsTask;
 
-            // 2. 批量获取 SiteContent（单次查询获取所有配置）
+            // 2. 批量获取 SiteContent（独立查询，避免并发冲突）
             var siteContentKeys = new[]
             {
                 "homepage_intro",
@@ -51,20 +56,13 @@ public class HomeController(
                 "stats_server_time"
             };
 
-            var siteContentsTask = context.SiteContents
+            var siteContents = await context.SiteContents
                 .AsNoTracking()
                 .Where(c => siteContentKeys.Contains(c.Key))
                 .Select(c => new { c.Key, c.Value })
                 .ToListAsync();
 
-            // 3. 等待所有任务完成
-            await Task.WhenAll(postsTask, tagsTask, siteContentsTask);
-
-            var (posts, totalCount) = await postsTask;
-            var tags = await tagsTask;
-            var siteContents = await siteContentsTask;
-
-            // 4. 将 SiteContent 转换为字典，方便前端使用
+            // 3. 将 SiteContent 转换为字典，方便前端使用
             var contentDict = siteContents.ToDictionary(c => c.Key, c => c.Value);
 
             return Ok(new
