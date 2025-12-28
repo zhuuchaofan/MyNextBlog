@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ISeriesService, SeriesService>();
+        services.AddScoped<IAnniversaryService, AnniversaryService>();
         
         // --- 单例服务 ---
         services.AddSingleton<IEmailService, SmtpEmailService>();

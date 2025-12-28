@@ -261,3 +261,68 @@ export function pulseStats() {
     method: "POST",
   });
 }
+
+// --- 纪念日功能 (Anniversary) ---
+
+// 纪念日类型定义
+export interface Anniversary {
+  id: number;
+  title: string;
+  emoji: string;
+  startDate: string;  // "2024-06-01" 格式
+  repeatType: "yearly" | "monthly" | "once";
+  daysSinceStart: number;
+}
+
+export interface AnniversaryAdmin extends Anniversary {
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 获取所有启用的纪念日（公开 API）
+export function fetchAnniversaries() {
+  return fetchClient<Anniversary[]>("/api/backend/anniversaries");
+}
+
+// [Admin] 获取所有纪念日（含禁用）
+export function fetchAllAnniversariesAdmin() {
+  return fetchClient<AnniversaryAdmin[]>("/api/backend/anniversaries/admin");
+}
+
+// [Admin] 创建纪念日
+export function createAnniversary(data: {
+  title: string;
+  emoji: string;
+  startDate: string;
+  repeatType: string;
+}) {
+  return fetchClient("/api/backend/anniversaries", {
+    method: "POST",
+    body: data,
+  });
+}
+
+// [Admin] 更新纪念日
+export function updateAnniversary(id: number, data: {
+  title: string;
+  emoji: string;
+  startDate: string;
+  repeatType: string;
+  isActive?: boolean;
+  displayOrder?: number;
+}) {
+  return fetchClient(`/api/backend/anniversaries/${id}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+// [Admin] 删除纪念日
+export function deleteAnniversary(id: number) {
+  return fetchClient(`/api/backend/anniversaries/${id}`, {
+    method: "DELETE",
+  });
+}
+
