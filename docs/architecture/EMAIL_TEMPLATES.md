@@ -33,7 +33,7 @@ CommentService/AnniversaryReminderService
 
 ### 2.2 文件结构
 
-```
+````
 backend/
 ├── Models/
 │   └── EmailTemplate.cs          # 实体模型
@@ -42,36 +42,10 @@ backend/
 ├── Services/
 │   ├── IEmailTemplateService.cs  # 服务接口
 │   └── EmailTemplateService.cs   # 服务实现（含缓存）
-├── Controllers/Api/
-│   └── EmailTemplatesController.cs  # Admin API
+├── Controllers/Admin/
+│   └── EmailTemplatesController.cs  # Admin API &lt;-- 已移动
 └── Extensions/
     └── DataSeeder.cs             # 默认模板播种
-
-frontend/
-├── app/(admin)/admin/settings/email-templates/
-│   └── page.tsx                  # 管理页面
-└── lib/
-    └── api.ts                    # API 函数
-```
-
----
-
-## 3. 数据模型
-
-### EmailTemplate 实体
-
-| 字段                    | 类型         | 说明                         |
-| :---------------------- | :----------- | :--------------------------- |
-| `Id`                    | int          | 主键                         |
-| `TemplateKey`           | string(50)   | 唯一标识符，如 `new_comment` |
-| `Name`                  | string(100)  | 模板名称（后台显示）         |
-| `SubjectTemplate`       | string       | 邮件主题模板                 |
-| `BodyTemplate`          | string       | 邮件正文 HTML 模板           |
-| `AvailablePlaceholders` | string?      | 可用占位符说明（JSON 格式）  |
-| `Description`           | string?(200) | 模板用途描述                 |
-| `IsEnabled`             | bool         | 是否启用                     |
-| `CreatedAt`             | DateTime     | 创建时间                     |
-| `UpdatedAt`             | DateTime     | 更新时间                     |
 
 ---
 
@@ -88,7 +62,7 @@ frontend/
 
 ## 5. API 端点
 
-### GET /api/email-templates
+### GET /api/admin/email-templates
 
 获取所有模板列表（Admin Only）
 
@@ -108,21 +82,11 @@ frontend/
     "updatedAt": "2025-12-28T10:00:00Z"
   }
 ]
-```
+````
 
-### PUT /api/email-templates/{key}
+### PUT /api/admin/email-templates/{key}
 
 更新模板内容（Admin Only）
-
-**请求体**：
-
-```json
-{
-  "subjectTemplate": "💬 [新评论] {{PostTitle}}",
-  "bodyTemplate": "<div>...</div>",
-  "isEnabled": true
-}
-```
 
 ---
 
@@ -139,25 +103,6 @@ frontend/
   className="w-full h-80 bg-white"
 />
 ```
-
-### 6.2 占位符替换（前端 Mock）
-
-```typescript
-function renderTemplate(
-  template: string,
-  data: Record<string, string>
-): string {
-  let result = template;
-  for (const [key, value] of Object.entries(data)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
-  }
-  return result;
-}
-```
-
-### 6.3 点击复制占位符
-
-占位符按钮点击后自动复制 `{{Key}}` 到剪贴板，方便用户编辑。
 
 ---
 
@@ -178,7 +123,10 @@ function renderTemplate(
 
 1. 运行数据库迁移：`dotnet ef database update`
 2. 启动后端，`DataSeeder` 会自动播种默认模板
-3. 如果已有旧数据但没有 `Description` 字段，系统会自动清空并重新播种
+3. **安全播种策略 (Upsert)**:
+   - 如果模板不存在 -> **插入**
+   - 如果模板已存在 -> **仅更新** `Description` 和 `AvailablePlaceholders` (元数据)
+   - **绝不覆盖** 用户自定义的 `Subject` 和 `Body`
 
 ### 添加新模板类型
 
