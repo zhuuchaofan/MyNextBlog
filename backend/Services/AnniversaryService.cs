@@ -32,6 +32,7 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
                 a.Emoji,
                 a.StartDate.ToString("yyyy-MM-dd"),
                 a.RepeatType,
+                a.DisplayType,
                 today.DayNumber - a.StartDate.DayNumber  // 已过天数
             ))
             .ToListAsync();
@@ -54,6 +55,7 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
                 a.Emoji,
                 a.StartDate.ToString("yyyy-MM-dd"),
                 a.RepeatType,
+                a.DisplayType,
                 a.IsActive,
                 a.DisplayOrder,
                 today.DayNumber - a.StartDate.DayNumber,  // 已过天数
@@ -82,6 +84,7 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
             Emoji = dto.Emoji,
             StartDate = DateOnly.Parse(dto.StartDate),
             RepeatType = dto.RepeatType,
+            DisplayType = dto.DisplayType,
             IsActive = true,
             DisplayOrder = 0,
             CreatedAt = DateTime.UtcNow,
@@ -106,6 +109,7 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
         anniversary.Emoji = dto.Emoji;
         anniversary.StartDate = DateOnly.Parse(dto.StartDate);
         anniversary.RepeatType = dto.RepeatType;
+        anniversary.DisplayType = dto.DisplayType;
         
         if (dto.IsActive.HasValue)
             anniversary.IsActive = dto.IsActive.Value;

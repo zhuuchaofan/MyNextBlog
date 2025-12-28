@@ -208,7 +208,7 @@ export default function AnniversaryWidget() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-bold text-pink-500">
-                            {formatDaysSmart(ann.daysSinceStart)}
+                            {formatDaysSmart(ann.daysSinceStart, ann.displayType)}
                           </div>
                         </div>
                       </div>
@@ -248,7 +248,7 @@ export default function AnniversaryWidget() {
                 fill={isToday ? "currentColor" : "none"}
               />
               <span className={`font-medium ${isToday ? "text-white" : "text-gray-700 dark:text-gray-200"}`}>
-                {displayAnn.emoji} {formatDaysShort(displayAnn.daysSinceStart)}
+                {displayAnn.emoji} {formatDaysShort(displayAnn.daysSinceStart, displayAnn.displayType)}
               </span>
             </motion.button>
           )}

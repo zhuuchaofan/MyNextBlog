@@ -31,6 +31,11 @@ public class Anniversary
     public required string RepeatType { get; set; }
     
     /// <summary>
+    /// 显示类型: "duration" (时长：X年X月) | "age" (年龄：X岁)
+    /// </summary>
+    public string DisplayType { get; set; } = "duration";
+    
+    /// <summary>
     /// 是否启用
     /// </summary>
     public bool IsActive { get; set; } = true;

@@ -271,6 +271,7 @@ export interface Anniversary {
   emoji: string;
   startDate: string;  // "2024-06-01" 格式
   repeatType: "yearly" | "monthly" | "once";
+  displayType: "duration" | "age";  // 显示类型
   daysSinceStart: number;
 }
 
@@ -297,6 +298,7 @@ export function createAnniversary(data: {
   emoji: string;
   startDate: string;
   repeatType: string;
+  displayType: string;
 }) {
   return fetchClient("/api/backend/anniversaries", {
     method: "POST",
@@ -310,6 +312,7 @@ export function updateAnniversary(id: number, data: {
   emoji: string;
   startDate: string;
   repeatType: string;
+  displayType: string;
   isActive?: boolean;
   displayOrder?: number;
 }) {
@@ -325,4 +328,5 @@ export function deleteAnniversary(id: number) {
     method: "DELETE",
   });
 }
+
 

@@ -13,6 +13,7 @@ public record AnniversaryDto(
     string Emoji,
     string StartDate,       // "2024-06-01" 格式
     string RepeatType,
+    string DisplayType,     // "duration" | "age"
     int DaysSinceStart     // 基于 UTC 计算的已过天数（仅供参考）
 );
 
@@ -25,6 +26,7 @@ public record AnniversaryAdminDto(
     string Emoji,
     string StartDate,
     string RepeatType,
+    string DisplayType,     // "duration" | "age"
     bool IsActive,
     int DisplayOrder,
     int DaysSinceStart,     // 已过天数
@@ -39,7 +41,8 @@ public record CreateAnniversaryDto(
     string Title,
     string Emoji,
     string StartDate,       // "2024-06-01" 格式
-    string RepeatType
+    string RepeatType,
+    string DisplayType      // "duration" | "age"
 );
 
 /// <summary>
@@ -50,6 +53,8 @@ public record UpdateAnniversaryDto(
     string Emoji,
     string StartDate,
     string RepeatType,
+    string DisplayType,
     bool? IsActive,
     int? DisplayOrder
 );
+

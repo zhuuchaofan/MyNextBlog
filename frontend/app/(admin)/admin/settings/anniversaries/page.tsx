@@ -42,6 +42,12 @@ const REPEAT_TYPES = [
   { value: "once", label: "仅一次", icon: "🎯" },
 ];
 
+// 显示类型选项
+const DISPLAY_TYPES = [
+  { value: "duration", label: "时长", desc: "如：5年7个月" },
+  { value: "age", label: "年龄", desc: "如：31岁" },
+];
+
 // 常用 Emoji 列表
 const EMOJI_OPTIONS = ["💕", "❤️", "🎂", "🌙", "💍", "🌹", "🎉", "✨", "🏠", "👶"];
 
@@ -59,6 +65,7 @@ export default function AnniversariesPage() {
     emoji: "💕",
     startDate: "",
     repeatType: "yearly",
+    displayType: "duration",
     isActive: true,
     displayOrder: 0,
   });
@@ -88,6 +95,7 @@ export default function AnniversariesPage() {
       emoji: "💕",
       startDate: new Date().toISOString().split("T")[0],
       repeatType: "yearly",
+      displayType: "duration",
       isActive: true,
       displayOrder: 0,
     });
@@ -102,6 +110,7 @@ export default function AnniversariesPage() {
       emoji: ann.emoji,
       startDate: ann.startDate,
       repeatType: ann.repeatType,
+      displayType: ann.displayType,
       isActive: ann.isActive,
       displayOrder: ann.displayOrder,
     });
@@ -269,6 +278,26 @@ export default function AnniversariesPage() {
                   </Select>
                 </div>
 
+                {/* 显示类型 */}
+                <div className="space-y-2">
+                  <Label>显示格式</Label>
+                  <Select
+                    value={formData.displayType}
+                    onValueChange={(v) => setFormData({ ...formData, displayType: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DISPLAY_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label} <span className="text-xs text-muted-foreground ml-1">({type.desc})</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* 保存按钮 */}
                 <div className="flex justify-end gap-2 pt-4">
                   <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -348,7 +377,7 @@ export default function AnniversariesPage() {
                     {getRepeatLabel(ann.repeatType)}
                   </span>
                   <span className="text-pink-500 font-medium">
-                    已经 {formatDaysSmart(ann.daysSinceStart)}
+                    已经 {formatDaysSmart(ann.daysSinceStart, ann.displayType)}
                   </span>
                 </div>
               </CardContent>
