@@ -135,7 +135,8 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **多纪念日管理**: 支持每年/每月/一次性重复类型。
   - **智能显示格式**: 支持"时长"(5 年 7 个月)和"年龄"(31 岁)两种模式。
   - **庆祝动画**: 纪念日当天自动播放烟花/撞花效果 (使用 canvas-confetti)。
-  - **防重复机制**: localStorage 记录已庆祝的纪念日，同一天不重复自动播放。
+  - **邮件提醒**: 支持提前 30/15/7/1 天和当天发送邮件提醒，后台每天 08:00 定时检查。
+  - **防重复机制**: 通过 `AnniversaryNotification` 表记录已发送提醒，避免重复发送。
   - **管理后台**: `/admin/settings/anniversaries` 支持 CRUD 操作。
 
 ### 2. 💬 互动与评论 (Interaction)
@@ -261,6 +262,8 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - [ ] **相关文章推荐**: 文章末尾推荐同分类/同标签的其他文章，提高留存。
   - [ ] **划词评论**: 类似 Medium，选中某段文字可直接评论，增强互动性。
   - [ ] **AI 问答**: 基于文章内容的 Q&A 对话，用户可向文章提问。
+- **纪念日增强 (Anniversary Enhancement)**:
+  - [ ] **行程规划**: 根据纪念日自动生成节日行程建议，如餐厅预约、礼物清单等。
 - **架构升级 (Architecture 2.0)**:
   - [x] **PostgreSQL 迁移**: 已从 SQLite 迁移到 PostgreSQL，支持更高的并发写入和 JSONB 高级查询。
   - [ ] **Redis 缓存**: 引入 Redis 替代内存缓存，实现分布式缓存和持久化，解决重启后缓存失效问题。
