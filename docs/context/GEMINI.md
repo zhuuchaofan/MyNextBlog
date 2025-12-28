@@ -522,3 +522,51 @@ public string RenderPlaceholders(string template, Dictionary<string, string> dat
 - **iframe 沙箱**: 预览使用 `sandbox="allow-same-origin"` 属性防止 XSS
 - **Admin Only**: 所有 API 端点添加 `[Authorize(Roles = "Admin")]`
 - **参数化查询**: EF Core 默认行为，防止 SQL 注入
+
+---
+
+## 9. 📚 文档管理规范 (Documentation Standard)
+
+> 为保持项目整洁，文档必须严格按照以下目录结构归档。
+
+### 9.1 目录结构
+
+```text
+docs/
+├── architecture/       # [Arch] 架构决策、模块设计 (e.g., EMAIL_TEMPLATES.md)
+├── context/            # [Context] AI 上下文与系统规范 (e.g., GEMINI.md, AI_CONTEXT.md)
+├── guides/             # [Guide] 开发者指南、故障排查、学习笔记
+├── reports/            # [Report] 审计报告、技术债清单
+├── planning/           # [Plan] 阶段性规划文档
+└── archive/            # [Archive] 过时的历史文档
+```
+
+### 9.2 维护规则
+
+- **根目录洁癖**: 项目根目录仅保留 `README.md` 和必要的工程配置文件。
+- **索引更新**: 每次新增文档后，必须同步更新 `docs/README.md` 中的索引链接。
+
+---
+
+## 10. 🏛️ 架构修正案 (Architecture Amendments)
+
+> 记录在开发过程中迭代产生的架构修正规则。
+
+### 10.1 Controller 归位原则
+
+- **Admin API**: 所有后台管理专用 API (**仅**管理员可访问) **必 须** 放在 `backend/Controllers/Admin/` 目录下。
+- **Public API**: 面向公众或通用的 API 放在 `backend/Controllers/Api/` 下。
+- **Namespace**: 必须与目录结构保持一致 (`MyNextBlog.Controllers.Admin` vs `MyNextBlog.Controllers.Api`)。
+
+### 10.2 数据播种 (Data Seeding) 幂等性
+
+- **Upsert 策略**: `DataSeeder` 中的逻辑必须是幂等的 (Idempotent)。
+  - **Exits**: Skip or Update Metadata (Description, Props).
+  - **Not Exits**: Insert Default.
+  - **Critical**: 绝不允许覆盖用户可能修改的业务数据 (如模板内容、配置值)。
+
+### 10.3 Service 层设计
+
+- **参数爆炸 (Parameter Explosion)**: 避免在方法中传递超过 5 个参数。
+  - _Bad_: `SendNotification(id, title, content, user, email, ...)`
+  - _Good_: 传递 ID 并在 Service 内部通过 `Include` 拉取完整聚合根；或使用 DTO 对象。

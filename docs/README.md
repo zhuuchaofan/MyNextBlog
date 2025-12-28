@@ -8,7 +8,9 @@
 
 核心架构决策与设计文档。
 
+- [📝 内容管理系统架构](./architecture/CONTENT_MANAGEMENT_SYSTEM.md)
 - [📧 邮件模板系统设计](./architecture/EMAIL_TEMPLATES.md)
+- [📨 邮件发送系统架构](./architecture/EMAIL_DELIVERY_SYSTEM.md)
 - [🔗 后端 API 结构](./architecture/BACKEND_API_STRUCTURE.md)
 
 ### [🤖 Context (系统上下文)](./context/)
