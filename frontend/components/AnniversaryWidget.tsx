@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, X, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 import { fetchAnniversaries, type Anniversary } from "@/lib/api";
+import { formatDaysSmart, formatDaysShort } from "@/lib/dateUtils";
 
 // localStorage 键名（防止烟花重复播放）
 const STORAGE_KEY = "anniversary_celebrated";
@@ -206,10 +207,9 @@ export default function AnniversaryWidget() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-pink-500">
-                            {ann.daysSinceStart}
+                          <div className="text-sm font-bold text-pink-500">
+                            {formatDaysSmart(ann.daysSinceStart)}
                           </div>
-                          <div className="text-xs text-gray-400">天</div>
                         </div>
                       </div>
                     </div>
@@ -248,7 +248,7 @@ export default function AnniversaryWidget() {
                 fill={isToday ? "currentColor" : "none"}
               />
               <span className={`font-medium ${isToday ? "text-white" : "text-gray-700 dark:text-gray-200"}`}>
-                {displayAnn.emoji} {displayAnn.daysSinceStart} 天
+                {displayAnn.emoji} {formatDaysShort(displayAnn.daysSinceStart)}
               </span>
             </motion.button>
           )}

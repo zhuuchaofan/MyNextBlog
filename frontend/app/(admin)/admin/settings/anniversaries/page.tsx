@@ -33,6 +33,7 @@ import {
   deleteAnniversary,
   type AnniversaryAdmin,
 } from "@/lib/api";
+import { formatDaysSmart } from "@/lib/dateUtils";
 
 // 重复类型选项
 const REPEAT_TYPES = [
@@ -347,7 +348,7 @@ export default function AnniversariesPage() {
                     {getRepeatLabel(ann.repeatType)}
                   </span>
                   <span className="text-pink-500 font-medium">
-                    已经 {ann.daysSinceStart} 天
+                    已经 {formatDaysSmart(ann.daysSinceStart)}
                   </span>
                 </div>
               </CardContent>
