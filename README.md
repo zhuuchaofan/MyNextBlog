@@ -379,18 +379,14 @@ docker compose exec db psql -U blog_admin -d my_blog -c "UPDATE \"Users\" SET \"
 ```text
 /
 ├── backend/                # .NET 10 Web API
-│   ├── Controllers/        # 无逻辑控制器 (Thin Controllers)
-│   ├── Services/           # 业务逻辑核心 (Rich Services)
-│   ├── Data/               # 数据库上下文与迁移
-│   ├── DTOs/               # 数据传输对象 (Data Transfer Objects)
-│   └── Extensions/         # 中间件与扩展 (GlobalException, Swagger)
 ├── frontend/               # Next.js 16 App
-│   ├── app/                # 路由: (public), (admin), (auth)
-│   ├── components/         # UI组件: Button, Card, Dialog
-│   ├── context/            # 全局状态: AuthContext
-│   └── lib/                # 工具: api.ts, utils.ts, **auth-config.ts**
+├── docs/                   # 项目文档中心 (New!)
+│   ├── architecture/       # 架构设计
+│   ├── context/            # AI 上下文
+│   ├── guides/             # 开发指南
+│   └── reports/            # 审计报告
 ├── docker-compose.yml      # 开发环境编排
-└── README.md               # 项目文档
+└── README.md               # 项目自述文件
 ```
 
 ---
