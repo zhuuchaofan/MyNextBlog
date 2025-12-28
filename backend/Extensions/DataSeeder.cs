@@ -150,31 +150,18 @@ public static class DataSeederExtensions
     /// </summary>
     private static void SeedEmailTemplates(AppDbContext context)
     {
-        // 如果模板存在且有 Description，跳过
-        // 否则清空并重新播种（用于升级场景）
-        var existingTemplates = context.EmailTemplates.ToList();
-        if (existingTemplates.Count > 0 && existingTemplates.All(t => t.Description != null))
-        {
-            return; // 已有完整数据，跳过
-        }
-        
-        // 清空旧数据并重新播种
-        if (existingTemplates.Count > 0)
-        {
-            context.EmailTemplates.RemoveRange(existingTemplates);
-            context.SaveChanges();
-        }
-
         var baseStyle = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px; background-color: #ffffff;";
         var footerStyle = "margin-top: 30px; font-size: 12px; color: #6a737d; text-align: center;";
 
-        // 1. 新评论通知（站长）
-        context.EmailTemplates.Add(new EmailTemplate
+        var defaultTemplates = new List<EmailTemplate>
         {
-            TemplateKey = "new_comment",
-            Name = "新评论通知",
-            SubjectTemplate = "💬 [新评论] {{PostTitle}}",
-            BodyTemplate = $@"
+            // 1. 新评论通知（站长）
+            new EmailTemplate
+            {
+                TemplateKey = "new_comment",
+                Name = "新评论通知",
+                SubjectTemplate = "💬 [新评论] {{PostTitle}}",
+                BodyTemplate = $@"
 <div style='{baseStyle}'>
     <div style='border-bottom: 2px solid #0366d6; padding-bottom: 15px; margin-bottom: 20px;'>
         <h2 style='margin: 0; color: #0366d6; font-size: 20px;'>New Comment Notification</h2>
@@ -193,18 +180,18 @@ public static class DataSeederExtensions
         © MyNextBlog Automated System
     </div>
 </div>",
-            AvailablePlaceholders = """{"PostTitle":"文章标题","Content":"评论内容","GuestName":"评论者名称","PostId":"文章ID","CommentId":"评论ID","AppUrl":"站点地址"}""",
-            Description = "当文章收到新评论时，发送邮件通知站长",
-            IsEnabled = true
-        });
+                AvailablePlaceholders = """{"PostTitle":"文章标题","Content":"评论内容","GuestName":"评论者名称","PostId":"文章ID","CommentId":"评论ID","AppUrl":"站点地址"}""",
+                Description = "当文章收到新评论时，发送邮件通知站长",
+                IsEnabled = true
+            },
 
-        // 2. 敏感词评论审核通知
-        context.EmailTemplates.Add(new EmailTemplate
-        {
-            TemplateKey = "spam_comment",
-            Name = "敏感词审核通知",
-            SubjectTemplate = "🚨 [待审核] 敏感词拦截：{{PostTitle}}",
-            BodyTemplate = $@"
+            // 2. 敏感词评论审核通知
+            new EmailTemplate
+            {
+                TemplateKey = "spam_comment",
+                Name = "敏感词审核通知",
+                SubjectTemplate = "🚨 [待审核] 敏感词拦截：{{PostTitle}}",
+                BodyTemplate = $@"
 <div style='{baseStyle}'>
     <div style='border-bottom: 2px solid #d73a49; padding-bottom: 15px; margin-bottom: 20px;'>
         <h2 style='margin: 0; color: #d73a49; font-size: 20px;'>⚠️ 新评论需审核</h2>
@@ -223,18 +210,18 @@ public static class DataSeederExtensions
         © MyNextBlog Automated System
     </div>
 </div>",
-            AvailablePlaceholders = """{"PostTitle":"文章标题","Content":"评论内容","GuestName":"评论者名称","AppUrl":"站点地址"}""",
-            Description = "当评论触发敏感词拦截时，发送邮件给站长待审核",
-            IsEnabled = true
-        });
+                AvailablePlaceholders = """{"PostTitle":"文章标题","Content":"评论内容","GuestName":"评论者名称","AppUrl":"站点地址"}""",
+                Description = "当评论触发敏感词拦截时，发送邮件给站长待审核",
+                IsEnabled = true
+            },
 
-        // 3. 回复通知
-        context.EmailTemplates.Add(new EmailTemplate
-        {
-            TemplateKey = "reply_notification",
-            Name = "回复通知",
-            SubjectTemplate = "👋 您的评论在 [{{PostTitle}}] 收到了回复",
-            BodyTemplate = $@"
+            // 3. 回复通知
+            new EmailTemplate
+            {
+                TemplateKey = "reply_notification",
+                Name = "回复通知",
+                SubjectTemplate = "👋 您的评论在 [{{PostTitle}}] 收到了回复",
+                BodyTemplate = $@"
 <div style='{baseStyle}'>
     <div style='border-bottom: 2px solid #28a745; padding-bottom: 15px; margin-bottom: 20px;'>
         <h2 style='margin: 0; color: #28a745; font-size: 20px;'>New Reply</h2>
@@ -254,18 +241,18 @@ public static class DataSeederExtensions
         © MyNextBlog Automated System
     </div>
 </div>",
-            AvailablePlaceholders = """{"RecipientName":"收件人名称","PostTitle":"文章标题","Content":"回复内容","GuestName":"回复者名称","PostId":"文章ID","CommentId":"评论ID","AppUrl":"站点地址"}""",
-            Description = "当用户的评论被回复时，发送邮件通知该用户",
-            IsEnabled = true
-        });
+                AvailablePlaceholders = """{"RecipientName":"收件人名称","PostTitle":"文章标题","Content":"回复内容","GuestName":"回复者名称","PostId":"文章ID","CommentId":"评论ID","AppUrl":"站点地址"}""",
+                Description = "当用户的评论被回复时，发送邮件通知该用户",
+                IsEnabled = true
+            },
 
-        // 4. 纪念日提醒
-        context.EmailTemplates.Add(new EmailTemplate
-        {
-            TemplateKey = "anniversary_reminder",
-            Name = "纪念日提醒",
-            SubjectTemplate = "💕 纪念日提醒：「{{Title}}」还有 {{DaysBefore}} 天",
-            BodyTemplate = $@"
+            // 4. 纪念日提醒
+            new EmailTemplate
+            {
+                TemplateKey = "anniversary_reminder",
+                Name = "纪念日提醒",
+                SubjectTemplate = "💕 纪念日提醒：「{{Title}}」还有 {{DaysBefore}} 天",
+                BodyTemplate = $@"
 <div style='{baseStyle}'>
     <div style='border-bottom: 2px solid #ec4899; padding-bottom: 15px; margin-bottom: 20px;'>
         <h2 style='margin: 0; color: #ec4899; font-size: 20px;'>{{{{Emoji}}}} {{{{Title}}}}</h2>
@@ -282,10 +269,41 @@ public static class DataSeederExtensions
         —— 来自 MyNextBlog 的温馨提醒
     </div>
 </div>",
-            AvailablePlaceholders = """{"Title":"纪念日标题","Emoji":"图标","TargetDate":"目标日期","StartDate":"起始日期","DaysBefore":"剩余天数","DaysTotal":"已过天数"}""",
-            Description = "在纪念日临近时，发送邮件提醒",
-            IsEnabled = true
-        });
+                AvailablePlaceholders = """{"Title":"纪念日标题","Emoji":"图标","TargetDate":"目标日期","StartDate":"起始日期","DaysBefore":"剩余天数","DaysTotal":"已过天数"}""",
+                Description = "在纪念日临近时，发送邮件提醒",
+                IsEnabled = true
+            }
+        };
+
+        // 获取现有模板（避免每次循环都查库）
+        var existingTemplates = context.EmailTemplates.ToDictionary(t => t.TemplateKey);
+
+        foreach (var def in defaultTemplates)
+        {
+            if (!existingTemplates.TryGetValue(def.TemplateKey, out var existing))
+            {
+                // 如果模板不存在，则添加
+                context.EmailTemplates.Add(def);
+            }
+            else
+            {
+                // 如果模板存在，仅更新缺失的元数据（不覆盖用户修改的内容）
+                // 1. Description 更新
+                if (string.IsNullOrEmpty(existing.Description) && !string.IsNullOrEmpty(def.Description))
+                {
+                    existing.Description = def.Description;
+                }
+                
+                // 2. AvailablePlaceholders 更新（保持文档最新）
+                if (string.IsNullOrEmpty(existing.AvailablePlaceholders) && !string.IsNullOrEmpty(def.AvailablePlaceholders))
+                {
+                    existing.AvailablePlaceholders = def.AvailablePlaceholders;
+                }
+                
+                // 注意：永远不更新 SubjectTemplate, BodyTemplate, IsEnabled, Name
+                // 因为这些用户可能自定义过
+            }
+        }
 
         context.SaveChanges();
     }
