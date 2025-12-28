@@ -27,6 +27,7 @@ public record AnniversaryAdminDto(
     string RepeatType,
     bool IsActive,
     int DisplayOrder,
+    int DaysSinceStart,     // 已过天数
     DateTime CreatedAt,
     DateTime UpdatedAt
 );

@@ -157,14 +157,17 @@ export default function AnniversaryWidget() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-pink-200 dark:border-pink-800 p-4 w-72"
+              className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-pink-200 dark:border-pink-800 p-4 w-80 max-h-[70vh] overflow-hidden flex flex-col"
             >
               {/* 头部 */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{displayAnn.emoji}</span>
+                  <Heart className="w-5 h-5 text-pink-500" />
                   <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {displayAnn.title}
+                    纪念日
+                  </span>
+                  <span className="text-xs bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-300 px-2 py-0.5 rounded-full">
+                    {anniversaries.length}
                   </span>
                 </div>
                 <button
@@ -175,30 +178,49 @@ export default function AnniversaryWidget() {
                 </button>
               </div>
 
-              {/* 内容 */}
-              <div className="text-center py-4">
-                {isToday && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-full mb-3"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    今天是纪念日！
-                  </motion.div>
-                )}
-                <div className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-                  {displayAnn.daysSinceStart}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  天
-                </div>
+              {/* 纪念日列表 */}
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1 -mr-1">
+                {anniversaries.map((ann) => {
+                  const isAnnToday = checkIsAnniversary(ann.startDate, ann.repeatType);
+                  return (
+                    <div
+                      key={ann.id}
+                      className={`p-3 rounded-xl transition-all ${
+                        isAnnToday
+                          ? "bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 border border-pink-200 dark:border-pink-800"
+                          : "bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{ann.emoji}</span>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                              {ann.title}
+                            </div>
+                            {isAnnToday && (
+                              <span className="text-xs text-pink-500 font-medium">
+                                ✨ 今天！
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-pink-500">
+                            {ann.daysSinceStart}
+                          </div>
+                          <div className="text-xs text-gray-400">天</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* 操作按钮 */}
+              {/* 放烟花按钮 */}
               <button
                 onClick={handleManualCelebrate}
-                className="w-full py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                className="mt-3 w-full py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 放烟花 🎆

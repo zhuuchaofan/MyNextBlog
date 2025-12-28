@@ -42,6 +42,8 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
     /// </summary>
     public async Task<List<AnniversaryAdminDto>> GetAllAnniversariesAsync()
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        
         return await context.Anniversaries
             .AsNoTracking()
             .OrderBy(a => a.DisplayOrder)
@@ -54,6 +56,7 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
                 a.RepeatType,
                 a.IsActive,
                 a.DisplayOrder,
+                today.DayNumber - a.StartDate.DayNumber,  // 已过天数
                 a.CreatedAt,
                 a.UpdatedAt
             ))

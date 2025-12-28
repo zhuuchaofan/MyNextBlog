@@ -87,6 +87,7 @@ export default function AdminDashboard() {
 
   const systemLinks = [
     { href: '/admin/settings/content', icon: PenSquare, label: '内容配置', desc: '编辑主页、关于页介绍' },
+    { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
     { href: '/settings', icon: Settings, label: '系统设置', desc: '分类管理、友链设置' },
     { href: '/admin/trash', icon: Trash2, label: '回收站', desc: '恢复或永久删除文章' },
   ];
