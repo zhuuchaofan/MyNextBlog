@@ -13,13 +13,14 @@
 
      **Context**: A high-performance, Headless CMS using **BFF (Backend for Frontend)** architecture.
 
-     | Layer        | Stack                       | Key Libraries/Configs                                                                                   |
-     | :----------- | :-------------------------- | :------------------------------------------------------------------------------------------------------ |
-     | **Frontend** | **Next.js 15 (App Router)** | TypeScript, Tailwind CSS v4, Shadcn/ui, Framer Motion, `next-themes`.                                   |
-     | **Backend**  | **.NET 10 (Preview)**       | ASP.NET Core Web API, Minimal APIs, EF Core.                                                            |
-     | **Database** | **SQLite (Current)**        | **WAL Mode Enabled**. _Constraint: Must write generic SQL compatible with future PostgreSQL migration._ |
-     | **Storage**  | **Cloudflare R2**           | S3-compatible, Stream-based uploads (No local disk storage).                                            |
-     | **Auth**     | **BFF Pattern**             | JWT in **HttpOnly Cookie** (Strictly NO LocalStorage).                                                  |
+     | Layer        | Stack                       | Key Libraries/Configs                                                 |
+     | :----------- | :-------------------------- | :-------------------------------------------------------------------- |
+     | **Frontend** | **Next.js 15 (App Router)** | TypeScript, Tailwind CSS v4, Shadcn/ui, Framer Motion, `next-themes`. |
+     | **Backend**  | **.NET 10 (Preview)**       | ASP.NET Core Web API, Minimal APIs, EF Core.                          |
+     | **Database** | **PostgreSQL**              | 生产环境使用 PostgreSQL，本地开发可用 Docker Compose 启动。           |
+     | **Storage**  | **Cloudflare R2**           | S3-compatible, Stream-based uploads (No local disk storage).          |
+     | **Auth**     | **BFF Pattern**             | JWT in **HttpOnly Cookie** (Strictly NO LocalStorage).                |
+     | **Email**    | **EmailTemplates**          | 数据库存储邮件模板，支持后台 UI 编辑和实时预览。                      |
 
      ***
 
@@ -475,4 +476,49 @@ charset = utf-8
 
 ---
 
-**最后更新**: 2025-12-27
+**最后更新**: 2025-12-28
+
+---
+
+## 8. 📧 邮件模板管理系统 (Email Template System)
+
+### 8.1 架构概览
+
+| 组件           | 文件路径                                                       | 说明                                                                                      |
+| :------------- | :------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| **实体模型**   | `backend/Models/EmailTemplate.cs`                              | 包含 TemplateKey, Name, SubjectTemplate, BodyTemplate, Description, AvailablePlaceholders |
+| **DTO**        | `backend/DTOs/EmailTemplateDtos.cs`                            | `EmailTemplateDto` 和 `UpdateEmailTemplateDto`                                            |
+| **服务接口**   | `backend/Services/IEmailTemplateService.cs`                    | GetAllAsync, GetByKeyAsync, UpdateAsync, RenderAsync                                      |
+| **服务实现**   | `backend/Services/EmailTemplateService.cs`                     | 包含 30 分钟内存缓存，占位符替换逻辑                                                      |
+| **API 控制器** | `backend/Controllers/Api/EmailTemplatesController.cs`          | GET/PUT /api/email-templates/{key}                                                        |
+| **前端页面**   | `frontend/app/(admin)/admin/settings/email-templates/page.tsx` | 列表 + 编辑对话框 + iframe 预览                                                           |
+| **API 函数**   | `frontend/lib/api.ts`                                          | fetchEmailTemplates, updateEmailTemplate                                                  |
+
+### 8.2 占位符规则
+
+使用 `{{PlaceholderName}}` 语法，简单字符串替换：
+
+```csharp
+// RenderAsync 方法内部实现
+public string RenderPlaceholders(string template, Dictionary<string, string> data)
+{
+    foreach (var (key, value) in data)
+        template = template.Replace($"{{{{{key}}}}}", value ?? "");
+    return template;
+}
+```
+
+### 8.3 默认模板
+
+| TemplateKey            | 名称           | 触发场景                     |
+| :--------------------- | :------------- | :--------------------------- |
+| `new_comment`          | 新评论通知     | 文章收到新评论时通知站长     |
+| `spam_comment`         | 敏感词审核通知 | 评论触发敏感词拦截时通知站长 |
+| `reply_notification`   | 回复通知       | 用户评论被回复时通知该用户   |
+| `anniversary_reminder` | 纪念日提醒     | 纪念日临近时发送邮件提醒     |
+
+### 8.4 安全考量
+
+- **iframe 沙箱**: 预览使用 `sandbox="allow-same-origin"` 属性防止 XSS
+- **Admin Only**: 所有 API 端点添加 `[Authorize(Roles = "Admin")]`
+- **参数化查询**: EF Core 默认行为，防止 SQL 注入

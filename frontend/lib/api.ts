@@ -339,5 +339,41 @@ export function deleteAnniversary(id: number) {
   });
 }
 
+// ============================================================
+// 邮件模板管理 (Email Templates)
+// ============================================================
+
+// 邮件模板类型定义
+export interface EmailTemplate {
+  id: number;
+  templateKey: string;
+  name: string;
+  subjectTemplate: string;
+  bodyTemplate: string;
+  availablePlaceholders: string | null;
+  description: string | null;
+  isEnabled: boolean;
+  updatedAt: string;
+}
+
+// [Admin] 获取所有邮件模板
+export function fetchEmailTemplates(): Promise<EmailTemplate[]> {
+  return fetchClient("/api/backend/email-templates");
+}
 
 
+
+// [Admin] 更新邮件模板
+export function updateEmailTemplate(
+  key: string,
+  data: {
+    subjectTemplate: string;
+    bodyTemplate: string;
+    isEnabled?: boolean;
+  }
+) {
+  return fetchClient(`/api/backend/email-templates/${key}`, {
+    method: "PUT",
+    body: data,
+  });
+}

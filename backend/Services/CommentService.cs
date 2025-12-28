@@ -5,7 +5,6 @@ using MyNextBlog.Data;
 using MyNextBlog.Models;
 using Ganss.Xss;
 using MyNextBlog.Services.Email;
-using MyNextBlog.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace MyNextBlog.Services;
@@ -99,8 +98,9 @@ public class CommentService(
                 using var scope = scopeFactory.CreateScope();
                 var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var scopedTemplateService = scope.ServiceProvider.GetRequiredService<IEmailTemplateService>();
                 
-                await SendNotificationsAsync(scopedContext, scopedEmailService, savedCommentId, savedPostId, savedGuestName, savedContent, savedParentId, savedIsApproved, savedUserId); 
+                await SendNotificationsAsync(scopedContext, scopedEmailService, scopedTemplateService, savedCommentId, savedPostId, savedGuestName, savedContent, savedParentId, savedIsApproved, savedUserId); 
             }
             catch (Exception ex) 
             { 
@@ -115,6 +115,7 @@ public class CommentService(
     private async Task SendNotificationsAsync(
         AppDbContext scopedContext, 
         IEmailService scopedEmailService,
+        IEmailTemplateService scopedTemplateService,
         int commentId,
         int postId,
         string? guestName,
@@ -138,54 +139,101 @@ public class CommentService(
                 user = await scopedContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId.Value);
                 commenterEmail = user?.Email;
             }
-
+            
+            // 预先查询父评论（如果是回复），避免后续重复查询
+            Comment? parentComment = null;
+            string? parentRecipientEmail = null;
+            if (parentId.HasValue)
+            {
+                parentComment = await scopedContext.Comments
+                    .Include(c => c.User)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == parentId.Value);
+                
+                if (parentComment != null)
+                {
+                    parentRecipientEmail = parentComment.User?.Email ?? parentComment.GuestEmail;
+                }
+            }
+            
             if (!isApproved)
             {
                 if (!string.IsNullOrEmpty(adminEmail))
                 {
-                    string subject = $"🚨 [待审核] 敏感词拦截：{postTitle}";
-                    string body = EmailTemplateBuilder.BuildAdminSpamNotification(postTitle, guestName ?? "Unknown", content, appUrl);
-                    await scopedEmailService.SendEmailAsync(adminEmail, subject, body);
+                    var rendered = await scopedTemplateService.RenderAsync("spam_comment", new Dictionary<string, string>
+                    {
+                        ["PostTitle"] = postTitle,
+                        ["Content"] = content,
+                        ["GuestName"] = guestName ?? "Unknown",
+                        ["AppUrl"] = appUrl
+                    });
+                    
+                    if (rendered.HasValue)
+                    {
+                        await scopedEmailService.SendEmailAsync(adminEmail, rendered.Value.Subject, rendered.Value.Body);
+                    }
                 }
             }
             else
             {
-                // 正常评论通知站长
-                if (!string.IsNullOrEmpty(adminEmail))
+                // 正常评论通知站长（排除：评论者是站长 OR 被回复者是站长）
+                // 如果被回复者是站长，会通过 reply_notification 收到邮件，无需发 new_comment
+                bool shouldNotifyAdmin = !string.IsNullOrEmpty(adminEmail) 
+                    && commenterEmail != adminEmail
+                    && parentRecipientEmail != adminEmail;
+                    
+                if (shouldNotifyAdmin)
                 {
-                     if (commenterEmail != adminEmail) 
-                     {
-                        string subject = $"💬 [新评论] {postTitle}";
-                        string body = EmailTemplateBuilder.BuildNewCommentNotification(postTitle, content, guestName ?? "Unknown", postId, commentId, appUrl);
-                        await scopedEmailService.SendEmailAsync(adminEmail, subject, body);
-                     }
+                    var rendered = await scopedTemplateService.RenderAsync("new_comment", new Dictionary<string, string>
+                    {
+                        ["PostTitle"] = postTitle,
+                        ["Content"] = content,
+                        ["GuestName"] = guestName ?? "Unknown",
+                        ["PostId"] = postId.ToString(),
+                        ["CommentId"] = commentId.ToString(),
+                        ["AppUrl"] = appUrl
+                    });
+                    
+                    if (rendered.HasValue)
+                    {
+                        await scopedEmailService.SendEmailAsync(adminEmail, rendered.Value.Subject, rendered.Value.Body);
+                    }
                 }
             }
 
-            // 回复评论通知被回复者
-            if (parentId.HasValue && isApproved)
-            {
-                var parentComment = await scopedContext.Comments.Include(c => c.User).AsNoTracking().FirstOrDefaultAsync(c => c.Id == parentId.Value);
-                if (parentComment != null)
-                {
-                    string? recipientEmail = null;
-                    string recipientName = parentComment.GuestName ?? "匿名访客";
-                    
-                    if (parentComment.User != null && !string.IsNullOrWhiteSpace(parentComment.User.Email))
-                    {
-                        recipientEmail = parentComment.User.Email;
-                        recipientName = parentComment.User.Username;
-                    }
-                    else if (!string.IsNullOrWhiteSpace(parentComment.GuestEmail))
-                    {
-                        recipientEmail = parentComment.GuestEmail;
-                    }
 
-                    if (!string.IsNullOrWhiteSpace(recipientEmail))
+            // 回复评论通知被回复者（复用上面已查询的 parentComment）
+            if (parentComment != null && isApproved)
+            {
+                string? recipientEmail = null;
+                string recipientName = parentComment.GuestName ?? "匿名访客";
+                
+                if (parentComment.User != null && !string.IsNullOrWhiteSpace(parentComment.User.Email))
+                {
+                    recipientEmail = parentComment.User.Email;
+                    recipientName = parentComment.User.Username;
+                }
+                else if (!string.IsNullOrWhiteSpace(parentComment.GuestEmail))
+                {
+                    recipientEmail = parentComment.GuestEmail;
+                }
+
+                if (!string.IsNullOrWhiteSpace(recipientEmail))
+                {
+                    var rendered = await scopedTemplateService.RenderAsync("reply_notification", new Dictionary<string, string>
                     {
-                        string subject = $"👋 您的评论在 [{postTitle}] 收到了回复";
-                        string body = EmailTemplateBuilder.BuildReplyNotification(recipientName, postTitle, content, guestName ?? "Unknown", postId, commentId, appUrl);
-                        await scopedEmailService.SendEmailAsync(recipientEmail, subject, body);
+                        ["RecipientName"] = recipientName,
+                        ["PostTitle"] = postTitle,
+                        ["Content"] = content,
+                        ["GuestName"] = guestName ?? "Unknown",
+                        ["PostId"] = postId.ToString(),
+                        ["CommentId"] = commentId.ToString(),
+                        ["AppUrl"] = appUrl
+                    });
+                    
+                    if (rendered.HasValue)
+                    {
+                        await scopedEmailService.SendEmailAsync(recipientEmail, rendered.Value.Subject, rendered.Value.Body);
                     }
                 }
             }

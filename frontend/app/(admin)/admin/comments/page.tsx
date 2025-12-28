@@ -205,11 +205,11 @@ export default function AdminCommentsPage() {
                             onCheckedChange={(checked) => handleSelectAll(!!checked)}
                         />
                     </TableHead>
-                    <TableHead className="w-[180px]">用户</TableHead>
-                    <TableHead>评论内容</TableHead>
-                    <TableHead className="w-[200px]">文章</TableHead>
-                    <TableHead className="w-[100px]">状态</TableHead>
-                    <TableHead className="w-[150px] text-right">操作</TableHead>
+                    <TableHead className="w-[140px]">用户</TableHead>
+                    <TableHead className="min-w-[300px]">评论内容</TableHead>
+                    <TableHead className="w-[180px]">文章</TableHead>
+                    <TableHead className="w-[80px]">状态</TableHead>
+                    <TableHead className="w-[100px] text-right">操作</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -236,17 +236,17 @@ export default function AdminCommentsPage() {
                                     onCheckedChange={(checked) => handleSelectOne(comment.id, !!checked)}
                                 />
                             </TableCell>
-                            <TableCell>
-                                <div className="font-medium text-gray-900 dark:text-gray-200">{comment.guestName}</div>
-                                <div className="text-xs text-gray-400">{new Date(comment.createTime).toLocaleString()}</div>
+                            <TableCell className="align-top">
+                                <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-[120px]" title={comment.guestName}>{comment.guestName}</div>
+                                <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(comment.createTime).toLocaleString()}</div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="align-top">
                                 <div className="break-words line-clamp-2 text-sm text-gray-600 dark:text-gray-300" title={comment.content}>
                                     {comment.content}
                                 </div>
                             </TableCell>
-                            <TableCell>
-                                <Link href={`/posts/${comment.postId}`} target="_blank" className="text-xs text-blue-500 hover:underline line-clamp-2">
+                            <TableCell className="align-top">
+                                <Link href={`/posts/${comment.postId}`} target="_blank" className="text-xs text-blue-500 hover:underline line-clamp-2 block max-w-[160px]" title={comment.postTitle}>
                                     {comment.postTitle || `Post #${comment.postId}`}
                                 </Link>
                             </TableCell>

@@ -16,6 +16,7 @@ namespace MyNextBlog.Services;
 public class AnniversaryReminderService(
     AppDbContext context,
     IEmailService emailService,
+    IEmailTemplateService templateService,
     ILogger<AnniversaryReminderService> logger) : IAnniversaryReminderService
 {
     /// <summary>
@@ -145,35 +146,31 @@ public class AnniversaryReminderService(
         
         try
         {
-            var subject = daysBefore == 0
-                ? $"💕 今天是「{anniversary.Title}」纪念日！"
-                : $"💕 纪念日提醒：「{anniversary.Title}」还有 {daysBefore} 天";
-            
             var daysTotal = DateOnly.FromDateTime(DateTime.UtcNow).DayNumber - anniversary.StartDate.DayNumber;
             
-            var body = $"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #ec4899;">{anniversary.Emoji} {anniversary.Title}</h2>
-                    
-                    {(daysBefore == 0 
-                        ? "<p style='font-size: 18px; color: #333;'>🎉 <strong>今天</strong>就是纪念日！</p>"
-                        : $"<p style='font-size: 18px; color: #333;'>距离纪念日还有 <strong>{daysBefore}</strong> 天</p>")}
-                    
-                    <div style="background: #fdf2f8; border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        <p style="margin: 8px 0;"><strong>📅 日期：</strong>{targetDate:yyyy年M月d日}</p>
-                        <p style="margin: 8px 0;"><strong>⏰ 起始日期：</strong>{anniversary.StartDate:yyyy年M月d日}</p>
-                        <p style="margin: 8px 0;"><strong>💗 已经：</strong>{daysTotal} 天</p>
-                    </div>
-                    
-                    <p style="color: #666; font-size: 14px;">—— 来自 MyNextBlog 的温馨提醒</p>
-                </div>
-                """;
+            var rendered = await templateService.RenderAsync("anniversary_reminder", new Dictionary<string, string>
+            {
+                ["Title"] = anniversary.Title,
+                ["Emoji"] = anniversary.Emoji,
+                ["TargetDate"] = targetDate.ToString("yyyy年M月d日"),
+                ["StartDate"] = anniversary.StartDate.ToString("yyyy年M月d日"),
+                ["DaysBefore"] = daysBefore.ToString(),
+                ["DaysTotal"] = daysTotal.ToString()
+            });
             
-            await emailService.SendEmailAsync(anniversary.ReminderEmail!, subject, body);
-            
-            notification.IsSuccess = true;
-            logger.LogInformation("已发送纪念日提醒: {Title} 提前{Days}天 -> {Email}", 
-                anniversary.Title, daysBefore, anniversary.ReminderEmail);
+            if (!rendered.HasValue)
+            {
+                logger.LogWarning("纪念日邮件模板未启用或不存在: anniversary_reminder");
+                notification.IsSuccess = false;
+                notification.ErrorMessage = "模板未启用或不存在";
+            }
+            else
+            {
+                await emailService.SendEmailAsync(anniversary.ReminderEmail!, rendered.Value.Subject, rendered.Value.Body);
+                notification.IsSuccess = true;
+                logger.LogInformation("已发送纪念日提醒: {Title} 提前{Days}天 -> {Email}", 
+                    anniversary.Title, daysBefore, anniversary.ReminderEmail);
+            }
         }
         catch (Exception ex)
         {
