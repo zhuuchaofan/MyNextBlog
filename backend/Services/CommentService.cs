@@ -80,31 +80,22 @@ public class CommentService(
         context.Comments.Add(comment);
         await context.SaveChangesAsync();
 
-        // Fire-and-Forget with new scope to avoid DbContext disposed issue
-        // 捕获必要的值（使用不同变量名避免与参数冲突）
-        var savedCommentId = comment.Id;
-        var savedPostId = comment.PostId;
-        var savedGuestName = comment.GuestName;
-        var savedContent = comment.Content;
-        var savedParentId = comment.ParentId;
-        var savedIsApproved = comment.IsApproved;
-        var savedUserId = comment.UserId;
-        
+                // 3. 执行后台通知任务（Fire-and-Forget）
+        var commentId = comment.Id;
         _ = Task.Run(async () =>
         {
             try 
             { 
-                // 创建新的 DI 作用域，获取新的 DbContext 实例
                 using var scope = scopeFactory.CreateScope();
                 var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
                 var scopedTemplateService = scope.ServiceProvider.GetRequiredService<IEmailTemplateService>();
                 
-                await SendNotificationsAsync(scopedContext, scopedEmailService, scopedTemplateService, savedCommentId, savedPostId, savedGuestName, savedContent, savedParentId, savedIsApproved, savedUserId); 
+                await SendNotificationsAsync(scopedContext, scopedEmailService, scopedTemplateService, commentId); 
             }
             catch (Exception ex) 
             { 
-                logger.LogError(ex, "Background notification failed for comment {CommentId}", savedCommentId); 
+                logger.LogError(ex, "Background notification failed for comment {CommentId}", commentId); 
             }
         });
 
@@ -116,44 +107,51 @@ public class CommentService(
         AppDbContext scopedContext, 
         IEmailService scopedEmailService,
         IEmailTemplateService scopedTemplateService,
-        int commentId,
-        int postId,
-        string? guestName,
-        string content,
-        int? parentId,
-        bool isApproved,
-        int? userId)
+        int commentId)
     {
         try 
         {
-            var post = await scopedContext.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == postId);
-            var postTitle = post?.Title ?? "未命名文章";
+            // 一次性加载所有关联数据
+            var comment = await scopedContext.Comments
+                .Include(c => c.Post)
+                .Include(c => c.User)
+                .Include(c => c.Parent)
+                    .ThenInclude(p => p!.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == commentId);
+
+            if (comment == null)
+            {
+                logger.LogWarning("Notification skipped: Comment {CommentId} not found.", commentId);
+                return;
+            }
+
+            var post = comment.Post;
+            if (post == null)
+            {
+                 logger.LogWarning("Notification skipped: Post not found for comment {CommentId}.", commentId);
+                 return;
+            }
+
+            var postId = post.Id;
+            var postTitle = post.Title;
+            var guestName = comment.GuestName;
+            var content = comment.Content;
+            var isApproved = comment.IsApproved;
+            var userId = comment.UserId;
+            var parentId = comment.ParentId;
+            var parentComment = comment.Parent;
+
             var appUrl = configuration["AppUrl"]?.TrimEnd('/') ?? "http://localhost:3000";
             var adminEmail = configuration["SmtpSettings:AdminEmail"];
             
-            // 获取用户信息（如果有）
-            User? user = null;
-            string? commenterEmail = null;
-            if (userId.HasValue)
-            {
-                user = await scopedContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId.Value);
-                commenterEmail = user?.Email;
-            }
+            // 获取评论者邮箱
+            string? commenterEmail = comment.User?.Email ?? comment.GuestEmail;
             
-            // 预先查询父评论（如果是回复），避免后续重复查询
-            Comment? parentComment = null;
             string? parentRecipientEmail = null;
-            if (parentId.HasValue)
+            if (parentComment != null)
             {
-                parentComment = await scopedContext.Comments
-                    .Include(c => c.User)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == parentId.Value);
-                
-                if (parentComment != null)
-                {
-                    parentRecipientEmail = parentComment.User?.Email ?? parentComment.GuestEmail;
-                }
+                parentRecipientEmail = parentComment.User?.Email ?? parentComment.GuestEmail;
             }
             
             if (!isApproved)
