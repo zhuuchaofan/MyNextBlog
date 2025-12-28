@@ -358,7 +358,7 @@ export interface EmailTemplate {
 
 // [Admin] 获取所有邮件模板
 export function fetchEmailTemplates(): Promise<EmailTemplate[]> {
-  return fetchClient("/api/backend/email-templates");
+  return fetchClient("/api/backend/admin/email-templates");
 }
 
 
@@ -372,7 +372,7 @@ export function updateEmailTemplate(
     isEnabled?: boolean;
   }
 ) {
-  return fetchClient(`/api/backend/email-templates/${key}`, {
+  return fetchClient(`/api/backend/admin/email-templates/${key}`, {
     method: "PUT",
     body: data,
   });
