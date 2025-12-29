@@ -32,6 +32,8 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PlanCalendarView from '@/components/plan/PlanCalendarView';
+import BudgetChart from '@/components/plan/BudgetChart';
 
 // 状态选项
 const STATUS_OPTIONS = [
@@ -347,31 +349,36 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         </CardContent>
       </Card>
 
-      {/* 预算概览 */}
-      <Card className="dark:bg-zinc-900 dark:border-zinc-800 mb-6">
-        <CardContent className="py-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">计划预算</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                {plan.currency} {plan.budget.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">预估花费</p>
-              <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                {plan.currency} {budgetStats.estimated.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">实际花费</p>
-              <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                {plan.currency} {budgetStats.actual.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 日历与预算概览 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* 日历视图 */}
+        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">日历视图</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PlanCalendarView
+              startDate={plan.startDate}
+              endDate={plan.endDate}
+            />
+          </CardContent>
+        </Card>
+
+        {/* 预算图表 */}
+        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">预算概览</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BudgetChart
+              budget={plan.budget}
+              estimated={budgetStats.estimated}
+              actual={budgetStats.actual}
+              currency={plan.currency}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 日程列表 */}
       <div className="space-y-4">
