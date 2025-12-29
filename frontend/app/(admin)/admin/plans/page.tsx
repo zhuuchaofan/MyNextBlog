@@ -18,6 +18,7 @@ import {
   Edit,
   Lock,
   Calendar,
+  ChevronLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -119,12 +120,21 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* 页面标题 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="w-6 h-6 text-blue-500" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">计划管理</h1>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* 头部 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <CalendarDays className="w-6 h-6 text-blue-500" /> 计划管理
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              管理旅行计划、活动安排和预算追踪
+            </p>
+          </div>
         </div>
         <Link href="/admin/plans/new">
           <Button className="bg-blue-500 hover:bg-blue-600">

@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   CalendarDays,
-  ArrowLeft,
+  ChevronLeft,
   Loader2,
   Plus,
   Trash2,
@@ -233,16 +233,16 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/plans">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
+            <Button variant="ghost">
+              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
               <CalendarDays className="w-6 h-6 text-blue-500" />
               {plan.title}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground mt-1">
               {plan.startDate} {plan.endDate && `~ ${plan.endDate}`} · {plan.days.length} 天
             </p>
           </div>

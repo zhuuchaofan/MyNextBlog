@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { CalendarDays, ArrowLeft, Loader2 } from 'lucide-react';
+import { CalendarDays, ChevronLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -123,13 +123,17 @@ function NewPlanForm() {
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/admin/plans">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="w-5 h-5" />
+          <Button variant="ghost">
+            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
           </Button>
         </Link>
-        <div className="flex items-center gap-3">
-          <CalendarDays className="w-6 h-6 text-blue-500" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">新建计划</h1>
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-blue-500" /> 新建计划
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            创建旅行计划或活动安排
+          </p>
         </div>
       </div>
 
