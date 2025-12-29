@@ -44,7 +44,6 @@ import {
   Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import PlanCalendarView from '@/components/plan/PlanCalendarView';
 import BudgetChart from '@/components/plan/BudgetChart';
 import SurpriseReveal from '@/components/plan/SurpriseReveal';
 import { PlanDayCard } from '@/components/plan/PlanDayCard';
@@ -348,7 +347,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   if (!plan) return null;
 
   return (
-    <>
+    <div className="min-h-screen pb-20 bg-gray-50/50 dark:bg-zinc-950">
       {/* 惊喜弹窗 */}
       {showSurprise && plan.isSecret && (
         <SurpriseReveal
@@ -359,209 +358,222 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           onClose={() => setShowSurprise(false)}
         />
       )}
-      
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* 页面标题 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <CalendarDays className="w-6 h-6 text-blue-500" />
-              {plan.title}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {plan.startDate} {plan.endDate && `~ ${plan.endDate}`} · {
-                plan.endDate 
-                  ? Math.ceil((new Date(plan.endDate).getTime() - new Date(plan.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
-                  : 1
-              } 天
-            </p>
-          </div>
+
+      {/* 顶部导航栏 - Glassmorphic */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
+           <div className="flex items-center gap-4">
+             <Button variant="ghost" onClick={() => router.back()} className="hover:bg-gray-100 dark:hover:bg-zinc-800">
+               <ChevronLeft className="w-5 h-5 mr-1" /> 返回
+             </Button>
+             <div className="flex items-center gap-3">
+               <h1 className="text-xl font-bold truncate max-w-[200px] sm:max-w-md" title={plan.title}>
+                 {plan.title}
+               </h1>
+               <Select
+                 value={plan.status}
+                 onValueChange={value => handleUpdatePlan('status', value)}
+               >
+                 <SelectTrigger className="h-8 w-28 text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0">
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {STATUS_OPTIONS.map(opt => (
+                     <SelectItem key={opt.value} value={opt.value}>
+                       <div className="flex items-center gap-2">
+                         <span className={`w-2 h-2 rounded-full ${opt.color}`} />
+                         {opt.label}
+                       </div>
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
+
+           <div className="flex items-center gap-2">
+             <Button variant="outline" size="sm" onClick={handleCopyPublicLink} className="hidden sm:flex">
+               <Share2 className="w-4 h-4 mr-2" />
+               分享
+             </Button>
+             <Button size="sm" onClick={handleCopyPublicLink} className="sm:hidden" variant="ghost">
+                <Share2 className="w-4 h-4" />
+             </Button>
+           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {/* 分享按钮 */}
-          <Button variant="outline" size="sm" onClick={handleCopyPublicLink}>
-            <Share2 className="w-4 h-4 mr-2" />
-            分享
-          </Button>
+      </header>
+      
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* 左侧：基本信息与统计 (占用 4 列) */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+            {/* 基本信息编辑 */}
+            <Card className="dark:bg-zinc-900 dark:border-zinc-800 shadow-sm border-0 ring-1 ring-gray-200 dark:ring-zinc-800">
+              <CardHeader className="pb-3 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50">
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-gray-500" /> 
+                  基本信息
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-gray-500">计划名称</Label>
+                    <Input
+                      value={plan.title}
+                      onChange={e => handleUpdatePlan('title', e.target.value)}
+                      className="bg-white dark:bg-zinc-950"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500">类型</Label>
+                      <Select
+                        value={plan.type}
+                        onValueChange={value => handleUpdatePlan('type', value)}
+                      >
+                        <SelectTrigger className="bg-white dark:bg-zinc-950">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="trip">✈️ 旅行</SelectItem>
+                          <SelectItem value="event">🎉 活动</SelectItem>
+                          <SelectItem value="surprise">🎁 惊喜</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                     <div className="space-y-1.5">
+                       <Label className="text-xs text-gray-500">货币</Label>
+                       <Select
+                         value={plan.currency}
+                         onValueChange={value => handleUpdatePlan('currency', value)}
+                       >
+                         <SelectTrigger className="bg-white dark:bg-zinc-950">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="CNY">CNY ¥</SelectItem>
+                           <SelectItem value="USD">USD $</SelectItem>
+                           <SelectItem value="JPY">JPY ¥</SelectItem>
+                           <SelectItem value="EUR">EUR €</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                  </div>
 
-          {/* 状态切换 */}
-        <Select
-          value={plan.status}
-          onValueChange={value => handleUpdatePlan('status', value)}
-        >
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500">开始日期</Label>
+                      <Input
+                        type="date"
+                        value={plan.startDate}
+                        onChange={e => handleUpdatePlan('startDate', e.target.value)}
+                        className="bg-white dark:bg-zinc-950"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500">结束日期</Label>
+                      <Input
+                        type="date"
+                        value={plan.endDate || ''}
+                        onChange={e => handleUpdatePlan('endDate', e.target.value)}
+                        className="bg-white dark:bg-zinc-950"
+                      />
+                    </div>
+                  </div>
 
-      {/* 基本信息编辑 */}
-      <Card className="dark:bg-zinc-900 dark:border-zinc-800 mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">基本信息</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>计划名称</Label>
-              <Input
-                value={plan.title}
-                onChange={e => handleUpdatePlan('title', e.target.value)}
-                placeholder="输入计划名称"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>计划类型</Label>
-              <Select
-                value={plan.type}
-                onValueChange={value => handleUpdatePlan('type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trip">✈️ 旅行</SelectItem>
-                  <SelectItem value="event">🎉 活动</SelectItem>
-                  <SelectItem value="surprise">🎁 惊喜</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>开始日期</Label>
-              <Input
-                type="date"
-                value={plan.startDate}
-                onChange={e => handleUpdatePlan('startDate', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>结束日期</Label>
-              <Input
-                type="date"
-                value={plan.endDate || ''}
-                onChange={e => handleUpdatePlan('endDate', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>预算</Label>
-              <Input
-                type="number"
-                value={plan.budget}
-                onChange={e => handleUpdatePlan('budget', Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>货币</Label>
-              <Select
-                value={plan.currency}
-                onValueChange={value => handleUpdatePlan('currency', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CNY">CNY ¥</SelectItem>
-                  <SelectItem value="USD">USD $</SelectItem>
-                  <SelectItem value="JPY">JPY ¥</SelectItem>
-                  <SelectItem value="EUR">EUR €</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-gray-500">总预算</Label>
+                    <Input
+                      type="number"
+                      value={plan.budget}
+                      onChange={e => handleUpdatePlan('budget', Number(e.target.value))}
+                      className="bg-white dark:bg-zinc-950"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 统计图表 */}
+             <div className="space-y-4">
+               <Card className="dark:bg-zinc-900 dark:border-zinc-800 shadow-sm border-0 ring-1 ring-gray-200 dark:ring-zinc-800">
+                 <CardHeader className="pb-2 pt-4 px-4">
+                   <CardTitle className="text-sm font-medium">预算概览</CardTitle>
+                 </CardHeader>
+                 <CardContent className="px-4 pb-4">
+                   <BudgetChart
+                     budget={plan.budget}
+                     estimated={budgetStats.estimated}
+                     actual={budgetStats.actual}
+                     currency={plan.currency}
+                   />
+                 </CardContent>
+               </Card>
+               {/* 可以在这里放日历缩略图，如果需要 */}
+             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 日历与预算概览 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* 日历视图 */}
-        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">日历视图</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PlanCalendarView
-              startDate={plan.startDate}
-              endDate={plan.endDate}
-            />
-          </CardContent>
-        </Card>
+          {/* 右侧：日程详情 (占用 8 列) */}
+          <div className="lg:col-span-8 space-y-6">
+             <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">详细日程</h2>
+                <span className="text-sm text-gray-500">
+                   共 {plan.days.length} 天
+                </span>
+             </div>
 
-        {/* 预算图表 */}
-        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">预算概览</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BudgetChart
-              budget={plan.budget}
-              estimated={budgetStats.estimated}
-              actual={budgetStats.actual}
-              currency={plan.currency}
-            />
-          </CardContent>
-        </Card>
+             <div className="space-y-6">
+               {plan.days.map(day => (
+                 <PlanDayCard
+                   key={day.id}
+                   day={day}
+                   onUpdateTheme={handleUpdateDayTheme}
+                   onDeleteDay={(dayId) => setDeleteDayId(dayId)}
+                   onAddActivity={handleAddActivity}
+                   onUpdateActivity={handleSaveActivity}
+                   onDeleteActivity={handleDeleteActivity}
+                   onReorder={handleDragEnd}
+                 />
+               ))}
+
+               {/* 添加新的一天 */}
+               <Button
+                 variant="outline"
+                 className="w-full py-8 border-dashed border-2 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-600 transition-all rounded-xl"
+                 onClick={handleAddDay}
+               >
+                 <Plus className="w-5 h-5 mr-2" /> 
+                 <span className="text-base">添加新的一天 (Day {plan.days.length + 1})</span>
+               </Button>
+             </div>
+          </div>
+
+        </div>
       </div>
 
-      {/* 日程列表 */}
-      <div className="space-y-4">
-        {plan.days.map(day => (
-          <PlanDayCard
-            key={day.id}
-            day={day}
-            onUpdateTheme={handleUpdateDayTheme}
-            onDeleteDay={(dayId) => setDeleteDayId(dayId)}
-            onAddActivity={handleAddActivity}
-            onUpdateActivity={handleSaveActivity}
-            onDeleteActivity={handleDeleteActivity}
-            onReorder={handleDragEnd}
-          />
-        ))}
-
-        {/* 添加新的一天 */}
-        <Button
-          variant="outline"
-          className="w-full py-6 border-dashed"
-          onClick={handleAddDay}
-        >
-          <Plus className="w-4 h-4 mr-2" /> 添加新的一天
-        </Button>
-      </div>
+      {/* 删除日程确认弹窗 */}
+      <AlertDialog open={!!deleteDayId} onOpenChange={(open) => !open && setDeleteDayId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定删除这一天？</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作将删除该日期的所有活动，且无法恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteDay}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-
-
-    {/* 删除日程确认弹窗 */}
-    <AlertDialog open={!!deleteDayId} onOpenChange={(open) => !open && setDeleteDayId(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确定删除这一天？</AlertDialogTitle>
-          <AlertDialogDescription>
-            此操作将删除该日期的所有活动，且无法恢复。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDeleteDay}
-            className="bg-red-500 hover:bg-red-600"
-          >
-            删除
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-    </>
   );
 }

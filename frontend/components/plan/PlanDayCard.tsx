@@ -24,8 +24,6 @@ import {
   Trash2,
   GripVertical,
   MapPin,
-  Clock,
-  DollarSign,
   Edit,
 } from 'lucide-react';
 import { SortableActivityItem } from './SortableActivityItem';
@@ -153,7 +151,7 @@ export function PlanDayCard({
             items={day.activities.map(a => a.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-2">
+            <div className="space-y-3">
               {day.activities.map(activity => (
                 <SortableActivityItem key={activity.id} id={activity.id}>
                   {editingActivityId === activity.id ? (
@@ -175,46 +173,72 @@ export function PlanDayCard({
                       onCancel={() => setEditingActivityId(null)}
                     />
                   ) : (
-                    /* 显示模式 */
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg group hover:bg-gray-100 dark:hover:bg-zinc-700/50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                        <div
-                          onClick={() => setEditingActivityId(activity.id)}
-                          className="cursor-pointer"
-                        >
-                          <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {activity.title}
-                          </p>
-                          <div className="flex items-center gap-3 text-sm text-gray-500">
-                            {activity.time && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> {activity.time}
-                              </span>
-                            )}
-                            {activity.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" /> {activity.location}
-                              </span>
-                            )}
-                            {activity.estimatedCost > 0 && (
-                              <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                                <DollarSign className="w-3 h-3" /> 预估 {activity.estimatedCost}
-                              </span>
-                            )}
-                            {activity.actualCost > 0 && (
-                              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                                <DollarSign className="w-3 h-3" /> 实际 {activity.actualCost}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                    /* 显示模式 - Grid Layout */
+                    <div className="group flex items-start gap-4 p-4 bg-gray-50/80 dark:bg-zinc-800/50 rounded-xl hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-gray-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all">
+                      
+                      {/* Drag Handle */}
+                      <div className="pt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                        <GripVertical className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-1">
+
+                      {/* Time Column (Fixed Width) */}
+                      <div className="flex-shrink-0 w-20 pt-1">
+                         {activity.time ? (
+                           <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 text-xs font-bold font-mono tracking-wide">
+                             {activity.time}
+                           </div>
+                         ) : (
+                           <div className="inline-flex items-center justify-center px-2 py-0.5 text-gray-300 dark:text-zinc-700 text-xs font-mono tracking-wide select-none">
+                             --:--
+                           </div>
+                         )}
+                      </div>
+
+                      {/* Main Content */}
+                      <div 
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => setEditingActivityId(activity.id)}
+                      >
+                         <div className="flex items-start justify-between gap-4">
+                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-base leading-tight">
+                             {activity.title}
+                           </h4>
+                           {/* Costs */}
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                              {activity.estimatedCost > 0 && (
+                                <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none">
+                                  ¥{activity.estimatedCost}
+                                </Badge>
+                              )}
+                              {activity.actualCost > 0 && (
+                                <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none">
+                                  实 ¥{activity.actualCost}
+                                </Badge>
+                              )}
+                           </div>
+                         </div>
+                         
+                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                           {activity.location && (
+                             <div className="flex items-center gap-1 text-xs text-gray-500">
+                               <MapPin className="w-3 h-3" /> {activity.location}
+                             </div>
+                           )}
+                         </div>
+
+                         {activity.notes && (
+                           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900/50 p-2 rounded-lg border border-gray-100 dark:border-zinc-800 line-clamp-2">
+                             {activity.notes}
+                           </p>
+                         )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 text-blue-500"
+                          className="h-8 w-8 text-gray-400 hover:text-blue-500"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingActivityId(activity.id);
@@ -225,7 +249,7 @@ export function PlanDayCard({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 text-red-500"
+                          className="h-8 w-8 text-gray-400 hover:text-red-500"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeleteActivity(day.id, activity.id);
@@ -234,6 +258,7 @@ export function PlanDayCard({
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
+
                     </div>
                   )}
                 </SortableActivityItem>
