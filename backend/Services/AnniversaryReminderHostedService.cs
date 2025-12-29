@@ -69,14 +69,19 @@ public class AnniversaryReminderHostedService(
     /// </summary>
     private async Task CheckReminders()
     {
-        logger.LogInformation("开始执行纪念日提醒检查...");
+        logger.LogInformation("开始执行提醒检查...");
         
         // 创建独立的 DI 作用域（避免 DbContext 生命周期问题）
         using var scope = scopeFactory.CreateScope();
-        var reminderService = scope.ServiceProvider.GetRequiredService<IAnniversaryReminderService>();
         
-        await reminderService.CheckAndSendRemindersAsync();
+        // 1. 检查纪念日提醒
+        var anniversaryReminderService = scope.ServiceProvider.GetRequiredService<IAnniversaryReminderService>();
+        await anniversaryReminderService.CheckAndSendRemindersAsync();
         
-        logger.LogInformation("纪念日提醒检查完成");
+        // 2. 检查计划提醒
+        var planReminderService = scope.ServiceProvider.GetRequiredService<IPlanReminderService>();
+        await planReminderService.CheckAndSendRemindersAsync();
+        
+        logger.LogInformation("提醒检查完成");
     }
 }

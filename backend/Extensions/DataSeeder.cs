@@ -272,6 +272,35 @@ public static class DataSeederExtensions
                 AvailablePlaceholders = """{"Title":"纪念日标题","Emoji":"图标","TargetDate":"目标日期","StartDate":"起始日期","DaysBefore":"剩余天数","DaysTotal":"已过天数"}""",
                 Description = "在纪念日临近时，发送邮件提醒",
                 IsEnabled = true
+            },
+
+            // 5. 计划提醒
+            new EmailTemplate
+            {
+                TemplateKey = "plan_reminder",
+                Name = "计划提醒",
+                SubjectTemplate = "📅 计划提醒：「{{PlanTitle}}」还有 {{DaysRemaining}} 天",
+                BodyTemplate = $@"
+<div style='{baseStyle}'>
+    <div style='border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 20px;'>
+        <h2 style='margin: 0; color: #3b82f6; font-size: 20px;'>📅 {{{{PlanTitle}}}}</h2>
+    </div>
+    <div style='color: #24292e; line-height: 1.6;'>
+        <p style='font-size: 18px; color: #333;'>距离出发还有 <strong>{{{{DaysRemaining}}}}</strong> 天</p>
+        <div style='background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 15px 0; border-radius: 8px;'>
+            <p style='margin: 8px 0;'><strong>📆 日期：</strong>{{{{StartDate}}}} ~ {{{{EndDate}}}}</p>
+            <p style='margin: 8px 0;'><strong>💰 预算：</strong>{{{{Budget}}}}</p>
+            <p style='margin: 8px 0;'><strong>📋 行程概要：</strong></p>
+            <div style='margin-left: 15px;'>{{{{DaysSummary}}}}</div>
+        </div>
+    </div>
+    <div style='{footerStyle}'>
+        —— 来自 MyNextBlog 的温馨提醒
+    </div>
+</div>",
+                AvailablePlaceholders = """{"PlanTitle":"计划标题","StartDate":"开始日期","EndDate":"结束日期","DaysRemaining":"剩余天数","Budget":"预算金额","DaysSummary":"行程概要"}""",
+                Description = "在计划临近时，发送邮件提醒",
+                IsEnabled = true
             }
         };
 
