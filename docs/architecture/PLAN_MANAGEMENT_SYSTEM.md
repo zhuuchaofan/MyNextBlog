@@ -1,10 +1,10 @@
-# 📅 计划管理系统 (Plan Management System)
+# 📅 计划管理系统 (Plan Management System) v1.1
 
 > 用于管理旅行计划、活动安排和惊喜行程的完整解决方案。
 
 ## 1. 概述
 
-计划管理系统是 MyNextBlog 的扩展模块，专为管理多日行程、预算追踪和秘密惊喜设计。它与纪念日系统深度集成，支持关联纪念日、提前邮件提醒和惊喜揭晓动画。
+计划管理系统是 MyNextBlog 的扩展模块，专为管理多日行程、预算追踪和秘密惊喜设计。v1.1 版本重点加强了情侣互动体验（惊喜弹窗、公开预览页）和后台易用性（活动编辑、快捷入口）。
 
 ## 2. 核心实体
 
@@ -29,9 +29,43 @@ Plan (计划)
 | **PlanActivity** | Title, Location, StartTime, EndTime | 活动详情   |
 |                  | EstimatedCost, ActualCost, Notes    | 花费追踪   |
 
-## 3. API 端点
+## 3. 功能特性与用户流程
 
-### 3.1 计划管理 (Admin Only)
+### 3.1 惊喜计划 (Surprise Plan)
+
+专为情侣设计的“秘密旅行”功能。
+
+- **创建流程**：后台创建计划时勾选 `IsSecret`。
+- **揭晓流程**：
+  1. 用户访问计划详情页（Admin `/admin/plans/[id]` 或 Public `/plan/[id]`）。
+  2. 系统检测 `localStorage` 中是否存在 `surprise_viewed_{id}` 标记。
+  3. 若未标记，触发全屏 `SurpriseReveal` 组件：
+     - 背景模糊 + 礼盒动画。
+     - 自动播放彩带特效 (`canvas-confetti`)。
+     - 点击关闭后，通过 `localStorage` 记录已查看，后续不再弹出。
+
+### 3.2 纪念日联动 (Anniversary Integration)
+
+- **入口**：在纪念日管理页 (`/admin/settings/anniversaries`)。
+- **流程**：
+  1. 点击纪念日卡片右下角的 `<CalendarPlus>` 按钮。
+  2. 跳转至新建计划页，URL 携带 `?anniversaryId=X` 参数。
+  3. 新建表单自动选中对应的纪念日，方便快速创建周年旅行计划。
+
+### 3.3 公开预览页 (Public Preview)
+
+专为移动端优化的只读行程展示页。
+
+- **路径**：`/plan/[id]`
+- **特性**：
+  - **情侣友好**：自动隐藏预算、实际花费等敏感信息。
+  - **视觉体验**：顶部 Hero 大图 + 倒计时徽章 + 动态问候语。
+  - **垂直时间轴**：按天分组展示行程，通过 `framer-motion` 实现入场动画。
+  - **惊喜集成**：同样支持首次访问触发惊喜弹窗。
+
+## 4. API 端点
+
+### 4.1 计划管理 (Admin Only)
 
 | 方法   | 路径                    | 说明                        |
 | ------ | ----------------------- | --------------------------- |
@@ -41,7 +75,7 @@ Plan (计划)
 | PUT    | `/api/admin/plans/{id}` | 更新计划基本信息            |
 | DELETE | `/api/admin/plans/{id}` | 删除计划                    |
 
-### 3.2 日程管理
+### 4.2 日程管理
 
 | 方法   | 路径                             | 说明     |
 | ------ | -------------------------------- | -------- |
@@ -49,90 +83,63 @@ Plan (计划)
 | PUT    | `/api/admin/plans/days/{dayId}`  | 更新日程 |
 | DELETE | `/api/admin/plans/days/{dayId}`  | 删除日程 |
 
-### 3.3 活动管理
+### 4.3 活动管理
 
-| 方法   | 路径                         | 说明     |
-| ------ | ---------------------------- | -------- |
-| POST   | `/api/admin/activities`      | 添加活动 |
-| PUT    | `/api/admin/activities/{id}` | 更新活动 |
-| DELETE | `/api/admin/activities/{id}` | 删除活动 |
+| 方法   | 路径                         | 说明                        |
+| ------ | ---------------------------- | --------------------------- |
+| POST   | `/api/admin/activities`      | 添加活动                    |
+| PUT    | `/api/admin/activities/{id}` | 更新活动 (含实际花费、备注) |
+| DELETE | `/api/admin/activities/{id}` | 删除活动                    |
 
-## 4. 前端页面
+## 5. 前端页面架构
 
-### 4.1 管理后台
+### 5.1 页面路由
 
-| 路径                | 功能                            |
-| ------------------- | ------------------------------- |
-| `/admin/plans`      | 计划列表（卡片视图）            |
-| `/admin/plans/new`  | 新建计划表单                    |
-| `/admin/plans/[id]` | 编辑计划（日历视图 + 预算图表） |
+| 路由                            | 类型   | 说明                        |
+| ------------------------------- | ------ | --------------------------- |
+| `/admin/plans`                  | Admin  | 计划列表卡片                |
+| `/admin/plans/new`              | Admin  | 新建计划表单 (支持关联参数) |
+| `/admin/plans/[id]`             | Admin  | 核心编辑页 (日历/预算/活动) |
+| `/admin/settings/anniversaries` | Admin  | 纪念日管理 (含创建计划入口) |
+| `/plan/[id]`                    | Public | **[NEW]** 移动端行程预览页  |
 
-### 4.2 组件库
+### 5.2 关键组件
 
-| 组件               | 路径               | 功能                       |
-| ------------------ | ------------------ | -------------------------- |
-| `PlanCalendarView` | `components/plan/` | 日历视图，高亮计划日期     |
-| `BudgetChart`      | `components/plan/` | 预算进度条对比图表         |
-| `SurpriseReveal`   | `components/plan/` | 惊喜揭晓弹窗（带彩带动画） |
+| 组件               | 路径               | 功能说明                               |
+| ------------------ | ------------------ | -------------------------------------- |
+| `PlanCalendarView` | `components/plan/` | 日历视图，修复了时区导致的日期高亮 bug |
+| `BudgetChart`      | `components/plan/` | 预算 vs 实际花费对比图表               |
+| `SurpriseReveal`   | `components/plan/` | 惊喜揭晓全屏弹窗                       |
+| `MarkdownEditor`   | `components/`      | 支持图片上传的编辑器 (改为 toast 提示) |
+| `AlertDialog`      | `components/ui/`   | 用于所有危险操作的二次确认             |
 
-## 5. 邮件提醒
+## 6. 技术实现细节
 
-### 5.1 提醒机制
+### 6.1 状态管理
+
+- **Activity Editing**: 使用 `editingActivityId` (number) 和 `editingActivity` (object) state 实现行内编辑。
+- **Optimistic UI**: 删除/更新操作先更新本地 state，再等待 API 响应，提升操作流畅度。
+
+### 6.2 UI 交互规范
+
+- **弹窗统一**：废弃原生的 `window.confirm` 和 `window.alert`，全面替换为 Shadcn UI 的 `<AlertDialog>` 和 `sonner` 的 `toast`。
+- **移动端适配**：
+  - Admin 表格在移动端自动切换为卡片视图。
+  - 预览页采用垂直单列布局，适合手机单手操作。
+
+### 6.3 邮件提醒
 
 - **触发时机**：后台 `AnniversaryReminderHostedService` 每天 08:00 检查
 - **提醒规则**：根据 `ReminderDays` 字段设置（如 "7,3,1" = 提前 7/3/1 天提醒）
 - **去重机制**：通过 `PlanNotification` 表记录已发送提醒
 
-### 5.2 邮件模板
+## 7. 后续优化规划
 
-- **模板 Key**：`plan_reminder`
-- **占位符**：`{{PlanTitle}}`, `{{StartDate}}`, `{{DaysLeft}}`, `{{Type}}`
-
-## 6. 惊喜功能
-
-### 6.1 秘密计划
-
-- 设置 `IsSecret = true` 标记为惊喜计划
-- 惊喜计划不会在常规列表中显示（需特殊入口）
-- 纪念日当天或指定时间触发 `SurpriseReveal` 弹窗
-
-### 6.2 揭晓动画
-
-- 使用 `canvas-confetti` 库实现彩带效果
-- 渐变背景 + 装饰元素
-- 揭晓前：神秘礼盒动画
-- 揭晓后：显示计划详情
-
-## 7. 天数计算逻辑
-
-```
-天数 = EndDate - StartDate + 1
-```
-
-- **有结束日期**：正常计算
-- **无结束日期**：默认 1 天
-
-## 8. 技术依赖
-
-### 后端
-
-- Entity Framework Core（Code First）
-- 邮件模板服务 (`IEmailTemplateService`)
-
-### 前端
-
-- `canvas-confetti`：彩带动画
-- shadcn/ui：UI 组件库
-
-## 9. 后续优化
-
-- [ ] 活动编辑功能
-- [ ] 惊喜弹窗触发集成
-- [ ] 实际花费更新
-- [ ] 日程拖拽排序
-- [ ] 计划预览/分享页
-- [ ] 纪念日关联快捷入口
+- [ ] **日程拖拽排序** (`dnd-kit`): 支持通过拖拽调整活动顺序。
+- [ ] **费用分摊 (Split Bill)**: 多人旅行时的费用计算器。
+- [ ] **地图集成 (Map View)**:在此地图上通过标记点显示每日行程路径。
+- [ ] **PDF 导出**: 生成纸质版行程单用于签证或备份。
 
 ---
 
-_Created: 2025-12-29_
+_Last Updated: 2025-12-29 (v1.1)_
