@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm'; // GitHub Flavored Markdown 插件 (支持�
 import rehypeHighlight from 'rehype-highlight'; // 代码高亮插件
 import { Button } from "@/components/ui/button"; // shadcn/ui 按钮组件
 import { Bold, Italic, List, Image as ImageIcon, Eye, Code, Quote, Link as LinkIcon } from 'lucide-react'; // 图标库
+import { toast } from 'sonner';
 import 'highlight.js/styles/github-dark.css'; // 代码高亮样式
 import imageCompression from 'browser-image-compression'; // 浏览器端图片压缩库
 
@@ -95,7 +96,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
 
     } catch (error) {
       console.error(error);
-      alert('图片上传失败');
+      toast.error('图片上传失败');
       // 上传失败，移除占位符
       const newContent = textareaRef.current?.value.replace(placeholder, '') || '';
       onChange(newContent);

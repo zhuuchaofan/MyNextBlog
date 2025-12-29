@@ -11,6 +11,16 @@ import { fetchAllSeries, createSeries, deleteSeries, updateSeries, Series } from
 import { Plus, Edit, Trash2, Loader2, ChevronLeft, Layers } from 'lucide-react';
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function SeriesManagementPage() {
   const router = useRouter();
@@ -23,6 +33,7 @@ export default function SeriesManagementPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [editingSeries, setEditingSeries] = useState<Series | null>(null);
+  const [deleteSeriesTarget, setDeleteSeriesTarget] = useState<Series | null>(null);
 
   useEffect(() => {
     loadSeries();
@@ -89,22 +100,21 @@ export default function SeriesManagementPage() {
     }
   };
 
-  const handleDelete = async (series: Series) => {
-    const postCountWarning = series.postCount > 0 
-      ? `该系列包含 ${series.postCount} 篇文章，删除后它们将变为无系列状态。` 
-      : '';
-    if (!confirm(`确定要删除系列"${series.name}"吗？${postCountWarning}`)) return;
+  const handleDelete = async () => {
+    if (!deleteSeriesTarget) return;
 
     try {
-      const res = await deleteSeries(series.id);
+      const res = await deleteSeries(deleteSeriesTarget.id);
       if (res.success) {
          toast.success('删除成功');
-         setSeriesList(seriesList.filter(s => s.id !== series.id));
+         setSeriesList(seriesList.filter(s => s.id !== deleteSeriesTarget.id));
       } else {
          toast.error(res.message);
       }
     } catch {
       toast.error('删除失败');
+    } finally {
+      setDeleteSeriesTarget(null);
     }
   };
 
@@ -198,7 +208,7 @@ export default function SeriesManagementPage() {
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(series)} className="h-8 w-8 p-0">
                           <Edit className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(series)} className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteSeriesTarget(series)} className="h-8 w-8 p-0">
                           <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
                         </Button>
                       </div>
@@ -255,10 +265,10 @@ export default function SeriesManagementPage() {
                            size="sm" 
                            variant="ghost" 
                            className="h-8 px-3 text-xs text-red-500"
-                           onClick={() => handleDelete(series)}
-                       >
-                           <Trash2 className="w-3 h-3 mr-1" /> 删除
-                       </Button>
+                            onClick={() => setDeleteSeriesTarget(series)}
+                        >
+                            <Trash2 className="w-3 h-3 mr-1" /> 删除
+                        </Button>
                    </div>
                 </div>
               ))}
@@ -288,6 +298,25 @@ export default function SeriesManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+    {/* Delete Alert Dialog */}
+    <AlertDialog open={!!deleteSeriesTarget} onOpenChange={(open) => !open && setDeleteSeriesTarget(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确定删除系列 &quot;{deleteSeriesTarget?.name}&quot; 吗？</AlertDialogTitle>
+          <AlertDialogDescription>
+            {deleteSeriesTarget?.postCount && deleteSeriesTarget.postCount > 0 
+              ? `该系列包含 ${deleteSeriesTarget.postCount} 篇文章，删除后它们将变为无系列状态。`
+              : "此操作无法撤销。"}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+            删除
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </div>
   );
 }

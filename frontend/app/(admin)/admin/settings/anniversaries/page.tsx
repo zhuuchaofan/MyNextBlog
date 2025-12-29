@@ -20,6 +20,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -59,6 +69,7 @@ export default function AnniversariesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   
   // 表单状态
   const [formData, setFormData] = useState({
@@ -158,15 +169,17 @@ export default function AnniversariesPage() {
   };
 
   // 删除纪念日
-  const handleDelete = async (id: number) => {
-    if (!confirm("确定要删除这个纪念日吗？")) return;
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
     
     try {
-      await deleteAnniversary(id);
+      await deleteAnniversary(deleteTargetId);
       toast.success("删除成功");
       fetchList();
     } catch {
       toast.error("删除失败");
+    } finally {
+      setDeleteTargetId(null);
     }
   };
 
@@ -412,7 +425,7 @@ export default function AnniversariesPage() {
             <SwipeableItem
               key={ann.id}
               onEdit={() => handleOpenEdit(ann)}
-              onDelete={() => handleDelete(ann.id)}
+              onDelete={() => setDeleteTargetId(ann.id)}
               className="rounded-xl"
             >
               <Card
@@ -445,7 +458,7 @@ export default function AnniversariesPage() {
                           variant="ghost"
                           size="icon"
                           className="text-red-500 hover:text-red-600"
-                          onClick={() => handleDelete(ann.id)}
+                          onClick={() => setDeleteTargetId(ann.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -489,6 +502,25 @@ export default function AnniversariesPage() {
           ))}
         </div>
       )}
+    <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确定删除这个纪念日？</AlertDialogTitle>
+          <AlertDialogDescription>
+            此操作无法撤销。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            className="bg-red-500 hover:bg-red-600"
+          >
+            删除
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </div>
   );
 }

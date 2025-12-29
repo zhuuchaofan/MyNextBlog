@@ -22,6 +22,16 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   CalendarDays,
   ChevronLeft,
   Loader2,
@@ -70,6 +80,9 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   
   // 惊喜弹窗状态
   const [showSurprise, setShowSurprise] = useState(false);
+  
+  // 删除日程确认弹窗
+  const [deleteDayId, setDeleteDayId] = useState<number | null>(null);
 
   // 权限检查
   useEffect(() => {
@@ -164,19 +177,21 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   };
 
   // 删除某天
-  const handleDeleteDay = async (dayId: number) => {
-    if (!confirm('确定要删除这一天吗？所有活动也会被删除。')) return;
+  const handleDeleteDay = async () => {
+    if (!deleteDayId) return;
     
     try {
-      await deletePlanDay(planId, dayId);
+      await deletePlanDay(planId, deleteDayId);
       setPlan({
         ...plan!,
-        days: plan!.days.filter(d => d.id !== dayId),
+        days: plan!.days.filter(d => d.id !== deleteDayId),
       });
       toast.success('已删除');
     } catch (error) {
       console.error('Failed to delete day:', error);
       toast.error('删除失败');
+    } finally {
+      setDeleteDayId(null);
     }
   };
 
@@ -502,7 +517,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                   variant="ghost"
                   size="icon"
                   className="text-red-500 hover:text-red-600"
-                  onClick={() => handleDeleteDay(day.id)}
+                  onClick={() => setDeleteDayId(day.id)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -678,6 +693,28 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         </Button>
       </div>
     </div>
+
+
+    {/* 删除日程确认弹窗 */}
+    <AlertDialog open={!!deleteDayId} onOpenChange={(open) => !open && setDeleteDayId(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确定删除这一天？</AlertDialogTitle>
+          <AlertDialogDescription>
+            此操作将删除该日期的所有活动，且无法恢复。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteDay}
+            className="bg-red-500 hover:bg-red-600"
+          >
+            删除
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
