@@ -41,6 +41,7 @@ import {
   ChevronLeft,
   Loader2,
   Plus,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PlanCalendarView from '@/components/plan/PlanCalendarView';
@@ -230,6 +231,16 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     }
   };
 
+  // 复制公开链接
+  const handleCopyPublicLink = () => {
+    if (!plan) return;
+    const url = `${window.location.origin}/plan/${plan.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success('公开链接已复制', {
+      description: '任何人通过此链接均可查看（敏感信息已隐藏）'
+    });
+  };
+
   // 添加活动
   const handleAddActivity = async (dayId: number, data: ActivityFormData) => {
     if (!data.title.trim()) {
@@ -371,7 +382,14 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
         
-        {/* 状态切换 */}
+        <div className="flex items-center gap-2">
+          {/* 分享按钮 */}
+          <Button variant="outline" size="sm" onClick={handleCopyPublicLink}>
+            <Share2 className="w-4 h-4 mr-2" />
+            分享
+          </Button>
+
+          {/* 状态切换 */}
         <Select
           value={plan.status}
           onValueChange={value => handleUpdatePlan('status', value)}
@@ -388,6 +406,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           </SelectContent>
         </Select>
       </div>
+    </div>
 
       {/* 基本信息编辑 */}
       <Card className="dark:bg-zinc-900 dark:border-zinc-800 mb-6">

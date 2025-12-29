@@ -441,6 +441,37 @@ export interface PlanDetail {
   updatedAt: string;
 }
 
+// ========== 公开预览类型（隐藏敏感信息）==========
+
+export interface PublicPlanDetail {
+  id: number;
+  title: string;
+  description: string | null;
+  type: string;
+  startDate: string;
+  endDate: string | null;
+  status: string;
+  days: Array<{
+    id: number;
+    dayNumber: number;
+    date: string;
+    theme: string | null;
+    activities: Array<{
+      id: number;
+      time: string | null;
+      title: string;
+      location: string | null;
+      notes: string | null;
+      sortOrder: number;
+    }>;
+  }>;
+}
+
+// [Public] 获取公开预览的计划详情（无需登录，隐藏预算）
+export function fetchPublicPlanById(id: number) {
+  return fetchClient<PublicPlanDetail>(`/api/backend/plans/${id}/public`);
+}
+
 // [Admin] 获取所有计划
 export function fetchPlans() {
   return fetchClient<PlanListItem[]>("/api/backend/admin/plans");

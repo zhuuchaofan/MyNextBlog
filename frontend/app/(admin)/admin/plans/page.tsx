@@ -29,8 +29,16 @@ import {
   Lock,
   Calendar,
   ChevronLeft,
+  MoreVertical,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // 类型图标映射
 const typeIcons: Record<string, typeof Plane> = {
@@ -106,6 +114,15 @@ export default function PlansPage() {
     } finally {
       setDeleteTarget(null);
     }
+  };
+
+  // 复制公开链接
+  const handleCopyPublicLink = (planId: number) => {
+    const url = `${window.location.origin}/plan/${planId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('公开链接已复制', {
+      description: '任何人通过此链接均可查看（敏感信息已隐藏）'
+    });
   };
 
   // 计算剩余天数
@@ -199,13 +216,39 @@ export default function PlansPage() {
                             <Lock className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
                           )}
                         </h3>
-                        <Badge className={`${statusStyles[plan.status]} flex-shrink-0`}>
+                        
+                        {/* 操作菜单 */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-gray-400 hover:text-gray-600">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <Link href={`/admin/plans/${plan.id}`}>
+                              <DropdownMenuItem>
+                                <Edit className="w-4 h-4 mr-2" />
+                                编辑详情
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem 
+                              className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                              onClick={() => setDeleteTarget({ id: plan.id, title: plan.title })}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              删除计划
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant="secondary" className={`${statusStyles[plan.status]} text-[10px] px-1.5 py-0 h-5`}>
                           {statusLabels[plan.status]}
                         </Badge>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {typeLabels[plan.type]} · {plan.daysCount || 0} 天
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {typeLabels[plan.type]} · {plan.daysCount || 0} 天行程
-                      </p>
                     </div>
                   </div>
 
@@ -255,20 +298,21 @@ export default function PlansPage() {
 
                   {/* 操作按钮 - 固定在底部 */}
                   <div className="flex gap-2 pt-3 mt-3 border-t dark:border-zinc-700/50">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 h-9 text-gray-600 dark:text-gray-300"
+                      onClick={() => handleCopyPublicLink(plan.id)}
+                    >
+                      <Share2 className="w-4 h-4 mr-1.5" />
+                      分享
+                    </Button>
                     <Link href={`/admin/plans/${plan.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full h-9">
+                      <Button size="sm" className="w-full h-9 bg-blue-500 hover:bg-blue-600 text-white">
                         <Edit className="w-4 h-4 mr-1.5" />
                         编辑
                       </Button>
                     </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      onClick={() => setDeleteTarget({ id: plan.id, title: plan.title })}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>

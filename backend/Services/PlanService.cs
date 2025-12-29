@@ -293,4 +293,47 @@ public class PlanService(AppDbContext context) : IPlanService
         
         await context.SaveChangesAsync();
     }
+    
+    // ========== 公开 API ==========
+    
+    /// <summary>
+    /// 获取公开预览的计划详情（隐藏预算等敏感信息）
+    /// </summary>
+    public async Task<PublicPlanDetailDto?> GetPublicPlanByIdAsync(int id)
+    {
+        var plan = await context.Plans
+            .AsNoTracking()
+            .Include(p => p.Days)
+                .ThenInclude(d => d.Activities.OrderBy(a => a.SortOrder))
+            .FirstOrDefaultAsync(p => p.Id == id);
+        
+        if (plan == null) return null;
+        
+        // 如果是私密计划，也返回（用于分享给特定人）
+        // 如果需要严格限制，可以在这里检查 plan.IsSecret
+        
+        return new PublicPlanDetailDto(
+            plan.Id,
+            plan.Title,
+            plan.Description,
+            plan.Type,
+            plan.StartDate.ToString("yyyy-MM-dd"),
+            plan.EndDate?.ToString("yyyy-MM-dd"),
+            plan.Status,
+            plan.Days.OrderBy(d => d.DayNumber).Select(d => new PublicPlanDayDto(
+                d.Id,
+                d.DayNumber,
+                d.Date.ToString("yyyy-MM-dd"),
+                d.Theme,
+                d.Activities.Select(a => new PublicActivityDto(
+                    a.Id,
+                    a.Time,
+                    a.Title,
+                    a.Location,
+                    a.Notes,
+                    a.SortOrder
+                )).ToList()
+            )).ToList()
+        );
+    }
 }

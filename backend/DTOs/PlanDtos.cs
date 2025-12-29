@@ -168,3 +168,42 @@ public record ActivitySortItem(int Id, int SortOrder);
 /// 批量更新活动排序请求
 /// </summary>
 public record BatchUpdateActivitySortDto(List<ActivitySortItem> Items);
+
+// ========== Public (No Auth) DTOs ==========
+
+/// <summary>
+/// 公开预览的计划详情（隐藏敏感信息）
+/// </summary>
+public record PublicPlanDetailDto(
+    int Id,
+    string Title,
+    string? Description,
+    string Type,
+    string StartDate,
+    string? EndDate,
+    string Status,
+    List<PublicPlanDayDto> Days
+);
+
+/// <summary>
+/// 公开预览的日程
+/// </summary>
+public record PublicPlanDayDto(
+    int Id,
+    int DayNumber,
+    string Date,
+    string? Theme,
+    List<PublicActivityDto> Activities
+);
+
+/// <summary>
+/// 公开预览的活动（隐藏预算）
+/// </summary>
+public record PublicActivityDto(
+    int Id,
+    string? Time,
+    string Title,
+    string? Location,
+    string? Notes,
+    int SortOrder
+);

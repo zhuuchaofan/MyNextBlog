@@ -83,4 +83,9 @@ public interface IPlanService
     /// 批量更新活动排序
     /// </summary>
     Task BatchUpdateActivitySortOrderAsync(List<ActivitySortItem> items);
+    
+    /// <summary>
+    /// 获取公开预览的计划详情（无需认证，隐藏敏感信息）
+    /// </summary>
+    Task<PublicPlanDetailDto?> GetPublicPlanByIdAsync(int id);
 }

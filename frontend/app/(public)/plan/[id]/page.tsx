@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { fetchPlanById, type PlanDetail } from '@/lib/api';
+import { fetchPublicPlanById, type PublicPlanDetail } from '@/lib/api';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { MapPin, Clock, Calendar as CalendarIcon, Heart, Plane, ArrowRight } from 'lucide-react';
+import { MapPin, Calendar as CalendarIcon, Heart, Plane, ArrowRight } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import SurpriseReveal from '@/components/plan/SurpriseReveal';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -18,43 +16,27 @@ export default function PublicPlanPage() {
   const router = useRouter();
   const id = params?.id as string;
 
-  const [plan, setPlan] = useState<PlanDetail | null>(null);
+  const [plan, setPlan] = useState<PublicPlanDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showSurprise, setShowSurprise] = useState(false);
 
   useEffect(() => {
+    const loadPlan = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchPublicPlanById(parseInt(id));
+        setPlan(data);
+      } catch (error) {
+        console.error('Failed to load plan:', error);
+        // 公开 API 不存在时显示错误
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (id) {
       loadPlan();
     }
   }, [id]);
-
-  // 检查惊喜弹窗
-  useEffect(() => {
-    if (plan && plan.isSecret) {
-      const viewedKey = `surprise_viewed_${plan.id}`;
-      const hasViewed = typeof window !== 'undefined' ? localStorage.getItem(viewedKey) : null;
-      if (!hasViewed) {
-        setShowSurprise(true);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(viewedKey, 'true');
-        }
-      }
-    }
-  }, [plan]);
-
-  const loadPlan = async () => {
-    try {
-      setIsLoading(true);
-      const data = await fetchPlanById(parseInt(id));
-      setPlan(data);
-    } catch (error) {
-      console.error('Failed to load plan:', error);
-      // 如果加载失败（可能是未登录），跳转到登录页或显示错误
-      // 这里简单处理为显示错误信息
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -83,32 +65,18 @@ export default function PublicPlanPage() {
   
   // 计算状态
   let statusText = '';
-  let statusColor = '';
   const daysUntil = differenceInDays(startDate, today);
   
   if (daysUntil > 0) {
     statusText = `还有 ${daysUntil} 天出发`;
-    statusColor = 'bg-blue-500 text-white';
   } else if (today >= startDate && today <= endDate) {
     statusText = '进行中';
-    statusColor = 'bg-green-500 text-white';
   } else {
     statusText = '已完成';
-    statusColor = 'bg-gray-500 text-white';
   }
 
   return (
     <div className="min-h-screen bg-pink-50/30 dark:bg-zinc-950 pb-20">
-      {/* 惊喜弹窗 */}
-      {showSurprise && plan.isSecret && (
-        <SurpriseReveal
-          title={plan.title}
-          description={plan.description || undefined}
-          startDate={plan.startDate}
-          type={plan.type as 'trip' | 'event' | 'surprise'}
-          onClose={() => setShowSurprise(false)}
-        />
-      )}
 
       {/* Hero Header */}
       <div className="relative bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
@@ -230,13 +198,7 @@ export default function PublicPlanPage() {
                                   {activity.location}
                                 </span>
                               )}
-                              {activity.estimatedCost > 0 && (
-                                <span className="flex items-center gap-1 text-gray-400">
-                                  <span className="text-xs border border-gray-200 dark:border-zinc-700 px-1.5 rounded">
-                                    💰 预算保密
-                                  </span>
-                                </span>
-                              )}
+
                             </div>
 
                             {activity.notes && (
