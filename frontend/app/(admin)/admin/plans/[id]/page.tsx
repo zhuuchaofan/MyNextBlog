@@ -11,6 +11,7 @@ import {
   updatePlanDay,
   deletePlanDay,
   addPlanActivity,
+  updatePlanActivity,
   deletePlanActivity,
   type PlanDetail,
 } from '@/lib/api';
@@ -30,6 +31,9 @@ import {
   MapPin,
   Clock,
   DollarSign,
+  Edit,
+  Check,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PlanCalendarView from '@/components/plan/PlanCalendarView';
@@ -60,6 +64,8 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const [newDayTheme, setNewDayTheme] = useState('');
   const [newActivityDayId, setNewActivityDayId] = useState<number | null>(null);
   const [newActivity, setNewActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0 });
+  const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
+  const [editingActivity, setEditingActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0, actualCost: 0, notes: '' });
 
   // 权限检查
   useEffect(() => {
@@ -205,6 +211,58 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     } catch (error) {
       console.error('Failed to delete activity:', error);
       toast.error('删除失败');
+    }
+  };
+
+  // 开始编辑活动
+  const handleStartEditActivity = (activity: { id: number; title: string; time?: string | null; location?: string | null; estimatedCost: number; actualCost: number; notes?: string | null }) => {
+    setEditingActivityId(activity.id);
+    setEditingActivity({
+      title: activity.title,
+      time: activity.time || '',
+      location: activity.location || '',
+      estimatedCost: activity.estimatedCost,
+      actualCost: activity.actualCost,
+      notes: activity.notes || '',
+    });
+  };
+
+  // 保存活动编辑
+  const handleSaveActivity = async (dayId: number) => {
+    if (!editingActivityId) return;
+    
+    try {
+      await updatePlanActivity(editingActivityId, {
+        title: editingActivity.title,
+        time: editingActivity.time || undefined,
+        location: editingActivity.location || undefined,
+        estimatedCost: editingActivity.estimatedCost,
+        actualCost: editingActivity.actualCost,
+        notes: editingActivity.notes || undefined,
+      });
+      
+      // 更新本地状态
+      setPlan({
+        ...plan!,
+        days: plan!.days.map(d =>
+          d.id === dayId
+            ? {
+                ...d,
+                activities: d.activities.map(a =>
+                  a.id === editingActivityId
+                    ? { ...a, ...editingActivity }
+                    : a
+                ),
+              }
+            : d
+        ),
+      });
+      
+      setEditingActivityId(null);
+      toast.success('已保存');
+    } catch (error) {
+      console.error('Failed to update activity:', error);
+      toast.error('保存失败');
     }
   };
 
@@ -426,43 +484,109 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
               {/* 活动列表 */}
               <div className="space-y-2">
                 {day.activities.map(activity => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {activity.title}
-                        </p>
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                          {activity.time && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" /> {activity.time}
-                            </span>
-                          )}
-                          {activity.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" /> {activity.location}
-                            </span>
-                          )}
-                          {activity.estimatedCost > 0 && (
-                            <span className="flex items-center gap-1">
-                              <DollarSign className="w-3 h-3" /> {activity.estimatedCost}
-                            </span>
-                          )}
+                  <div key={activity.id}>
+                    {editingActivityId === activity.id ? (
+                      /* 编辑模式 */
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input
+                            placeholder="活动名称 *"
+                            value={editingActivity.title}
+                            onChange={e => setEditingActivity({ ...editingActivity, title: e.target.value })}
+                          />
+                          <Input
+                            placeholder="时间 (如 09:00)"
+                            value={editingActivity.time}
+                            onChange={e => setEditingActivity({ ...editingActivity, time: e.target.value })}
+                          />
+                          <Input
+                            placeholder="地点"
+                            value={editingActivity.location}
+                            onChange={e => setEditingActivity({ ...editingActivity, location: e.target.value })}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="预估花费"
+                            value={editingActivity.estimatedCost || ''}
+                            onChange={e => setEditingActivity({ ...editingActivity, estimatedCost: Number(e.target.value) })}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="实际花费"
+                            value={editingActivity.actualCost || ''}
+                            onChange={e => setEditingActivity({ ...editingActivity, actualCost: Number(e.target.value) })}
+                          />
+                          <Input
+                            placeholder="备注"
+                            value={editingActivity.notes}
+                            onChange={e => setEditingActivity({ ...editingActivity, notes: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleSaveActivity(day.id)}>
+                            <Check className="w-4 h-4 mr-1" /> 保存
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingActivityId(null)}>
+                            <X className="w-4 h-4 mr-1" /> 取消
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 text-red-500"
-                      onClick={() => handleDeleteActivity(day.id, activity.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    ) : (
+                      /* 显示模式 */
+                      <div
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg group cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700/50 transition-colors"
+                        onClick={() => handleStartEditActivity(activity)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <GripVertical className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {activity.title}
+                            </p>
+                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                              {activity.time && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> {activity.time}
+                                </span>
+                              )}
+                              {activity.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" /> {activity.location}
+                                </span>
+                              )}
+                              {activity.estimatedCost > 0 && (
+                                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                  <DollarSign className="w-3 h-3" /> 预估 {activity.estimatedCost}
+                                </span>
+                              )}
+                              {activity.actualCost > 0 && (
+                                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                                  <DollarSign className="w-3 h-3" /> 实际 {activity.actualCost}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 text-blue-500"
+                            onClick={(e) => { e.stopPropagation(); handleStartEditActivity(activity); }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 text-red-500"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteActivity(day.id, activity.id); }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
