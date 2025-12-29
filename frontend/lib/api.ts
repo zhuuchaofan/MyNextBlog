@@ -377,3 +377,204 @@ export function updateEmailTemplate(
     body: data,
   });
 }
+
+// ============================================================
+// 计划管理 (Plans)
+// ============================================================
+
+// 计划类型定义
+export interface PlanListItem {
+  id: number;
+  title: string;
+  type: "trip" | "event" | "surprise";
+  startDate: string;
+  endDate: string | null;
+  budget: number;
+  actualCost: number;
+  currency: string;
+  status: "draft" | "confirmed" | "completed";
+  isSecret: boolean;
+  anniversaryId: number | null;
+  anniversaryTitle: string | null;
+  daysCount: number;
+  createdAt: string;
+}
+
+export interface PlanActivity {
+  id: number;
+  time: string | null;
+  title: string;
+  location: string | null;
+  notes: string | null;
+  estimatedCost: number;
+  actualCost: number;
+  sortOrder: number;
+}
+
+export interface PlanDay {
+  id: number;
+  dayNumber: number;
+  date: string;
+  theme: string | null;
+  activities: PlanActivity[];
+}
+
+export interface PlanDetail {
+  id: number;
+  title: string;
+  description: string | null;
+  type: string;
+  startDate: string;
+  endDate: string | null;
+  budget: number;
+  actualCost: number;
+  currency: string;
+  status: string;
+  isSecret: boolean;
+  enableReminder: boolean;
+  reminderEmail: string | null;
+  reminderDays: string;
+  anniversaryId: number | null;
+  anniversaryTitle: string | null;
+  days: PlanDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// [Admin] 获取所有计划
+export function fetchPlans() {
+  return fetchClient<PlanListItem[]>("/api/backend/admin/plans");
+}
+
+// [Admin] 获取计划详情
+export function fetchPlanById(id: number) {
+  return fetchClient<PlanDetail>(`/api/backend/admin/plans/${id}`);
+}
+
+// [Admin] 创建计划
+export function createPlan(data: {
+  title: string;
+  description?: string;
+  type: string;
+  startDate: string;
+  endDate?: string;
+  budget?: number;
+  currency?: string;
+  isSecret?: boolean;
+  enableReminder?: boolean;
+  reminderEmail?: string;
+  reminderDays?: string;
+  anniversaryId?: number;
+}) {
+  return fetchClient("/api/backend/admin/plans", {
+    method: "POST",
+    body: data,
+  });
+}
+
+// [Admin] 更新计划
+export function updatePlan(id: number, data: {
+  title?: string;
+  description?: string;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  budget?: number;
+  actualCost?: number;
+  currency?: string;
+  status?: string;
+  isSecret?: boolean;
+  enableReminder?: boolean;
+  reminderEmail?: string;
+  reminderDays?: string;
+  anniversaryId?: number;
+}) {
+  return fetchClient(`/api/backend/admin/plans/${id}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+// [Admin] 删除计划
+export function deletePlan(id: number) {
+  return fetchClient(`/api/backend/admin/plans/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// [Admin] 添加一天
+export function addPlanDay(planId: number, data: {
+  dayNumber: number;
+  date: string;
+  theme?: string;
+}) {
+  return fetchClient(`/api/backend/admin/plans/${planId}/days`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+// [Admin] 更新一天
+export function updatePlanDay(planId: number, dayId: number, data: {
+  dayNumber?: number;
+  date?: string;
+  theme?: string;
+}) {
+  return fetchClient(`/api/backend/admin/plans/${planId}/days/${dayId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+// [Admin] 删除一天
+export function deletePlanDay(planId: number, dayId: number) {
+  return fetchClient(`/api/backend/admin/plans/${planId}/days/${dayId}`, {
+    method: "DELETE",
+  });
+}
+
+// [Admin] 添加活动
+export function addPlanActivity(dayId: number, data: {
+  time?: string;
+  title: string;
+  location?: string;
+  notes?: string;
+  estimatedCost?: number;
+  sortOrder?: number;
+}) {
+  return fetchClient(`/api/backend/admin/days/${dayId}/activities`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+// [Admin] 更新活动
+export function updatePlanActivity(activityId: number, data: {
+  time?: string;
+  title?: string;
+  location?: string;
+  notes?: string;
+  estimatedCost?: number;
+  actualCost?: number;
+  sortOrder?: number;
+}) {
+  return fetchClient(`/api/backend/admin/activities/${activityId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+// [Admin] 删除活动
+export function deletePlanActivity(activityId: number) {
+  return fetchClient(`/api/backend/admin/activities/${activityId}`, {
+    method: "DELETE",
+  });
+}
+
+// [Admin] 获取预算统计
+export function fetchPlanBudget(planId: number) {
+  return fetchClient<{ totalEstimated: number; totalActual: number }>(
+    `/api/backend/admin/plans/${planId}/budget`
+  );
+}
+
