@@ -26,7 +26,9 @@ interface PlanCalendarViewProps {
 export default function PlanCalendarView({ startDate, endDate, className }: PlanCalendarViewProps) {
   const calendarData = useMemo(() => {
     const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : start;
+    start.setHours(0, 0, 0, 0); // 重置为午夜，避免时区问题
+    const end = endDate ? new Date(endDate) : new Date(start);
+    end.setHours(0, 0, 0, 0); // 重置为午夜
     
     // 获取日历的开始（月初）和结束（月末）
     const calendarStart = new Date(start.getFullYear(), start.getMonth(), 1);
