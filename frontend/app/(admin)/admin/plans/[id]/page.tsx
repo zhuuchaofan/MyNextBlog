@@ -244,7 +244,11 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
               {plan.title}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {plan.startDate} {plan.endDate && `~ ${plan.endDate}`} · {plan.days.length} 天
+              {plan.startDate} {plan.endDate && `~ ${plan.endDate}`} · {
+                plan.endDate 
+                  ? Math.ceil((new Date(plan.endDate).getTime() - new Date(plan.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
+                  : 1
+              } 天
             </p>
           </div>
         </div>

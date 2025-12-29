@@ -35,7 +35,7 @@ public class PlanService(AppDbContext context) : IPlanService
                 p.IsSecret,
                 p.AnniversaryId,
                 p.Anniversary != null ? p.Anniversary.Title : null,
-                p.Days.Count,
+                p.EndDate != null ? (p.EndDate.Value.DayNumber - p.StartDate.DayNumber + 1) : 1,
                 p.CreatedAt
             ))
             .ToListAsync();
