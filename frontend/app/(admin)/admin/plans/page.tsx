@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { fetchPlans, deletePlan, type PlanListItem } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -174,88 +174,97 @@ export default function PlansPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {plans.map(plan => {
             const TypeIcon = typeIcons[plan.type] || Calendar;
             const daysRemaining = getDaysRemaining(plan.startDate);
+            const showCountdown = plan.status !== 'completed' && daysRemaining >= 0;
             
             return (
               <Card 
                 key={plan.id} 
-                className="dark:bg-zinc-900 dark:border-zinc-800 hover:shadow-lg transition-shadow"
+                className="dark:bg-zinc-900 dark:border-zinc-800 hover:shadow-lg transition-all hover:border-blue-200 dark:hover:border-blue-800"
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                        <TypeIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
+                <CardContent className="p-4 flex flex-col h-full">
+                  {/* 头部：图标 + 标题 + 状态 */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20">
+                      <TypeIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate flex items-center gap-1.5">
                           {plan.title}
                           {plan.isSecret && (
-                            <Lock className="w-4 h-4 text-orange-500" />
+                            <Lock className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
                           )}
-                        </CardTitle>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {typeLabels[plan.type]} · {plan.daysCount} 天
-                        </p>
+                        </h3>
+                        <Badge className={`${statusStyles[plan.status]} flex-shrink-0`}>
+                          {statusLabels[plan.status]}
+                        </Badge>
                       </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {typeLabels[plan.type]} · {plan.daysCount || 0} 天行程
+                      </p>
                     </div>
-                    <Badge className={statusStyles[plan.status]}>
-                      {statusLabels[plan.status]}
-                    </Badge>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* 日期 */}
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    📅 {plan.startDate}
-                    {plan.endDate && ` ~ ${plan.endDate}`}
-                  </div>
-                  
-                  {/* 倒计时 */}
-                  {plan.status !== 'completed' && daysRemaining >= 0 && (
-                    <div className="text-sm">
-                      {daysRemaining === 0 ? (
-                        <span className="text-green-600 dark:text-green-400 font-medium">
-                          🎉 今天出发！
-                        </span>
+
+                  {/* 信息区块 - 固定高度 */}
+                  <div className="flex-1 space-y-2">
+                    {/* 日期 + 预算 */}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>{plan.startDate}</span>
+                      </div>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {plan.currency} {plan.budget.toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    {/* 倒计时 - 始终保留空间 */}
+                    <div className="text-xs h-5">
+                      {showCountdown ? (
+                        daysRemaining === 0 ? (
+                          <span className="text-green-600 dark:text-green-400 font-medium">
+                            🎉 今天出发！
+                          </span>
+                        ) : (
+                          <span className="text-blue-600 dark:text-blue-400">
+                            ⏰ 还有 <strong>{daysRemaining}</strong> 天
+                          </span>
+                        )
+                      ) : plan.status === 'completed' ? (
+                        <span className="text-gray-400 dark:text-gray-500">✓ 已完成</span>
                       ) : (
-                        <span className="text-blue-600 dark:text-blue-400">
-                          还有 <strong>{daysRemaining}</strong> 天
-                        </span>
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
                       )}
                     </div>
-                  )}
-                  
-                  {/* 预算 */}
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">预算</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {plan.currency} {plan.budget.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {/* 关联纪念日 */}
-                  {plan.anniversaryTitle && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      💕 关联: {plan.anniversaryTitle}
+
+                    {/* 关联纪念日 - 始终保留空间 */}
+                    <div className="text-xs h-5 truncate">
+                      {plan.anniversaryTitle ? (
+                        <span className="text-gray-500 dark:text-gray-400">
+                          💕 关联: {plan.anniversaryTitle}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
+                      )}
                     </div>
-                  )}
-                  
-                  {/* 操作按钮 */}
-                  <div className="flex gap-2 pt-2 border-t dark:border-zinc-700">
+                  </div>
+
+                  {/* 操作按钮 - 固定在底部 */}
+                  <div className="flex gap-2 pt-3 mt-3 border-t dark:border-zinc-700/50">
                     <Link href={`/admin/plans/${plan.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Edit className="w-4 h-4 mr-1" />
+                      <Button variant="outline" size="sm" className="w-full h-9">
+                        <Edit className="w-4 h-4 mr-1.5" />
                         编辑
                       </Button>
                     </Link>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="h-9 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       onClick={() => setDeleteTarget({ id: plan.id, title: plan.title })}
                     >
                       <Trash2 className="w-4 h-4" />
