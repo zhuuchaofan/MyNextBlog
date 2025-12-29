@@ -362,19 +362,20 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
       {/* 顶部导航栏 - Glassmorphic */}
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
-           <div className="flex items-center gap-4">
-             <Button variant="ghost" onClick={() => router.back()} className="hover:bg-gray-100 dark:hover:bg-zinc-800">
-               <ChevronLeft className="w-5 h-5 mr-1" /> 返回
+           <div className="flex items-center gap-1 sm:gap-4">
+             <Button variant="ghost" size="icon" onClick={() => router.back()} className="hover:bg-gray-100 dark:hover:bg-zinc-800 flex-shrink-0">
+               <ChevronLeft className="w-5 h-5" />
+               <span className="sr-only">返回</span>
              </Button>
-             <div className="flex items-center gap-3">
-               <h1 className="text-xl font-bold truncate max-w-[200px] sm:max-w-md" title={plan.title}>
+             <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+               <h1 className="text-base sm:text-xl font-bold truncate flex-1 min-w-0" title={plan.title}>
                  {plan.title}
                </h1>
                <Select
                  value={plan.status}
                  onValueChange={value => handleUpdatePlan('status', value)}
                >
-                 <SelectTrigger className="h-8 w-28 text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0">
+                 <SelectTrigger className="h-7 sm:h-8 w-auto min-w-[4.5rem] sm:w-28 text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0 flex-shrink-0">
                    <SelectValue />
                  </SelectTrigger>
                  <SelectContent>
@@ -427,8 +428,8 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="space-y-1.5 min-w-0">
                       <Label className="text-xs text-gray-500">类型</Label>
                       <Select
                         value={plan.type}
@@ -444,7 +445,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                         </SelectContent>
                       </Select>
                     </div>
-                     <div className="space-y-1.5">
+                     <div className="space-y-1.5 min-w-0">
                        <Label className="text-xs text-gray-500">货币</Label>
                        <Select
                          value={plan.currency}
@@ -463,8 +464,8 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="space-y-1.5 min-w-0">
                       <Label className="text-xs text-gray-500">开始日期</Label>
                       <Input
                         type="date"
@@ -473,7 +474,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                         className="bg-white dark:bg-zinc-950"
                       />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 min-w-0">
                       <Label className="text-xs text-gray-500">结束日期</Label>
                       <Input
                         type="date"

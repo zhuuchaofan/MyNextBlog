@@ -70,12 +70,12 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
   const isEditMode = mode === 'edit';
 
   return (
-    <div className={`p-3 rounded-lg border space-y-3 ${
+    <div className={`p-2 sm:p-3 rounded-lg border space-y-3 ${
       isEditMode 
         ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
         : 'border-dashed dark:border-zinc-700'
     }`}>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <Input
           placeholder="活动名称 *"
           value={formData.title}
