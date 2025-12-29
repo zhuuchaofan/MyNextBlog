@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { CalendarDays, ChevronLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import Link from 'next/link';
 
 /**
  * 新建计划表单组件
@@ -122,11 +121,9 @@ function NewPlanForm() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/plans">
-          <Button variant="ghost">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-        </Link>
+        <Button variant="ghost" onClick={() => router.back()}>
+          <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+        </Button>
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <CalendarDays className="w-6 h-6 text-blue-500" /> 新建计划
@@ -315,11 +312,9 @@ function NewPlanForm() {
 
         {/* 提交按钮 */}
         <div className="flex gap-4 mt-6">
-          <Link href="/admin/plans" className="flex-1">
-            <Button type="button" variant="outline" className="w-full">
-              取消
-            </Button>
-          </Link>
+          <Button type="button" variant="outline" className="w-full flex-1" onClick={() => router.back()}>
+            取消
+          </Button>
           <Button
             type="submit"
             className="flex-1 bg-blue-500 hover:bg-blue-600"
