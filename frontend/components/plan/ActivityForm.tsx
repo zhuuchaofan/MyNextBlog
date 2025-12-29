@@ -83,7 +83,8 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
           disabled={isSubmitting}
         />
         <Input
-          placeholder="时间 (如 09:00)"
+          type="time"
+          placeholder="时间"
           value={formData.time}
           onChange={e => updateField('time', e.target.value)}
           disabled={isSubmitting}
