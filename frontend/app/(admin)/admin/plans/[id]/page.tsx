@@ -38,6 +38,7 @@ import {
 import { toast } from 'sonner';
 import PlanCalendarView from '@/components/plan/PlanCalendarView';
 import BudgetChart from '@/components/plan/BudgetChart';
+import SurpriseReveal from '@/components/plan/SurpriseReveal';
 
 // 状态选项
 const STATUS_OPTIONS = [
@@ -66,6 +67,9 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const [newActivity, setNewActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0 });
   const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
   const [editingActivity, setEditingActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0, actualCost: 0, notes: '' });
+  
+  // 惊喜弹窗状态
+  const [showSurprise, setShowSurprise] = useState(false);
 
   // 权限检查
   useEffect(() => {
@@ -90,6 +94,18 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     };
     if (planId) loadPlan();
   }, [planId, router]);
+
+  // 检查是否需要显示惊喜弹窗
+  useEffect(() => {
+    if (plan && plan.isSecret) {
+      const viewedKey = `surprise_viewed_${plan.id}`;
+      const hasViewed = localStorage.getItem(viewedKey);
+      if (!hasViewed) {
+        setShowSurprise(true);
+        localStorage.setItem(viewedKey, 'true');
+      }
+    }
+  }, [plan]);
 
   // 更新计划基本信息
   const handleUpdatePlan = async (field: string, value: string | number | boolean) => {
@@ -289,6 +305,18 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   if (!plan) return null;
 
   return (
+    <>
+      {/* 惊喜弹窗 */}
+      {showSurprise && plan.isSecret && (
+        <SurpriseReveal
+          title={plan.title}
+          description={plan.description || undefined}
+          startDate={plan.startDate}
+          type={plan.type as 'trip' | 'event' | 'surprise'}
+          onClose={() => setShowSurprise(false)}
+        />
+      )}
+      
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 页面标题 */}
       <div className="flex items-center justify-between mb-6">
@@ -650,5 +678,6 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         </Button>
       </div>
     </div>
+    </>
   );
 }
