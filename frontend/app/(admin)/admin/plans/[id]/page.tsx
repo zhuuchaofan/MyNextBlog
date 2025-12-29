@@ -5,19 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   fetchPlanById,
@@ -34,7 +25,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -51,19 +41,13 @@ import {
   ChevronLeft,
   Loader2,
   Plus,
-  Trash2,
-  GripVertical,
-  MapPin,
-  Clock,
-  DollarSign,
-  Edit,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PlanCalendarView from '@/components/plan/PlanCalendarView';
 import BudgetChart from '@/components/plan/BudgetChart';
 import SurpriseReveal from '@/components/plan/SurpriseReveal';
-import { SortableActivityItem } from '@/components/plan/SortableActivityItem';
-import { ActivityForm, type ActivityFormData } from '@/components/plan/ActivityForm';
+import { PlanDayCard } from '@/components/plan/PlanDayCard';
+import { type ActivityFormData } from '@/components/plan/ActivityForm';
 
 
 // 状态选项
@@ -86,29 +70,11 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const [plan, setPlan] = useState<PlanDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // 编辑状态
-  const [editingDayId, setEditingDayId] = useState<number | null>(null);
-  const [newDayTheme, setNewDayTheme] = useState('');
-  const [newActivityDayId, setNewActivityDayId] = useState<number | null>(null);
-  const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
-  
   // 惊喜弹窗状态
   const [showSurprise, setShowSurprise] = useState(false);
   
   // 删除日程确认弹窗
   const [deleteDayId, setDeleteDayId] = useState<number | null>(null);
-
-  // 拖拽排序 sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 拖拽 8px 后才激活，避免误触
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // 拖拽排序完成处理
   const handleDragEnd = async (event: DragEndEvent, dayId: number) => {
@@ -237,7 +203,6 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         ...plan!,
         days: plan!.days.map(d => d.id === dayId ? { ...d, theme } : d),
       });
-      setEditingDayId(null);
       toast.success('已保存');
     } catch (error) {
       console.error('Failed to update day:', error);
@@ -286,7 +251,6 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           d.id === dayId ? { ...d, activities: [...d.activities, activity] } : d
         ),
       });
-      setNewActivityDayId(null);
       toast.success('已添加活动');
     } catch (error) {
       console.error('Failed to add activity:', error);
@@ -342,7 +306,6 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         ),
       });
       
-      setEditingActivityId(null);
       toast.success('已保存');
     } catch (error) {
       console.error('Failed to update activity:', error);
@@ -537,156 +500,16 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
       {/* 日程列表 */}
       <div className="space-y-4">
         {plan.days.map(day => (
-          <Card key={day.id} className="dark:bg-zinc-900 dark:border-zinc-800">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="text-sm">
-                    Day {day.dayNumber}
-                  </Badge>
-                  {editingDayId === day.id ? (
-                    <Input
-                      value={newDayTheme}
-                      onChange={e => setNewDayTheme(e.target.value)}
-                      onBlur={() => handleUpdateDayTheme(day.id, newDayTheme)}
-                      onKeyDown={e => e.key === 'Enter' && handleUpdateDayTheme(day.id, newDayTheme)}
-                      className="w-48"
-                      autoFocus
-                    />
-                  ) : (
-                    <CardTitle
-                      className="text-lg cursor-pointer hover:text-blue-500"
-                      onClick={() => {
-                        setEditingDayId(day.id);
-                        setNewDayTheme(day.theme || '');
-                      }}
-                    >
-                      {day.theme || '点击添加主题'}
-                    </CardTitle>
-                  )}
-                  <span className="text-sm text-gray-500">{day.date}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-500 hover:text-red-600"
-                  onClick={() => setDeleteDayId(day.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-2">
-              {/* 活动列表 - 支持拖拽排序 */}
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={(event) => handleDragEnd(event, day.id)}
-              >
-                <SortableContext
-                  items={day.activities.map(a => a.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2">
-                    {day.activities.map(activity => (
-                      <SortableActivityItem key={activity.id} id={activity.id}>
-                        {editingActivityId === activity.id ? (
-                          /* 编辑模式 */
-                          <ActivityForm
-                            mode="edit"
-                            initialData={{
-                              title: activity.title,
-                              time: activity.time || '',
-                              location: activity.location || '',
-                              estimatedCost: activity.estimatedCost,
-                              actualCost: activity.actualCost,
-                              notes: activity.notes || '',
-                            }}
-                            onSubmit={async (data) => handleSaveActivity(day.id, activity.id, data)}
-                            onCancel={() => setEditingActivityId(null)}
-                          />
-                        ) : (
-                          /* 显示模式 */
-                          <div
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg group hover:bg-gray-100 dark:hover:bg-zinc-700/50 transition-colors"
-                          >
-                            <div className="flex items-center gap-4">
-                              <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                              <div onClick={() => setEditingActivityId(activity.id)} className="cursor-pointer">
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                  {activity.title}
-                                </p>
-                                <div className="flex items-center gap-3 text-sm text-gray-500">
-                                  {activity.time && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" /> {activity.time}
-                                    </span>
-                                  )}
-                                  {activity.location && (
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3" /> {activity.location}
-                                    </span>
-                                  )}
-                                  {activity.estimatedCost > 0 && (
-                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                                      <DollarSign className="w-3 h-3" /> 预估 {activity.estimatedCost}
-                                    </span>
-                                  )}
-                                  {activity.actualCost > 0 && (
-                                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                                      <DollarSign className="w-3 h-3" /> 实际 {activity.actualCost}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="opacity-0 group-hover:opacity-100 text-blue-500"
-                                onClick={(e) => { e.stopPropagation(); setEditingActivityId(activity.id); }}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="opacity-0 group-hover:opacity-100 text-red-500"
-                                onClick={(e) => { e.stopPropagation(); handleDeleteActivity(day.id, activity.id); }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </SortableActivityItem>
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-
-              {/* 添加活动表单 */}
-              {newActivityDayId === day.id ? (
-                <div className="mt-3">
-                  <ActivityForm
-                    mode="add"
-                    onSubmit={async (data) => handleAddActivity(day.id, data)}
-                    onCancel={() => setNewActivityDayId(null)}
-                  />
-                </div>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-3 w-full text-gray-500"
-                  onClick={() => setNewActivityDayId(day.id)}
-                >
-                  <Plus className="w-4 h-4 mr-1" /> 添加活动
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <PlanDayCard
+            key={day.id}
+            day={day}
+            onUpdateTheme={handleUpdateDayTheme}
+            onDeleteDay={(dayId) => setDeleteDayId(dayId)}
+            onAddActivity={handleAddActivity}
+            onUpdateActivity={handleSaveActivity}
+            onDeleteActivity={handleDeleteActivity}
+            onReorder={handleDragEnd}
+          />
         ))}
 
         {/* 添加新的一天 */}
