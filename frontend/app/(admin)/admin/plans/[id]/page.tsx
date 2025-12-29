@@ -18,6 +18,7 @@ import {
   addPlanActivity,
   updatePlanActivity,
   deletePlanActivity,
+  batchUpdateActivitySortOrder,
   type PlanDetail,
 } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,12 +102,13 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
       ),
     });
 
-    // 调用 API 更新每个活动的 sortOrder
+    // 调用批量 API 更新排序（单次请求，性能优化）
     try {
-      await Promise.all(
-        reorderedActivities.map((activity, index) => 
-          updatePlanActivity(activity.id, { sortOrder: index })
-        )
+      await batchUpdateActivitySortOrder(
+        reorderedActivities.map((activity, index) => ({
+          id: activity.id,
+          sortOrder: index,
+        }))
       );
       toast.success('排序已保存');
     } catch (error) {

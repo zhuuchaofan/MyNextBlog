@@ -78,4 +78,9 @@ public interface IPlanService
     /// 获取计划的预算统计
     /// </summary>
     Task<(decimal TotalEstimated, decimal TotalActual)> GetBudgetSummaryAsync(int planId);
+    
+    /// <summary>
+    /// 批量更新活动排序
+    /// </summary>
+    Task BatchUpdateActivitySortOrderAsync(List<ActivitySortItem> items);
 }

@@ -156,3 +156,15 @@ public record UpdateActivityDto(
     decimal? ActualCost,
     int? SortOrder
 );
+
+// ========== Batch Update DTOs ==========
+
+/// <summary>
+/// 批量更新活动排序请求中的单个项
+/// </summary>
+public record ActivitySortItem(int Id, int SortOrder);
+
+/// <summary>
+/// 批量更新活动排序请求
+/// </summary>
+public record BatchUpdateActivitySortDto(List<ActivitySortItem> Items);

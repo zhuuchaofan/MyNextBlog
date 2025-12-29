@@ -155,4 +155,14 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
         if (!success) return NotFound(new { message = "活动不存在" });
         return NoContent();
     }
+    
+    /// <summary>
+    /// 批量更新活动排序（拖拽排序优化）
+    /// </summary>
+    [HttpPatch("activities/batch-sort")]
+    public async Task<IActionResult> BatchUpdateSort([FromBody] BatchUpdateActivitySortDto dto)
+    {
+        await planService.BatchUpdateActivitySortOrderAsync(dto.Items);
+        return NoContent();
+    }
 }

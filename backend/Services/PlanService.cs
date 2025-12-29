@@ -264,4 +264,33 @@ public class PlanService(AppDbContext context) : IPlanService
         
         return (totalEstimated, totalActual);
     }
+    
+    // ========== 批量操作 ==========
+    
+    /// <summary>
+    /// 批量更新活动排序
+    /// 使用单次数据库往返，提升拖拽排序性能
+    /// </summary>
+    public async Task BatchUpdateActivitySortOrderAsync(List<ActivitySortItem> items)
+    {
+        if (items.Count == 0) return;
+        
+        // 获取所有需要更新的活动 ID
+        var ids = items.Select(i => i.Id).ToList();
+        var activities = await context.PlanActivities
+            .Where(a => ids.Contains(a.Id))
+            .ToListAsync();
+        
+        // 应用新的排序
+        foreach (var activity in activities)
+        {
+            var item = items.FirstOrDefault(i => i.Id == activity.Id);
+            if (item != null)
+            {
+                activity.SortOrder = item.SortOrder;
+            }
+        }
+        
+        await context.SaveChangesAsync();
+    }
 }

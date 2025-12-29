@@ -578,3 +578,13 @@ export function fetchPlanBudget(planId: number) {
   );
 }
 
+// [Admin] 批量更新活动排序（拖拽排序优化，单次请求）
+export function batchUpdateActivitySortOrder(
+  items: Array<{ id: number; sortOrder: number }>
+) {
+  return fetchClient("/api/backend/admin/activities/batch-sort", {
+    method: "PATCH",
+    body: { items },
+  });
+}
+
