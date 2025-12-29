@@ -9,6 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   CalendarDays,
   Plus,
   Plane,
@@ -57,6 +67,7 @@ export default function PlansPage() {
   const router = useRouter();
   const [plans, setPlans] = useState<PlanListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
 
   // 权限检查
   useEffect(() => {
@@ -82,16 +93,18 @@ export default function PlansPage() {
   }, []);
 
   // 删除计划
-  const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`确定要删除计划「${title}」吗？此操作不可恢复。`)) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     
     try {
-      await deletePlan(id);
-      setPlans(plans.filter(p => p.id !== id));
+      await deletePlan(deleteTarget.id);
+      setPlans(plans.filter(p => p.id !== deleteTarget.id));
       toast.success('计划已删除');
     } catch (error) {
       console.error('Failed to delete plan:', error);
       toast.error('删除失败');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -243,7 +256,7 @@ export default function PlansPage() {
                       variant="ghost"
                       size="sm"
                       className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      onClick={() => handleDelete(plan.id, plan.title)}
+                      onClick={() => setDeleteTarget({ id: plan.id, title: plan.title })}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -254,6 +267,27 @@ export default function PlansPage() {
           })}
         </div>
       )}
+
+      {/* 删除确认对话框 */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定删除？</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除计划「{deleteTarget?.title}」吗？此操作不可恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

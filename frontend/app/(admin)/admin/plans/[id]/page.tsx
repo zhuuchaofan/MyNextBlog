@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -265,6 +266,82 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           </SelectContent>
         </Select>
       </div>
+
+      {/* 基本信息编辑 */}
+      <Card className="dark:bg-zinc-900 dark:border-zinc-800 mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">基本信息</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>计划名称</Label>
+              <Input
+                value={plan.title}
+                onChange={e => handleUpdatePlan('title', e.target.value)}
+                placeholder="输入计划名称"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>计划类型</Label>
+              <Select
+                value={plan.type}
+                onValueChange={value => handleUpdatePlan('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trip">✈️ 旅行</SelectItem>
+                  <SelectItem value="event">🎉 活动</SelectItem>
+                  <SelectItem value="surprise">🎁 惊喜</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>开始日期</Label>
+              <Input
+                type="date"
+                value={plan.startDate}
+                onChange={e => handleUpdatePlan('startDate', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>结束日期</Label>
+              <Input
+                type="date"
+                value={plan.endDate || ''}
+                onChange={e => handleUpdatePlan('endDate', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>预算</Label>
+              <Input
+                type="number"
+                value={plan.budget}
+                onChange={e => handleUpdatePlan('budget', Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>货币</Label>
+              <Select
+                value={plan.currency}
+                onValueChange={value => handleUpdatePlan('currency', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CNY">CNY ¥</SelectItem>
+                  <SelectItem value="USD">USD $</SelectItem>
+                  <SelectItem value="JPY">JPY ¥</SelectItem>
+                  <SelectItem value="EUR">EUR €</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 预算概览 */}
       <Card className="dark:bg-zinc-900 dark:border-zinc-800 mb-6">
