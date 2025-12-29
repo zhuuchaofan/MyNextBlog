@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { useTocHighlight } from '@/hooks/useTocHighlight';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -87,65 +88,19 @@ const PreBlock = ({ children, ...props }: any) => {
       </Button>
       <pre
         ref={preRef}
-        // 使用从子元素提取的 className，确保高亮样式生效
         className={`${languageClassName} rounded-xl !bg-gray-900 !p-4 overflow-x-auto shadow-lg custom-scrollbar-code`}
         {...props}
       >
-        {children} {/* 这里是 ReactMarkdown 渲染的 <code> 元素 */}
+        {children}
       </pre>
     </div>
   );
 };
 
-
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const [toc, setToc] = useState<TocItem[]>([]);
-  const [images, setImages] = useState<string[]>([]);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-
-  // 解析 TOC 和 图片列表
-  useEffect(() => {
-    const slugger = new GithubSlugger(); // 实例化 slugger，确保每次解析都是独立的上下文
-    const lines = content.split('\n');
-    const items: TocItem[] = [];
-    const extractedImages: string[] = [];
-
-    // 提取图片的正则：![alt](url)
-    const imgRegex = /!\[.*?\]\((.*?)\)/g;
-    let imgMatch;
-    // 使用 while 循环在全文中查找所有图片链接
-    while ((imgMatch = imgRegex.exec(content)) !== null) {
-        if (imgMatch[1]) {
-            extractedImages.push(imgMatch[1]);
-        }
-    }
-    setImages(extractedImages);
-
-
-    lines.forEach((line) => {
-      // 匹配 ## 或 ### 开头的行
-      const match = line.match(/^(#{2,3})\s+(.+?)\s*$/); 
-      if (match) {
-        const level = match[1].length;
-        // 去除 markdown 符号
-        let text = match[2].replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(`)(.*?)\1/g, '$2').trim();
-        
-        // 使用 GithubSlugger 生成与 rehype-slug 完全一致的 ID (自动处理重复)
-        const slug = slugger.slug(text);
-
-        items.push({ id: slug, text, level });
-      }
-    });
-    setToc(items);
-  }, [content]);
-
 // ===========================================================================
-// 修改后的 CodeBlock 组件，只处理行内代码
+// CodeBlock - 处理行内代码样式
 // ===========================================================================
-const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
-  // 科学解法：依据 HTML 语义，行内代码即 "父级不是 <pre> 的 <code>"
-  // 使用 Tailwind 的父级状态选择器或直接的 CSS 选择器逻辑
+const CodeBlock = ({ className, children, ...props }: React.ComponentProps<'code'>) => {
   const inlineClasses = `
     [:not(pre)>&]:bg-orange-50 [:not(pre)>&]:text-orange-600 
     dark:[:not(pre)>&]:bg-zinc-800 dark:[:not(pre)>&]:text-orange-400
@@ -155,26 +110,63 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
   return <code {...props} className={`${className || ''} ${inlineClasses}`.trim()}>{children}</code>;
 };
 
-  // 标题通用样式组件
-  const HeadingRenderer = ({ level, children, ...props }: any) => {
-    // ID 已经由 rehype-slug 自动注入到 props 中了，我们只需透传 props
-    const Tag = `h${level}` as React.ElementType;
+// ===========================================================================
+// HeadingRenderer - 标题通用样式组件
+// ===========================================================================
+const HeadingRenderer = ({ level, children, ...props }: { level: number; children?: React.ReactNode } & React.ComponentProps<'h2'>) => {
+  const Tag = `h${level}` as React.ElementType;
+  
+  const styles = level === 2 
+    ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100 dark:border-zinc-800' 
+    : 'text-xl mt-6 mb-3';
     
-    // 自定义样式
-    const styles = level === 2 
-      ? 'text-2xl mt-10 mb-4 pb-2 border-b border-gray-100 dark:border-zinc-800' 
-      : 'text-xl mt-6 mb-3';
-      
-    return (
-      <Tag 
-        className={`scroll-mt-24 font-bold text-gray-900 dark:text-gray-100 ${styles}`} 
-        {...props}
-      >
-        {children}
-      </Tag>
-    );
-  };
+  return (
+    <Tag 
+      className={`scroll-mt-24 font-bold text-gray-900 dark:text-gray-100 ${styles}`} 
+      {...props}
+    >
+      {children}
+    </Tag>
+  );
+};
 
+
+export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  
+  // 使用 useMemo 解析 TOC 和图片列表（避免 useEffect 中 setState 的 lint 警告）
+  const { toc, images } = React.useMemo(() => {
+    const slugger = new GithubSlugger();
+    const lines = content.split('\n');
+    const tocItems: TocItem[] = [];
+    const extractedImages: string[] = [];
+
+    // 提取图片
+    const imgRegex = /!\[.*?\]\((.*?)\)/g;
+    let imgMatch;
+    while ((imgMatch = imgRegex.exec(content)) !== null) {
+      if (imgMatch[1]) {
+        extractedImages.push(imgMatch[1]);
+      }
+    }
+
+    // 提取标题
+    lines.forEach((line) => {
+      const match = line.match(/^(#{2,3})\s+(.+?)\s*$/);
+      if (match) {
+        const level = match[1].length;
+        const text = match[2].replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(`)(.*?)\1/g, '$2').trim();
+        const slug = slugger.slug(text);
+        tocItems.push({ id: slug, text, level });
+      }
+    });
+
+    return { toc: tocItems, images: extractedImages };
+  }, [content]);
+
+  // 使用自定义 Hook 处理目录高亮
+  const activeId = useTocHighlight(toc);
   return (
     <div className="flex flex-col lg:flex-row gap-8 relative items-start">
       {/* 文章正文 */}
@@ -247,13 +239,19 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
              <nav className="space-y-1 max-h-[70vh] overflow-y-auto custom-scrollbar">
                {toc.map((item) => (
                  <a 
-                   key={item.id} // ID 唯一
+                   key={item.id}
                    href={`#${item.id}`}
                    onClick={(e) => {
                      e.preventDefault();
                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
                    }}
-                   className={`block text-sm py-1.5 px-3 rounded-lg transition-all hover:bg-orange-50 dark:hover:bg-zinc-800 hover:text-orange-600 dark:hover:text-orange-400 truncate ${item.level === 3 ? 'ml-4 text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400 font-medium'}`}
+                   className={`block text-sm py-1.5 px-3 rounded-lg transition-all truncate ${
+                     activeId === item.id
+                       ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold'
+                       : item.level === 3
+                         ? 'ml-4 text-gray-400 dark:text-gray-500 hover:bg-orange-50 dark:hover:bg-zinc-800 hover:text-orange-600 dark:hover:text-orange-400'
+                         : 'text-gray-600 dark:text-gray-400 font-medium hover:bg-orange-50 dark:hover:bg-zinc-800 hover:text-orange-600 dark:hover:text-orange-400'
+                   }`}
                    title={item.text}
                  >
                    {item.text}
