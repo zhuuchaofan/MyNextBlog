@@ -39,6 +39,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Anniversary> Anniversaries { get; set; } // 纪念日
     public DbSet<AnniversaryNotification> AnniversaryNotifications { get; set; } // 纪念日提醒记录
     public DbSet<EmailTemplate> EmailTemplates { get; set; } // 邮件模板
+    
+    // --- 计划功能 ---
+    public DbSet<Plan> Plans { get; set; } // 计划主表
+    public DbSet<PlanDay> PlanDays { get; set; } // 每日行程
+    public DbSet<PlanActivity> PlanActivities { get; set; } // 活动项
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。
@@ -136,5 +141,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         
         modelBuilder.Entity<RefreshToken>()
             .HasIndex(rt => rt.ExpiryTime); // 优化清理过期 Token
+        
+        // --- 9. 配置 Plan 与 Anniversary 的可选关联 ---
+        modelBuilder.Entity<Plan>()
+            .HasOne(p => p.Anniversary)
+            .WithMany()
+            .HasForeignKey(p => p.AnniversaryId)
+            .OnDelete(DeleteBehavior.SetNull); // 删除纪念日时，计划不删，只是解除关系
+        
+        // --- 10. 配置 Plan 与 PlanDay 的一对多关系 ---
+        modelBuilder.Entity<Plan>()
+            .HasMany(p => p.Days)
+            .WithOne(d => d.Plan)
+            .HasForeignKey(d => d.PlanId)
+            .OnDelete(DeleteBehavior.Cascade); // 删除计划时，所有日程也删除
+        
+        // --- 11. 配置 PlanDay 与 PlanActivity 的一对多关系 ---
+        modelBuilder.Entity<PlanDay>()
+            .HasMany(d => d.Activities)
+            .WithOne(a => a.PlanDay)
+            .HasForeignKey(a => a.PlanDayId)
+            .OnDelete(DeleteBehavior.Cascade); // 删除日程时，所有活动也删除
+        
+        // 为 Plan 添加索引
+        modelBuilder.Entity<Plan>()
+            .HasIndex(p => p.StartDate); // 优化按日期查询
     }
 }
