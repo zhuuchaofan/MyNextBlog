@@ -62,6 +62,8 @@ Plan (计划)
   - **视觉体验**：顶部 Hero 大图 + 倒计时徽章 + 动态问候语。
   - **垂直时间轴**：按天分组展示行程，通过 `framer-motion` 实现入场动画。
   - **惊喜集成**：同样支持首次访问触发惊喜弹窗。
+  - **便捷分享**：支持一键复制分享链接，方便邀请朋友查看行程。
+  - **卡片布局**：根据用户反馈优化，删除按钮折叠至下拉菜单，分享操作前置。
 
 ## 4. API 端点
 
@@ -85,11 +87,18 @@ Plan (计划)
 
 ### 4.3 活动管理
 
-| 方法   | 路径                         | 说明                        |
-| ------ | ---------------------------- | --------------------------- |
-| POST   | `/api/admin/activities`      | 添加活动                    |
-| PUT    | `/api/admin/activities/{id}` | 更新活动 (含实际花费、备注) |
-| DELETE | `/api/admin/activities/{id}` | 删除活动                    |
+| 方法   | 路径                               | 说明                        |
+| ------ | ---------------------------------- | --------------------------- |
+| POST   | `/api/admin/activities`            | 添加活动                    |
+| PUT    | `/api/admin/activities/{id}`       | 更新活动 (含实际花费、备注) |
+| DELETE | `/api/admin/activities/{id}`       | 删除活动                    |
+| PATCH  | `/api/admin/activities/batch-sort` | **[NEW]** 批量更新活动排序  |
+
+### 4.4 公开访问 (Public)
+
+| 方法 | 路径                     | 说明                        | 权限限制 |
+| ---- | ------------------------ | --------------------------- | -------- |
+| GET  | `/api/plans/{id}/public` | 获取公开详情 (自动隐藏预算) | 无需登录 |
 
 ## 5. 前端页面架构
 
@@ -132,10 +141,40 @@ Plan (计划)
 - **触发时机**：后台 `AnniversaryReminderHostedService` 每天 08:00 检查
 - **提醒规则**：根据 `ReminderDays` 字段设置（如 "7,3,1" = 提前 7/3/1 天提醒）
 - **去重机制**：通过 `PlanNotification` 表记录已发送提醒
+- **邮件模板**：使用独立的 `AnniversaryReminder` 模板，支持动态替换计划名称和天数
+
+### 6.4 安全架构 (Security & Privacy)
+
+- **数据隔离 (DTO Projection)**：
+  - 为了彻底防止敏感数据泄露，后端并未直接复用 `PlanDetailDto`。
+  - 专门定义了 `PublicPlanDetailDto`，**物理上剔除**了 `EstimatedCost`, `ActualCost`, `Budget` 等字段。
+  - 即使前端通过开发者工具查看 API 响应，也绝对无法获取任何金额数据。
+- **匿名访问控制**：
+  - `PlansPublicController` 显式标记 `[AllowAnonymous]`。
+  - 配合 Next.js 的通用代理规则 (`/api/:path*`)，实现了无缝的公开访问体验。
+
+### 6.5 性能优化 (Performance)
+
+- **批量排序 (Batch Sort)**：
+  - **问题**：传统拖拽排序对 N 个元素会触发 N 次 HTTP 请求，导致数据库连接池耗尽和 UI 卡顿。
+  - **方案**：实现了 `BatchUpdateActivitySortOrderAsync`。
+  - **事务性**：使用 `IDbContextTransaction` 确保批量更新的原子性，要么全部成功，要么全部回滚。
+  - **效率**：一次 SQL `Update` 也就几毫秒，相比 N 次网络往返提升了 100 倍以上性能。
+- **乐观更新 (Optimistic UI)**：
+  - 前端拖拽结束 (`onDragEnd`) 时，立即修改本地 React State，用户感觉是"瞬间"完成的。
+  - 随后在后台异步发送 API 请求。如果请求失败，自动回滚 State 并提示错误。
+
+### 6.6 前端交互细节
+
+- **拖拽库选型**：使用 `@dnd-kit/core` + `@dnd-kit/sortable`。
+  - **交互微调**：配置了 `PointerSensor` 和 `TouchSensor`，并设置了 5px 的移动阈值，防止在移动端滑动页面时误触拖拽。
+- **分享机制**：
+  - 利用 `navigator.clipboard.writeText` 实现一键复制。
+  - 配合 `sonner` 的富文本 Toast，给予用户明确的反馈（"敏感信息已隐藏"）。
 
 ## 7. 后续优化规划
 
-- [ ] **日程拖拽排序** (`dnd-kit`): 支持通过拖拽调整活动顺序。
+- [x] **日程拖拽排序** (`dnd-kit`): 支持通过拖拽调整活动顺序。
 - [ ] **费用分摊 (Split Bill)**: 多人旅行时的费用计算器。
 - [ ] **地图集成 (Map View)**:在此地图上通过标记点显示每日行程路径。
 - [ ] **PDF 导出**: 生成纸质版行程单用于签证或备份。

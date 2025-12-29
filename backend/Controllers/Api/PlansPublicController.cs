@@ -1,6 +1,7 @@
 // Controllers/Api/PlansPublicController.cs
 // 计划公开 API 控制器（无需认证）
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.Services;
 
@@ -11,6 +12,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [Route("api/plans")]
 [ApiController]
+[AllowAnonymous]
 public class PlansPublicController(IPlanService planService) : ControllerBase
 {
     /// <summary>

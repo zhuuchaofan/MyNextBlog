@@ -469,7 +469,7 @@ export interface PublicPlanDetail {
 
 // [Public] 获取公开预览的计划详情（无需登录，隐藏预算）
 export function fetchPublicPlanById(id: number) {
-  return fetchClient<PublicPlanDetail>(`/api/backend/plans/${id}/public`);
+  return fetchClient<PublicPlanDetail>(`/api/plans/${id}/public`);
 }
 
 // [Admin] 获取所有计划
