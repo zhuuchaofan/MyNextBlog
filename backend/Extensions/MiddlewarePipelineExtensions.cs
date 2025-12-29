@@ -37,8 +37,20 @@ public static class MiddlewarePipelineExtensions
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         
-        // 6. 请求日志
-        app.UseSerilogRequestLogging();
+        // 6. 请求日志（排除健康检查噪音）
+        app.UseSerilogRequestLogging(options =>
+        {
+            // 排除 /health 端点，避免每 30 秒一次的健康检查污染日志
+            options.GetLevel = (httpContext, elapsed, ex) =>
+            {
+                if (httpContext.Request.Path.StartsWithSegments("/health"))
+                    return Serilog.Events.LogEventLevel.Verbose; // Verbose 级别默认不输出
+                
+                return ex != null
+                    ? Serilog.Events.LogEventLevel.Error
+                    : Serilog.Events.LogEventLevel.Information;
+            };
+        });
         
         // 7. 路由
         app.UseRouting();

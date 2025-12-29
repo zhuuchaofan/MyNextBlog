@@ -18,20 +18,21 @@ public class AnniversaryReminderHostedService(
     // 执行间隔：每24小时
     private static readonly TimeSpan Interval = TimeSpan.FromHours(24);
     
-    // 目标执行时间：08:00 (服务器时区)
-    private static readonly TimeSpan TargetTime = new(8, 0, 0);
+    // 目标执行时间：UTC 00:00（北京时间 08:00）
+    // 使用 UTC 时间确保 Docker 容器时区无关
+    private static readonly TimeSpan TargetTimeUtc = new(0, 0, 0);
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("纪念日提醒服务已启动，目标执行时间: {Time}", TargetTime);
+        logger.LogInformation("纪念日提醒服务已启动，目标执行时间: {Time} UTC", TargetTimeUtc);
         
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                // 计算到下一次执行的等待时间
-                var now = DateTime.Now;
-                var nextRun = now.Date.Add(TargetTime);
+                // 计算到下一次执行的等待时间（统一使用 UTC）
+                var now = DateTime.UtcNow;
+                var nextRun = now.Date.Add(TargetTimeUtc);
                 
                 // 如果今天的目标时间已过，设为明天
                 if (nextRun <= now)
@@ -40,7 +41,7 @@ public class AnniversaryReminderHostedService(
                 }
                 
                 var delay = nextRun - now;
-                logger.LogInformation("下次纪念日提醒检查时间: {NextRun} (等待 {Delay})", nextRun, delay);
+                logger.LogInformation("下次纪念日提醒检查时间: {NextRun} UTC (等待 {Delay})", nextRun, delay);
                 
                 await Task.Delay(delay, stoppingToken);
                 

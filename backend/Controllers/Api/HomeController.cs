@@ -32,14 +32,13 @@ public class HomeController(
 
         try
         {
-            // 1. 先并行获取文章和标签（它们通过 Service，内部已封装 DbContext 访问）
-            var postsTask = postService.GetAllPostsAsync(page, pageSize, includeHidden);
-            var tagsTask = tagService.GetPopularTagsAsync(10, includeHidden: false);
-            
-            await Task.WhenAll(postsTask, tagsTask);
-            
-            var (posts, totalCount) = await postsTask;
-            var tags = await tagsTask;
+            // 1. 串行获取文章和标签
+            // ⚠️ 不能使用 Task.WhenAll 并行执行！
+            // 原因：PostService 和 TagService 共享同一个 Scoped 的 DbContext 实例，
+            // 而 EF Core 的 DbContext 不是线程安全的，并行访问会导致：
+            // "A second operation was started on this context instance before a previous operation completed"
+            var (posts, totalCount) = await postService.GetAllPostsAsync(page, pageSize, includeHidden);
+            var tags = await tagService.GetPopularTagsAsync(10, includeHidden: false);
 
             // 2. 批量获取 SiteContent（独立查询，避免并发冲突）
             var siteContentKeys = new[]
