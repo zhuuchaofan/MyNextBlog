@@ -124,9 +124,11 @@ export default function PlansPage() {
       {/* 头部 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
+          <Link href="/admin">
+            <Button variant="ghost">
+              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+            </Button>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <CalendarDays className="w-6 h-6 text-blue-500" /> 计划管理
