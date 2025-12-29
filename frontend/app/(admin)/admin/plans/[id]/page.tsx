@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   DragEndEvent,
@@ -352,11 +351,9 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
       {/* 页面标题 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/admin/plans">
-            <Button variant="ghost">
-              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-            </Button>
-          </Link>
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+          </Button>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <CalendarDays className="w-6 h-6 text-blue-500" />
