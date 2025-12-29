@@ -235,14 +235,14 @@ function NewPlanForm() {
             <div className="space-y-2">
               <Label>关联纪念日</Label>
               <Select
-                value={formData.anniversaryId}
-                onValueChange={value => setFormData({ ...formData, anniversaryId: value })}
+                value={formData.anniversaryId || 'none'}
+                onValueChange={value => setFormData({ ...formData, anniversaryId: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择关联的纪念日（可选）" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">不关联</SelectItem>
+                  <SelectItem value="none">不关联</SelectItem>
                   {anniversaries.map(a => (
                     <SelectItem key={a.id} value={String(a.id)}>
                       {a.emoji} {a.title}

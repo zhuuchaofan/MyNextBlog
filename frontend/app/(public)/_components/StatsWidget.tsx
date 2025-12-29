@@ -23,9 +23,8 @@ export default function StatsWidget({
   const [commentsCount, setCommentsCount] = useState<number>(0);
   const [runningDays, setRunningDays] = useState<number>(0);
   const [time, setTime] = useState<string>('');
-  const [sparklineData, setSparklineData] = useState<number[]>(() => 
-    Array.from({ length: 15 }, () => 20 + Math.random() * 30)
-  );
+  // 使用固定初始值避免 hydration mismatch
+  const [sparklineData, setSparklineData] = useState<number[]>([35, 28, 42, 38, 45, 32, 40, 36, 48, 30, 44, 38, 42, 35, 40]);
   const hasFetched = useRef(false);
 
   useEffect(() => {
