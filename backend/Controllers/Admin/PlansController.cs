@@ -35,7 +35,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var plan = await planService.GetPlanByIdAsync(id);
-        if (plan == null) return NotFound();
+        if (plan == null) return NotFound(new { message = "计划不存在" });
         return Ok(plan);
     }
     
@@ -56,7 +56,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePlanDto dto)
     {
         var plan = await planService.UpdatePlanAsync(id, dto);
-        if (plan == null) return NotFound();
+        if (plan == null) return NotFound(new { message = "计划不存在" });
         return Ok(plan);
     }
     
@@ -67,7 +67,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         var success = await planService.DeletePlanAsync(id);
-        if (!success) return NotFound();
+        if (!success) return NotFound(new { message = "计划不存在" });
         return NoContent();
     }
     
@@ -100,7 +100,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> UpdateDay(int planId, int dayId, [FromBody] UpdatePlanDayDto dto)
     {
         var day = await planService.UpdateDayAsync(dayId, dto);
-        if (day == null) return NotFound();
+        if (day == null) return NotFound(new { message = "日程不存在" });
         return Ok(day);
     }
     
@@ -111,7 +111,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> DeleteDay(int planId, int dayId)
     {
         var success = await planService.DeleteDayAsync(dayId);
-        if (!success) return NotFound();
+        if (!success) return NotFound(new { message = "日程不存在" });
         return NoContent();
     }
 }
@@ -141,7 +141,7 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> UpdateActivity(int id, [FromBody] UpdateActivityDto dto)
     {
         var activity = await planService.UpdateActivityAsync(id, dto);
-        if (activity == null) return NotFound();
+        if (activity == null) return NotFound(new { message = "活动不存在" });
         return Ok(activity);
     }
     
@@ -152,7 +152,7 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> DeleteActivity(int id)
     {
         var success = await planService.DeleteActivityAsync(id);
-        if (!success) return NotFound();
+        if (!success) return NotFound(new { message = "活动不存在" });
         return NoContent();
     }
 }
