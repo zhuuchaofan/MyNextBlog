@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { 
   ChevronLeft, Plus, Loader2, RefreshCw, Heart, Trash2, Edit2, 
-  Calendar, Repeat, PartyPopper, Mail
+  Calendar, Repeat, PartyPopper, Mail, CalendarPlus
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -459,18 +459,29 @@ export default function AnniversariesPage() {
                 </CardHeader>
 
               <CardContent className="pt-0">
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {ann.startDate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Repeat className="w-4 h-4" />
-                    {getRepeatLabel(ann.repeatType)}
-                  </span>
-                  <span className="text-pink-500 font-medium">
-                    已经 {formatDaysSmart(ann.daysSinceStart, ann.displayType)}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {ann.startDate}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Repeat className="w-4 h-4" />
+                      {getRepeatLabel(ann.repeatType)}
+                    </span>
+                    <span className="text-pink-500 font-medium">
+                      已经 {formatDaysSmart(ann.daysSinceStart, ann.displayType)}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex"
+                    onClick={() => router.push(`/admin/plans/new?anniversaryId=${ann.id}`)}
+                  >
+                    <CalendarPlus className="w-4 h-4 mr-1" />
+                    创建计划
+                  </Button>
                 </div>
               </CardContent>
             </Card>
