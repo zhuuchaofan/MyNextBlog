@@ -57,14 +57,13 @@ import {
   Clock,
   DollarSign,
   Edit,
-  Check,
-  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PlanCalendarView from '@/components/plan/PlanCalendarView';
 import BudgetChart from '@/components/plan/BudgetChart';
 import SurpriseReveal from '@/components/plan/SurpriseReveal';
 import { SortableActivityItem } from '@/components/plan/SortableActivityItem';
+import { ActivityForm, type ActivityFormData } from '@/components/plan/ActivityForm';
 
 
 // 状态选项
@@ -91,9 +90,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const [editingDayId, setEditingDayId] = useState<number | null>(null);
   const [newDayTheme, setNewDayTheme] = useState('');
   const [newActivityDayId, setNewActivityDayId] = useState<number | null>(null);
-  const [newActivity, setNewActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0 });
   const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
-  const [editingActivity, setEditingActivity] = useState({ title: '', time: '', location: '', estimatedCost: 0, actualCost: 0, notes: '' });
   
   // 惊喜弹窗状态
   const [showSurprise, setShowSurprise] = useState(false);
@@ -268,18 +265,18 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   };
 
   // 添加活动
-  const handleAddActivity = async (dayId: number) => {
-    if (!newActivity.title.trim()) {
+  const handleAddActivity = async (dayId: number, data: ActivityFormData) => {
+    if (!data.title.trim()) {
       toast.error('请输入活动名称');
       return;
     }
     
     try {
       const activity = await addPlanActivity(dayId, {
-        title: newActivity.title,
-        time: newActivity.time || undefined,
-        location: newActivity.location || undefined,
-        estimatedCost: newActivity.estimatedCost,
+        title: data.title,
+        time: data.time || undefined,
+        location: data.location || undefined,
+        estimatedCost: data.estimatedCost,
         sortOrder: plan!.days.find(d => d.id === dayId)?.activities.length || 0,
       });
       
@@ -290,7 +287,6 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         ),
       });
       setNewActivityDayId(null);
-      setNewActivity({ title: '', time: '', location: '', estimatedCost: 0 });
       toast.success('已添加活动');
     } catch (error) {
       console.error('Failed to add activity:', error);
@@ -317,31 +313,16 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  // 开始编辑活动
-  const handleStartEditActivity = (activity: { id: number; title: string; time?: string | null; location?: string | null; estimatedCost: number; actualCost: number; notes?: string | null }) => {
-    setEditingActivityId(activity.id);
-    setEditingActivity({
-      title: activity.title,
-      time: activity.time || '',
-      location: activity.location || '',
-      estimatedCost: activity.estimatedCost,
-      actualCost: activity.actualCost,
-      notes: activity.notes || '',
-    });
-  };
-
   // 保存活动编辑
-  const handleSaveActivity = async (dayId: number) => {
-    if (!editingActivityId) return;
-    
+  const handleSaveActivity = async (dayId: number, activityId: number, data: ActivityFormData) => {
     try {
-      await updatePlanActivity(editingActivityId, {
-        title: editingActivity.title,
-        time: editingActivity.time || undefined,
-        location: editingActivity.location || undefined,
-        estimatedCost: editingActivity.estimatedCost,
-        actualCost: editingActivity.actualCost,
-        notes: editingActivity.notes || undefined,
+      await updatePlanActivity(activityId, {
+        title: data.title,
+        time: data.time || undefined,
+        location: data.location || undefined,
+        estimatedCost: data.estimatedCost,
+        actualCost: data.actualCost,
+        notes: data.notes || undefined,
       });
       
       // 更新本地状态
@@ -352,8 +333,8 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
             ? {
                 ...d,
                 activities: d.activities.map(a =>
-                  a.id === editingActivityId
-                    ? { ...a, ...editingActivity }
+                  a.id === activityId
+                    ? { ...a, ...data }
                     : a
                 ),
               }
@@ -611,50 +592,19 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                       <SortableActivityItem key={activity.id} id={activity.id}>
                         {editingActivityId === activity.id ? (
                           /* 编辑模式 */
-                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                              <Input
-                                placeholder="活动名称 *"
-                                value={editingActivity.title}
-                                onChange={e => setEditingActivity({ ...editingActivity, title: e.target.value })}
-                              />
-                              <Input
-                                placeholder="时间 (如 09:00)"
-                                value={editingActivity.time}
-                                onChange={e => setEditingActivity({ ...editingActivity, time: e.target.value })}
-                              />
-                              <Input
-                                placeholder="地点"
-                                value={editingActivity.location}
-                                onChange={e => setEditingActivity({ ...editingActivity, location: e.target.value })}
-                              />
-                              <Input
-                                type="number"
-                                placeholder="预估花费"
-                                value={editingActivity.estimatedCost || ''}
-                                onChange={e => setEditingActivity({ ...editingActivity, estimatedCost: Number(e.target.value) })}
-                              />
-                              <Input
-                                type="number"
-                                placeholder="实际花费"
-                                value={editingActivity.actualCost || ''}
-                                onChange={e => setEditingActivity({ ...editingActivity, actualCost: Number(e.target.value) })}
-                              />
-                              <Input
-                                placeholder="备注"
-                                value={editingActivity.notes}
-                                onChange={e => setEditingActivity({ ...editingActivity, notes: e.target.value })}
-                              />
-                            </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleSaveActivity(day.id)}>
-                                <Check className="w-4 h-4 mr-1" /> 保存
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => setEditingActivityId(null)}>
-                                <X className="w-4 h-4 mr-1" /> 取消
-                              </Button>
-                            </div>
-                          </div>
+                          <ActivityForm
+                            mode="edit"
+                            initialData={{
+                              title: activity.title,
+                              time: activity.time || '',
+                              location: activity.location || '',
+                              estimatedCost: activity.estimatedCost,
+                              actualCost: activity.actualCost,
+                              notes: activity.notes || '',
+                            }}
+                            onSubmit={async (data) => handleSaveActivity(day.id, activity.id, data)}
+                            onCancel={() => setEditingActivityId(null)}
+                          />
                         ) : (
                           /* 显示模式 */
                           <div
@@ -662,7 +612,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                           >
                             <div className="flex items-center gap-4">
                               <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                              <div onClick={() => handleStartEditActivity(activity)} className="cursor-pointer">
+                              <div onClick={() => setEditingActivityId(activity.id)} className="cursor-pointer">
                                 <p className="font-medium text-gray-900 dark:text-gray-100">
                                   {activity.title}
                                 </p>
@@ -695,7 +645,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                                 variant="ghost"
                                 size="icon"
                                 className="opacity-0 group-hover:opacity-100 text-blue-500"
-                                onClick={(e) => { e.stopPropagation(); handleStartEditActivity(activity); }}
+                                onClick={(e) => { e.stopPropagation(); setEditingActivityId(activity.id); }}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -718,38 +668,12 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
 
               {/* 添加活动表单 */}
               {newActivityDayId === day.id ? (
-                <div className="mt-3 p-3 border border-dashed rounded-lg dark:border-zinc-700 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input
-                      placeholder="活动名称 *"
-                      value={newActivity.title}
-                      onChange={e => setNewActivity({ ...newActivity, title: e.target.value })}
-                    />
-                    <Input
-                      placeholder="时间 (如 09:00)"
-                      value={newActivity.time}
-                      onChange={e => setNewActivity({ ...newActivity, time: e.target.value })}
-                    />
-                    <Input
-                      placeholder="地点"
-                      value={newActivity.location}
-                      onChange={e => setNewActivity({ ...newActivity, location: e.target.value })}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="预估花费"
-                      value={newActivity.estimatedCost || ''}
-                      onChange={e => setNewActivity({ ...newActivity, estimatedCost: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleAddActivity(day.id)}>
-                      添加
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setNewActivityDayId(null)}>
-                      取消
-                    </Button>
-                  </div>
+                <div className="mt-3">
+                  <ActivityForm
+                    mode="add"
+                    onSubmit={async (data) => handleAddActivity(day.id, data)}
+                    onCancel={() => setNewActivityDayId(null)}
+                  />
                 </div>
               ) : (
                 <Button
