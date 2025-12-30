@@ -361,50 +361,52 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
 
       {/* 顶部导航栏 - Glassmorphic */}
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
-           <div className="flex items-center gap-1 sm:gap-4">
-             <Button variant="ghost" size="icon" onClick={() => router.back()} className="hover:bg-gray-100 dark:hover:bg-zinc-800 flex-shrink-0">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between max-w-6xl">
+           {/* 左侧：返回 + 标题 + 状态 */}
+           <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
+             <Button variant="ghost" size="icon" onClick={() => router.back()} className="hover:bg-gray-100 dark:hover:bg-zinc-800 flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9">
                <ChevronLeft className="w-5 h-5" />
                <span className="sr-only">返回</span>
              </Button>
-             <div className="flex items-center gap-1 sm:gap-3 min-w-0">
-               <h1 className="text-base sm:text-xl font-bold truncate flex-1 min-w-0" title={plan.title}>
-                 {plan.title}
-               </h1>
-               <Select
-                 value={plan.status}
-                 onValueChange={value => handleUpdatePlan('status', value)}
-               >
-                 <SelectTrigger className="h-7 sm:h-8 w-auto min-w-[4.5rem] sm:w-28 text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0 flex-shrink-0">
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {STATUS_OPTIONS.map(opt => (
-                     <SelectItem key={opt.value} value={opt.value}>
-                       <div className="flex items-center gap-2">
-                         <span className={`w-2 h-2 rounded-full ${opt.color}`} />
-                         {opt.label}
-                       </div>
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             </div>
+             {/* 标题：固定最大宽度 + 截断 */}
+             <h1 className="text-sm sm:text-xl font-bold truncate max-w-[140px] sm:max-w-[280px] lg:max-w-md" title={plan.title}>
+               {plan.title}
+             </h1>
+             {/* 下拉菜单：自适应宽度但有上限 */}
+             <Select
+               value={plan.status}
+               onValueChange={value => handleUpdatePlan('status', value)}
+             >
+               <SelectTrigger className="h-7 sm:h-8 w-auto min-w-[4rem] max-w-[5.5rem] sm:w-28 sm:max-w-none text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0 flex-shrink-0">
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {STATUS_OPTIONS.map(opt => (
+                   <SelectItem key={opt.value} value={opt.value}>
+                     <div className="flex items-center gap-2">
+                       <span className={`w-2 h-2 rounded-full ${opt.color}`} />
+                       {opt.label}
+                     </div>
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
            </div>
 
-           <div className="flex items-center gap-2">
+           {/* 右侧：分享按钮 */}
+           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
              <Button variant="outline" size="sm" onClick={handleCopyPublicLink} className="hidden sm:flex">
                <Share2 className="w-4 h-4 mr-2" />
                分享
              </Button>
-             <Button size="sm" onClick={handleCopyPublicLink} className="sm:hidden" variant="ghost">
+             <Button size="icon" onClick={handleCopyPublicLink} className="sm:hidden h-8 w-8" variant="ghost">
                 <Share2 className="w-4 h-4" />
              </Button>
            </div>
         </div>
       </header>
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* 左侧：基本信息与统计 (占用 4 列) */}

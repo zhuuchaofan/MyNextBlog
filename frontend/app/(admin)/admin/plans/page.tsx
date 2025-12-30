@@ -125,21 +125,22 @@ export default function PlansPage() {
     });
   };
 
-  // 计算剩余天数
+  // 计算剩余天数 - 与公开页面保持一致的计算逻辑
   const getDaysRemaining = (startDate: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const start = new Date(startDate);
-    const diff = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
+    start.setHours(0, 0, 0, 0);
+    // 使用 differenceInDays 的等效计算：完整天数差
+    return Math.round((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   if (authLoading || isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="animate-pulse space-y-4">
           <div className="h-10 bg-gray-200 dark:bg-zinc-800 rounded w-1/4" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {[1, 2, 3].map(i => (
               <div key={i} className="h-48 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
             ))}
@@ -150,26 +151,27 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
       {/* 头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/admin">
-            <Button variant="ghost">
-              <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3">
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">返回</span>
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <CalendarDays className="w-6 h-6 text-blue-500" /> 计划管理
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" /> 计划管理
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
               管理旅行计划、活动安排和预算追踪
             </p>
           </div>
         </div>
         <Link href="/admin/plans/new">
-          <Button className="bg-blue-500 hover:bg-blue-600">
+          <Button className="bg-blue-500 hover:bg-blue-600 w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             新建计划
           </Button>
@@ -191,7 +193,7 @@ export default function PlansPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           {plans.map(plan => {
             const TypeIcon = typeIcons[plan.type] || Calendar;
             const daysRemaining = getDaysRemaining(plan.startDate);

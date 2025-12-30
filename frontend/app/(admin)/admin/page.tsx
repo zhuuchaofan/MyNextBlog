@@ -68,10 +68,10 @@ export default function AdminDashboard() {
   // Loading 骨架屏 - 避免内容闪烁
   if (isLoading || !user) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-28 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
-          <div className="grid gap-6 md:grid-cols-2">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="animate-pulse space-y-4 sm:space-y-6">
+          <div className="h-24 sm:h-28 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
             <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
             <div className="h-48 bg-gray-100 dark:bg-zinc-800 rounded-xl"></div>
           </div>
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4 sm:space-y-6">
       
       {/* Hero 卡片 - 写新文章入口 + 核心统计 */}
       <Card className="border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50 to-white dark:from-zinc-900 dark:to-zinc-900 dark:border-zinc-800">
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
       </Card>
 
       {/* 功能分组 */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         
         {/* 内容管理组 */}
         <Card className="dark:bg-zinc-900 dark:border-zinc-800">

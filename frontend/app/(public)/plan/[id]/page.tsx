@@ -61,15 +61,23 @@ export default function PublicPlanPage() {
 
   const startDate = parseISO(plan.startDate);
   const endDate = plan.endDate ? parseISO(plan.endDate) : startDate;
-  const today = new Date();
   
-  // 计算状态
+  // 将今天的时间设为当天的开始（00:00:00），以确保日期比较正确
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // 计算状态 - 使用 startDate 的日期部分进行比较
   let statusText = '';
-  const daysUntil = differenceInDays(startDate, today);
+  const startDateNormalized = new Date(startDate);
+  startDateNormalized.setHours(0, 0, 0, 0);
+  const endDateNormalized = new Date(endDate);
+  endDateNormalized.setHours(0, 0, 0, 0);
+  
+  const daysUntil = differenceInDays(startDateNormalized, today);
   
   if (daysUntil > 0) {
     statusText = `还有 ${daysUntil} 天出发`;
-  } else if (today >= startDate && today <= endDate) {
+  } else if (today >= startDateNormalized && today <= endDateNormalized) {
     statusText = '进行中';
   } else {
     statusText = '已完成';
@@ -91,8 +99,8 @@ export default function PublicPlanPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 dark:bg-zinc-800/50 backdrop-blur border border-gray-200 dark:border-zinc-700 text-sm font-medium text-gray-600 dark:text-gray-300 shadow-sm">
                 <span className={cn("inline-block w-2 h-2 rounded-full", {
                   "bg-blue-500": daysUntil > 0,
-                  "bg-green-500": daysUntil <= 0 && today <= endDate,
-                  "bg-gray-400": today > endDate
+                  "bg-green-500": daysUntil <= 0 && today <= endDateNormalized,
+                  "bg-gray-400": today > endDateNormalized
                 })} />
                 {statusText}
               </div>

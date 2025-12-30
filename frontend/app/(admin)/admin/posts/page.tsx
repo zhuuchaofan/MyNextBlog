@@ -150,18 +150,19 @@ export default function AdminPostsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* 页面标题和“写新文章”按钮 */}
-      <div className="flex flex-col gap-4 mb-8">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-4">
            {/* 返回按钮 */}
-           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-             <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+           <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400 h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
+             <ChevronLeft className="w-4 h-4" />
+             <span className="sr-only">返回</span>
            </Button>
-           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">文章管理</h1>
+           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">文章管理</h1>
         </div>
         {/* 第二行：统计徽章 + 按钮 */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
            {statsPublished !== null && (
              <div className="flex items-center gap-2">
                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -264,7 +265,7 @@ export default function AdminPostsPage() {
           </div>
 
           {/* 移动端卡片显示 (小屏幕下显示为卡片列表) */}
-          <div className="grid gap-4 md:hidden">
+          <div className="grid gap-3 md:hidden">
             {posts.map((post) => (
               <div key={post.id} className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 space-y-3 transition-colors">
                  <div className="flex justify-between items-start gap-2">
@@ -312,7 +313,7 @@ export default function AdminPostsPage() {
       )}
 
       {/* 分页控制 */}
-      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3 sm:gap-4">
          <Button 
            variant="outline" 
            disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载

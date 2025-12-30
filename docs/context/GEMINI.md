@@ -570,3 +570,133 @@ docs/
 - **参数爆炸 (Parameter Explosion)**: 避免在方法中传递超过 5 个参数。
   - _Bad_: `SendNotification(id, title, content, user, email, ...)`
   - _Good_: 传递 ID 并在 Service 内部通过 `Include` 拉取完整聚合根；或使用 DTO 对象。
+
+---
+
+## 11. 📱 移动端响应式布局规范 (Mobile Responsive Design)
+
+> 确保所有页面在 iPhone (375px-430px) 上有良好的显示效果。
+
+### 11.1 Tailwind 断点使用
+
+本项目使用 **Tailwind CSS v4** 默认断点：
+
+| 断点     | 宽度     | 典型设备                 | 使用场景       |
+| -------- | -------- | ------------------------ | -------------- |
+| (无前缀) | < 640px  | **iPhone、Android 手机** | 移动端基础样式 |
+| `sm:`    | ≥ 640px  | 大手机横屏、小平板       | 平板/桌面增强  |
+| `md:`    | ≥ 768px  | iPad Mini、平板          | 多列布局切换   |
+| `lg:`    | ≥ 1024px | iPad Pro、笔记本         | 侧边栏显示     |
+
+**关键认知**: iPhone 13/14/15 (390px) 和早期 iPhone (375px) 都**小于 `sm:` (640px)**，因此移动端实际使用的是**无前缀的基础样式**。
+
+### 11.2 容器 (Container) 规范
+
+所有页面容器必须使用统一的响应式 padding 模式：
+
+```tsx
+// ✅ 正确
+<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
+
+// ❌ 错误 - 缺少响应式 padding
+<div className="container mx-auto px-4 py-8 max-w-6xl">
+```
+
+### 11.3 元素宽度约束规范
+
+| 元素类型         | 移动端策略                      | 桌面端策略     | 示例                                             |
+| ---------------- | ------------------------------- | -------------- | ------------------------------------------------ |
+| **标题/文本**    | 固定 `max-w-[Xpx]` + `truncate` | 更大的 `max-w` | `max-w-[140px] sm:max-w-[280px] truncate`        |
+| **下拉菜单**     | `w-auto` + `min-w` + `max-w`    | 固定宽度       | `w-auto min-w-[4rem] max-w-[5.5rem] sm:w-28`     |
+| **按钮(带文字)** | 仅图标 `size="icon"`            | 图标+文字      | `<span className="hidden sm:inline">返回</span>` |
+| **Grid 子项**    | `min-w-0` 防止溢出              | 正常           | `<div className="min-w-0">...</div>`             |
+
+### 11.4 间距 (Gap/Padding) 规范
+
+| 场景              | 移动端   | 桌面端    | 示例                                 |
+| ----------------- | -------- | --------- | ------------------------------------ |
+| Flex gap          | 4px-8px  | 12px-16px | `gap-1 sm:gap-3`                     |
+| Container padding | 16px     | 24px-32px | `px-4 sm:px-6 lg:px-8`               |
+| Grid gap          | 8px-12px | 16px-24px | `gap-2 sm:gap-3` 或 `gap-3 sm:gap-4` |
+| Section margin    | 24px     | 32px      | `mb-6 sm:mb-8`                       |
+
+### 11.5 网格布局 (Grid) 规范
+
+**双列表单默认模式**:
+
+```tsx
+// ✅ 移动端单列，平板及以上双列
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+
+// ⚠️ 若必须保持移动端双列，确保：
+// 1. 每列最小内容宽度 + gap + padding ≤ 160px
+// 2. 所有子项添加 min-w-0
+<div className="grid grid-cols-2 gap-2 sm:gap-3">
+  <div className="min-w-0">...</div>
+  <div className="min-w-0">...</div>
+</div>
+```
+
+### 11.6 返回按钮标准模式
+
+```tsx
+// ✅ 移动端仅图标，桌面端图标+文字
+<Button
+  variant="ghost"
+  size="icon"
+  onClick={() => router.back()}
+  className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+>
+  <ChevronLeft className="w-4 h-4" />
+  <span className="sr-only">返回</span>
+</Button>
+
+// 或使用响应式文字显示
+<Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3">
+  <ChevronLeft className="w-4 h-4" />
+  <span className="hidden sm:inline ml-1">返回</span>
+</Button>
+```
+
+### 11.7 iOS 特殊处理
+
+iOS Safari 对某些表单元素有特殊渲染行为，需在 `globals.css` 中添加全局重置：
+
+```css
+@layer base {
+  /* iOS 日期/时间输入框重置 */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    min-height: auto;
+    background-color: transparent;
+  }
+}
+```
+
+### 11.8 日期计算一致性
+
+跨页面的日期倒计时计算必须使用统一逻辑：
+
+```tsx
+// ✅ 正确 - 归一化到午夜再计算
+const getDaysRemaining = (startDate: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  return Math.round(
+    (start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
+};
+
+// ❌ 错误 - 时间差导致计算偏差
+const diff = differenceInDays(startDate, new Date()); // 可能少算一天
+```
+
+---
+
+**最后更新**: 2025-12-30
