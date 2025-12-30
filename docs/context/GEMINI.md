@@ -80,7 +80,38 @@
      - **NO Generic Repository Pattern**. Use `DbContext` directly in Services (Unit of Work is already built-in).
      - **NO Synchronous I/O**. Use `await` for all DB and File operations.
 
-     ### 3.2 Frontend (Next.js 15) Rules
+     ### 3.2 API 响应格式规范 (Required)
+
+     所有 API 必须使用统一的响应格式：
+
+     ```csharp
+     // ✅ 成功 - 列表
+     return Ok(new {
+         success = true,
+         data = items,
+         meta = new { page, pageSize, totalCount, totalPages, hasMore }
+     });
+
+     // ✅ 成功 - 单条
+     return Ok(new { success = true, data = item });
+
+     // ✅ 成功 - 操作
+     return Ok(new { success = true, message = "操作成功" });
+
+     // ✅ 失败 - NotFound
+     return NotFound(new { success = false, message = "资源不存在" });
+
+     // ✅ 失败 - BadRequest
+     return BadRequest(new { success = false, message = "参数错误详情" });
+
+     // ❌ 错误 - 直接返回实体
+     return Ok(entity);  // 缺少 success 包装
+
+     // ❌ 错误 - 缺少 success 字段
+     return NotFound(new { message = "不存在" });
+     ```
+
+     ### 3.3 Frontend (Next.js 15) Rules
 
      **✅ DO:**
 
@@ -93,6 +124,29 @@
      - **NO Direct API Calls in Components** for data fetching. Use `fetch` in Server Components or Server Actions.
      - **NO `useEffect` for Data Fetching**. Use RSC (React Server Components) data fetching patterns.
      - **NO Sensitive Data in Client Props**. Never pass full User objects if only `nickname` is needed.
+
+     ### 3.4 前端布局规范 (Required)
+
+     详见 [FRONTEND_LAYOUT_STANDARDS.md](file:///Volumes/fanxiang/MyTechBlog/docs/guides/FRONTEND_LAYOUT_STANDARDS.md)
+
+     **核心规则速查**:
+
+     ```tsx
+     // 容器 Padding (Admin 页面)
+     className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-{size}"
+
+     // 容器 Padding (Public 页面)
+     className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-{size}"
+
+     // 返回按钮 (移动端仅图标)
+     <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+       <ChevronLeft className="w-4 h-4" />
+       <span className="sr-only">返回</span>
+     </Button>
+
+     // 网格布局 (移动端单列，桌面双列)
+     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+     ```
 
      ***
 
