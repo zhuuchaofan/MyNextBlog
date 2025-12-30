@@ -212,18 +212,22 @@ export function PlanDayCard({
                            <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm sm:text-base leading-tight">
                              {activity.title}
                            </h4>
-                           {/* Costs */}
+                           {/* Costs (always show with placeholder) */}
                            <div className="flex items-center gap-1 flex-shrink-0">
-                             {activity.estimatedCost > 0 && (
-                               <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none px-1 py-0">
-                                 ¥{activity.estimatedCost}
-                               </Badge>
-                             )}
-                             {activity.actualCost > 0 && (
-                               <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none px-1 py-0">
-                                 实¥{activity.actualCost}
-                               </Badge>
-                             )}
+                             <Badge variant="secondary" className={`font-mono text-xs px-1 py-0 border-none ${
+                               activity.estimatedCost > 0 
+                                 ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                                 : 'text-gray-300 bg-gray-50 dark:text-zinc-600 dark:bg-zinc-800'
+                             }`}>
+                               ¥{activity.estimatedCost || 0}
+                             </Badge>
+                             <Badge variant="secondary" className={`font-mono text-xs px-1 py-0 border-none ${
+                               activity.actualCost > 0 
+                                 ? 'text-green-600 bg-green-50 dark:bg-green-900/20' 
+                                 : 'text-gray-300 bg-gray-50 dark:text-zinc-600 dark:bg-zinc-800'
+                             }`}>
+                               实¥{activity.actualCost || 0}
+                             </Badge>
                            </div>
                          </div>
 
