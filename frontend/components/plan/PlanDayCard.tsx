@@ -174,21 +174,21 @@ export function PlanDayCard({
                     />
                   ) : (
                     /* 显示模式 - Grid Layout */
-                    <div className="group flex items-start gap-4 p-4 bg-gray-50/80 dark:bg-zinc-800/50 rounded-xl hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-gray-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all">
+                    <div className="group flex items-start gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50/80 dark:bg-zinc-800/50 rounded-xl hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-gray-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all">
                       
                       {/* Drag Handle */}
-                      <div className="pt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
-                        <GripVertical className="w-5 h-5" />
+                      <div className="pt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex-shrink-0">
+                        <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
 
-                      {/* Time Column (Fixed Width) */}
-                      <div className="flex-shrink-0 w-20 pt-1">
+                      {/* Time Column (Responsive Width) */}
+                      <div className="flex-shrink-0 w-14 sm:w-20 pt-1">
                          {activity.time ? (
-                           <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 text-xs font-bold font-mono tracking-wide">
+                           <div className="inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 text-xs font-bold font-mono tracking-wide">
                              {activity.time}
                            </div>
                          ) : (
-                           <div className="inline-flex items-center justify-center px-2 py-0.5 text-gray-300 dark:text-zinc-700 text-xs font-mono tracking-wide select-none">
+                           <div className="inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 text-gray-300 dark:text-zinc-700 text-xs font-mono tracking-wide select-none">
                              --:--
                            </div>
                          )}
@@ -199,30 +199,28 @@ export function PlanDayCard({
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => setEditingActivityId(activity.id)}
                       >
-                         <div className="flex items-start justify-between gap-4">
-                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-base leading-tight">
-                             {activity.title}
-                           </h4>
-                           {/* Costs */}
-                           <div className="flex items-center gap-2 flex-shrink-0">
-                              {activity.estimatedCost > 0 && (
-                                <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none">
-                                  ¥{activity.estimatedCost}
-                                </Badge>
-                              )}
-                              {activity.actualCost > 0 && (
-                                <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none">
-                                  实 ¥{activity.actualCost}
-                                </Badge>
-                              )}
-                           </div>
-                         </div>
+                         {/* Title Row */}
+                         <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm sm:text-base leading-tight truncate">
+                           {activity.title}
+                         </h4>
                          
-                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                         {/* Location + Costs Row */}
+                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                            {activity.location && (
                              <div className="flex items-center gap-1 text-xs text-gray-500">
                                <MapPin className="w-3 h-3" /> {activity.location}
                              </div>
+                           )}
+                           {/* Costs */}
+                           {activity.estimatedCost > 0 && (
+                             <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none px-1.5 py-0">
+                               ¥{activity.estimatedCost}
+                             </Badge>
+                           )}
+                           {activity.actualCost > 0 && (
+                             <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none px-1.5 py-0">
+                               实¥{activity.actualCost}
+                             </Badge>
                            )}
                          </div>
 
