@@ -170,29 +170,55 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  // 添加一天
+  // 添加一天（自动扩展 endDate）
   const handleAddDay = async () => {
     if (!plan) return;
     
-    // 由于删除会自动重排序，这里直接用 length + 1
     const nextDayNumber = plan.days.length + 1;
     
-    // 日期计算基于当前天数位置
-    const startDate = new Date(plan.startDate);
-    startDate.setDate(startDate.getDate() + plan.days.length);
-    const dateStr = startDate.toISOString().split('T')[0];
+    // 计算新日期
+    const planStartDate = new Date(plan.startDate);
+    const newDate = new Date(planStartDate);
+    newDate.setDate(planStartDate.getDate() + plan.days.length);
+    const dateStr = newDate.toISOString().split('T')[0];
+    
+    // 检查是否需要扩展 endDate
+    let needExtendEndDate = false;
+    if (plan.endDate) {
+      const endDate = new Date(plan.endDate);
+      if (newDate > endDate) {
+        needExtendEndDate = true;
+      }
+    }
     
     try {
+      // 1. 如果需要，先更新计划的 endDate
+      if (needExtendEndDate) {
+        await updatePlan(planId, { endDate: dateStr });
+      }
+      
+      // 2. 添加新的一天
       const day = await addPlanDay(planId, {
         dayNumber: nextDayNumber,
         date: dateStr,
         theme: `Day ${nextDayNumber}`,
       });
+      
+      // 3. 更新本地状态
       setPlan({
         ...plan,
+        endDate: needExtendEndDate ? dateStr : plan.endDate,
         days: [...plan.days, { ...day, activities: [] }],
       });
-      toast.success('已添加新的一天');
+      
+      // 4. 提示用户
+      if (needExtendEndDate) {
+        toast.success('已添加新的一天', {
+          description: `结束日期已自动延长至 ${dateStr}`,
+        });
+      } else {
+        toast.success('已添加新的一天');
+      }
     } catch (error) {
       console.error('Failed to add day:', error);
       toast.error('添加失败');
@@ -227,20 +253,28 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         .filter(d => d.id !== deleteDayId)
         .sort((a, b) => a.dayNumber - b.dayNumber);
       
-      // 3. 重新编号 (1, 2, 3...)
-      const reorderedDays = remainingDays.map((day, index) => ({
-        ...day,
-        dayNumber: index + 1,
-        theme: `Day ${index + 1}`,  // 同步更新主题
-      }));
+      // 3. 重新编号并计算日期 (1, 2, 3...)
+      const planStartDate = new Date(plan.startDate);
+      const reorderedDays = remainingDays.map((day, index) => {
+        const newDate = new Date(planStartDate);
+        newDate.setDate(planStartDate.getDate() + index);
+        return {
+          ...day,
+          dayNumber: index + 1,
+          date: newDate.toISOString().split('T')[0],
+          theme: `Day ${index + 1}`,
+        };
+      });
       
       // 4. 批量更新后端（逐个调用）
       await Promise.all(
         reorderedDays.map((day, index) => {
-          // 只更新 dayNumber 变化的
-          if (remainingDays[index].dayNumber !== day.dayNumber) {
+          // 只更新有变化的
+          const original = remainingDays[index];
+          if (original.dayNumber !== day.dayNumber || original.date !== day.date) {
             return updatePlanDay(planId, day.id, { 
               dayNumber: day.dayNumber,
+              date: day.date,
               theme: day.theme 
             });
           }
