@@ -160,7 +160,7 @@ export default function AdminCommentsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl pb-24">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl pb-24">
       {/* 头部导航 */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">

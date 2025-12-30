@@ -92,7 +92,7 @@ export default function PublicPlanPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-pink-200 to-purple-200 dark:from-pink-900/20 dark:to-purple-900/20 rounded-full blur-3xl opacity-40 -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-200 to-cyan-200 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-full blur-3xl opacity-40 translate-y-1/3 -translate-x-1/4" />
 
-        <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative z-10">
           <div className="max-w-4xl mx-auto space-y-8">
             {/* Status Pill */}
             <div className="flex justify-center">
@@ -136,7 +136,7 @@ export default function PublicPlanPage() {
       </div>
 
       {/* Timeline Content */}
-      <div className="container mx-auto px-4 py-16 max-w-5xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 max-w-5xl">
         <div className="space-y-20">
           {plan.days.map((day, index) => (
             <motion.div 

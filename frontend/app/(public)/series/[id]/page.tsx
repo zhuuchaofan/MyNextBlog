@@ -81,7 +81,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
   const posts = await getSeriesPosts(resolvedParams.id);
   
   return (
-    <div className="container mx-auto px-4 py-12 max-w-4xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-4xl">
       {/* Back Link */}
       <Link 
         href="/" 

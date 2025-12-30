@@ -119,7 +119,7 @@ export default function SeriesManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
       {/* 头部导航 */}
       <div className="flex flex-col gap-4 mb-8">
         {/* 第一行：返回按钮 + 标题 + 徽章 */}

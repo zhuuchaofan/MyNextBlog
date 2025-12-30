@@ -161,7 +161,7 @@ export default function ContentSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl overflow-x-hidden">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl overflow-x-hidden">
       {/* 头部导航 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
