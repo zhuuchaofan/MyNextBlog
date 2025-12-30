@@ -181,8 +181,9 @@ export function PlanDayCard({
                         <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
 
-                      {/* Time Column (Responsive Width) */}
-                      <div className="flex-shrink-0 w-14 sm:w-20 pt-1">
+                      {/* Left Column: Time + Location (利用时间下方空白) */}
+                      <div className="flex-shrink-0 w-14 sm:w-20 space-y-1">
+                         {/* Time */}
                          {activity.time ? (
                            <div className="inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 text-xs font-bold font-mono tracking-wide">
                              {activity.time}
@@ -192,40 +193,42 @@ export function PlanDayCard({
                              --:--
                            </div>
                          )}
+                         {/* Location under time */}
+                         {activity.location && (
+                           <div className="flex items-start gap-0.5 text-xs text-gray-500 leading-tight">
+                             <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                             <span className="break-words">{activity.location}</span>
+                           </div>
+                         )}
                       </div>
 
-                      {/* Main Content */}
+                      {/* Right Column: Title + Costs + Notes */}
                       <div 
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => setEditingActivityId(activity.id)}
                       >
-                         {/* Title Row */}
-                         <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm sm:text-base leading-tight truncate">
-                           {activity.title}
-                         </h4>
-                         
-                         {/* Location + Costs Row */}
-                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                           {activity.location && (
-                             <div className="flex items-center gap-1 text-xs text-gray-500">
-                               <MapPin className="w-3 h-3" /> {activity.location}
-                             </div>
-                           )}
+                         {/* Title + Costs Row */}
+                         <div className="flex items-start justify-between gap-2">
+                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm sm:text-base leading-tight">
+                             {activity.title}
+                           </h4>
                            {/* Costs */}
-                           {activity.estimatedCost > 0 && (
-                             <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none px-1.5 py-0">
-                               ¥{activity.estimatedCost}
-                             </Badge>
-                           )}
-                           {activity.actualCost > 0 && (
-                             <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none px-1.5 py-0">
-                               实¥{activity.actualCost}
-                             </Badge>
-                           )}
+                           <div className="flex items-center gap-1 flex-shrink-0">
+                             {activity.estimatedCost > 0 && (
+                               <Badge variant="secondary" className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 border-none px-1 py-0">
+                                 ¥{activity.estimatedCost}
+                               </Badge>
+                             )}
+                             {activity.actualCost > 0 && (
+                               <Badge variant="secondary" className="font-mono text-xs text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 border-none px-1 py-0">
+                                 实¥{activity.actualCost}
+                               </Badge>
+                             )}
+                           </div>
                          </div>
 
                          {activity.notes && (
-                           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900/50 p-2 rounded-lg border border-gray-100 dark:border-zinc-800 line-clamp-2">
+                           <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900/50 p-2 rounded-lg border border-gray-100 dark:border-zinc-800 line-clamp-2">
                              {activity.notes}
                            </p>
                          )}
