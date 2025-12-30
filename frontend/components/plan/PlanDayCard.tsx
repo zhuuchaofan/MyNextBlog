@@ -153,7 +153,7 @@ export function PlanDayCard({
           >
             <div className="space-y-3">
               {day.activities.map(activity => (
-                <SortableActivityItem key={activity.id} id={activity.id}>
+                <SortableActivityItem key={activity.id} id={activity.id} isEditing={editingActivityId === activity.id}>
                   {editingActivityId === activity.id ? (
                     /* 编辑模式 */
                     <ActivityForm
