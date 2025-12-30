@@ -174,15 +174,12 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const handleAddDay = async () => {
     if (!plan) return;
     
-    // 使用现有最大 dayNumber + 1，避免删除后编号重复
-    const maxDayNumber = plan.days.length > 0 
-      ? Math.max(...plan.days.map(d => d.dayNumber)) 
-      : 0;
-    const nextDayNumber = maxDayNumber + 1;
+    // 由于删除会自动重排序，这里直接用 length + 1
+    const nextDayNumber = plan.days.length + 1;
     
-    // 日期计算仍然基于天数位置（第几天）
+    // 日期计算基于当前天数位置
     const startDate = new Date(plan.startDate);
-    startDate.setDate(startDate.getDate() + plan.days.length);  // 基于当前天数
+    startDate.setDate(startDate.getDate() + plan.days.length);
     const dateStr = startDate.toISOString().split('T')[0];
     
     try {
@@ -217,17 +214,47 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  // 删除某天
+  // 删除某天（自动重排序剩余日期）
   const handleDeleteDay = async () => {
-    if (!deleteDayId) return;
+    if (!deleteDayId || !plan) return;
     
     try {
+      // 1. 删除这一天
       await deletePlanDay(planId, deleteDayId);
+      
+      // 2. 过滤掉被删除的，并按原 dayNumber 排序
+      const remainingDays = plan.days
+        .filter(d => d.id !== deleteDayId)
+        .sort((a, b) => a.dayNumber - b.dayNumber);
+      
+      // 3. 重新编号 (1, 2, 3...)
+      const reorderedDays = remainingDays.map((day, index) => ({
+        ...day,
+        dayNumber: index + 1,
+        theme: `Day ${index + 1}`,  // 同步更新主题
+      }));
+      
+      // 4. 批量更新后端（逐个调用）
+      await Promise.all(
+        reorderedDays.map((day, index) => {
+          // 只更新 dayNumber 变化的
+          if (remainingDays[index].dayNumber !== day.dayNumber) {
+            return updatePlanDay(planId, day.id, { 
+              dayNumber: day.dayNumber,
+              theme: day.theme 
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      
+      // 5. 更新本地状态
       setPlan({
-        ...plan!,
-        days: plan!.days.filter(d => d.id !== deleteDayId),
+        ...plan,
+        days: reorderedDays,
       });
-      toast.success('已删除');
+      
+      toast.success('已删除并重新排序');
     } catch (error) {
       console.error('Failed to delete day:', error);
       toast.error('删除失败');
