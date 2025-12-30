@@ -357,8 +357,9 @@ export interface EmailTemplate {
 }
 
 // [Admin] 获取所有邮件模板
-export function fetchEmailTemplates(): Promise<EmailTemplate[]> {
-  return fetchClient("/api/backend/admin/email-templates");
+export async function fetchEmailTemplates(): Promise<EmailTemplate[]> {
+  const res = await fetchClient<{ success: boolean; data: EmailTemplate[] }>("/api/backend/admin/email-templates");
+  return res.data;
 }
 
 
@@ -473,13 +474,15 @@ export function fetchPublicPlanById(id: number) {
 }
 
 // [Admin] 获取所有计划
-export function fetchPlans() {
-  return fetchClient<PlanListItem[]>("/api/backend/admin/plans");
+export async function fetchPlans(): Promise<PlanListItem[]> {
+  const res = await fetchClient<{ success: boolean; data: PlanListItem[] }>("/api/backend/admin/plans");
+  return res.data;
 }
 
 // [Admin] 获取计划详情
-export function fetchPlanById(id: number) {
-  return fetchClient<PlanDetail>(`/api/backend/admin/plans/${id}`);
+export async function fetchPlanById(id: number): Promise<PlanDetail> {
+  const res = await fetchClient<{ success: boolean; data: PlanDetail }>(`/api/backend/admin/plans/${id}`);
+  return res.data;
 }
 
 // [Admin] 创建计划
@@ -603,10 +606,11 @@ export function deletePlanActivity(activityId: number) {
 }
 
 // [Admin] 获取预算统计
-export function fetchPlanBudget(planId: number) {
-  return fetchClient<{ totalEstimated: number; totalActual: number }>(
+export async function fetchPlanBudget(planId: number): Promise<{ totalEstimated: number; totalActual: number }> {
+  const res = await fetchClient<{ success: boolean; data: { totalEstimated: number; totalActual: number } }>(
     `/api/backend/admin/plans/${planId}/budget`
   );
+  return res.data;
 }
 
 // [Admin] 批量更新活动排序（拖拽排序优化，单次请求）
