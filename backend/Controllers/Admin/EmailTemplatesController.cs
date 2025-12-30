@@ -21,23 +21,23 @@ public class EmailTemplatesController(IEmailTemplateService templateService) : C
     /// 获取所有邮件模板
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<EmailTemplateDto>>> GetAll()
+    public async Task<IActionResult> GetAll()
     {
         var templates = await templateService.GetAllAsync();
-        return Ok(templates);
+        return Ok(new { success = true, data = templates });
     }
     
     /// <summary>
     /// 根据 Key 获取单个模板
     /// </summary>
     [HttpGet("{key}")]
-    public async Task<ActionResult<EmailTemplateDto>> GetByKey(string key)
+    public async Task<IActionResult> GetByKey(string key)
     {
         var template = await templateService.GetByKeyAsync(key);
         if (template == null)
-            return NotFound(new { message = $"模板 '{key}' 不存在" });
+            return NotFound(new { success = false, message = $"模板 '{key}' 不存在" });
         
-        return Ok(template);
+        return Ok(new { success = true, data = template });
     }
     
     /// <summary>
@@ -46,10 +46,10 @@ public class EmailTemplatesController(IEmailTemplateService templateService) : C
     [HttpPut("{key}")]
     public async Task<IActionResult> Update(string key, [FromBody] UpdateEmailTemplateDto dto)
     {
-        var success = await templateService.UpdateAsync(key, dto);
-        if (!success)
-            return NotFound(new { message = $"模板 '{key}' 不存在" });
+        var result = await templateService.UpdateAsync(key, dto);
+        if (!result)
+            return NotFound(new { success = false, message = $"模板 '{key}' 不存在" });
         
-        return Ok(new { message = "更新成功" });
+        return Ok(new { success = true, message = "更新成功" });
     }
 }

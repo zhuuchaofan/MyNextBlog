@@ -25,7 +25,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var plans = await planService.GetAllPlansAsync();
-        return Ok(plans);
+        return Ok(new { success = true, data = plans });
     }
     
     /// <summary>
@@ -35,8 +35,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var plan = await planService.GetPlanByIdAsync(id);
-        if (plan == null) return NotFound(new { message = "计划不存在" });
-        return Ok(plan);
+        if (plan == null) return NotFound(new { success = false, message = "计划不存在" });
+        return Ok(new { success = true, data = plan });
     }
     
     /// <summary>
@@ -46,7 +46,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreatePlanDto dto)
     {
         var plan = await planService.CreatePlanAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = plan.Id }, plan);
+        return CreatedAtAction(nameof(GetById), new { id = plan.Id }, new { success = true, data = plan });
     }
     
     /// <summary>
@@ -56,8 +56,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePlanDto dto)
     {
         var plan = await planService.UpdatePlanAsync(id, dto);
-        if (plan == null) return NotFound(new { message = "计划不存在" });
-        return Ok(plan);
+        if (plan == null) return NotFound(new { success = false, message = "计划不存在" });
+        return Ok(new { success = true, data = plan });
     }
     
     /// <summary>
@@ -66,9 +66,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var success = await planService.DeletePlanAsync(id);
-        if (!success) return NotFound(new { message = "计划不存在" });
-        return NoContent();
+        var result = await planService.DeletePlanAsync(id);
+        if (!result) return NotFound(new { success = false, message = "计划不存在" });
+        return Ok(new { success = true, message = "删除成功" });
     }
     
     /// <summary>
@@ -78,7 +78,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> GetBudget(int id)
     {
         var (totalEstimated, totalActual) = await planService.GetBudgetSummaryAsync(id);
-        return Ok(new { totalEstimated, totalActual });
+        return Ok(new { success = true, data = new { totalEstimated, totalActual } });
     }
     
     // ========== PlanDay CRUD ==========
@@ -90,7 +90,7 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> AddDay(int planId, [FromBody] CreatePlanDayDto dto)
     {
         var day = await planService.AddDayAsync(planId, dto);
-        return Ok(day);
+        return Ok(new { success = true, data = day });
     }
     
     /// <summary>
@@ -100,8 +100,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> UpdateDay(int planId, int dayId, [FromBody] UpdatePlanDayDto dto)
     {
         var day = await planService.UpdateDayAsync(dayId, dto);
-        if (day == null) return NotFound(new { message = "日程不存在" });
-        return Ok(day);
+        if (day == null) return NotFound(new { success = false, message = "日程不存在" });
+        return Ok(new { success = true, data = day });
     }
     
     /// <summary>
@@ -110,9 +110,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     [HttpDelete("{planId}/days/{dayId}")]
     public async Task<IActionResult> DeleteDay(int planId, int dayId)
     {
-        var success = await planService.DeleteDayAsync(dayId);
-        if (!success) return NotFound(new { message = "日程不存在" });
-        return NoContent();
+        var result = await planService.DeleteDayAsync(dayId);
+        if (!result) return NotFound(new { success = false, message = "日程不存在" });
+        return Ok(new { success = true, message = "删除成功" });
     }
 }
 
@@ -131,7 +131,7 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> AddActivity(int dayId, [FromBody] CreateActivityDto dto)
     {
         var activity = await planService.AddActivityAsync(dayId, dto);
-        return Ok(activity);
+        return Ok(new { success = true, data = activity });
     }
     
     /// <summary>
@@ -141,8 +141,8 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> UpdateActivity(int id, [FromBody] UpdateActivityDto dto)
     {
         var activity = await planService.UpdateActivityAsync(id, dto);
-        if (activity == null) return NotFound(new { message = "活动不存在" });
-        return Ok(activity);
+        if (activity == null) return NotFound(new { success = false, message = "活动不存在" });
+        return Ok(new { success = true, data = activity });
     }
     
     /// <summary>
@@ -151,9 +151,9 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     [HttpDelete("activities/{id}")]
     public async Task<IActionResult> DeleteActivity(int id)
     {
-        var success = await planService.DeleteActivityAsync(id);
-        if (!success) return NotFound(new { message = "活动不存在" });
-        return NoContent();
+        var result = await planService.DeleteActivityAsync(id);
+        if (!result) return NotFound(new { success = false, message = "活动不存在" });
+        return Ok(new { success = true, message = "删除成功" });
     }
     
     /// <summary>
@@ -163,6 +163,6 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     public async Task<IActionResult> BatchUpdateSort([FromBody] BatchUpdateActivitySortDto dto)
     {
         await planService.BatchUpdateActivitySortOrderAsync(dto.Items);
-        return NoContent();
+        return Ok(new { success = true, message = "排序更新成功" });
     }
 }
