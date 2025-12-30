@@ -1,6 +1,8 @@
 // DTOs/AnniversaryDtos.cs
 // 纪念日相关的数据传输对象
 
+using System.ComponentModel.DataAnnotations;
+
 namespace MyNextBlog.DTOs;
 
 /// <summary>
@@ -42,8 +44,13 @@ public record AnniversaryAdminDto(
 /// 创建纪念日请求
 /// </summary>
 public record CreateAnniversaryDto(
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(30, ErrorMessage = "标题不能超过30个字符")]
     string Title,
+    
+    [StringLength(10, ErrorMessage = "Emoji不能超过10个字符")]
     string Emoji,
+    
     string StartDate,       // "2024-06-01" 格式
     string RepeatType,
     string DisplayType,     // "duration" | "age"
@@ -57,8 +64,13 @@ public record CreateAnniversaryDto(
 /// 更新纪念日请求（含可选字段）
 /// </summary>
 public record UpdateAnniversaryDto(
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(30, ErrorMessage = "标题不能超过30个字符")]
     string Title,
+    
+    [StringLength(10, ErrorMessage = "Emoji不能超过10个字符")]
     string Emoji,
+    
     string StartDate,
     string RepeatType,
     string DisplayType,
@@ -69,5 +81,3 @@ public record UpdateAnniversaryDto(
     string? ReminderEmail,
     string? ReminderDays
 );
-
-

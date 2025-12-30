@@ -78,6 +78,7 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <Input
           placeholder="活动名称 *"
+          maxLength={50}
           className="text-sm sm:text-base"
           value={formData.title}
           onChange={e => updateField('title', e.target.value)}
@@ -92,6 +93,7 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
         />
         <Input
           placeholder="地点"
+          maxLength={50}
           className="text-sm sm:text-base"
           value={formData.location}
           onChange={e => updateField('location', e.target.value)}
@@ -119,6 +121,7 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
             />
             <Input
               placeholder="备注"
+              maxLength={200}
               className="text-sm sm:text-base"
               value={formData.notes || ''}
               onChange={e => updateField('notes', e.target.value)}

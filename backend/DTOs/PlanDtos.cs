@@ -1,6 +1,8 @@
 // DTOs/PlanDtos.cs
 // 计划功能相关的数据传输对象
 
+using System.ComponentModel.DataAnnotations;
+
 namespace MyNextBlog.DTOs;
 
 // ========== Plan DTOs ==========
@@ -54,8 +56,13 @@ public record PlanDetailDto(
 /// 创建计划请求
 /// </summary>
 public record CreatePlanDto(
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(50, ErrorMessage = "标题不能超过50个字符")]
     string Title,
+    
+    [StringLength(200, ErrorMessage = "描述不能超过200个字符")]
     string? Description,
+    
     string Type,
     string StartDate,
     string? EndDate,
@@ -72,8 +79,12 @@ public record CreatePlanDto(
 /// 更新计划请求
 /// </summary>
 public record UpdatePlanDto(
+    [StringLength(50, ErrorMessage = "标题不能超过50个字符")]
     string? Title,
+    
+    [StringLength(200, ErrorMessage = "描述不能超过200个字符")]
     string? Description,
+    
     string? Type,
     string? StartDate,
     string? EndDate,
@@ -107,12 +118,16 @@ public record PlanDayDto(
 public record CreatePlanDayDto(
     int DayNumber,
     string Date,
+    
+    [StringLength(50, ErrorMessage = "主题不能超过50个字符")]
     string? Theme
 );
 
 public record UpdatePlanDayDto(
     int? DayNumber,
     string? Date,
+    
+    [StringLength(50, ErrorMessage = "主题不能超过50个字符")]
     string? Theme
 );
 
@@ -136,10 +151,19 @@ public record PlanActivityDto(
 /// 创建活动请求
 /// </summary>
 public record CreateActivityDto(
+    [StringLength(5, ErrorMessage = "时间格式错误")]
     string? Time,
+    
+    [Required(ErrorMessage = "活动名称不能为空")]
+    [StringLength(50, ErrorMessage = "活动名称不能超过50个字符")]
     string Title,
+    
+    [StringLength(50, ErrorMessage = "地点不能超过50个字符")]
     string? Location,
+    
+    [StringLength(200, ErrorMessage = "备注不能超过200个字符")]
     string? Notes,
+    
     decimal EstimatedCost = 0,
     int SortOrder = 0
 );
@@ -148,10 +172,18 @@ public record CreateActivityDto(
 /// 更新活动请求
 /// </summary>
 public record UpdateActivityDto(
+    [StringLength(5, ErrorMessage = "时间格式错误")]
     string? Time,
+    
+    [StringLength(50, ErrorMessage = "活动名称不能超过50个字符")]
     string? Title,
+    
+    [StringLength(50, ErrorMessage = "地点不能超过50个字符")]
     string? Location,
+    
+    [StringLength(200, ErrorMessage = "备注不能超过200个字符")]
     string? Notes,
+    
     decimal? EstimatedCost,
     decimal? ActualCost,
     int? SortOrder
