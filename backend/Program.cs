@@ -38,8 +38,13 @@ builder.Services.AddHealthChecks()
 builder.Services.AddCorsPolicy(builder.Configuration);
 
 // 数据库 (PostgreSQL)
+// 全局配置 SplitQuery：防止多集合 Include 时的笛卡尔积问题
+// 参考: https://go.microsoft.com/fwlink/?linkid=2134277
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+    ));
 
 // JWT 认证 (拆分到 Extensions/AuthenticationExtensions.cs)
 builder.Services.AddJwtAuthentication(builder.Configuration);
