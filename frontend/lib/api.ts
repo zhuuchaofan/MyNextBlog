@@ -537,27 +537,29 @@ export function deletePlan(id: number) {
 }
 
 // [Admin] 添加一天
-export function addPlanDay(planId: number, data: {
+export async function addPlanDay(planId: number, data: {
   dayNumber: number;
   date: string;
   theme?: string;
-}) {
-  return fetchClient(`/api/backend/admin/plans/${planId}/days`, {
+}): Promise<PlanDay> {
+  const res = await fetchClient<{ success: boolean; data: PlanDay }>(`/api/backend/admin/plans/${planId}/days`, {
     method: "POST",
     body: data,
   });
+  return res.data;
 }
 
 // [Admin] 更新一天
-export function updatePlanDay(planId: number, dayId: number, data: {
+export async function updatePlanDay(planId: number, dayId: number, data: {
   dayNumber?: number;
   date?: string;
   theme?: string;
-}) {
-  return fetchClient(`/api/backend/admin/plans/${planId}/days/${dayId}`, {
+}): Promise<PlanDay> {
+  const res = await fetchClient<{ success: boolean; data: PlanDay }>(`/api/backend/admin/plans/${planId}/days/${dayId}`, {
     method: "PUT",
     body: data,
   });
+  return res.data;
 }
 
 // [Admin] 删除一天
@@ -568,22 +570,23 @@ export function deletePlanDay(planId: number, dayId: number) {
 }
 
 // [Admin] 添加活动
-export function addPlanActivity(dayId: number, data: {
+export async function addPlanActivity(dayId: number, data: {
   time?: string;
   title: string;
   location?: string;
   notes?: string;
   estimatedCost?: number;
   sortOrder?: number;
-}) {
-  return fetchClient(`/api/backend/admin/days/${dayId}/activities`, {
+}): Promise<PlanActivity> {
+  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(`/api/backend/admin/days/${dayId}/activities`, {
     method: "POST",
     body: data,
   });
+  return res.data;
 }
 
 // [Admin] 更新活动
-export function updatePlanActivity(activityId: number, data: {
+export async function updatePlanActivity(activityId: number, data: {
   time?: string;
   title?: string;
   location?: string;
@@ -591,11 +594,12 @@ export function updatePlanActivity(activityId: number, data: {
   estimatedCost?: number;
   actualCost?: number;
   sortOrder?: number;
-}) {
-  return fetchClient(`/api/backend/admin/activities/${activityId}`, {
+}): Promise<PlanActivity> {
+  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(`/api/backend/admin/activities/${activityId}`, {
     method: "PUT",
     body: data,
   });
+  return res.data;
 }
 
 // [Admin] 删除活动
