@@ -77,27 +77,30 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
     }`}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <Input
-          placeholder="活动名称 * 例如：参观浅草寺"
+          placeholder="活动名称 *"
+          className="text-sm sm:text-base"
           value={formData.title}
           onChange={e => updateField('title', e.target.value)}
           disabled={isSubmitting}
         />
         <Input
           type="time"
-          placeholder="时间 例如：09:00"
+          className="text-sm sm:text-base"
           value={formData.time}
           onChange={e => updateField('time', e.target.value)}
           disabled={isSubmitting}
         />
         <Input
-          placeholder="地点 例如：东京浅草"
+          placeholder="地点"
+          className="text-sm sm:text-base"
           value={formData.location}
           onChange={e => updateField('location', e.target.value)}
           disabled={isSubmitting}
         />
         <Input
           type="number"
-          placeholder="预估花费 例如：500"
+          placeholder="预估花费"
+          className="text-sm sm:text-base"
           value={formData.estimatedCost || ''}
           onChange={e => updateField('estimatedCost', Number(e.target.value))}
           disabled={isSubmitting}
@@ -108,13 +111,15 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
           <>
             <Input
               type="number"
-              placeholder="实际花费 例如：480"
+              placeholder="实际花费"
+              className="text-sm sm:text-base"
               value={formData.actualCost || ''}
               onChange={e => updateField('actualCost', Number(e.target.value))}
               disabled={isSubmitting}
             />
             <Input
-              placeholder="备注 例如：需要提前预约"
+              placeholder="备注"
+              className="text-sm sm:text-base"
               value={formData.notes || ''}
               onChange={e => updateField('notes', e.target.value)}
               disabled={isSubmitting}

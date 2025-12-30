@@ -174,9 +174,15 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
   const handleAddDay = async () => {
     if (!plan) return;
     
-    const nextDayNumber = plan.days.length + 1;
+    // 使用现有最大 dayNumber + 1，避免删除后编号重复
+    const maxDayNumber = plan.days.length > 0 
+      ? Math.max(...plan.days.map(d => d.dayNumber)) 
+      : 0;
+    const nextDayNumber = maxDayNumber + 1;
+    
+    // 日期计算仍然基于天数位置（第几天）
     const startDate = new Date(plan.startDate);
-    startDate.setDate(startDate.getDate() + nextDayNumber - 1);
+    startDate.setDate(startDate.getDate() + plan.days.length);  // 基于当前天数
     const dateStr = startDate.toISOString().split('T')[0];
     
     try {
