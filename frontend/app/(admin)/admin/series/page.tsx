@@ -150,11 +150,11 @@ export default function SeriesManagementPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>名称</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="例如：Next.js 实战教程" />
+                <Input value={name} maxLength={30} onChange={e => setName(e.target.value)} placeholder="例如：Next.js 实战教程" />
               </div>
               <div className="space-y-2">
                 <Label>描述 (可选)</Label>
-                <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="简短描述该系列的主题" />
+                <Input value={description} maxLength={100} onChange={e => setDescription(e.target.value)} placeholder="简短描述该系列的主题" />
               </div>
             </div>
             <DialogFooter>
@@ -286,11 +286,11 @@ export default function SeriesManagementPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>名称</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} />
+                <Input value={name} maxLength={30} onChange={e => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>描述 (可选)</Label>
-                <Input value={description} onChange={e => setDescription(e.target.value)} />
+                <Input value={description} maxLength={100} onChange={e => setDescription(e.target.value)} />
               </div>
             </div>
             <DialogFooter>

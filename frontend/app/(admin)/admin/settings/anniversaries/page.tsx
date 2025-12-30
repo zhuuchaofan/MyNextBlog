@@ -275,6 +275,7 @@ export default function AnniversariesPage() {
                     <Input
                       id="title"
                       placeholder="如：相恋纪念日"
+                      maxLength={30}
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     />

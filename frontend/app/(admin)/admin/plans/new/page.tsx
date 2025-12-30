@@ -146,6 +146,7 @@ function NewPlanForm() {
               <Input
                 id="title"
                 placeholder="例如：东京5日游"
+                maxLength={50}
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
               />
@@ -157,6 +158,7 @@ function NewPlanForm() {
               <Textarea
                 id="description"
                 placeholder="计划描述..."
+                maxLength={200}
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
               />

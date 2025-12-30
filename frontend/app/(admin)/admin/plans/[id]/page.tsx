@@ -458,6 +458,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                     <Label className="text-xs text-gray-500">计划名称</Label>
                     <Input
                       value={plan.title}
+                      maxLength={50}
                       onChange={e => handleUpdatePlan('title', e.target.value)}
                       className="bg-white dark:bg-zinc-950"
                     />
