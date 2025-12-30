@@ -383,7 +383,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
                value={plan.status}
                onValueChange={value => handleUpdatePlan('status', value)}
              >
-               <SelectTrigger className="h-7 sm:h-8 w-auto min-w-[4rem] max-w-[5.5rem] sm:w-28 sm:max-w-none text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0 flex-shrink-0">
+                <SelectTrigger className="h-7 sm:h-8 w-auto min-w-[4.5rem] max-w-[6rem] sm:w-28 sm:max-w-none text-xs font-medium border-none bg-gray-100 dark:bg-zinc-800 focus:ring-1 focus:ring-offset-0 flex-shrink-0">
                  <SelectValue />
                </SelectTrigger>
                <SelectContent>

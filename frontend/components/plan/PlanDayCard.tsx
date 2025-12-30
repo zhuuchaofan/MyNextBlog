@@ -193,13 +193,13 @@ export function PlanDayCard({
                              --:--
                            </div>
                          )}
-                         {/* Location under time */}
-                         {activity.location && (
-                           <div className="flex items-start gap-0.5 text-xs text-gray-500 leading-tight">
-                             <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                             <span className="break-words">{activity.location}</span>
-                           </div>
-                         )}
+                         {/* Location under time (always show with placeholder) */}
+                         <div className="flex items-start gap-0.5 text-xs text-gray-400 leading-tight">
+                           <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                           <span className={`break-words ${activity.location ? 'text-gray-500' : 'text-gray-300 dark:text-zinc-600'}`}>
+                             {activity.location || '暂无'}
+                           </span>
+                         </div>
                       </div>
 
                       {/* Right Column: Title + Costs + Notes */}
