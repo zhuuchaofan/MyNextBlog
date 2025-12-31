@@ -1,16 +1,35 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
-using MyNextBlog.Services;
-using MyNextBlog.Extensions;
-using MyNextBlog.Mappers;  // 引入映射器（使用 Func 委托模式）
+// ============================================================================
+// Controllers/Api/CommentsController.cs - 评论 API 控制器
+// ============================================================================
+// 此控制器处理博客评论相关的 HTTP 请求。
+//
+// **公开接口**: 发表评论、获取评论列表
+// **管理接口**: 审核、批量操作、删除
+//
+// **安全特性**:
+//   - 频率限制 (60 秒内只能发一条)
+//   - XSS 过滤 (Service 层处理)
+//   - 敏感词检测
 
+// `using` 语句用于导入必要的命名空间
+using System.Security.Claims;          // 用户声明
+using Microsoft.AspNetCore.Mvc;         // ASP.NET Core MVC
+using Microsoft.AspNetCore.Authorization; // 授权特性
+using MyNextBlog.DTOs;                  // 数据传输对象
+using MyNextBlog.Models;                // 领域模型
+using MyNextBlog.Services;              // 业务服务
+using MyNextBlog.Extensions;            // 扩展方法
+using MyNextBlog.Mappers;               // DTO 映射器 (Func 委托模式)
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 评论管理控制器
+/// `CommentsController` 是评论模块的 API 控制器。
+/// 
+/// **路由**: `/api/comments`
+/// **公开接口**: POST (发表), GET (列表)
+/// **管理接口**: GET admin, PATCH approval, DELETE, batch-*
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]

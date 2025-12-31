@@ -1,14 +1,28 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.Services;
-using Microsoft.Extensions.Logging;
+// ============================================================================
+// Controllers/Api/HomeController.cs - 首页数据聚合 API 控制器
+// ============================================================================
+// 此控制器将首页所需的多个数据请求合并为单个端点。
+//
+// **设计目的**: 减少网络开销，原来需要 12 个请求，现在只需 1 个
+// **数据内容**: 文章列表、热门标签、站点配置
+//
+// **注意**: 不能使用 Task.WhenAll，因为 DbContext 不是线程安全的
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Mvc;       // ASP.NET Core MVC
+using Microsoft.EntityFrameworkCore;  // EF Core
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.Services;            // 业务服务
+using Microsoft.Extensions.Logging;   // 日志
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 首页数据聚合 API
-/// 将多个独立请求合并为单个端点，减少网络开销
+/// `HomeController` 是首页数据聚合的 API 控制器。
+/// 
+/// **路由**: `/api/home`
+/// **主要接口**: GET initial-data (聚合首页所有数据)
 /// </summary>
 [ApiController]
 [Route("api/home")]

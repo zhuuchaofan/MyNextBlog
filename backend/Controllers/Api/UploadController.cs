@@ -1,18 +1,34 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.Services;
-using SixLabors.ImageSharp;
+// ============================================================================
+// Controllers/Api/UploadController.cs - 图片上传 API 控制器
+// ============================================================================
+// 此控制器处理文章插图的上传，使用 Cloudflare R2 存储。
+//
+// **安全特性**:
+//   - 文件类型白名单 (jpg, png, gif, webp)
+//   - 图片格式验证 (ImageSharp)
+//   - GUID 文件名 (防止路径遍历)
+//
+// **图片生命周期**: 上传 -> 游离态 (PostId=null) -> 关联文章 / 24h 后清理
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Authentication.JwtBearer;  // JWT 认证
+using Microsoft.AspNetCore.Authorization;              // 授权
+using Microsoft.AspNetCore.Mvc;                        // ASP.NET Core MVC
+using MyNextBlog.Services;                             // 业务服务
+using SixLabors.ImageSharp;                            // 图片处理库
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 图片上传与管理控制器
-/// 负责处理文章插图的上传，并维护图片与文章的关联状态
+/// `UploadController` 是图片上传的 API 控制器。
+/// 
+/// **路由**: `/api/upload`
+/// **权限**: 需要 JWT 认证
+/// **接口**: POST (上传), POST cleanup (清理僵尸图片)
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-// 统一使用 JWT 认证，因为这是管理端或登录用户的操作
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] 
 public class UploadController(IStorageService storageService, IImageService imageService) : ControllerBase
 {

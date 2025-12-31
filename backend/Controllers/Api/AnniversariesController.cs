@@ -1,16 +1,26 @@
-// Controllers/Api/AnniversariesController.cs
-// 纪念日 API 控制器
+// ============================================================================
+// Controllers/Api/AnniversariesController.cs - 纪念日 API 控制器
+// ============================================================================
+// 此控制器处理纪念日相关的 HTTP 请求。
+//
+// **公开接口**: GET (获取启用的纪念日)
+// **管理接口**: CRUD 操作 (需要 Admin 权限)
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.DTOs;
-using MyNextBlog.Services;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Authorization;  // 授权特性
+using Microsoft.AspNetCore.Mvc;            // ASP.NET Core MVC
+using MyNextBlog.DTOs;                     // 数据传输对象
+using MyNextBlog.Services;                 // 业务服务
 
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 纪念日 API 控制器
-/// 提供公开查询和管理员 CRUD 操作
+/// `AnniversariesController` 是纪念日模块的 API 控制器。
+/// 
+/// **路由**: `/api/anniversaries`
+/// **公开接口**: GET (启用的纪念日)
+/// **管理接口**: admin/*, POST, PUT, DELETE
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]

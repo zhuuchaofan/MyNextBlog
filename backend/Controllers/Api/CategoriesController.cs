@@ -1,14 +1,28 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.DTOs;
-using MyNextBlog.Services;
+// ============================================================================
+// Controllers/Api/CategoriesController.cs - 分类 API 控制器
+// ============================================================================
+// 此控制器处理文章分类相关的 HTTP 请求。
+//
+// **权限**:
+//   - 读操作 (GET): 公开
+//   - 写操作 (POST): 需要 Admin 权限
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Authentication.JwtBearer;  // JWT 认证方案
+using Microsoft.AspNetCore.Authorization;              // 授权特性
+using Microsoft.AspNetCore.Mvc;                        // ASP.NET Core MVC
+using MyNextBlog.DTOs;                                 // 数据传输对象
+using MyNextBlog.Services;                             // 业务服务
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 分类管理控制器
-/// 默认所有写操作都需要 Admin 权限，读操作公开
+/// `CategoriesController` 是分类模块的 API 控制器。
+/// 
+/// **路由**: `/api/categories`
+/// **默认权限**: Admin (类级别)
+/// **公开接口**: GET (用 [AllowAnonymous] 覆盖)
 /// </summary>
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
 [Route("api/[controller]")]

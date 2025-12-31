@@ -1,15 +1,27 @@
-// Controllers/Admin/PlansController.cs
-// 计划管理 API 控制器（仅管理员可访问）
+// ============================================================================
+// Controllers/Admin/PlansController.cs - 计划管理 API 控制器
+// ============================================================================
+// 此控制器处理计划 (Plan) 的管理员 CRUD 操作。
+// 按照架构规范，Admin 专用 API 放在 Controllers/Admin 目录。
+//
+// **权限**: 所有接口需要 Admin 角色
+// **功能**: Plan CRUD, PlanDay CRUD, 预算统计
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.DTOs;
-using MyNextBlog.Services;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Authorization;  // 授权特性
+using Microsoft.AspNetCore.Mvc;            // ASP.NET Core MVC
+using MyNextBlog.DTOs;                     // 数据传输对象
+using MyNextBlog.Services;                 // 业务服务
 
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Admin;
 
 /// <summary>
-/// 计划管理 API - 仅管理员可访问
+/// `PlansController` 是计划模块的管理员 API 控制器。
+/// 
+/// **路由**: `/api/admin/plans`
+/// **权限**: Admin (类级别)
+/// **功能**: CRUD, 预算统计, 日程管理
 /// </summary>
 [Authorize(Roles = "Admin")]
 [Route("api/admin/plans")]

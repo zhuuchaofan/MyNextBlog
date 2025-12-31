@@ -1,10 +1,22 @@
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.Services;
+// ============================================================================
+// Controllers/Api/TagsController.cs - 标签 API 控制器
+// ============================================================================
+// 此控制器提供文章标签相关的查询接口。
+//
+// **功能**: 获取热门标签 (按使用频率排序)
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Mvc;  // ASP.NET Core MVC
+using MyNextBlog.Services;       // 业务服务
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 标签控制器
+/// `TagsController` 是标签模块的 API 控制器。
+/// 
+/// **路由**: `/api/tags`
+/// **公开接口**: GET popular
 /// </summary>
 [Route("api/tags")]
 [ApiController]

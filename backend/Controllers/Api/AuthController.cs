@@ -1,11 +1,28 @@
-using Microsoft.AspNetCore.Mvc;
-using MyNextBlog.DTOs;
-using MyNextBlog.Services;
+// ============================================================================
+// Controllers/Api/AuthController.cs - 认证 API 控制器
+// ============================================================================
+// 此控制器处理用户认证相关的 HTTP 请求。
+//
+// **功能**:
+//   - 登录/注册
+//   - Token 刷新
+//   - 密码重置
+//
+// **Token 策略**: Access Token (15 分钟) + Refresh Token (7 天)
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Mvc;  // ASP.NET Core MVC
+using MyNextBlog.DTOs;           // 数据传输对象
+using MyNextBlog.Services;       // 业务服务
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
-/// 认证控制器 (用户登录、注册等)
+/// `AuthController` 是认证模块的 API 控制器。
+/// 
+/// **路由**: `/api/auth`
+/// **接口**: login, register, refresh-token, forgot-password, reset-password
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
