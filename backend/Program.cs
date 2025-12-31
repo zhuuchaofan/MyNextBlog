@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MyNextBlog.Data;
 using MyNextBlog.Extensions;
@@ -23,7 +25,14 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 // ==================================================================
 // 服务注册 (Dependency Injection)
 // ==================================================================
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // 忽略循环引用，防止评论树序列化时抛出 JsonException
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // null 值不输出，减少 JSON 体积
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

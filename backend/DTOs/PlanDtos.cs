@@ -66,6 +66,8 @@ public record CreatePlanDto(
     string Type,
     string StartDate,
     string? EndDate,
+    
+    [Range(0, 999999999, ErrorMessage = "预算不能为负数")]
     decimal Budget = 0,
     string Currency = "CNY",
     bool IsSecret = false,
@@ -88,7 +90,11 @@ public record UpdatePlanDto(
     string? Type,
     string? StartDate,
     string? EndDate,
+    
+    [Range(0, 999999999, ErrorMessage = "预算不能为负数")]
     decimal? Budget,
+    
+    [Range(0, 999999999, ErrorMessage = "实际花费不能为负数")]
     decimal? ActualCost,
     string? Currency,
     string? Status,
@@ -164,6 +170,7 @@ public record CreateActivityDto(
     [StringLength(200, ErrorMessage = "备注不能超过200个字符")]
     string? Notes,
     
+    [Range(0, 999999999, ErrorMessage = "预估花费不能为负数")]
     decimal EstimatedCost = 0,
     int SortOrder = 0
 );
@@ -184,7 +191,10 @@ public record UpdateActivityDto(
     [StringLength(200, ErrorMessage = "备注不能超过200个字符")]
     string? Notes,
     
+    [Range(0, 999999999, ErrorMessage = "预估花费不能为负数")]
     decimal? EstimatedCost,
+    
+    [Range(0, 999999999, ErrorMessage = "实际花费不能为负数")]
     decimal? ActualCost,
     int? SortOrder
 );
