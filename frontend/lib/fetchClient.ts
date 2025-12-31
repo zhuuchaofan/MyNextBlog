@@ -1,4 +1,5 @@
-export async function fetchClient<T = unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchClient<T = any>(
   endpoint: string,
   options?: Omit<RequestInit, "body"> & { body?: unknown }
 ): Promise<T> {
