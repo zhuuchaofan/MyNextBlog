@@ -1,10 +1,16 @@
+// ============================================================================
+// app/(public)/series/[id]/page.tsx - 系列详情页
+// ============================================================================
+// 展示特定系列的信息和所属文章列表。
+// 支持管理员识别（Token → 无缓存），普通用户使用 60s ISR 缓存。
+
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { cookies } from 'next/headers';
 
-// Backend API call for series detail with posts
+// 获取系列详情 (Server-Side)
 async function getSeriesWithPosts(id: string) {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   
@@ -30,7 +36,7 @@ async function getSeriesWithPosts(id: string) {
   }
 }
 
-// Fetch posts in this series (using dedicated endpoint)
+// 获取系列下的文章列表 (Server-Side)
 async function getSeriesPosts(seriesId: string) {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   

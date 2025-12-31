@@ -1,3 +1,9 @@
+// ============================================================================
+// app/(public)/series/page.tsx - 系列文章列表页
+// ============================================================================
+// 展示所有系列文章，支持暗黑模式和响应式布局。
+// 使用 `force-dynamic` 避免构建时预渲染空结果。
+
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Library, BookOpen, ChevronRight } from 'lucide-react';
@@ -7,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 // 强制动态渲染，避免构建时预渲染空结果
 export const dynamic = 'force-dynamic';
 
-// 获取所有系列
+// 获取所有系列 (Server-Side)
 async function getAllSeries() {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   
