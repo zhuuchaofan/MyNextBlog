@@ -39,31 +39,6 @@ const skillLevelColors: Record<string, string> = {
   "初学": "bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 border-gray-200",
 };
 
-// 获取站点配置内容 (Server-Side)
-async function getSiteContent(key: string): Promise<string | null> {
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
-  try {
-    const res = await fetch(`${backendUrl}/api/site-content/${key}`, {
-      next: { revalidate: 60 }
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.success ? json.data.value : null;
-  } catch {
-    return null;
-  }
-}
-
-// 解析 JSON 配置，失败时返回默认值
-function parseJsonConfig<T>(jsonStr: string | null, defaultValue: T): T {
-  if (!jsonStr) return defaultValue;
-  try {
-    return JSON.parse(jsonStr) as T;
-  } catch {
-    return defaultValue;
-  }
-}
-
 // 定义类型
 interface AuthorConfig {
   name: string;
@@ -102,23 +77,38 @@ interface PetInfo {
   description: string;
 }
 
-// 获取关于页面所有配置数据
+// 获取关于页面所有配置数据 (使用聚合接口，替代原来的 9 个独立请求)
 async function getAboutPageData() {
-  // 获取所有配置内容
-  const [introContent, authorJson, skillsJson, timelineJson, booksJson, gearsJson, petsJson, thanksTitle, thanksContent] = await Promise.all([
-    getSiteContent('about_intro'),
-    getSiteContent('about_author'),
-    getSiteContent('about_skills'),
-    getSiteContent('about_timeline'),
-    getSiteContent('about_books'),
-    getSiteContent('about_gears'),
-    getSiteContent('about_pets'),
-    getSiteContent('about_thanks_title'),
-    getSiteContent('about_thanks_content')
-  ]);
+  const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
+  
+  // 使用聚合接口一次性获取所有数据
+  let contentDict: Record<string, string> = {};
+  try {
+    const res = await fetch(`${backendUrl}/api/about/initial-data`, {
+      next: { revalidate: 60 } // ISR 缓存 60 秒
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success) {
+        contentDict = json.data;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch about page data:', error);
+  }
+
+  // 解析 JSON 配置，失败时返回默认值
+  const parseJsonConfig = <T,>(jsonStr: string | undefined, defaultValue: T): T => {
+    if (!jsonStr) return defaultValue;
+    try {
+      return JSON.parse(jsonStr) as T;
+    } catch {
+      return defaultValue;
+    }
+  };
 
   // 使用 constants.ts 中的值作为默认回退
-  const author = parseJsonConfig<AuthorConfig>(authorJson, {
+  const author = parseJsonConfig<AuthorConfig>(contentDict['about_author'], {
     name: SITE_CONFIG.author,
     avatar: SITE_CONFIG.avatar,
     location: "日本·东京 (出向中)",
@@ -127,15 +117,15 @@ async function getAboutPageData() {
   });
 
   return {
-    aboutIntro: introContent || `${SITE_CONFIG.description}。欢迎一起交流！`,
+    aboutIntro: contentDict['about_intro'] || `${SITE_CONFIG.description}。欢迎一起交流！`,
     author,
-    skills: parseJsonConfig<SkillCategory[]>(skillsJson, SKILL_CATEGORIES),
-    timeline: parseJsonConfig<TimelineItem[]>(timelineJson, TIMELINE),
-    books: parseJsonConfig<BookItem[]>(booksJson, BOOKS),
-    gears: parseJsonConfig<GearCategory[]>(gearsJson, GEARS),
-    pets: parseJsonConfig<PetInfo[]>(petsJson, Object.values(PETS)),
-    thanksTitle: thanksTitle || "致我的女朋友",
-    thanksContent: thanksContent || "感谢你在中国对我全方位的支持与陪伴。即使相隔千里，你的鼓励与理解始终是我前行的动力。这个博客的每一行代码、每一篇文章，都承载着你的温暖与祝福。❤️"
+    skills: parseJsonConfig<SkillCategory[]>(contentDict['about_skills'], SKILL_CATEGORIES),
+    timeline: parseJsonConfig<TimelineItem[]>(contentDict['about_timeline'], TIMELINE),
+    books: parseJsonConfig<BookItem[]>(contentDict['about_books'], BOOKS),
+    gears: parseJsonConfig<GearCategory[]>(contentDict['about_gears'], GEARS),
+    pets: parseJsonConfig<PetInfo[]>(contentDict['about_pets'], Object.values(PETS)),
+    thanksTitle: contentDict['about_thanks_title'] || "致我的女朋友",
+    thanksContent: contentDict['about_thanks_content'] || "感谢你在中国对我全方位的支持与陪伴。即使相隔千里，你的鼓励与理解始终是我前行的动力。这个博客的每一行代码、每一篇文章，都承载着你的温暖与祝福。❤️"
   };
 }
 
