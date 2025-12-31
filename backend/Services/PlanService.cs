@@ -98,13 +98,30 @@ public class PlanService(AppDbContext context) : IPlanService
     
     public async Task<Plan> CreatePlanAsync(CreatePlanDto dto)
     {
+        // 安全解析日期，防止格式错误导致 500
+        if (!DateOnly.TryParse(dto.StartDate, out var startDate))
+            throw new ArgumentException($"开始日期格式无效: {dto.StartDate}");
+        
+        DateOnly? endDate = null;
+        if (dto.EndDate != null)
+        {
+            if (!DateOnly.TryParse(dto.EndDate, out var parsedEndDate))
+                throw new ArgumentException($"结束日期格式无效: {dto.EndDate}");
+            
+            // 业务校验：结束日期必须 >= 开始日期
+            if (parsedEndDate < startDate)
+                throw new ArgumentException("结束日期不能早于开始日期");
+            
+            endDate = parsedEndDate;
+        }
+        
         var plan = new Plan
         {
             Title = dto.Title,
             Description = dto.Description,
             Type = dto.Type,
-            StartDate = DateOnly.Parse(dto.StartDate),
-            EndDate = dto.EndDate != null ? DateOnly.Parse(dto.EndDate) : null,
+            StartDate = startDate,
+            EndDate = endDate,
             Budget = dto.Budget,
             Currency = dto.Currency,
             IsSecret = dto.IsSecret,
@@ -128,8 +145,26 @@ public class PlanService(AppDbContext context) : IPlanService
         if (dto.Title != null) plan.Title = dto.Title;
         if (dto.Description != null) plan.Description = dto.Description;
         if (dto.Type != null) plan.Type = dto.Type;
-        if (dto.StartDate != null) plan.StartDate = DateOnly.Parse(dto.StartDate);
-        if (dto.EndDate != null) plan.EndDate = DateOnly.Parse(dto.EndDate);
+        
+        // 安全解析日期
+        if (dto.StartDate != null)
+        {
+            if (!DateOnly.TryParse(dto.StartDate, out var startDate))
+                throw new ArgumentException($"开始日期格式无效: {dto.StartDate}");
+            plan.StartDate = startDate;
+        }
+        if (dto.EndDate != null)
+        {
+            if (!DateOnly.TryParse(dto.EndDate, out var endDate))
+                throw new ArgumentException($"结束日期格式无效: {dto.EndDate}");
+            
+            // 业务校验：结束日期必须 >= 开始日期
+            if (endDate < plan.StartDate)
+                throw new ArgumentException("结束日期不能早于开始日期");
+            
+            plan.EndDate = endDate;
+        }
+        
         if (dto.Budget.HasValue) plan.Budget = dto.Budget.Value;
         if (dto.ActualCost.HasValue) plan.ActualCost = dto.ActualCost.Value;
         if (dto.Currency != null) plan.Currency = dto.Currency;
@@ -161,11 +196,15 @@ public class PlanService(AppDbContext context) : IPlanService
     
     public async Task<PlanDay> AddDayAsync(int planId, CreatePlanDayDto dto)
     {
+        // 安全解析日期
+        if (!DateOnly.TryParse(dto.Date, out var date))
+            throw new ArgumentException($"日期格式无效: {dto.Date}");
+        
         var day = new PlanDay
         {
             PlanId = planId,
             DayNumber = dto.DayNumber,
-            Date = DateOnly.Parse(dto.Date),
+            Date = date,
             Theme = dto.Theme
         };
         
@@ -181,7 +220,12 @@ public class PlanService(AppDbContext context) : IPlanService
         if (day == null) return null;
         
         if (dto.DayNumber.HasValue) day.DayNumber = dto.DayNumber.Value;
-        if (dto.Date != null) day.Date = DateOnly.Parse(dto.Date);
+        if (dto.Date != null)
+        {
+            if (!DateOnly.TryParse(dto.Date, out var date))
+                throw new ArgumentException($"日期格式无效: {dto.Date}");
+            day.Date = date;
+        }
         if (dto.Theme != null) day.Theme = dto.Theme;
         
         await context.SaveChangesAsync();

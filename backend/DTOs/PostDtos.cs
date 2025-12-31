@@ -98,8 +98,13 @@ public record CreatePostDto(
     // `[Required(ErrorMessage = "...")`: 数据注解，表示此字段在 HTTP 请求体中是必填的。
     // 如果客户端没有提供 `Title` 或 `Content`，ASP.NET Core 会自动返回 `400 Bad Request` 响应，
     // 包含指定的错误消息。
-    [Required(ErrorMessage = "标题不能为空")] string Title,    // 必填：新文章的标题
-    [Required(ErrorMessage = "内容不能为空")] string Content,  // 必填：新文章的正文内容
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(200, ErrorMessage = "标题不能超过200个字符")]
+    string Title,    // 必填：新文章的标题
+    
+    [Required(ErrorMessage = "内容不能为空")]
+    [StringLength(100000, ErrorMessage = "内容不能超过100000个字符")]
+    string Content,  // 必填：新文章的正文内容
     int? CategoryId,                                         // 可选：新文章所属分类的 ID
     List<string>? Tags,                                      // 可选：新文章关联的标签名称列表
     int? SeriesId,                                           // 可选：所属系列 ID
@@ -111,8 +116,13 @@ public record CreatePostDto(
 /// 它定义了更新文章时可修改的字段，并包含输入验证规则。
 /// </summary>
 public record UpdatePostDto(
-    [Required(ErrorMessage = "标题不能为空")] string Title,    // 必填：更新后的文章标题
-    [Required(ErrorMessage = "内容不能为空")] string Content,  // 必填：更新后的文章正文内容
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(200, ErrorMessage = "标题不能超过200个字符")]
+    string Title,    // 必填：更新后的文章标题
+    
+    [Required(ErrorMessage = "内容不能为空")]
+    [StringLength(100000, ErrorMessage = "内容不能超过100000个字符")]
+    string Content,  // 必填：更新后的文章正文内容
     int? CategoryId,                                         // 可选：更新后的文章分类 ID
     List<string>? Tags,                                      // 可选：更新后的文章标签列表
     bool IsHidden,                                           // 更新后的文章可见性状态

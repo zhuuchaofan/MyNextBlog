@@ -41,7 +41,7 @@ public static class CommentMappers
         // 递归映射子评论：使用相同的委托处理 Children 集合
         // 这里展示了委托的强大之处：可以自引用
         // 使用 ?? 处理可能的 null，避免编译警告
-        (c.Children ?? Enumerable.Empty<Comment>()).Select(ToDto).ToList()
+        (c.Children ?? Enumerable.Empty<Comment>()).Select(ToDto!).ToList()
     );
 
     /// <summary>

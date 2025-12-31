@@ -81,11 +81,15 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
     /// </summary>
     public async Task<Anniversary> CreateAsync(CreateAnniversaryDto dto)
     {
+        // 安全解析日期
+        if (!DateOnly.TryParse(dto.StartDate, out var startDate))
+            throw new ArgumentException($"日期格式无效: {dto.StartDate}");
+        
         var anniversary = new Anniversary
         {
             Title = dto.Title,
             Emoji = dto.Emoji,
-            StartDate = DateOnly.Parse(dto.StartDate),
+            StartDate = startDate,
             RepeatType = dto.RepeatType,
             DisplayType = dto.DisplayType,
             EnableReminder = dto.EnableReminder,
@@ -111,9 +115,13 @@ public class AnniversaryService(AppDbContext context) : IAnniversaryService
         var anniversary = await context.Anniversaries.FindAsync(id);
         if (anniversary == null) return null;
         
+        // 安全解析日期
+        if (!DateOnly.TryParse(dto.StartDate, out var startDate))
+            throw new ArgumentException($"日期格式无效: {dto.StartDate}");
+        
         anniversary.Title = dto.Title;
         anniversary.Emoji = dto.Emoji;
-        anniversary.StartDate = DateOnly.Parse(dto.StartDate);
+        anniversary.StartDate = startDate;
         anniversary.RepeatType = dto.RepeatType;
         anniversary.DisplayType = dto.DisplayType;
         

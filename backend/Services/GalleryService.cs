@@ -8,6 +8,10 @@ public class GalleryService(AppDbContext context) : IGalleryService
 {
     public async Task<GalleryResponseDto> GetImagesAsync(int page, int pageSize, string? keyword)
     {
+        // 防御性检查：防止负数导致 Skip() 抛出异常
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        
         // 1. 构建基础查询
         // 核心规则：只展示"公开文章"中的图片。
         // 如果文章被隐藏 (IsHidden=true)，它的图片也不应该在公共图库中显示。

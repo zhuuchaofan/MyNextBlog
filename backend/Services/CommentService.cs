@@ -194,7 +194,7 @@ public class CommentService(
                     
                     if (rendered.HasValue)
                     {
-                        await scopedEmailService.SendEmailAsync(adminEmail, rendered.Value.Subject, rendered.Value.Body);
+                        await scopedEmailService.SendEmailAsync(adminEmail!, rendered.Value.Subject, rendered.Value.Body);
                     }
                 }
             }
@@ -244,6 +244,10 @@ public class CommentService(
 
     public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
     {
+        // 防御性检查：防止负数导致 Skip() 抛出异常
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        
         // 1. 获取该文章所有已审核的评论（扁平化加载）
         var allComments = await context.Comments
             .AsNoTracking()
@@ -287,6 +291,10 @@ public class CommentService(
 
     public async Task<(List<Comment> Comments, int TotalCount)> GetAllCommentsForAdminAsync(int page, int pageSize, bool? isApproved)
     {
+        // 防御性检查：防止负数导致 Skip() 抛出异常
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        
         var query = context.Comments
             .AsNoTracking()
             .Include(c => c.Post)

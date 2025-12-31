@@ -46,6 +46,10 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
     {
         // 0. 判断是否为“纯净首页”请求 (只有这种情况才值得缓存)
+        // 防御性检查：防止负数导致 Skip() 抛出异常
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         bool isCacheable = page == 1 && 
                            !categoryId.HasValue && 
                            string.IsNullOrWhiteSpace(searchTerm) && 
@@ -457,6 +461,10 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// </summary>
     public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetDeletedPostsAsync(int page, int pageSize)
     {
+        // 防御性检查：防止负数导致 Skip() 抛出异常
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        
         var query = context.Posts
             .AsNoTracking()
             .Where(p => p.IsDeleted);
