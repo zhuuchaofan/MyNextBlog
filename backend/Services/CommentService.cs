@@ -1,14 +1,46 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using MyNextBlog.Data;
-using MyNextBlog.Models;
-using Ganss.Xss;
-using MyNextBlog.Services.Email;
-using Microsoft.Extensions.Logging;
+// ============================================================================
+// Services/CommentService.cs - 评论服务实现
+// ============================================================================
+// 此服务负责博客评论的核心业务逻辑，包括：
+//   - 评论的创建、审核、删除
+//   - 频率限制 (Rate Limiting) 防止 Spam
+//   - 敏感词过滤和 XSS 防护
+//   - 评论通知邮件发送 (异步后台任务)
+//   - 评论树形结构构建 (支持无限层嵌套)
+//
+// **安全特性**:
+//   - 使用 HtmlSanitizer 过滤 XSS 攻击
+//   - IP 级别的频率限制 (60 秒内只能发表一条)
+//   - 敏感词自动进入审核队列
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;           // EF Core 数据库操作
+using Microsoft.Extensions.Caching.Memory;      // 内存缓存 (用于频率限制)
+using Microsoft.Extensions.DependencyInjection; // DI 容器 (用于后台任务作用域)
+using MyNextBlog.Data;                          // 数据访问层
+using MyNextBlog.Models;                        // 领域模型
+using Ganss.Xss;                                // HtmlSanitizer 库 (XSS 防护)
+using MyNextBlog.Services.Email;                // 邮件服务
+using Microsoft.Extensions.Logging;             // 日志
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// `CommentService` 是评论模块的核心业务服务类，实现 `ICommentService` 接口。
+/// 
+/// **主要职责**:
+///   - 评论 CRUD 操作
+///   - 安全过滤 (XSS、敏感词)
+///   - 邮件通知 (新评论、回复、审核)
+///   - 构建评论树形结构
+/// 
+/// **依赖注入**:
+///   - `AppDbContext`: 数据库上下文
+///   - `IHtmlSanitizer`: XSS 过滤器
+///   - `IMemoryCache`: 频率限制缓存
+///   - `IServiceScopeFactory`: 后台任务作用域工厂
+/// </summary>
 public class CommentService(
     AppDbContext context,
     IHtmlSanitizer sanitizer,

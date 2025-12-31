@@ -1,9 +1,29 @@
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
+// ============================================================================
+// Services/GalleryService.cs - 图库服务实现
+// ============================================================================
+// 此服务负责博客图库功能，提供文章中图片的聚合展示。
+//
+// **核心逻辑**:
+//   - 只展示公开文章 (!IsHidden) 中的图片
+//   - 支持按分类名称或标签名称筛选
+//   - 返回图片的宽高信息用于瀑布流布局
+//
+// **使用场景**: 猫咪相册页面 (keyword=猫咪)
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core 数据库操作
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// `GalleryService` 是图库模块的服务类，实现 `IGalleryService` 接口。
+/// 
+/// **主要功能**:
+///   - `GetImagesAsync`: 获取图片列表，支持分页和关键词筛选
+/// </summary>
 public class GalleryService(AppDbContext context) : IGalleryService
 {
     public async Task<GalleryResponseDto> GetImagesAsync(int page, int pageSize, string? keyword)

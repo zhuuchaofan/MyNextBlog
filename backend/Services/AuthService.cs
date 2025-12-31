@@ -1,18 +1,49 @@
-using System.IdentityModel.Tokens.Jwt; 
-using System.Security.Claims;          
-using System.Text;
-using System.Security.Cryptography; // Added for RNG and SHA256
-using Microsoft.EntityFrameworkCore;   
-using Microsoft.Extensions.Configuration; 
-using Microsoft.Extensions.Logging; // 引入日志命名空间
-using Microsoft.IdentityModel.Tokens;  
-using MyNextBlog.Data;                 
-using MyNextBlog.DTOs;                 
-using MyNextBlog.Models;               
-using MyNextBlog.Services.Email;
+// ============================================================================
+// Services/AuthService.cs - 认证服务实现
+// ============================================================================
+// 此服务负责用户认证和授权的核心业务逻辑，包括：
+//   - 用户登录/注册
+//   - JWT Access Token 生成
+//   - Refresh Token 轮换和多设备支持
+//   - 密码重置流程
+//
+// **安全策略**:
+//   - 使用 BCrypt 进行密码哈希 (抵抗彩虹表攻击)
+//   - Refresh Token 存储为 SHA256 哈希 (即使数据库泄露也无法直接使用)
+//   - 智能轮换策略：Token 剩余 < 3 天时才轮换 (防止并发请求"惊群效应")
+//   - 密码重置后自动废弃所有设备的 Refresh Token
 
+// `using` 语句用于导入必要的命名空间
+using System.IdentityModel.Tokens.Jwt;  // JWT Token 处理
+using System.Security.Claims;           // 用户声明 (Claims)
+using System.Text;                      // 字符串编码
+using System.Security.Cryptography;     // 加密算法 (SHA256, RNG)
+using Microsoft.EntityFrameworkCore;    // EF Core 数据库操作
+using Microsoft.Extensions.Configuration; // 配置访问
+using Microsoft.Extensions.Logging;     // 日志
+using Microsoft.IdentityModel.Tokens;   // JWT 签名凭据
+using MyNextBlog.Data;                  // 数据访问层
+using MyNextBlog.DTOs;                  // 数据传输对象
+using MyNextBlog.Models;                // 领域模型
+using MyNextBlog.Services.Email;        // 邮件服务 (密码重置)
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// `AuthService` 是认证模块的核心服务类，实现 `IAuthService` 接口。
+/// 
+/// **主要功能**:
+///   - `LoginAsync`: 用户登录，返回 Access Token 和 Refresh Token
+///   - `RefreshTokenAsync`: 刷新 Token，支持懒惰轮换策略
+///   - `RegisterAsync`: 用户注册，自动登录
+///   - `ForgotPasswordAsync` / `ResetPasswordAsync`: 密码重置流程
+/// 
+/// **Token 策略**:
+///   - Access Token: 15 分钟有效期，存储于 HttpOnly Cookie
+///   - Refresh Token: 7 天有效期，剩余 < 3 天时自动轮换
+///   - 多设备支持：每个设备独立的 Refresh Token，互不影响
+/// </summary>
 public class AuthService(
     AppDbContext context, 
     IConfiguration configuration, 

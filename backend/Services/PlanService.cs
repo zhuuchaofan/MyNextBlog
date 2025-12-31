@@ -1,15 +1,32 @@
-// Services/PlanService.cs
-// 计划服务实现
+// ============================================================================
+// Services/PlanService.cs - 计划服务实现
+// ============================================================================
+// 此服务负责旅行/活动计划的核心业务逻辑，包括：
+//   - 计划 (Plan) 的 CRUD 操作
+//   - 日程 (PlanDay) 的管理
+//   - 活动 (PlanActivity) 的管理和排序
+//   - 公开分享功能 (IsSecret = false 的计划可匿名访问)
+//
+// **数据结构**: Plan -> PlanDay[] -> PlanActivity[] (三层嵌套)
+// **日期处理**: 使用 DateOnly.TryParse 安全解析，无效日期返回 400
 
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core 数据库操作
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
+using MyNextBlog.Models;              // 领域模型
 
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>
-/// 计划服务实现，提供计划 CRUD 及嵌套日程/活动管理
+/// `PlanService` 是计划模块的核心服务类，实现 `IPlanService` 接口。
+/// 
+/// **主要功能**:
+///   - 计划 CRUD: 创建、读取、更新、删除计划
+///   - 日程管理: 添加/删除天数，更新日程主题
+///   - 活动管理: 添加/更新/删除活动，批量排序
+///   - 公开预览: 非私密计划可通过公开 API 访问
 /// </summary>
 public class PlanService(AppDbContext context) : IPlanService
 {

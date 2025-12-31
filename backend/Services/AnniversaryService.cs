@@ -1,15 +1,32 @@
-// Services/AnniversaryService.cs
-// 纪念日服务实现
+// ============================================================================
+// Services/AnniversaryService.cs - 纪念日服务实现
+// ============================================================================
+// 此服务负责纪念日功能的核心业务逻辑，包括：
+//   - 纪念日的 CRUD 操作
+//   - 公开展示 (IsActive = true 的纪念日)
+//   - 管理后台 (支持排序和状态切换)
+//   - 日期计算 (天数差、下次纪念日等)
+//
+// **日期处理**: 使用 DateOnly.TryParse 安全解析，无效日期返回 400
+// **缓存策略**: 内存缓存 30 分钟，公开 API 自动失效
 
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core 数据库操作
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
+using MyNextBlog.Models;              // 领域模型
 
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>
-/// 纪念日服务实现，提供纪念日的 CRUD 操作
+/// `AnniversaryService` 是纪念日模块的核心服务类，实现 `IAnniversaryService` 接口。
+/// 
+/// **主要功能**:
+///   - `GetActiveAnniversariesAsync`: 获取所有启用的纪念日 (公开 API)
+///   - `GetAllAsync`: 获取所有纪念日 (管理后台)
+///   - CRUD 操作: 创建、更新、删除纪念日
+///   - `ToggleActiveAsync`: 切换纪念日的启用状态
 /// </summary>
 public class AnniversaryService(AppDbContext context) : IAnniversaryService
 {
