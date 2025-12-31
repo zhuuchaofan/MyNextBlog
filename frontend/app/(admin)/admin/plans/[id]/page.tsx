@@ -254,6 +254,10 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
         .sort((a, b) => a.dayNumber - b.dayNumber);
       
       // 3. 重新编号并计算日期 (1, 2, 3...)
+      // 注意：只更新 dayNumber 和 date，保留用户自定义的 theme
+      // 未来如果实现"在中间插入某天"功能，需要同样遵循此原则：
+      //   - 插入后，后续天的 dayNumber 和 date 需要后移
+      //   - 但各天的 theme 应保持不变
       const planStartDate = new Date(plan.startDate);
       const reorderedDays = remainingDays.map((day, index) => {
         const newDate = new Date(planStartDate);
@@ -262,7 +266,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
           ...day,
           dayNumber: index + 1,
           date: newDate.toISOString().split('T')[0],
-          theme: `Day ${index + 1}`,
+          // theme: 保留用户自定义值，不覆盖
         };
       });
       
@@ -275,7 +279,7 @@ export default function PlanEditPage({ params }: { params: Promise<{ id: string 
             return updatePlanDay(planId, day.id, { 
               dayNumber: day.dayNumber,
               date: day.date,
-              theme: day.theme 
+              theme: day.theme ?? undefined 
             });
           }
           return Promise.resolve();
