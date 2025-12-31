@@ -1,8 +1,18 @@
-// DTOs/PlanDtos.cs
-// 计划功能相关的数据传输对象
+// ============================================================================
+// DTOs/PlanDtos.cs - 计划功能相关的数据传输对象
+// ============================================================================
+// 此文件定义了计划 (Plan)、日程 (PlanDay)、活动 (PlanActivity) 的 DTO。
+// 用于 API 请求/响应的数据结构和输入验证。
+//
+// **DTO 分类**:
+//   - 输出 DTO: PlanListDto, PlanDetailDto (API 响应)
+//   - 输入 DTO: CreatePlanDto, UpdatePlanDto (API 请求，带验证)
+//   - 公开 DTO: PublicPlanDetailDto (无需认证的公开预览)
 
-using System.ComponentModel.DataAnnotations;
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 引入数据注解，用于输入验证 ([Required], [Range] 等)
 
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
 // ========== Plan DTOs ==========
