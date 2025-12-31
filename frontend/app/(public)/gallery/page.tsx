@@ -27,8 +27,9 @@ export default function GalleryPage() {
 
   // `useEffect` 钩子，在组件首次挂载时获取图片数据
   useEffect(() => {
-    // 调用 API 获取所有图库图片。`pageSize=100` 适用于小规模博客。
-    fetch('/api/backend/gallery?pageSize=100')
+    // 调用 API 获取带"猫咪"标签的文章图片。
+    // 只展示标签包含"猫咪"的文章中的图片，而不是所有文章的图片。
+    fetch('/api/backend/gallery?pageSize=100&keyword=猫咪')
       .then(res => res.json())
       .then(data => {
         if (data.success) setImages(data.data); // 更新图片列表状态
