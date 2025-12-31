@@ -84,11 +84,11 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-4xl">
       {/* Back Link */}
       <Link 
-        href="/" 
+        href="/series" 
         className="inline-flex items-center text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        返回首页
+        返回系列列表
       </Link>
       
       {/* Series Header */}
