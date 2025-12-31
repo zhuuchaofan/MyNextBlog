@@ -112,7 +112,7 @@ function SearchResults() {
           {tag ? (
             <>标签: <span className="text-orange-600 dark:text-orange-400">#{tag}</span></>
           ) : (
-            <>搜索: <span className="text-orange-600 dark:text-orange-400">"{query}"</span></>
+            <>搜索: <span className="text-orange-600 dark:text-orange-400">&ldquo;{query}&rdquo;</span></>
           )}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2">找到 {posts.length} 个相关结果</p>

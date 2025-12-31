@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE, COOKIE_OPTIONS } from '@/lib/auth-config';
+import { refreshTokenSingleton } from '@/lib/tokenRefresh';
 
 /**
  * GET /api/auth/me
  * 检查用户登录状态。如果 Access Token 失效但 Refresh Token 有效，则自动刷新。
+ * 使用 refreshTokenSingleton 避免并发刷新问题。
  */
 export async function GET() {
   const cookieStore = await cookies();
@@ -22,17 +24,12 @@ export async function GET() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    // 如果 401 且有 Refresh Token，尝试刷新
+    // 如果 401 且有 Refresh Token，尝试刷新（使用单例刷新避免并发）
     if (res.status === 401 && refreshToken) {
-      const refreshRes = await fetch(`${backendUrl}/api/auth/refresh-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: token || "", refreshToken }),
-      });
+      const refreshResult = await refreshTokenSingleton(token, refreshToken, backendUrl);
 
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        token = refreshData.token;
+      if (refreshResult.success && refreshResult.accessToken) {
+        token = refreshResult.accessToken;
 
         // 用新 Token 重试
         res = await fetch(`${backendUrl}/api/account/me`, {
@@ -45,7 +42,7 @@ export async function GET() {
 
           // 更新 Cookies
           response.cookies.set('token', token!, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE });
-          response.cookies.set('refresh_token', refreshData.refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE });
+          response.cookies.set('refresh_token', refreshResult.refreshToken!, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE });
 
           return response;
         }

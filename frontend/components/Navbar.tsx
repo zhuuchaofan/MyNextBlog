@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -17,16 +17,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
+import { useMounted } from '@/hooks/useMounted';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // 使用自定义 Hook 避免 ESLint set-state-in-effect 警告
+  const mounted = useMounted();
 
   const navLinks = [
     { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },

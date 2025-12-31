@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE, COOKIE_OPTIONS } from '@/lib/auth-config';
+import { refreshTokenSingleton } from '@/lib/tokenRefresh';
 
 /**
  * Next.js Middleware
@@ -23,29 +24,18 @@ export async function middleware(request: NextRequest) {
   // Token 过期检测
   const isExpired = accessToken ? isTokenExpired(accessToken) : true;
 
-  // Token 刷新逻辑
+  // Token 刷新逻辑：使用单例刷新函数避免并发请求
   let newAccessToken: string | null = null;
   let newRefreshToken: string | null = null;
 
   if ((!accessToken || isExpired) && refreshToken) {
     const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
     
-    try {
-      const refreshRes = await fetch(`${backendUrl}/api/auth/refresh-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: accessToken || "", refreshToken }),
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (refreshRes.ok) {
-        const data = await refreshRes.json();
-        newAccessToken = data.token;
-        newRefreshToken = data.refreshToken;
-        accessToken = newAccessToken!;
-      }
-    } catch (error) {
-      console.error("[Middleware] Token refresh error:", error);
+    const result = await refreshTokenSingleton(accessToken, refreshToken, backendUrl);
+    if (result.success && result.accessToken && result.refreshToken) {
+      newAccessToken = result.accessToken;
+      newRefreshToken = result.refreshToken;
+      accessToken = newAccessToken;
     }
   }
 
