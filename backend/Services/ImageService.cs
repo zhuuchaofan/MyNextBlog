@@ -1,13 +1,27 @@
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.Models;
-using Microsoft.Extensions.Logging;
+// ============================================================================
+// Services/ImageService.cs - 图片资源服务实现
+// ============================================================================
+// 此服务负责图片资源的生命周期管理。
+//
+// **图片生命周期**: 上传 -> 游离态 (PostId=null) -> 关联文章 / 24h 后清理
+// **存储**: Cloudflare R2 (S3 兼容)
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.Models;              // 领域模型
+using Microsoft.Extensions.Logging;   // 日志
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>
-/// 图片资源管理服务
-/// 负责跟踪图片的生命周期：上传记录 -> 关联文章 -> 清理废弃图片
+/// `ImageService` 是图片资源模块的服务类，实现 `IImageService` 接口。
+/// 
+/// **主要功能**:
+///   - `RecordImageAsync`: 记录上传的图片
+///   - `AssociateImagesAsync`: 关联图片到文章
+///   - `CleanupOrphanedImagesAsync`: 清理僵尸图片
 /// </summary>
 public class ImageService(AppDbContext context, IStorageService storageService, ILogger<ImageService> logger) : IImageService
 {

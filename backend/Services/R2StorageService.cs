@@ -1,14 +1,30 @@
-using Amazon.S3;
-using Amazon.S3.Transfer;
-using Amazon.S3.Model;
-using Polly;
-using Polly.Retry;
+// ============================================================================
+// Services/R2StorageService.cs - Cloudflare R2 对象存储服务
+// ============================================================================
+// 此服务封装了与 Cloudflare R2 的交互逻辑。
+// R2 是 Cloudflare 提供的 S3 兼容对象存储，无出口流量费。
+//
+// **依赖**: AWS SDK for .NET (Amazon.S3)
+// **特性**: 
+//   - 自动重试 (Polly)
+//   - 安全文件名生成 (GUID)
+//   - 按日期自动归档
 
+// `using` 语句用于导入必要的命名空间
+using Amazon.S3;           // AWS S3 核心库
+using Amazon.S3.Transfer;   // 文件传输工具
+using Amazon.S3.Model;      // S3 请求/响应模型
+using Polly;                // 弹性容错库
+using Polly.Retry;          // 重试策略
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>
-/// Cloudflare R2 存储服务实现
-/// 使用 AWS SDK for .NET (S3 协议兼容) 与 R2 进行交互
+/// `R2StorageService` 是存储模块的实现类，对接 Cloudflare R2。
+/// 实现 `IStorageService` 接口。
+/// 
+/// **配置**: 需要在 appsettings.json 中配置 CloudflareR2 节点
 /// </summary>
 public class R2StorageService : IStorageService
 {

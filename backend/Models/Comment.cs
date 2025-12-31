@@ -1,7 +1,27 @@
-using System.ComponentModel.DataAnnotations;
+// ============================================================================
+// Models/Comment.cs - 评论实体
+// ============================================================================
+// 此实体映射 `Comments` 表，存储文章的评论数据。
+//
+// **特性**:
+//   - 树形结构: 支持嵌套回复 (Infinite Nesting)
+//   - 混合身份: 支持 注册用户 (UserId) 和 匿名游客 (GuestName)
+//   - 审核机制: IsApproved 字段控制显示
 
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Models;
 
+/// <summary>
+/// `Comment` 实体代表用户或游客发表的评论。
+/// 
+/// **关系**:
+///   - `Post`: 多对一 (必填)
+///   - `User`: 多对一 (可选，游客为 null)
+///   - `Parent`/`Children`: 自引用 (实现无限层级)
+/// </summary>
 public class Comment
 {
     public int Id { get; set; }

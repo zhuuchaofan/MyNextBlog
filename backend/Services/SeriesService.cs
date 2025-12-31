@@ -1,10 +1,22 @@
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// ============================================================================
+// Services/SeriesService.cs - 文章系列服务实现
+// ============================================================================
+// 此服务负责文章系列的管理，用于组织相关文章。
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
+using MyNextBlog.Models;              // 领域模型
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// `SeriesService` 是文章系列模块的服务类，实现 `ISeriesService` 接口。
+/// 
+/// **主要功能**: 系列 CRUD，获取系列文章列表，自动排序
+/// </summary>
 public class SeriesService(AppDbContext context) : ISeriesService
 {
     public async Task<List<SeriesDto>> GetAllSeriesAsync(bool includeHidden = false)

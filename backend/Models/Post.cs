@@ -1,9 +1,18 @@
+// ============================================================================
+// Models/Post.cs - 文章实体
+// ============================================================================
+// 此实体映射 `Posts` 表，是博客系统的核心内容单元。
+//
+// **特性**:
+//   - 所见即所得: Markdown 存储 (Content)
+//   - 分类体系: Category (多对一), Tags (多对多), Series (多对一)
+//   - 软删除: IsDeleted, DeletedAt
+
 // `using` 语句用于导入必要的命名空间。
 using System.ComponentModel.DataAnnotations; // 引入数据注解命名空间，用于在模型属性上添加验证规则，例如 `[Required]`。
 
 // `namespace` 声明了当前文件中的代码所属的命名空间。
 namespace MyNextBlog.Models;
-
 /// <summary>
 /// `Post` 类代表了博客系统中的一篇文章实体。
 /// 这是一个“领域模型 (Domain Model)”或“实体类 (Entity Class)”，它直接映射到数据库中的一张表。

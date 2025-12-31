@@ -1,13 +1,23 @@
-// Services/IPlanService.cs
-// 计划服务接口定义
+// ============================================================================
+// Services/IPlanService.cs - 计划服务接口
+// ============================================================================
+// 此接口定义了旅行/活动计划管理的业务契约。
+//
+// **核心功能**: 
+//   - Plan (计划) -> PlanDay (日程) -> PlanActivity (活动) 的级联管理
+//   - 预算统计与排序优化
 
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// `using` 语句用于导入必要的命名空间
+using MyNextBlog.DTOs;    // 数据传输对象
+using MyNextBlog.Models;  // 领域模型
 
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>
-/// 计划服务接口，提供计划 CRUD 及嵌套日程/活动管理
+/// `IPlanService` 定义了计划模块的业务逻辑接口。
+/// 
+/// **职责**: 计划全生命周期管理，公开预览，预算分析
 /// </summary>
 public interface IPlanService
 {

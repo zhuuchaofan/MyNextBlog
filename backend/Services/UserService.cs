@@ -1,10 +1,27 @@
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// ============================================================================
+// Services/UserService.cs - 用户/个人资料服务实现
+// ============================================================================
+// 此服务负责用户基本信息和扩展资料的管理。
+//
+// **安全特性**:
+//   - 头像上传安全检查 (Magic Bytes 验证)
+//   - 邮箱格式验证
+//   - 输入长度限制
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;  // EF Core
+using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
+using MyNextBlog.Models;              // 领域模型
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
+/// <summary>
+/// `UserService` 是用户模块的服务类，实现 `IUserService` 接口。
+/// 
+/// **主要功能**: 获取/更新个人资料，头像上传
+/// </summary>
 public class UserService(AppDbContext context, IStorageService storageService) : IUserService
 {
     // 允许的图片格式及其 Magic Bytes（文件头）

@@ -1,13 +1,24 @@
-// Services/EmailTemplateService.cs
-// 邮件模板服务实现
+// ============================================================================
+// Services/EmailTemplateService.cs - 邮件模板服务实现
+// ============================================================================
+// 此服务负责邮件模板的 CRUD、缓存和渲染。
+//
+// **核心功能**:
+//   - 模板渲染: 变量替换 {{Key}}
+//   - 安全防御: 自动对插值进行 HTML 编码，防止 XSS
+//   - 性能优化: 30分钟内存缓存
+//
+// **占位符**: 支持 Subject (纯文本) 和 Body (HTML)
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using System.Web;  // 引入 HTML 编码工具，用于 XSS 防护
-using MyNextBlog.Data;
-using MyNextBlog.DTOs;
-using MyNextBlog.Models;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.EntityFrameworkCore;         // EF Core
+using Microsoft.Extensions.Caching.Memory;    // 内存缓存
+using System.Web;                             // HTML 编码
+using MyNextBlog.Data;                        // 数据访问层
+using MyNextBlog.DTOs;                        // DTO
+using MyNextBlog.Models;                      // 领域模型
 
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Services;
 
 /// <summary>

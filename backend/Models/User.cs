@@ -1,7 +1,26 @@
-using System.ComponentModel.DataAnnotations;
+// ============================================================================
+// Models/User.cs - 用户/账户实体
+// ============================================================================
+// 此实体映射 `Users` 表，存储用户的基本账户信息和凭证。
+//
+// **核心功能**:
+//   - 认证凭证: Username, PasswordHash (BCrypt)
+//   - 权限控制: Role (Admin/User)
+//   - 个人资料: 基本字段 (Nickname, Bio 等) + 关联 UserProfile
 
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Models;
 
+/// <summary>
+/// `User` 实体代表系统中的注册用户。
+/// 
+/// **特性**:
+///   - 扩展性: 通过 `UserProfile` 1对1 关联存储详细信息
+///   - 安全性: 支持多设备登录 (`RefreshTokens` 1对多)
+/// </summary>
 public class User
 {
     public int Id { get; set; }
