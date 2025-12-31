@@ -17,6 +17,9 @@ public static class MiddlewarePipelineExtensions
         // 1. 全局异常处理 (必须在最前面)
         app.UseMiddleware<GlobalExceptionMiddleware>();
         
+        // 2. 请求关联 ID (在异常处理后、日志前，确保所有日志都有 ID)
+        app.UseMiddleware<CorrelationIdMiddleware>();
+        
         // 2. 反向代理头处理 (Docker/Nginx 环境获取真实 IP)
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {

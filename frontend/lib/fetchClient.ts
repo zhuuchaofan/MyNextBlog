@@ -1,11 +1,19 @@
-export async function fetchClient<T = any>(
+export async function fetchClient<T = unknown>(
   endpoint: string,
   options?: Omit<RequestInit, "body"> & { body?: unknown }
 ): Promise<T> {
   const { body, headers, ...customConfig } = options || {};
 
+  // 生成 Correlation ID 用于请求链路追踪
+  // 使用 crypto.randomUUID() 生成唯一 ID，取前8位更简洁
+  const correlationId = typeof crypto !== 'undefined' && crypto.randomUUID 
+    ? crypto.randomUUID().replace(/-/g, '').slice(0, 8) 
+    : Math.random().toString(36).slice(2, 10);
+
   // Default headers
   const configHeaders: HeadersInit = {
+    // Correlation ID 用于追踪请求链路
+    "X-Correlation-ID": correlationId,
     // If body is NOT FormData, default to application/json
     ...(body instanceof FormData ? {} : { "Content-Type": "application/json" }),
     ...headers,

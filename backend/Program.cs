@@ -29,8 +29,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)  // 从 appsettings.json 读取配置
     .ReadFrom.Services(services)                    // 允许从 DI 容器获取服务
-    .Enrich.FromLogContext()                        // 添加上下文信息 (RequestId 等)
-    .WriteTo.Console());                            // 输出到控制台 (Docker logs)
+    .Enrich.FromLogContext()                        // 添加上下文信息 (CorrelationId 等)
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}"));
 
 // ==================================================================
 // 服务注册 (Dependency Injection)

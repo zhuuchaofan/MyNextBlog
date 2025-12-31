@@ -69,9 +69,17 @@ async function doRefresh(
   backendUrl: string
 ): Promise<RefreshResult> {
   try {
+    // 生成 Correlation ID 用于追踪此刷新请求
+    const correlationId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID().replace(/-/g, '').slice(0, 8) 
+      : Math.random().toString(36).slice(2, 10);
+
     const response = await fetch(`${backendUrl}/api/auth/refresh-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-Correlation-ID": correlationId,
+      },
       body: JSON.stringify({
         accessToken: currentAccessToken || "",
         refreshToken: currentRefreshToken,
