@@ -1,8 +1,19 @@
-// DTOs/AnniversaryDtos.cs
-// 纪念日相关的数据传输对象
+// ============================================================================
+// DTOs/AnniversaryDtos.cs - 纪念日相关数据传输对象
+// ============================================================================
+// 此文件定义了纪念日模块的 DTO，用于公开展示和管理后台。
+//
+// **DTO 分类**:
+//   - 公开 DTO: `AnniversaryDto` (不含敏感信息)
+//   - 管理 DTO: `AnniversaryAdminDto` (包含提醒配置)
+//   - 输入 DTO: `CreateAnniversaryDto`, `UpdateAnniversaryDto`
+//
+// **日期说明**: StartDate 使用 "yyyy-MM-dd" 字符串格式
 
-using System.ComponentModel.DataAnnotations;
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解，用于输入验证
 
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
 /// <summary>

@@ -1,12 +1,30 @@
-using Ganss.Xss;
-using MyNextBlog.Middlewares;
-using MyNextBlog.Services;
-using MyNextBlog.Services.Email;
+// ============================================================================
+// Extensions/ServiceCollectionExtensions.cs - 服务注册扩展方法
+// ============================================================================
+// 此文件集中管理所有业务服务的依赖注入 (DI) 注册。
+// 通过扩展方法组织，保持 Program.cs 简洁。
+//
+// **服务生命周期**:
+//   - Transient: 每次注入创建新实例 (中间件)
+//   - Scoped: 每个 HTTP 请求一个实例 (业务服务)
+//   - Singleton: 应用程序生命周期内单例 (Email、Cache)
 
+// `using` 语句用于导入必要的命名空间
+using Ganss.Xss;                     // XSS 防护库 (HtmlSanitizer)
+using MyNextBlog.Middlewares;         // 自定义中间件
+using MyNextBlog.Services;            // 业务服务接口和实现
+using MyNextBlog.Services.Email;      // 邮件服务
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Extensions;
 
 /// <summary>
-/// 业务服务注册扩展方法
+/// `ServiceCollectionExtensions` 提供 `IServiceCollection` 的扩展方法。
+/// 
+/// **设计目的**:
+///   - 将服务注册逻辑从 `Program.cs` 中分离出来
+///   - 按模块组织服务，便于维护
+///   - 使用扩展方法支持链式调用
 /// </summary>
 public static class ServiceCollectionExtensions
 {

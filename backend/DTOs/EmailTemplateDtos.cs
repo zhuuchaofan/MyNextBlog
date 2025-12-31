@@ -1,6 +1,15 @@
-// DTOs/EmailTemplateDtos.cs
-// 邮件模板相关的数据传输对象
+// ============================================================================
+// DTOs/EmailTemplateDtos.cs - 邮件模板相关数据传输对象
+// ============================================================================
+// 此文件定义了邮件模板管理模块的 DTO。
+//
+// **DTO 用途**:
+//   - `EmailTemplateDto`: 模板信息响应 (含可用占位符)
+//   - `UpdateEmailTemplateDto`: 更新模板请求
+//
+// **占位符格式**: 使用 `{{PlaceholderName}}` 语法
 
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
 /// <summary>

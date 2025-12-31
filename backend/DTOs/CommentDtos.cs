@@ -1,7 +1,27 @@
-using System.ComponentModel.DataAnnotations;
+// ============================================================================
+// DTOs/CommentDtos.cs - 评论相关数据传输对象
+// ============================================================================
+// 此文件定义了评论模块的 DTO，用于 API 请求/响应的数据结构。
+//
+// **DTO 分类**:
+//   - `CreateCommentDto`: 创建评论请求 (带验证)
+//   - `CommentDto`: 评论详情响应 (含嵌套子评论)
 
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解，用于输入验证
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
+/// <summary>
+/// 创建评论请求 DTO
+/// 
+/// **验证规则**:
+///   - PostId: 必填，目标文章 ID
+///   - Content: 必填，最大 1000 字符
+///   - GuestName: 可选，最大 50 字符
+///   - ParentId: 可选，用于回复评论
+/// </summary>
 public record CreateCommentDto(
     [Required]
     int PostId,

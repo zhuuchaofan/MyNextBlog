@@ -1,7 +1,26 @@
-using System.ComponentModel.DataAnnotations;
+// ============================================================================
+// DTOs/AuthDtos.cs - 认证相关数据传输对象
+// ============================================================================
+// 此文件定义了认证模块的 DTO，用于登录、注册、密码重置等 API。
+//
+// **DTO 分类**:
+//   - 请求 DTO: `LoginDto`, `RegisterDto`, `ForgotPasswordDto`, `ResetPasswordDto`
+//   - 响应 DTO: `AuthResponseDto` (包含 Token 和用户信息)
+//   - Token DTO: `RefreshTokenRequestDto` (刷新 Token 请求)
+//
+// **安全说明**:
+//   - 密码字段最小 6 字符
+//   - Token 通过 HttpOnly Cookie 传输，不暴露给 JavaScript
 
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解，用于输入验证
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
+/// <summary>
+/// 用户登录请求 DTO
+/// </summary>
 public record LoginDto(
     [Required(ErrorMessage = "用户名不能为空")]
     string Username,

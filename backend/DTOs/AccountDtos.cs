@@ -1,8 +1,22 @@
-using System.ComponentModel.DataAnnotations;
-using MyNextBlog.Models;
+// ============================================================================
+// DTOs/AccountDtos.cs - 账户相关数据传输对象
+// ============================================================================
+// 此文件定义了用户账户模块的 DTO，用于个人资料管理。
+//
+// **DTO 用途**:
+//   - `UpdateProfileDto`: 更新个人资料请求
+//   - `UserDto`: 用户信息响应 (含工厂方法 FromEntity)
 
+// `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations;  // 数据注解，用于输入验证
+using MyNextBlog.Models;                      // 领域模型，用于实体转换
+
+// `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
+/// <summary>
+/// 更新个人资料请求 DTO
+/// </summary>
 public record UpdateProfileDto(
     [EmailAddress(ErrorMessage = "邮箱格式不正确")]
     string? Email,
