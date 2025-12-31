@@ -4,6 +4,9 @@ import { Library, BookOpen, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+// 强制动态渲染，避免构建时预渲染空结果
+export const dynamic = 'force-dynamic';
+
 // 获取所有系列
 async function getAllSeries() {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
