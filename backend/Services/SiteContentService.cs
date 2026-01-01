@@ -114,4 +114,59 @@ public class SiteContentService(AppDbContext context) : ISiteContentService
         
         return new SiteContentDto(content.Key, content.Value, content.Description, content.UpdatedAt);
     }
+    
+    /// <summary>
+    /// 批量获取指定 Key 的配置（用于首页聚合）
+    /// </summary>
+    public async Task<Dictionary<string, string>> GetByKeysAsync(string[] keys)
+    {
+        var contents = await context.SiteContents
+            .AsNoTracking()
+            .Where(c => keys.Contains(c.Key))
+            .Select(c => new { c.Key, c.Value })
+            .ToListAsync();
+
+        return contents.ToDictionary(c => c.Key, c => c.Value);
+    }
+    
+    /// <summary>
+    /// 批量更新配置
+    /// </summary>
+    public async Task<int> BatchUpdateAsync(List<(string Key, string Value)> updates)
+    {
+        var keys = updates.Select(u => u.Key).ToList();
+        var contents = await context.SiteContents
+            .Where(c => keys.Contains(c.Key))
+            .ToListAsync();
+
+        var updateTime = DateTime.UtcNow;
+        foreach (var (key, value) in updates)
+        {
+            var content = contents.FirstOrDefault(c => c.Key == key);
+            if (content != null)
+            {
+                content.Value = value;
+                content.UpdatedAt = updateTime;
+            }
+        }
+
+        await context.SaveChangesAsync();
+        return contents.Count;
+    }
+    
+    /// <summary>
+    /// 更新单个配置值（仅更新值，不创建）
+    /// </summary>
+    public async Task<SiteContentDto?> UpdateValueAsync(string key, string value)
+    {
+        var content = await context.SiteContents.FirstOrDefaultAsync(c => c.Key == key);
+        
+        if (content == null) return null;
+        
+        content.Value = value;
+        content.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        
+        return new SiteContentDto(content.Key, content.Value, content.Description, content.UpdatedAt);
+    }
 }

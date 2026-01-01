@@ -6,12 +6,14 @@
 // **设计目的**: 减少网络开销，原来需要 12 个请求，现在只需 1 个
 // **数据内容**: 文章列表、热门标签、站点配置
 //
+// **架构重构 (2026-01-01)**: 
+//   - 移除 DbContext 直接注入
+//   - 使用 ISiteContentService 获取配置
+//
 // **注意**: 不能使用 Task.WhenAll，因为 DbContext 不是线程安全的
 
 // `using` 语句用于导入必要的命名空间
 using Microsoft.AspNetCore.Mvc;       // ASP.NET Core MVC
-using Microsoft.EntityFrameworkCore;  // EF Core
-using MyNextBlog.Data;                // 数据访问层
 using MyNextBlog.Services;            // 业务服务
 using Microsoft.Extensions.Logging;   // 日志
 
@@ -27,11 +29,26 @@ namespace MyNextBlog.Controllers.Api;
 [ApiController]
 [Route("api/home")]
 public class HomeController(
-    AppDbContext context,
     IPostService postService,
     ITagService tagService,
+    ISiteContentService siteContentService,
     ILogger<HomeController> logger) : ControllerBase
 {
+    // 首页所需的配置 Key 列表
+    private static readonly string[] HomePageContentKeys =
+    [
+        "homepage_intro",
+        "about_author",
+        "about_pets",
+        "homepage_slogan",
+        "homepage_title_suffix",
+        "homepage_cta_primary",
+        "homepage_cta_secondary",
+        "stats_system_status",
+        "stats_total_visits",
+        "stats_server_time"
+    ];
+    
     /// <summary>
     /// 获取首页所需的所有初始数据（聚合接口）
     /// 替代原来的 12 个独立请求
@@ -54,29 +71,8 @@ public class HomeController(
             var (posts, totalCount) = await postService.GetAllPostsAsync(page, pageSize, includeHidden);
             var tags = await tagService.GetPopularTagsAsync(10, includeHidden: false);
 
-            // 2. 批量获取 SiteContent（独立查询，避免并发冲突）
-            var siteContentKeys = new[]
-            {
-                "homepage_intro",
-                "about_author",
-                "about_pets",
-                "homepage_slogan",
-                "homepage_title_suffix",
-                "homepage_cta_primary",
-                "homepage_cta_secondary",
-                "stats_system_status",
-                "stats_total_visits",
-                "stats_server_time"
-            };
-
-            var siteContents = await context.SiteContents
-                .AsNoTracking()
-                .Where(c => siteContentKeys.Contains(c.Key))
-                .Select(c => new { c.Key, c.Value })
-                .ToListAsync();
-
-            // 3. 将 SiteContent 转换为字典，方便前端使用
-            var contentDict = siteContents.ToDictionary(c => c.Key, c => c.Value);
+            // 2. 批量获取 SiteContent（通过 Service 层）
+            var contentDict = await siteContentService.GetByKeysAsync(HomePageContentKeys);
 
             return Ok(new
             {

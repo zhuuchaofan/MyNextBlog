@@ -51,4 +51,26 @@ public interface ISiteContentService
     /// <param name="description">可选描述</param>
     /// <returns>更新后的配置 DTO</returns>
     Task<SiteContentDto> UpsertAsync(string key, string value, string? description);
+    
+    /// <summary>
+    /// 批量获取指定 Key 的配置（用于首页聚合）
+    /// </summary>
+    /// <param name="keys">配置键数组</param>
+    /// <returns>Key-Value 字典</returns>
+    Task<Dictionary<string, string>> GetByKeysAsync(string[] keys);
+    
+    /// <summary>
+    /// 批量更新配置
+    /// </summary>
+    /// <param name="updates">Key-Value 更新列表</param>
+    /// <returns>更新的配置数量</returns>
+    Task<int> BatchUpdateAsync(List<(string Key, string Value)> updates);
+    
+    /// <summary>
+    /// 更新单个配置值（仅更新值，不创建）
+    /// </summary>
+    /// <param name="key">配置键</param>
+    /// <param name="value">新值</param>
+    /// <returns>更新后的配置 DTO，不存在则返回 null</returns>
+    Task<SiteContentDto?> UpdateValueAsync(string key, string value);
 }
