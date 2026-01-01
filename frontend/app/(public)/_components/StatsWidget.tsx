@@ -32,7 +32,9 @@ export default function StatsWidget({
     if (!hasFetched.current) {
         hasFetched.current = true;
         pulseStats()
-            .then(data => {
+            .then(res => {
+                // 适配新的响应格式: { success: true, data: { visits, ... } }
+                const data = res.data;
                 if (data && typeof data.visits === 'number') {
                     setVisits(data.visits);
                     setPostsCount(data.postsCount || 0);

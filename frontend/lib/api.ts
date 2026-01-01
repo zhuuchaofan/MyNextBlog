@@ -253,10 +253,13 @@ export function fetchRelatedPosts(postId: number, count = 4) {
 // 流量统计心跳
 export function pulseStats() {
   return fetchClient<{ 
-    visits: number;
-    postsCount: number;
-    commentsCount: number;
-    runningDays: number;
+    success: boolean;
+    data: {
+      visits: number;
+      postsCount: number;
+      commentsCount: number;
+      runningDays: number;
+    };
   }>("/api/backend/stats/pulse", {
     method: "POST",
   });
