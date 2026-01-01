@@ -50,10 +50,14 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
+        // 🔧 修复缓存策略一致性：只有白名单内的 pageSize 才会被缓存
+        // 原因：InvalidatePostListCache() 只清除 CommonPageSizes 定义的 Key
+        // 如果允许任意 pageSize 进入缓存，非标准请求会产生"幽灵缓存"永远无法被清除
         bool isCacheable = page == 1 && 
                            !categoryId.HasValue && 
                            string.IsNullOrWhiteSpace(searchTerm) && 
-                           string.IsNullOrWhiteSpace(tagName);
+                           string.IsNullOrWhiteSpace(tagName) &&
+                           CommonPageSizes.Contains(pageSize);
 
         if (isCacheable)
         {
