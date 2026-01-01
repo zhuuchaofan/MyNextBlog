@@ -134,9 +134,9 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                             </Badge>
                           )}
                           
-                          {/* 时间 */}
+                          {/* 时间 - 使用固定格式避免 SSR/CSR Hydration 不一致 */}
                           <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1 ml-auto">
-                            <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
+                            <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
                           </span>
 
                           {/* 管理员控制按钮 */}

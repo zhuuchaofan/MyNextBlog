@@ -213,7 +213,7 @@ function NewPlanForm() {
                   type="number"
                   min="0"
                   value={formData.budget}
-                  onChange={e => setFormData({ ...formData, budget: Number(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, budget: Math.max(0, Number(e.target.value)) })}
                 />
               </div>
               <div className="space-y-2">

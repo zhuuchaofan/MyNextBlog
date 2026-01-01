@@ -101,10 +101,11 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
         />
         <Input
           type="number"
+          min={0}
           placeholder="预估花费"
           className="text-sm sm:text-base"
           value={formData.estimatedCost || ''}
-          onChange={e => updateField('estimatedCost', Number(e.target.value))}
+          onChange={e => updateField('estimatedCost', Math.max(0, Number(e.target.value)))}
           disabled={isSubmitting}
         />
         
@@ -113,10 +114,11 @@ export function ActivityForm({ mode, initialData, onSubmit, onCancel }: Activity
           <>
             <Input
               type="number"
+              min={0}
               placeholder="实际花费"
               className="text-sm sm:text-base"
               value={formData.actualCost || ''}
-              onChange={e => updateField('actualCost', Number(e.target.value))}
+              onChange={e => updateField('actualCost', Math.max(0, Number(e.target.value)))}
               disabled={isSubmitting}
             />
             <Input

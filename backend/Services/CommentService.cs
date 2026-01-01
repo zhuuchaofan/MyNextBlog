@@ -55,7 +55,7 @@ public class CommentService(
     ILogger<CommentService> logger,
     IServiceScopeFactory scopeFactory) : ICommentService
 {
-    private const int RateLimitSeconds = 60;
+    private const int RateLimitSeconds = 5; // 临时调整为 5 秒，便于测试
 
     /// <summary>
     /// 检查 IP 是否被频率限制 (60秒内只能发一条)

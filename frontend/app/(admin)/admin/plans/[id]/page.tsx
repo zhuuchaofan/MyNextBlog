@@ -607,9 +607,10 @@ export default function PlanEditPage({
                     <Label className="text-xs text-gray-500">总预算</Label>
                     <Input
                       type="number"
+                      min={0}
                       value={plan.budget}
                       onChange={(e) =>
-                        handleUpdatePlan("budget", Number(e.target.value))
+                        handleUpdatePlan("budget", Math.max(0, Number(e.target.value)))
                       }
                       className="bg-white dark:bg-zinc-950"
                     />
