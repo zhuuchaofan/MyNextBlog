@@ -33,8 +33,8 @@ graph TD
 
 **学习内容**：
 
-- ✅ **后端**：.NET 10 + EF Core + SQLite
-- ✅ **前端**：Next.js 15 (App Router) + TypeScript + Tailwind v4
+- ✅ **后端**：.NET 10 + EF Core + PostgreSQL
+- ✅ **前端**：Next.js 16 (App Router) + TypeScript + Tailwind v4
 - ✅ **架构**：BFF (Backend for Frontend) 模式
 - ✅ **部署**：Docker + Docker Compose
 
@@ -472,7 +472,7 @@ app/
 ### 学习资源
 
 - **官方文档**：
-  - [Next.js 15](https://nextjs.org/docs)
+  - [Next.js 16](https://nextjs.org/docs)
   - [.NET 10](https://learn.microsoft.com/en-us/dotnet/)
   - [EF Core](https://learn.microsoft.com/en-us/ef/core/)
 - **项目文档**：

@@ -15,7 +15,7 @@
 
      | Layer        | Stack                       | Key Libraries/Configs                                                 |
      | :----------- | :-------------------------- | :-------------------------------------------------------------------- |
-     | **Frontend** | **Next.js 15 (App Router)** | TypeScript, Tailwind CSS v4, Shadcn/ui, Framer Motion, `next-themes`. |
+     | **Frontend** | **Next.js 16 (App Router)** | TypeScript, Tailwind CSS v4, Shadcn/ui, Framer Motion, `next-themes`. |
      | **Backend**  | **.NET 10 (Preview)**       | ASP.NET Core Web API, Minimal APIs, EF Core.                          |
      | **Database** | **PostgreSQL**              | 生产环境使用 PostgreSQL，本地开发可用 Docker Compose 启动。           |
      | **Storage**  | **Cloudflare R2**           | S3-compatible, Stream-based uploads (No local disk storage).          |
@@ -763,4 +763,4 @@ const diff = differenceInDays(startDate, new Date()); // 可能少算一天
 
 ---
 
-**最后更新**: 2025-12-30
+**最后更新**: 2026-01-01

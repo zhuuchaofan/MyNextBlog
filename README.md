@@ -34,7 +34,18 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
-### 最新更新 (2025-12-29)
+### 最新更新 (2026-01-01)
+
+- 🏗️ **架构重构与代码质量提升**:
+  - **Controller 层解耦**: 新增 `StatsService`、`SiteContentService`、`CommentNotificationService`，Controller 不再直接注入 `DbContext`
+  - **Mappers 层统一**: 建立 `Mappers/` 目录，使用 `Func<TEntity, TDto>` 委托模式统一实体映射
+  - **代码注释统一**: 全面应用 GEMINI.md 规范，Controller/Service/Model 注释风格标准化
+- 🔗 **Correlation ID 链路追踪**: 每个 HTTP 请求分配唯一 ID，日志可追踪完整调用链
+- 🐛 **缓存一致性修复**: `PostService` 缓存 Key 现包含 `PageSize`，解决不同分页请求缓存污染问题
+- 📄 **文章编辑分页保留**: 管理后台编辑文章后自动返回原页码，无需手动翻页
+- 📦 **依赖包升级**: Next.js 16.1.1, Tailwind 4.1.18, zod 4.3.4, AWSSDK.S3 4.0.16.1
+
+### 历史更新 (2025-12-29)
 
 - 📅 **计划管理系统**: 全新的行程规划模块，支持旅行计划、活动安排和惊喜行程管理
   - **日历视图**: 可视化展示计划日期范围，高亮标记每一天

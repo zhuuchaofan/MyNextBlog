@@ -23,6 +23,17 @@
 | `Mappers/CommentMappers.cs`           | `ToDto`          | 评论 DTO 映射 (Func 委托) |
 | `Mappers/CommentMappers.cs`           | `ToAdminDto`     | 管理员评论 DTO 映射       |
 | `Mappers/CommentMappers.cs`           | `ToSummary`      | 评论摘要 DTO 映射         |
+| `Mappers/PostMappers.cs`              | `ToSummaryDto`   | ✨ 新增：文章列表映射     |
+| `Mappers/CategoryMappers.cs`          | `ToDto`          | ✨ 新增：分类 DTO 映射    |
+
+### ✅ Controller 层解耦 (2026-01 完成)
+
+| 原 Controller           | 分离后 Service               | 说明                    |
+| :---------------------- | :--------------------------- | :---------------------- |
+| `StatsController`       | `StatsService`               | 统计数据查询逻辑抽取    |
+| `AboutController`       | `SiteContentService`         | 站点内容管理逻辑抽取    |
+| `SiteContentController` | `SiteContentService`         | 与 AboutController 合并 |
+| `CommentService`        | `CommentNotificationService` | 邮件通知逻辑独立 (SRP)  |
 
 ### ⚠️ 待重构
 
@@ -88,6 +99,7 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 
 ## 📋 待办清单
 
+- [x] Controller 层解耦，禁止直接注入 DbContext ✅ 2026-01-01
 - [ ] 决定 DTO 投影方案（A/B/C）
 - [ ] 修复 `CommentMappers.cs` 的 nullable 警告
 - [ ] 考虑将 `PostMappingExtensions.cs` 移动到 `Mappers/` 目录
@@ -95,4 +107,4 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 
 ---
 
-_最后更新：2025-12-28_
+_最后更新：2026-01-01_
