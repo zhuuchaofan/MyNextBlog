@@ -42,6 +42,7 @@ public class StatsController(IStatsService statsService) : ControllerBase
         // 2. 获取并返回统计数据
         var stats = await statsService.GetPublicStatsAsync();
         
-        return Ok(stats);
+        // 符合 GEMINI.md 3.2 API 响应格式规范
+        return Ok(new { success = true, data = stats });
     }
 }
