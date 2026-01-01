@@ -124,7 +124,9 @@ export default async function CategoryPage({ params }: { params: { id: string } 
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
             <p className="text-gray-400 dark:text-gray-500">该分类下暂时没有文章 🍂</p>
             <Link href="/">
-              <Button variant="link" className="mt-2 text-orange-600 dark:text-orange-400">返回首页</Button>
+              <Button variant="link" className="mt-2 text-orange-600 dark:text-orange-400">
+                <ArrowRight className="w-4 h-4 mr-1 rotate-180" /> 浏览其他文章
+              </Button>
             </Link>
           </div>
         ) : (

@@ -90,11 +90,12 @@ export default async function PostPage({ params }: Props) {
           <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-pink-600 dark:from-orange-800 dark:to-pink-900 opacity-80"></div>
         )}
         
-        {/* 返回按钮 (悬浮) */}
+        {/* 返回按钮 (悬浮) - 智能返回：有系列返回系列页，无系列返回首页 */}
         <div className="absolute top-8 left-4 md:left-8 z-20">
-          <Link href="/">
+          <Link href={post.seriesInfo ? `/series/${post.seriesInfo.id}` : "/"}>
             <Button variant="secondary" size="sm" className="rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border-none">
-              <ChevronLeft className="w-4 h-4 mr-1" /> 返回首页
+              <ChevronLeft className="w-4 h-4 mr-1" /> 
+              {post.seriesInfo ? `返回「${post.seriesInfo.name}」` : '返回首页'}
             </Button>
           </Link>
         </div>
