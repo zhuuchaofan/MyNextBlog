@@ -23,6 +23,8 @@ using Microsoft.Extensions.Caching.Memory;      // 内存缓存 (用于频率限
 using Microsoft.Extensions.DependencyInjection; // DI 容器 (用于后台任务作用域)
 using MyNextBlog.Data;                          // 数据访问层
 using MyNextBlog.Models;                        // 领域模型
+using MyNextBlog.DTOs;                          // 数据传输对象
+using MyNextBlog.Mappers;                       // DTO 映射
 using Ganss.Xss;                                // HtmlSanitizer 库 (XSS 防护)
 using Microsoft.Extensions.Logging;             // 日志
 
@@ -139,7 +141,7 @@ public class CommentService(
         return new CommentCreationResult(true, message, comment);
     }
 
-    public async Task<List<Comment>> GetCommentsAsync(int postId, int page, int pageSize)
+    public async Task<List<CommentDto>> GetCommentsAsync(int postId, int page, int pageSize)
     {
         // 防御性检查：防止负数导致 Skip() 抛出异常
         page = Math.Max(1, page);
@@ -155,11 +157,12 @@ public class CommentService(
         // 2. 在内存中构建树形结构
         var rootComments = BuildCommentTree(allComments);
 
-        // 3. 分页（只对根评论分页）
+        // 3. 分页（只对根评论分页）并映射到 DTO
         return rootComments
             .OrderByDescending(c => c.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(CommentMappers.ToDto)
             .ToList();
     }
 
@@ -186,7 +189,7 @@ public class CommentService(
         return await context.Comments.CountAsync(c => c.PostId == postId && c.ParentId == null && c.IsApproved);
     }
 
-    public async Task<(List<Comment> Comments, int TotalCount)> GetAllCommentsForAdminAsync(int page, int pageSize, bool? isApproved)
+    public async Task<(List<AdminCommentDto> Comments, int TotalCount)> GetAllCommentsForAdminAsync(int page, int pageSize, bool? isApproved)
     {
         // 防御性检查：防止负数导致 Skip() 抛出异常
         page = Math.Max(1, page);
@@ -211,7 +214,9 @@ public class CommentService(
             .Take(pageSize)
             .ToListAsync();
 
-        return (comments, totalCount);
+        // 映射到 AdminCommentDto
+        var dtos = comments.Select(CommentMappers.ToAdminDto).ToList();
+        return (dtos, totalCount);
     }
 
     public async Task<bool> ToggleApprovalAsync(int id)

@@ -2,10 +2,13 @@
 // Services/CategoryService.cs - 分类服务实现
 // ============================================================================
 // 此服务负责文章分类的管理。
+//
+// **架构修复 (2026-01-01)**: 返回 DTO 而非 Entity，防止数据泄露
 
 // `using` 语句用于导入必要的命名空间
 using Microsoft.EntityFrameworkCore;  // EF Core
 using MyNextBlog.Data;                // 数据访问层
+using MyNextBlog.DTOs;                // 数据传输对象
 using MyNextBlog.Models;              // 领域模型
 
 // `namespace` 声明了当前文件所属的命名空间
@@ -21,27 +24,32 @@ public class CategoryService(AppDbContext context) : ICategoryService
     /// <summary>
     /// 获取所有分类
     /// </summary>
-    public async Task<List<Category>> GetAllCategoriesAsync()
+    public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
-        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
-        // 按名称字母顺序排序返回
-        return await context.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
+        // 使用 Projection 直接映射到 DTO，避免加载整个 Entity
+        return await context.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .Select(c => new CategoryDto(c.Id, c.Name))
+            .ToListAsync();
     }
 
     /// <summary>
     /// 根据 ID 获取分类
     /// </summary>
-    public async Task<Category?> GetByIdAsync(int id)
+    public async Task<CategoryDto?> GetByIdAsync(int id)
     {
-        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
-        // `FirstOrDefaultAsync()`: 异步查找满足条件的第一个实体，如果不存在则返回 `null`。
-        return await context.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+        var category = await context.Categories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
+        
+        return category == null ? null : new CategoryDto(category.Id, category.Name);
     }
 
     /// <summary>
     /// 创建新分类
     /// </summary>
-    public async Task<Category> AddCategoryAsync(string name)
+    public async Task<CategoryDto> AddCategoryAsync(string name)
     {
         // 创建实体并清理输入
         var category = new Category { Name = name.Trim() };
@@ -51,7 +59,9 @@ public class CategoryService(AppDbContext context) : ICategoryService
         
         // 提交到数据库
         await context.SaveChangesAsync();
-        return category;
+        
+        // 返回 DTO
+        return new CategoryDto(category.Id, category.Name);
     }
 
     /// <summary>

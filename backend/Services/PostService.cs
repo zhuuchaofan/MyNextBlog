@@ -372,14 +372,14 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// <summary>
     /// `GetCategoriesAsync` 方法用于获取数据库中所有可用的文章分类。
     /// </summary>
-    /// <returns>返回一个 `Task<List<Category>>`，其中包含所有分类的实体列表。</returns>
-    public async Task<List<Category>> GetCategoriesAsync()
+    /// <returns>返回一个 `Task<List<CategoryDto>>`，其中包含所有分类的 DTO 列表。</returns>
+    public async Task<List<CategoryDto>> GetCategoriesAsync()
     {
-        // `context.Categories`: 访问数据库中的 `Categories` 表。
-        // `.AsNoTracking()`: 这是一个只读查询，不需要 EF Core 跟踪实体状态，加上此调用以优化性能。
-        // `ToListAsync()`: 异步执行查询，并将所有 `Category` 实体转换为 `List<Category>`。
-        // 由于分类数据量通常不大，直接获取所有分类是常见的做法。
-        return await context.Categories.AsNoTracking().ToListAsync();
+        // 使用 Projection 直接映射到 DTO，避免 Entity 泄露
+        return await context.Categories
+            .AsNoTracking()
+            .Select(c => new CategoryDto(c.Id, c.Name))
+            .ToListAsync();
     }
 
     /// <summary>

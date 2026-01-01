@@ -17,3 +17,10 @@ public record CreateCategoryDto(
     [StringLength(50, ErrorMessage = "分类名称不能超过50个字符")]
     string Name
 );
+
+/// <summary>
+/// 分类返回 DTO（用于 Service 层返回，防止 Entity 泄露）
+/// </summary>
+/// <param name="Id">分类 ID</param>
+/// <param name="Name">分类名称</param>
+public record CategoryDto(int Id, string Name);

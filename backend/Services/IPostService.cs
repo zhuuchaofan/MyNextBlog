@@ -27,7 +27,7 @@ public interface IPostService
     Task DeletePostAsync(int id);
     Task<PostSeriesDto?> GetSeriesInfoForPostAsync(int postId, int? seriesId, int currentOrder); // Added
     
-    Task<List<Category>> GetCategoriesAsync(); // 获取所有分类
+    Task<List<CategoryDto>> GetCategoriesAsync(); // 获取所有分类
     
     // 切换文章可见性
     Task<bool> TogglePostVisibilityAsync(int id);

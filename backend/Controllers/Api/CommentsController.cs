@@ -83,12 +83,12 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         var totalCount = await commentService.GetCommentCountAsync(postId);
         bool hasMore = (page * pageSize) < totalCount;
 
+        // Service 层已经返回 DTO，无需再次映射
         return Ok(new
         {
             success = true,
             totalCount, 
-            // 使用 CommentMappers.ToDto 委托：支持在 LINQ Select 中直接使用
-            comments = comments.Select(CommentMappers.ToDto),
+            comments,
             hasMore
         });
     }
@@ -102,13 +102,12 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     {
         var (comments, totalCount) = await commentService.GetAllCommentsForAdminAsync(page, pageSize, isApproved);
         
+        // Service 层已经返回 AdminCommentDto，无需再次映射
         return Ok(new
         {
             success = true,
             totalCount,
-            // 使用 CommentMappers.ToAdminDto 委托：统一管理员视图映射
-            // 替代之前的匿名类型，确保类型安全和可维护性
-            comments = comments.Select(CommentMappers.ToAdminDto)
+            comments
         });
     }
 
