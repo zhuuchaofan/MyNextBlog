@@ -333,7 +333,11 @@ function AdminPostsContent() {
          <Button 
            variant="outline" 
            disabled={page <= 1 || loading} // 禁用条件：第一页或正在加载
-           onClick={() => setPage(p => Math.max(1, p - 1))} // 切换到上一页
+           onClick={() => {
+             const newPage = Math.max(1, page - 1);
+             setPage(newPage);
+             router.replace(`/admin/posts?page=${newPage}`); // 同步更新 URL
+           }}
            className="w-full md:w-auto border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
          >
            上一页
@@ -346,7 +350,11 @@ function AdminPostsContent() {
          <Button 
            variant="outline" 
            disabled={!hasMore || loading} // 禁用条件：没有更多数据或正在加载
-           onClick={() => setPage(p => p + 1)} // 切换到下一页
+           onClick={() => {
+             const newPage = page + 1;
+             setPage(newPage);
+             router.replace(`/admin/posts?page=${newPage}`); // 同步更新 URL
+           }}
            className="w-full md:w-auto border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300"
          >
            下一页
