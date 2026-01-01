@@ -132,11 +132,14 @@ public async Task<IActionResult> GetComments(int postId, int page = 1)
 
 ### 已实现的映射器
 
-| 映射器类           | 委托         | 用途                   |
-| ------------------ | ------------ | ---------------------- |
-| **CommentMappers** | `ToDto`      | 标准评论映射（含嵌套） |
-|                    | `ToAdminDto` | 管理员视图评论映射     |
-|                    | `ToSummary`  | 轻量级评论摘要         |
+| 映射器类           | 委托               | 用途                   |
+| ------------------ | ------------------ | ---------------------- |
+| **CommentMappers** | `ToDto`            | 标准评论映射（含嵌套） |
+|                    | `ToAdminDto`       | 管理员视图评论映射     |
+|                    | `ToSummary`        | 轻量级评论摘要         |
+| **PostMappers**    | `ToSummaryDto`     | 文章列表摘要           |
+|                    | `ToDetailDto`      | 文章详情页             |
+|                    | `ToSummaryDtoLite` | 相关文章推荐（精简版） |
 
 ---
 
@@ -185,8 +188,33 @@ public async Task<IActionResult> GetComments(int postId, int page = 1)
     - `GetOrCreateTagsAsync`: 根据标签名称列表，查找或创建新的标签，实现标签的复用和管理。
 
 - **`DatabaseBackupService`**:
+
   - **职责**: 作为后台服务，周期性地执行数据库备份任务。
   - **主要功能**: 定时 (`TimeSpan.FromHours(24)`) 将当前 SQLite 数据库文件复制一份，并上传到 `IStorageService` (R2) 的 `backups/` 目录下，实现数据库的异地备份和容灾。
+
+- **`IStatsService` & `StatsService`**: ✨ **新增 (2026-01 重构)**
+
+  - **职责**: 提供站点统计数据查询服务，原逻辑从 Controller 层迁移而来。
+  - **主要功能**:
+    - `GetPulseStatsAsync`: 获取站点脉动统计（总文章数、评论数、访问量等）
+    - `GetDashboardStatsAsync`: 获取管理员仪表盘统计（含数据变化趋势）
+
+- **`ISiteContentService` & `SiteContentService`**: ✨ **新增 (2026-01 重构)**
+
+  - **职责**: 管理站点配置内容（如关于页面、网站名称等），原逻辑从 AboutController 和 SiteContentController 迁移而来。
+  - **主要功能**:
+    - `GetByKeyAsync`: 根据键名获取单个配置
+    - `GetByKeysAsync`: 批量获取多个配置（用于首页聚合）
+    - `GetAllAsync`: 获取所有配置
+    - `UpsertAsync`: 创建或更新配置
+    - `BatchUpdateAsync`: 批量更新配置
+
+- **`ICommentNotificationService` & `CommentNotificationService`**: ✨ **新增 (2026-01 重构)**
+
+  - **职责**: 处理评论相关的邮件通知，从 `CommentService` 中分离，遵循单一职责原则 (SRP)。
+  - **主要功能**:
+    - `SendNotificationsAsync`: 发送新评论通知（站长）和回复通知（被回复者）
+  - **优势**: 消除 `CommentService` 对 `IServiceScopeFactory` 的隐性依赖，所有依赖在构造函数中显式声明。
 
 ---
 

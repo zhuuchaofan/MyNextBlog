@@ -43,6 +43,16 @@
        - _Good_: `var result = await _service.Handle(command); return result.Match(...)`
      - **Domain Purity**: Never leak `EF Core Entities` to the API layer. Always map to `record` DTOs.
      - **Dependency Injection**: Verify Service Lifetimes (`Scoped` vs `Singleton`). _Warning: DbContext is Scoped._
+     - **NO DbContext in Controllers**: ✨ **强制 (2026-01 规则)**
+       - Controller 必须通过 **Service 接口** 获取数据，禁止直接注入 `AppDbContext`。
+       - _Bad_: `public class MyController(AppDbContext context)`
+       - _Good_: `public class MyController(IMyService myService)`
+     - **Service 返回 DTO**: ✨ **强制 (2026-01 规则)**
+       - Service 公开方法应返回 DTO（`record` 类型），防止 Entity 泄露。
+       - _Bad_: `Task<List<Comment>> GetCommentsAsync(...)`
+       - _Good_: `Task<List<CommentDto>> GetCommentsAsync(...)`
+     - **Unified Mappers Layer**: 使用 `Mappers/` 目录统一管理 Entity -> DTO 映射逻辑。
+       - 采用 `Func<TEntity, TDto>` 委托模式，可在 `.Select()` 中直接使用。
 
      ### 2.3 Performance & Resources
 
