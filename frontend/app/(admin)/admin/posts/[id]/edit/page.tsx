@@ -1,7 +1,7 @@
 'use client'; // 标记为客户端组件，因为需要状态管理、事件处理和 useEffect
 
 import { useState, useEffect, use } from 'react'; // `use` 是 React 18+ 的 hook，用于从 Promise 中同步解包值
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params); // 获取当前文章的 ID
   const { user } = useAuth(); // 获取当前登录用户
   const router = useRouter(); // Next.js 路由实例
+  const searchParams = useSearchParams(); // 获取 URL 查询参数
+  const returnPage = searchParams.get('returnPage') || '1'; // 从 URL 中获取返回页码，默认第 1 页
   
   // 状态管理：用于存储表单字段的值
   const [title, setTitle] = useState('');
@@ -133,7 +135,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       
       if (res.success) {
         toast.success('文章更新成功！');
-        router.push('/admin/posts'); // 更新成功后跳转到文章管理列表页
+        // 跳转回文章管理列表页，并保留原始页码
+        router.push(`/admin/posts?page=${returnPage}`);
       } else {
         toast.error('更新失败: ' + res.message);
       }

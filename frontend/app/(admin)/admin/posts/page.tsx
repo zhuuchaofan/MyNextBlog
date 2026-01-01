@@ -1,7 +1,7 @@
 'use client'; // 标记为客户端组件，因为需要状态管理、事件处理和 useEffect
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 // import { useAuth } from '@/context/AuthContext'; // Unused
 import { fetchPostsWithAuth, deletePost, togglePostVisibility } from '@/lib/api'; // 导入 API 请求函数
@@ -34,19 +34,34 @@ interface Post {
 }
 
 /**
- * AdminPostsPage 组件：文章管理列表页
+ * AdminPostsPage 包装组件：使用 Suspense 包裹以支持 useSearchParams
+ */
+export default function AdminPostsPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-gray-500 dark:text-gray-400">加载中...</div>}>
+      <AdminPostsContent />
+    </Suspense>
+  );
+}
+
+/**
+ * AdminPostsContent 组件：文章管理列表页的实际内容
  * --------------------------------------------------------------------------------
  * 这是一个客户端组件，用于管理员查看、编辑、删除和管理所有文章。
  * 它会从后端获取所有文章（包括隐藏的草稿），并提供分页功能。
  */
-export default function AdminPostsPage() {
+function AdminPostsContent() {
   // const { user } = useAuth(); // Unused
   const router = useRouter(); // Next.js 路由实例，用于页面跳转
+  const searchParams = useSearchParams(); // 获取 URL 查询参数
+  
+  // 从 URL 中读取页码参数，用于从编辑页返回时恢复原始页码
+  const urlPage = parseInt(searchParams.get('page') || '1', 10);
   
   // 状态管理
   const [posts, setPosts] = useState<Post[]>([]); // 存储文章列表
   const [loading, setLoading] = useState(true); // 控制加载状态
-  const [page, setPage] = useState(1); // 当前页码
+  const [page, setPage] = useState(urlPage); // 当前页码，从 URL 初始化
   const [hasMore, setHasMore] = useState(false); // 是否有更多数据可加载 (分页)
   const [totalCount, setTotalCount] = useState(0); // 文章总数
   const [totalPages, setTotalPages] = useState(0); // 总页数
@@ -241,8 +256,8 @@ export default function AdminPostsPage() {
                         >
                           {post.isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                         </Button>
-                        {/* 编辑按钮 */}
-                        <Link href={`/admin/posts/${post.id}/edit`}>
+                        {/* 编辑按钮 - 携带当前页码参数 */}
+                        <Link href={`/admin/posts/${post.id}/edit?returnPage=${page}`}>
                           <Button variant="outline" size="sm" className="h-8 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800">
                             <Edit className="w-3 h-3 mr-1" /> 编辑
                           </Button>
@@ -292,7 +307,8 @@ export default function AdminPostsPage() {
                       {post.isHidden ? <Eye className="w-3 h-3 mr-2" /> : <EyeOff className="w-3 h-3 mr-2" />}
                       {post.isHidden ? '发布' : '隐藏'}
                     </Button>
-                    <Link href={`/admin/posts/${post.id}/edit`} className="flex-1">
+                    {/* 编辑按钮 - 携带当前页码参数 */}
+                    <Link href={`/admin/posts/${post.id}/edit?returnPage=${page}`} className="flex-1">
                        <Button variant="outline" size="sm" className="w-full h-9 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800">
                          <Edit className="w-3 h-3 mr-2" /> 编辑
                        </Button>
