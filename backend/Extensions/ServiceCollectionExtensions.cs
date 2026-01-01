@@ -57,6 +57,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPlanReminderService, PlanReminderService>(); // 计划提醒服务
         services.AddScoped<IStatsService, StatsService>(); // 统计服务
         services.AddScoped<ISiteContentService, SiteContentService>(); // 站点内容服务
+        services.AddScoped<ICommentNotificationService, CommentNotificationService>(); // 评论通知服务
         
         // --- 单例服务 ---
         services.AddSingleton<IEmailService, SmtpEmailService>();
