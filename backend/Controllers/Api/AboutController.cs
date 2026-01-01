@@ -4,14 +4,15 @@
 // 此控制器将关于页面所需的多个 SiteContent 请求合并为单个端点。
 //
 // **设计目的**: 减少网络开销，原来需要 9 个请求，现在只需 1 个
-// **数据内容**: about_intro, about_author, about_skills, about_timeline,
-//              about_books, about_gears, about_pets, about_thanks_*
+// **架构重构**: 原 Controller 直接访问 DbContext 的逻辑已迁移到 SiteContentService，
+//              现在遵循 Thin Controllers 原则，仅负责 HTTP IO。
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using Microsoft.Extensions.Logging;
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Mvc;      // ASP.NET Core MVC 核心类型
+using Microsoft.Extensions.Logging;  // 日志
+using MyNextBlog.Services;           // 业务服务层
 
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
 /// <summary>
@@ -23,13 +24,15 @@ namespace MyNextBlog.Controllers.Api;
 [ApiController]
 [Route("api/about")]
 public class AboutController(
-    AppDbContext context,
+    ISiteContentService siteContentService,
     ILogger<AboutController> logger) : ControllerBase
 {
     /// <summary>
     /// 获取关于页面所需的所有配置数据（聚合接口）
     /// 替代原来的 9 个独立请求
     /// </summary>
+    /// <returns>配置数据字典</returns>
+    // `[HttpGet("initial-data")]`: 响应 GET /api/about/initial-data 请求
     [HttpGet("initial-data")]
     public async Task<IActionResult> GetInitialData()
     {
@@ -37,29 +40,7 @@ public class AboutController(
 
         try
         {
-            // 定义关于页面所需的所有配置键
-            var aboutKeys = new[]
-            {
-                "about_intro",
-                "about_author",
-                "about_skills",
-                "about_timeline",
-                "about_books",
-                "about_gears",
-                "about_pets",
-                "about_thanks_title",
-                "about_thanks_content"
-            };
-
-            // 批量查询所有配置
-            var contents = await context.SiteContents
-                .AsNoTracking()
-                .Where(c => aboutKeys.Contains(c.Key))
-                .Select(c => new { c.Key, c.Value })
-                .ToListAsync();
-
-            // 转换为字典，方便前端按 key 取值
-            var contentDict = contents.ToDictionary(c => c.Key, c => c.Value);
+            var contentDict = await siteContentService.GetAboutPageDataAsync();
 
             return Ok(new
             {

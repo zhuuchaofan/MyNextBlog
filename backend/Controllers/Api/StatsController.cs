@@ -1,86 +1,47 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MyNextBlog.Data;
-using MyNextBlog.Models;
+// ============================================================================
+// Controllers/Api/StatsController.cs - 公开统计 API 控制器
+// ============================================================================
+// 此控制器负责公开统计数据的 HTTP 接口。
+//
+// **架构重构**: 原 Controller 直接访问 DbContext 的逻辑已迁移到 StatsService，
+//              现在遵循 Thin Controllers 原则，仅负责 HTTP IO。
 
+// `using` 语句用于导入必要的命名空间
+using Microsoft.AspNetCore.Mvc;  // ASP.NET Core MVC 核心类型
+using MyNextBlog.Services;       // 业务服务层
+
+// `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Controllers.Api;
 
+/// <summary>
+/// `StatsController` 是公开统计的 API 控制器。
+/// 
+/// **路由**: `/api/stats`
+/// **职责**: 提供首页 Pulse 组件所需的统计数据
+/// </summary>
 [ApiController]
 [Route("api/stats")]
-public class StatsController(AppDbContext context) : ControllerBase
+public class StatsController(IStatsService statsService) : ControllerBase
 {
-    // POST /api/stats/pulse
-    // 用于前端组件的心跳/计数，返回多项统计数据
+    /// <summary>
+    /// 心跳接口：记录访问并返回统计数据
+    /// </summary>
+    /// <remarks>
+    /// 每次调用会：
+    ///   1. 访问量 +1
+    ///   2. 返回最新的统计数据（访问量、文章数、评论数、运行天数）
+    /// </remarks>
+    /// <returns>统计数据 DTO</returns>
+    // `[HttpPost("pulse")]`: 响应 POST /api/stats/pulse 请求
     [HttpPost("pulse")]
     public async Task<IActionResult> Pulse()
     {
-        const string key = "sys_stats_visits";
+        // 1. 记录访问量
+        await statsService.IncrementVisitCountAsync();
         
-        // 1. 尝试原子更新 (+1) 累计访问量
-        var rowsAffected = await context.Database.ExecuteSqlRawAsync(
-            "UPDATE \"SiteContents\" SET \"Value\" = CAST(CAST(\"Value\" AS INTEGER) + 1 AS TEXT), \"UpdatedAt\" = {0} WHERE \"Key\" = {1}",
-            DateTime.UtcNow,
-            key
-        );
-
-        if (rowsAffected == 0)
-        {
-            // 2. 如果 Key 不存在，则初始化
-            if (!await context.SiteContents.AnyAsync(s => s.Key == key))
-            {
-                context.SiteContents.Add(new SiteContent
-                {
-                    Key = key,
-                    Value = "1",
-                    Description = "System Total Visits (Auto-increment)"
-                });
-                try 
-                {
-                    await context.SaveChangesAsync();
-                }
-                catch
-                {
-                    // 并发插入冲突，忽略
-                }
-            }
-        }
-
-        // 3. 获取最新访问量
-        var content = await context.SiteContents
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Key == key);
-        var visits = content?.Value ?? "1";
+        // 2. 获取并返回统计数据
+        var stats = await statsService.GetPublicStatsAsync();
         
-        // 4. 获取额外统计数据（真实数据）
-        // 复用公共查询基础：排除隐藏和软删除的文章
-        var postsQuery = context.Posts
-            .AsNoTracking()
-            .Where(p => !p.IsHidden && !p.IsDeleted);
-        
-        var postsCount = await postsQuery.CountAsync();
-        
-        // 评论总数
-        var commentsCount = await context.Comments
-            .AsNoTracking()
-            .CountAsync();
-        
-        // 运行天数（从配置读取起始日期）
-        // 默认: 2025-01-01 -> 2025-12-27 约 360 天（正常）
-        var launchDateContent = await context.SiteContents
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Key == "site_launch_date");
-        
-        var launchDate = DateTime.TryParse(launchDateContent?.Value, out var parsed) 
-            ? parsed 
-            : new DateTime(2025, 12, 1);
-        
-        var runningDays = (int)(DateTime.UtcNow - launchDate).TotalDays;
-        
-        return Ok(new { 
-            visits = int.Parse(visits),
-            postsCount,
-            commentsCount,
-            runningDays
-        });
+        return Ok(stats);
     }
 }
