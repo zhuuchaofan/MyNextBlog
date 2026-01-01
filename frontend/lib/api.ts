@@ -76,6 +76,7 @@ export function updatePost(
     tags?: string[];
     seriesId?: number;
     seriesOrder?: number;
+    isHidden?: boolean;  // 控制文章可见性
   }
 ) {
   return fetchClient(`/api/backend/posts/${id}`, {

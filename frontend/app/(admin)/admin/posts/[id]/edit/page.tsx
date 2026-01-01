@@ -13,6 +13,7 @@ import CreateSeriesDialog from '@/components/CreateSeriesDialog'; // Create Seri
 import { fetchCategories, updatePost, Category, getPostWithAuth, fetchAllSeries, fetchNextSeriesOrder, Series } from '@/lib/api'; // 导入 API 请求函数和类型
 import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件
+import { Switch } from "@/components/ui/switch"; // 开关组件
 
 /**
  * EditPostPage 组件：编辑文章页面
@@ -42,6 +43,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [seriesId, setSeriesId] = useState<number | undefined>(undefined);
   const [seriesOrder, setSeriesOrder] = useState<number>(0);
+  
+  // 文章可见性状态
+  const [isHidden, setIsHidden] = useState<boolean>(false);
 
   // `useEffect` 钩子，在组件挂载后执行，用于：
   // 1. 权限检查
@@ -73,6 +77,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           // Load existing series info if available
           setSeriesId(p.seriesId || undefined);
           setSeriesOrder(p.seriesOrder || 0);
+          // 加载文章可见性状态
+          setIsHidden(p.isHidden ?? false);
         } else {
           toast.error('文章不存在或无权编辑'); // 如果文章不存在或无权编辑，显示错误并跳转
           router.push('/admin/posts');
@@ -121,7 +127,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         categoryId,
         tags,
         seriesId,
-        seriesOrder: seriesId ? seriesOrder : 0
+        seriesOrder: seriesId ? seriesOrder : 0,
+        isHidden  // 传递文章可见性状态
       });
       
       if (res.success) {
@@ -174,6 +181,28 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
+        </div>
+
+        {/* 文章可见性控制 */}
+        <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
+          <div className="space-y-0.5">
+            <Label className="font-semibold dark:text-gray-200">文章状态</Label>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {isHidden ? "此文章当前为隐藏状态，仅管理员可见" : "此文章当前为公开状态"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm ${!isHidden ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+              公开
+            </span>
+            <Switch
+              checked={isHidden}
+              onCheckedChange={setIsHidden}
+            />
+            <span className={`text-sm ${isHidden ? 'text-orange-600 dark:text-orange-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+              隐藏
+            </span>
+          </div>
         </div>
 
         {/* 分类选择区域 */}
