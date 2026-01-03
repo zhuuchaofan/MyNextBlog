@@ -12,6 +12,7 @@
 
 // `using` 语句用于导入必要的命名空间
 using Microsoft.AspNetCore.Mvc;  // ASP.NET Core MVC
+using Microsoft.AspNetCore.RateLimiting;  // Rate Limiting 特性
 using MyNextBlog.DTOs;           // 数据传输对象
 using MyNextBlog.Services;       // 业务服务
 
@@ -32,6 +33,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// 用户登录
     /// </summary>
     [HttpPost("login")]
+    [EnableRateLimiting("login")]  // 频率限制: 每分钟最多 5 次
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         // 使用 Service 提供的 Helper 方法进行认证

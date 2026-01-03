@@ -7,6 +7,7 @@
 // `using` 语句用于导入必要的命名空间
 using System.Text.Json;                    // 引入 JSON 序列化基础类型
 using System.Text.Json.Serialization;      // 引入 JSON 序列化特性 (ReferenceHandler)
+using System.Threading.RateLimiting;       // 引入 Rate Limiting 相关类型
 using Microsoft.EntityFrameworkCore;       // 引入 Entity Framework Core
 using MyNextBlog.Data;                     // 引入数据访问层 (AppDbContext)
 using MyNextBlog.Extensions;               // 引入扩展方法 (服务注册、中间件)
@@ -81,6 +82,38 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 7. **JWT 认证配置**
 // 具体配置拆分到 Extensions/AuthenticationExtensions.cs
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// 8. **Rate Limiting (频率限制)**
+// 防止暴力破解登录和 API 滥用
+builder.Services.AddRateLimiter(options =>
+{
+    // 登录接口专用策略: 每分钟最多 5 次尝试 (基于 IP)
+    options.AddPolicy("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0 // 不排队，直接拒绝
+            }));
+    
+    // 全局策略: 每分钟最多 100 次请求 (针对同一 IP)
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            });
+    });
+    
+    // 拒绝时返回 429 Too Many Requests
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // ==================================================================
 // Data Protection (数据保护)

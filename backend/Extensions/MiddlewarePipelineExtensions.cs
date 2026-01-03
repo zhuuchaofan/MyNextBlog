@@ -20,7 +20,10 @@ public static class MiddlewarePipelineExtensions
         // 2. 请求关联 ID (在异常处理后、日志前，确保所有日志都有 ID)
         app.UseMiddleware<CorrelationIdMiddleware>();
         
-        // 2. 反向代理头处理 (Docker/Nginx 环境获取真实 IP)
+        // 3. 请求计时 (记录慢请求，>500ms 输出 Warning)
+        app.UseMiddleware<RequestTimingMiddleware>();
+        
+        // 4. 反向代理头处理 (Docker/Nginx 环境获取真实 IP)
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -61,7 +64,10 @@ public static class MiddlewarePipelineExtensions
         // 8. CORS (必须在 Routing 后、Authentication 前)
         app.UseCors(CorsExtensions.PolicyName);
         
-        // 9. 认证 & 授权 (顺序不能颠倒！)
+        // 9. Rate Limiting (频率限制)
+        app.UseRateLimiter();
+        
+        // 10. 认证 & 授权 (顺序不能颠倒！)
         app.UseAuthentication();
         app.UseAuthorization();
         
