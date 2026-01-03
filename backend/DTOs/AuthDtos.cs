@@ -23,9 +23,11 @@ namespace MyNextBlog.DTOs;
 /// </summary>
 public record LoginDto(
     [Required(ErrorMessage = "用户名不能为空")]
+    [StringLength(50, ErrorMessage = "用户名长度不能超过50个字符")]
     string Username,
     
     [Required(ErrorMessage = "密码不能为空")]
+    [StringLength(100, ErrorMessage = "密码长度不能超过100个字符")]
     string Password
 );
 

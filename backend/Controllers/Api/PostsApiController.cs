@@ -61,6 +61,10 @@ public class PostsApiController(IPostService postService, ICommentService commen
         [FromQuery] string? tag = null,
         [FromQuery] int? categoryId = null)
     {
+        // 边界保护：限制分页参数范围
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+        
         // 修复：公开API永远只返回公开文章（!IsHidden && !IsDeleted）
         // 不论访问者是谁（游客或管理员），公开页面都应该显示相同的内容
         // 管理员想查看草稿请访问 /api/posts/admin
@@ -97,6 +101,10 @@ public class PostsApiController(IPostService postService, ICommentService commen
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
     {
+        // 边界保护：限制分页参数范围
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+        
         // 直接调用支持分页的接口
         var (allPosts, totalCount) = await postService.GetAllPostsAsync(
             page, pageSize, 
@@ -327,6 +335,10 @@ public class PostsApiController(IPostService postService, ICommentService commen
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        // 边界保护：限制分页参数范围
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+        
         var (posts, totalCount) = await postService.GetDeletedPostsAsync(page, pageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 

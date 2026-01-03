@@ -9,6 +9,8 @@
 //
 // **占位符格式**: 使用 `{{PlaceholderName}}` 语法
 
+using System.ComponentModel.DataAnnotations;  // 数据验证特性
+
 // `namespace` 声明了当前文件中的代码所属的命名空间
 namespace MyNextBlog.DTOs;
 
@@ -31,7 +33,13 @@ public record EmailTemplateDto(
 /// 更新邮件模板请求 DTO
 /// </summary>
 public record UpdateEmailTemplateDto(
+    [Required(ErrorMessage = "邮件主题不能为空")]
+    [StringLength(500, ErrorMessage = "邮件主题不能超过500个字符")]
     string SubjectTemplate,
+    
+    [Required(ErrorMessage = "邮件正文不能为空")]
+    [StringLength(50000, ErrorMessage = "邮件正文不能超过50000个字符")]
     string BodyTemplate,
+    
     bool? IsEnabled
 );

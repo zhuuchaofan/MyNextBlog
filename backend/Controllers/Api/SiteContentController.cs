@@ -7,6 +7,7 @@
 //              现在遵循 Thin Controllers 原则，仅负责 HTTP IO。
 
 // `using` 语句用于导入必要的命名空间
+using System.ComponentModel.DataAnnotations; // 数据验证特性
 using Microsoft.AspNetCore.Authorization;  // 授权特性
 using Microsoft.AspNetCore.Mvc;            // ASP.NET Core MVC 核心类型
 using MyNextBlog.Services;                 // 业务服务层
@@ -80,4 +81,11 @@ public class SiteContentController(ISiteContentService siteContentService) : Con
 /// <summary>
 /// 更新内容的请求 DTO
 /// </summary>
-public record UpdateContentDto(string Value, string? Description);
+public record UpdateContentDto(
+    [Required(ErrorMessage = "内容不能为空")]
+    [StringLength(50000, ErrorMessage = "内容不能超过50000个字符")]
+    string Value, 
+    
+    [StringLength(500, ErrorMessage = "描述不能超过500个字符")]
+    string? Description
+);

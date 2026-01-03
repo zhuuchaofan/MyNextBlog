@@ -44,7 +44,12 @@ public class UploadController(IStorageService storageService, IImageService imag
         if (file == null || file.Length == 0)
             return BadRequest("请选择文件");
 
-        // 2. 检查文件格式 (白名单机制)
+        // 2. 检查文件大小 (最大 10MB)
+        const long maxFileSize = 10 * 1024 * 1024; // 10MB
+        if (file.Length > maxFileSize)
+            return BadRequest("文件大小不能超过 10MB");
+
+        // 3. 检查文件格式 (白名单机制)
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         var extension = Path.GetExtension(file.FileName).ToLower();
 

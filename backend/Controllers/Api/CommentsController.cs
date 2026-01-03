@@ -79,6 +79,10 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetComments(int postId, int page = 1, int pageSize = 5)
     {
+        // 边界保护：限制分页参数范围
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 20);
+        
         var comments = await commentService.GetCommentsAsync(postId, page, pageSize);
         var totalCount = await commentService.GetCommentCountAsync(postId);
         bool hasMore = (page * pageSize) < totalCount;
@@ -100,6 +104,10 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     [HttpGet("admin")]
     public async Task<IActionResult> GetAdminComments(int page = 1, int pageSize = 20, bool? isApproved = null)
     {
+        // 边界保护：限制分页参数范围
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+        
         var (comments, totalCount) = await commentService.GetAllCommentsForAdminAsync(page, pageSize, isApproved);
         
         // Service 层已经返回 AdminCommentDto，无需再次映射
