@@ -216,6 +216,44 @@ public async Task<IActionResult> GetComments(int postId, int page = 1)
     - `SendNotificationsAsync`: 发送新评论通知（站长）和回复通知（被回复者）
   - **优势**: 消除 `CommentService` 对 `IServiceScopeFactory` 的隐性依赖，所有依赖在构造函数中显式声明。
 
+- **`IProductService` & `ProductService`**: ✨ **新增 (2026-01 购物功能)**
+
+  - **职责**: 管理商品的 CRUD 操作和库存管理。
+  - **主要功能**:
+    - `GetAllActiveAsync`: 获取所有上架商品（公开 API，不含敏感信息）
+    - `GetByIdAsync`: 获取商品详情（公开 API）
+    - `GetAllAsync`, `GetAdminByIdAsync`: 管理员 API（含 DownloadUrl/RedeemCode）
+    - `CreateAsync`, `UpdateAsync`, `DeleteAsync`: 商品 CRUD
+  - **安全设计**: 公开 DTO 不包含 DownloadUrl 和 RedeemCode 敏感字段。
+
+- **`IOrderService` & `OrderService`**: ✨ **新增 (2026-01 购物功能)**
+
+  - **职责**: 订单生命周期管理，包括创建、支付、确认收货和取消。
+  - **主要功能**:
+    - `CreateOrderAsync`: 创建订单，自动扣减库存（原子操作）
+    - `ProcessPaymentAsync`: 处理支付，更新订单状态
+    - `ConfirmReceiptAsync`: 确认收货
+    - `CancelOrderAsync`: 取消订单并恢复库存
+    - `GetUserOrdersAsync`, `GetOrderByIdAsync`: 用户订单查询
+    - `GetAllOrdersAsync`: 管理员查看所有订单
+  - **关键技术**:
+    - **原子库存扣减**: 使用 `ExecuteUpdateAsync` 避免并发超卖
+    - **事务一致性**: 订单创建使用数据库事务
+    - **敏感信息保护**: 仅付款后才显示 DownloadUrl/RedeemCode
+
+- **`IPaymentGateway` & `MockPaymentGateway`**: ✨ **新增 (2026-01 购物功能)**
+
+  - **职责**: 支付网关抽象层，采用策略模式设计。
+  - **当前实现**: `MockPaymentGateway` 模拟支付，始终返回成功。
+  - **扩展方向**: 未来可实现 `StripePaymentGateway`、`AlipayPaymentGateway` 等。
+
+- **`IOrderNotificationService` & `OrderNotificationService`**: ✨ **新增 (2026-01 购物功能)**
+
+  - **职责**: 订单相关的邮件通知服务。
+  - **主要功能**:
+    - `SendOrderCreatedEmailAsync`: 发送订单创建通知
+    - `SendOrderCompletedEmailAsync`: 发送发货邮件（含下载链接/兑换码）
+
 ---
 
 ## 4. 数据访问层 (Models & Data)

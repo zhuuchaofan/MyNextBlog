@@ -36,13 +36,18 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 最新更新 (2026-01-04)
 
-- 🧪 **单元测试体系建立**:
-  - **11 个测试类, 129 个测试用例, 100% 通过率**
-  - 覆盖核心服务: Post, Auth, Comment, Category, Tag, EmailTemplate, Stats, Plan, SiteContent, Image, Anniversary
-  - 技术栈: xUnit + FluentAssertions + Moq + EF Core InMemory
-  - 修复 CI 兼容性: CategoryService 排序测试改为跨平台写法
+- 🛒 **购物功能模块 (Shopping Feature)**:
+  - **商品管理**: 支持上架/下架、库存管理、无限库存虚拟商品（库存=-1）
+  - **购物流程**: 商品列表 → 购物车 → 确认订单 → 模拟付款 → 自动发货
+  - **安全设计**: 后端价格查询（防篡改）、原子库存扣减（防超卖）、敏感信息保护（付款后才显示下载链接）
+  - **策略模式支付网关**: `IPaymentGateway` 接口设计，当前使用 MockPaymentGateway，可扩展接入真实支付
+  - **订单通知**: 订单创建和支付成功后自动发送邮件通知
+- 🧪 **单元测试体系完善**:
+  - **新增 32 个测试**: ProductServiceTests (14) + OrderServiceTests (18)
+  - **总计: 12 个测试类, 161 个测试用例, 100% 通过率**
+  - 技术栈: xUnit + FluentAssertions + Moq + SQLite 内存数据库
 
-### 历史更新 (2026-01-01)
+### 历史更新 (2026-01-04 早)
 
 - 🏗️ **架构重构与代码质量提升**:
   - **Controller 层解耦**: 新增 `StatsService`、`SiteContentService`、`CommentNotificationService`，Controller 不再直接注入 `DbContext`
@@ -285,6 +290,27 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
   - **高可用**: 即使服务器彻底宕机，也能从云端恢复最近一次的数据。
 - **数据播种 (Seeding)**:
   - 首次启动时，`DataSeeder` 会自动初始化默认分类 (`Technology`, `Life`) 和系统配置，实现开箱即用。
+
+### 8. 🛒 购物功能 (Shopping Feature) ✨ NEW
+
+专为**虚拟商品**（电子书、下载链接、兑换码）设计的轻量级电商系统。
+
+- **商品管理**:
+  - 支持上架/下架状态切换
+  - 无限库存模式（`Stock = -1`）适用于虚拟商品
+  - 敏感信息（下载链接/兑换码）仅管理员可见
+- **购物流程**:
+  - **购物车**: 基于 localStorage 的客户端存储
+  - **订单创建**: 后端验证价格、原子扣减库存、事务保证一致性
+  - **模拟支付**: 策略模式支付网关，可扩展接入真实支付
+  - **自动发货**: 支付成功后自动发送下载链接/兑换码邮件
+- **安全设计**:
+  - **防篡改**: 价格从后端查询，不信任前端数据
+  - **防超卖**: `ExecuteUpdateAsync` 实现数据库级原子操作
+  - **信息保护**: DownloadUrl/RedeemCode 仅在付款后显示
+- **管理后台**:
+  - `/admin/products`: 商品 CRUD 管理
+  - `/admin/orders`: 订单列表、取消订单（自动恢复库存）
 
 ---
 
