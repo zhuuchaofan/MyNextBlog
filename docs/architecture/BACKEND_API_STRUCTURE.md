@@ -21,7 +21,7 @@
 - **存储**: 集成了 `Cloudflare R2` (兼容 AWS S3) 对象存储服务。
 - **日志**: 使用 `Serilog` 进行结构化日志记录，便于监控和调试。
 - **后台任务**: 注册了 `DatabaseBackupService` 作为后台托管服务，用于每日自动备份数据库。
-- **CORS 配置**: 允许特定的前端域名 (如 `http://localhost:3000`, `https://nextblog.zhuchaofan.online`) 跨域访问 API。
+- **CORS 配置**: 允许特定的前端域名 (如 `http://localhost:3000`, `https://nextblog.zhuchaofan.com`) 跨域访问 API。
 - **Swagger/OpenAPI**: 集成了 Swagger，用于自动生成和展示 API 文档。
 - **数据播种**: 在应用启动时，检查并自动应用数据库迁移，并可选择性地填充初始数据（如默认分类）。
 

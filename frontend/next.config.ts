@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       // 您的 R2 存储桶域名
       {
         protocol: 'https',
-        hostname: 'picture.zhuchaofan.online', 
+        hostname: 'files.zhuchaofan.com', 
       },
       // 仅在开发环境下允许 localhost
       ...(process.env.NODE_ENV === 'development' ? [{

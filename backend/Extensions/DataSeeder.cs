@@ -64,7 +64,7 @@ public static class DataSeederExtensions
 
                 // 关于页面配置项 - 使用 JSON 格式存储复杂数据
                 SeedSiteContentIfNotExists(context, "about_author", "作者基本信息 (JSON)",
-                    """{"name":"朱超凡","avatar":"https://picture.zhuchaofan.online/CAT/boy_01.png","location":"日本·东京 (出向中)","description":"全栈开发者 / .NET / Next.js / 赴日修行中","social":{"github":"https://github.com/zhuuchaofan","twitter":"https://twitter.com/zhuchaofan","email":"zhuuchaofan@gmail.com"}}""");
+                    """{"name":"朱超凡","avatar":"https://files.zhuchaofan.com/CAT/boy_01.png","location":"日本·东京 (出向中)","description":"全栈开发者 / .NET / Next.js / 赴日修行中","social":{"github":"https://github.com/zhuuchaofan","twitter":"https://twitter.com/zhuchaofan","email":"zhuuchaofan@gmail.com"}}""");
 
                 SeedSiteContentIfNotExists(context, "about_skills", "技能树 (JSON)",
                     """[{"title":"后端与数据库","skills":[{"name":".NET Framework / Core","icon":"Server","level":"精通"},{"name":"C#","icon":"Code2","level":"精通"},{"name":"Oracle DB","icon":"Database","level":"熟练"},{"name":"PostgreSQL","icon":"Database","level":"熟练"},{"name":"Legacy Migration","icon":"GitGraph","level":"熟练"},{"name":"Mainframe (Learning)","icon":"Server","level":"初学"}]},{"title":"前端 (业余)","skills":[{"name":"React","icon":"Layout","level":"掌握"},{"name":"Next.js 16","icon":"Globe","level":"掌握"},{"name":"TypeScript","icon":"Code2","level":"掌握"},{"name":"Tailwind CSS","icon":"Palette","level":"掌握"}]},{"title":"运维与工具","skills":[{"name":"Docker","icon":"Container","level":"掌握"},{"name":"Linux","icon":"Terminal","level":"掌握"},{"name":"Git","icon":"GitGraph","level":"熟练"},{"name":"iTerm","icon":"Terminal","level":"熟练"}]}]""");
@@ -79,7 +79,7 @@ public static class DataSeederExtensions
                     """[{"category":"Hardware","items":["Mac mini M4"]},{"category":"Software","items":["JetBrains Rider","VS Code","iTerm","Docker Desktop","Obsidian"]}]""");
 
                 SeedSiteContentIfNotExists(context, "about_pets", "宠物信息 (JSON)",
-                    """[{"name":"球球","role":"CTO / 首席监工","avatar":"https://picture.zhuchaofan.online/CAT/cat07_moyou_kijitora.png","description":"高冷狸花猫。代码审查极其严格，只要饭盆空了就会抛出 NullFoodException。"},{"name":"布丁","role":"HR / 气氛组","avatar":"https://picture.zhuchaofan.online/CAT/cat01_moyou_black.png","description":"粘人黑猫。负责在深夜提供呼噜声白噪音，偶尔帮忙按压 Enter 键发布未完成的代码。"}]""");
+                    """[{"name":"球球","role":"CTO / 首席监工","avatar":"https://files.zhuchaofan.com/CAT/cat07_moyou_kijitora.png","description":"高冷狸花猫。代码审查极其严格，只要饭盆空了就会抛出 NullFoodException。"},{"name":"布丁","role":"HR / 气氛组","avatar":"https://files.zhuchaofan.com/CAT/cat01_moyou_black.png","description":"粘人黑猫。负责在深夜提供呼噜声白噪音，偶尔帮忙按压 Enter 键发布未完成的代码。"}]""");
 
                 // 首页 Hero 区域配置
                 SeedSiteContentIfNotExists(context, "homepage_slogan", "首页 Slogan",
