@@ -28,8 +28,7 @@
 
 ### 新增文件
 
-- `backend.Tests/` 测试项目
-- [PostServiceTests.cs](file:///Volumes/fanxiang/MyTechBlog/backend.Tests/Services/PostServiceTests.cs)
+- `backend.Tests/` 测试项目 (8 个测试类)
 
 ### 技术栈
 
@@ -40,19 +39,18 @@
 | FluentAssertions | 可读断言   |
 | EF Core InMemory | 内存数据库 |
 
-### 测试用例 (9 个)
+### 测试统计 (93 个用例)
 
-```
-✅ GetAllPostsAsync_ShouldReturnCorrectPageSize
-✅ GetAllPostsAsync_ShouldIncludeHiddenPosts_WhenRequested
-✅ GetAllPostsAsync_ShouldReturnSecondPage
-✅ GetPostByIdAsync_ShouldReturnPost_WhenExists
-✅ GetPostByIdAsync_ShouldReturnNull_WhenNotExists
-✅ GetPostByIdAsync_ShouldNotReturnHiddenPost_WhenNotIncluded
-✅ GetPostByIdAsync_ShouldReturnHiddenPost_WhenIncluded
-✅ TogglePostVisibilityAsync_ShouldToggleIsHidden
-✅ TogglePostVisibilityAsync_ShouldReturnFalse_WhenPostNotExists
-```
+| 测试类                    | 数量 | 覆盖功能                   |
+| :------------------------ | :--: | :------------------------- |
+| PostServiceTests          |  9   | 分页、获取、可见性         |
+| AuthServiceTests          |  12  | 登录、注册、Token、密码    |
+| CommentServiceTests       |  16  | CRUD、批量、频率限制       |
+| CategoryServiceTests      |  9   | 获取、创建、去重           |
+| TagServiceTests           |  10  | 热门标签、创建去重         |
+| EmailTemplateServiceTests |  10  | 获取、更新、渲染、XSS      |
+| StatsServiceTests         |  10  | 公开统计、仪表盘           |
+| PlanServiceTests          |  17  | CRUD、日程、活动、公开 API |
 
 ### 运行命令
 
@@ -121,6 +119,8 @@ error CS1061: 'RateLimiterOptions' does not contain a definition for 'AddFixedWi
 
 ## 5. 后续建议
 
-- [ ] 为 AuthService、CommentService 补充单元测试
+- [x] 为 AuthService、CommentService 补充单元测试 ✅ 已完成
+- [x] 添加 CategoryService、TagService 单元测试 ✅ 已完成
+- [x] 添加 PlanService 单元测试 ✅ 已完成
 - [ ] 添加集成测试 (WebApplicationFactory)
 - [ ] 考虑使用 Redis 实现分布式 Rate Limiting
