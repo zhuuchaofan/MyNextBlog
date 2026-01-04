@@ -1,17 +1,24 @@
 // 管理员商品管理页面
 // --------------------------------------------------------------------------------
+// 布局风格与文章管理页面保持一致：返回按钮、统计徽章、响应式表格/卡片
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Loader2, Package, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Loader2, 
+  Package, 
+  Eye, 
+  EyeOff, 
+  ChevronLeft,
+  ExternalLink
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,7 +27,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -43,12 +59,18 @@ import {
 } from "@/lib/api";
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductAdmin | null>(null);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductAdmin | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 统计数据
+  const [statsActive, setStatsActive] = useState<number | null>(null);
+  const [statsInactive, setStatsInactive] = useState<number | null>(null);
 
   // 表单状态
   const [formData, setFormData] = useState({
@@ -64,19 +86,24 @@ export default function ProductsAdminPage() {
 
   // 加载商品列表
   useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchProductsAdmin();
-        setProducts(data);
-      } catch {
-        toast.error("加载失败");
-      } finally {
-        setLoading(false);
-      }
-    };
     loadProducts();
   }, []);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchProductsAdmin();
+      setProducts(data);
+      // 计算统计
+      const active = data.filter(p => p.isActive).length;
+      setStatsActive(active);
+      setStatsInactive(data.length - active);
+    } catch {
+      toast.error("加载失败");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 打开新增对话框
   const openCreateDialog = () => {
@@ -119,7 +146,6 @@ export default function ProductsAdminPage() {
     setSaving(true);
     try {
       if (editingProduct) {
-        // 更新
         await updateProduct(editingProduct.id, {
           name: formData.name,
           description: formData.description,
@@ -132,7 +158,6 @@ export default function ProductsAdminPage() {
         });
         toast.success("商品已更新");
       } else {
-        // 新增
         await createProduct({
           name: formData.name,
           description: formData.description,
@@ -145,9 +170,7 @@ export default function ProductsAdminPage() {
         toast.success("商品已创建");
       }
       setDialogOpen(false);
-      // 重新加载
-      const data = await fetchProductsAdmin();
-      setProducts(data);
+      await loadProducts();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "保存失败");
     } finally {
@@ -156,28 +179,58 @@ export default function ProductsAdminPage() {
   };
 
   // 删除商品
-  const handleDelete = async (id: number) => {
-    if (!confirm("确定要删除这个商品吗？")) return;
+  const executeDelete = async () => {
+    if (!productToDelete) return;
 
-    setDeleting(id);
+    setIsDeleting(true);
     try {
-      const result = await deleteProduct(id);
+      const result = await deleteProduct(productToDelete.id);
       if (result.success) {
         toast.success("商品已删除");
-        // 重新加载
-        const data = await fetchProductsAdmin();
-        setProducts(data);
+        await loadProducts();
       } else {
         throw new Error(result.message);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "删除失败，可能有订单关联");
     } finally {
-      setDeleting(null);
+      setIsDeleting(false);
+      setProductToDelete(null);
     }
   };
 
-  if (loading) {
+  // 切换上架状态
+  const handleToggleActive = async (product: ProductAdmin) => {
+    try {
+      await updateProduct(product.id, {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl || undefined,
+        downloadUrl: product.downloadUrl || undefined,
+        redeemCode: product.redeemCode || undefined,
+        stock: product.stock,
+        isActive: !product.isActive,
+      });
+      toast.success(product.isActive ? "商品已下架" : "商品已上架");
+      // 乐观更新
+      setProducts(prev => prev.map(p => 
+        p.id === product.id ? { ...p, isActive: !p.isActive } : p
+      ));
+      // 更新统计
+      if (product.isActive) {
+        setStatsActive(prev => (prev ?? 0) - 1);
+        setStatsInactive(prev => (prev ?? 0) + 1);
+      } else {
+        setStatsActive(prev => (prev ?? 0) + 1);
+        setStatsInactive(prev => (prev ?? 0) - 1);
+      }
+    } catch {
+      toast.error("操作失败");
+    }
+  };
+
+  if (loading && products.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -186,83 +239,130 @@ export default function ProductsAdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              商品管理
-            </CardTitle>
-            <CardDescription>管理商店中的虚拟商品</CardDescription>
-          </div>
-          <Button onClick={openCreateDialog}>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* 页面标题和操作按钮 */}
+      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* 返回按钮 */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => router.back()} 
+            className="text-gray-500 dark:text-gray-400 h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="sr-only">返回</span>
+          </Button>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <Package className="w-5 h-5 sm:w-6 sm:h-6" />
+            商品管理
+          </h1>
+        </div>
+        {/* 第二行：统计徽章 + 按钮 */}
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          {statsActive !== null && (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <Eye className="w-3.5 h-3.5" />
+                上架 {statsActive}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                <EyeOff className="w-3.5 h-3.5" />
+                下架 {statsInactive}
+              </span>
+            </div>
+          )}
+          <Button 
+            onClick={openCreateDialog}
+            className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white"
+          >
             <Plus className="w-4 h-4 mr-2" />
             添加商品
           </Button>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              暂无商品，点击上方按钮添加
-            </div>
-          ) : (
+        </div>
+      </div>
+
+      {products.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800">
+          暂无商品，点击上方按钮添加
+        </div>
+      ) : (
+        <>
+          {/* 桌面端表格 */}
+          <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden transition-colors">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>商品名称</TableHead>
-                  <TableHead className="text-right">价格</TableHead>
-                  <TableHead className="text-center">库存</TableHead>
-                  <TableHead className="text-center">状态</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
+                <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
+                  <TableHead className="text-gray-500 dark:text-gray-400">商品名称</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">价格</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">库存</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium max-w-[200px] truncate">
-                      {product.name}
+                  <TableRow 
+                    key={product.id} 
+                    className={`${!product.isActive ? 'bg-gray-50/30 dark:bg-zinc-800/30 text-gray-400 dark:text-gray-500' : 'dark:text-gray-300'} border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50`}
+                  >
+                    <TableCell>
+                      <Link 
+                        href={`/shop/${product.id}`} 
+                        target="_blank" 
+                        className="hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-2 group transition-colors font-medium"
+                      >
+                        {product.name}
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                      </Link>
                     </TableCell>
                     <TableCell className="text-right">
                       ¥{product.price.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {product.stock === -1 ? "∞" : product.stock}
+                      <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">
+                        {product.stock === -1 ? "∞ 无限" : product.stock}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {product.isActive ? (
-                        <Badge variant="default">
-                          <Eye className="w-3 h-3 mr-1" />
-                          上架
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          <EyeOff className="w-3 h-3 mr-1" />
-                          下架
-                        </Badge>
-                      )}
+                      <Badge 
+                        variant={product.isActive ? "default" : "outline"} 
+                        className={product.isActive 
+                          ? "bg-green-500 hover:bg-green-600 text-white border-transparent" 
+                          : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-zinc-700"
+                        }
+                      >
+                        {product.isActive ? "上架" : "下架"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {/* 切换上架状态 */}
                         <Button
-                          variant="ghost"
-                          size="icon"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                          onClick={() => handleToggleActive(product)}
+                        >
+                          {product.isActive ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        </Button>
+                        {/* 编辑按钮 */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
                           onClick={() => openEditDialog(product)}
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-3 h-3 mr-1" /> 编辑
                         </Button>
+                        {/* 删除按钮 */}
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(product.id)}
-                          disabled={deleting === product.id}
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                          onClick={() => setProductToDelete(product)}
                         >
-                          {deleting === product.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
                     </TableCell>
@@ -270,9 +370,72 @@ export default function ProductsAdminPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+
+          {/* 移动端卡片视图 */}
+          <div className="grid gap-3 md:hidden">
+            {products.map((product) => (
+              <div 
+                key={product.id} 
+                className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 space-y-3 transition-colors"
+              >
+                <div className="flex justify-between items-start gap-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight flex-1">
+                    <Link 
+                      href={`/shop/${product.id}`} 
+                      className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                    >
+                      {product.name}
+                    </Link>
+                  </h3>
+                  <Badge 
+                    variant={product.isActive ? "default" : "outline"} 
+                    className={product.isActive 
+                      ? "bg-green-500 hover:bg-green-600 text-white" 
+                      : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400"
+                    }
+                  >
+                    {product.isActive ? "上架" : "下架"}
+                  </Badge>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-500 flex items-center justify-between border-b border-gray-50 dark:border-zinc-800 pb-3">
+                  <span className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+                    ¥{product.price.toFixed(2)}
+                  </span>
+                  <span>库存: {product.stock === -1 ? "∞ 无限" : product.stock}</span>
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-9 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                    onClick={() => handleToggleActive(product)}
+                  >
+                    {product.isActive ? <EyeOff className="w-3 h-3 mr-2" /> : <Eye className="w-3 h-3 mr-2" />}
+                    {product.isActive ? "下架" : "上架"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-9 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                    onClick={() => openEditDialog(product)}
+                  >
+                    <Pencil className="w-3 h-3 mr-2" /> 编辑
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 h-9 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/40"
+                    onClick={() => setProductToDelete(product)}
+                  >
+                    <Trash2 className="w-3 h-3 mr-2" /> 删除
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* 新增/编辑对话框 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -378,13 +541,38 @@ export default function ProductsAdminPage() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
               {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               保存
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 删除确认对话框 */}
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定要删除这个商品吗？</AlertDialogTitle>
+            <AlertDialogDescription>
+              商品 <span className="font-bold text-gray-900 dark:text-gray-100">&ldquo;{productToDelete?.name}&rdquo;</span> 将被永久删除，此操作不可撤销。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                executeDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "删除中..." : "确认删除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
