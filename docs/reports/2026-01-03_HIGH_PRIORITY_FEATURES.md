@@ -122,5 +122,7 @@ error CS1061: 'RateLimiterOptions' does not contain a definition for 'AddFixedWi
 - [x] 为 AuthService、CommentService 补充单元测试 ✅ 已完成
 - [x] 添加 CategoryService、TagService 单元测试 ✅ 已完成
 - [x] 添加 PlanService 单元测试 ✅ 已完成
+- [x] 添加 ImageService、AnniversaryService 单元测试 ✅ 2026-01-04
+- [ ] 引入 **Bogus** 库优化测试数据生成 (当模型复杂度增加时)
 - [ ] 添加集成测试 (WebApplicationFactory)
 - [ ] 考虑使用 Redis 实现分布式 Rate Limiting

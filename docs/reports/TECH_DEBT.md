@@ -97,14 +97,14 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 
 ---
 
-## 📋 待办清单
-
 - [x] Controller 层解耦，禁止直接注入 DbContext ✅ 2026-01-01
+- [x] 为所有核心 Service 添加单元测试 ✅ 2026-01-04 (129 个用例)
 - [ ] 决定 DTO 投影方案（A/B/C）
 - [ ] 修复 `CommentMappers.cs` 的 nullable 警告
 - [ ] 考虑将 `PostMappingExtensions.cs` 移动到 `Mappers/` 目录
-- [ ] 为所有 Mapper 添加单元测试
+- [ ] 引入 Bogus 库优化测试数据生成 (当模型字段 > 15 或用例 > 300 时)
+- [ ] 添加集成测试 (WebApplicationFactory)
 
 ---
 
-_最后更新：2026-01-01_
+_最后更新：2026-01-04_
