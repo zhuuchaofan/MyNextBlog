@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, ArrowRight, Tag, Github } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+// 移除 next/image，使用传统 img 以兼容不同协议的图片 URL
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 import StatsWidget from "./_components/StatsWidget";
@@ -164,23 +164,18 @@ export default async function Home() {
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-white dark:from-orange-900/20 dark:to-zinc-800/20 rounded-full animate-pulse"></div>
             <div className="relative w-full h-full bg-white/50 dark:bg-zinc-800/50 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-zinc-700/50 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
               {pets[0]?.avatar && (
-                <Image
+                <img
                   src={pets[0].avatar}
                   alt={pets[0].name}
-                  fill
-                  priority={true} // 优先级加载 (LCP 优化)
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover rounded-3xl transition-transform duration-700 group-hover:scale-110"
+                  className="absolute inset-0 w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-110"
                 />
               )}
               {pets[1]?.avatar && (
                 <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl overflow-hidden shadow-2xl animate-bounce duration-1000">
-                  <Image
+                  <img
                     src={pets[1].avatar}
                     alt={pets[1].name}
-                    fill
-                    sizes="20vw" // Smaller image
-                    className="object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}

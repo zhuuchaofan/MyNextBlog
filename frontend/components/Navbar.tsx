@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { useMounted } from '@/hooks/useMounted';
@@ -31,6 +31,7 @@ export default function Navbar() {
     { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
     { href: '/series', icon: <Library className="w-4 h-4" />, label: '系列' },
     { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '猫咪相册' },
+    { href: '/shop', icon: <ShoppingBag className="w-4 h-4" />, label: '精品店' },
     { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于铲屎官' },
   ];
 
@@ -127,6 +128,12 @@ export default function Navbar() {
                                   </DropdownMenuItem>
                                </Link>
                              )}
+                             <Link href="/orders">
+                               <DropdownMenuItem className="cursor-pointer gap-2">
+                                 <Package className="w-4 h-4" />
+                                 <span>我的订单</span>
+                               </DropdownMenuItem>
+                             </Link>
                              <Link href="/settings">
                                <DropdownMenuItem className="cursor-pointer gap-2">
                                  <UserIcon className="w-4 h-4" />
@@ -187,6 +194,12 @@ export default function Navbar() {
                           </DropdownMenuItem>
                        </Link>
                      )}
+                     <Link href="/orders">
+                        <DropdownMenuItem className="cursor-pointer">
+                          <Package className="mr-2 h-4 w-4" />
+                          <span>我的订单</span>
+                        </DropdownMenuItem>
+                     </Link>
                      <Link href="/settings">
                         <DropdownMenuItem className="cursor-pointer">
                           <UserIcon className="mr-2 h-4 w-4" />
