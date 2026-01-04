@@ -77,23 +77,13 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 
 ---
 
-## 其他技术债务
+### ✅ Nullable 警告 (已修复)
 
-### ⚠️ Nullable 警告
+| 文件                        | 行号 | 警告代码 | 状态      |
+| :-------------------------- | :--- | :------- | :-------- |
+| `Mappers/CommentMappers.cs` | L44  | CS8604   | ✅ 已修复 |
 
-| 文件                        | 行号 | 警告代码 | 说明                               |
-| :-------------------------- | :--- | :------- | :--------------------------------- |
-| `Mappers/CommentMappers.cs` | L44  | CS8604   | `Select(ToDto)` 中的潜在 null 引用 |
-
-**修复方案**：
-
-```csharp
-// 当前代码
-(c.Children ?? Enumerable.Empty<Comment>()).Select(ToDto).ToList()
-
-// 修复：添加 null 抑制或显式检查
-(c.Children ?? []).Select(ToDto!).ToList()
-```
+**修复方案**: 使用 null-forgiving operator (`ToDto!`)
 
 ---
 
