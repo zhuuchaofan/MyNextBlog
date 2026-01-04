@@ -34,7 +34,15 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
-### 最新更新 (2026-01-01)
+### 最新更新 (2026-01-04)
+
+- 🧪 **单元测试体系建立**:
+  - **11 个测试类, 129 个测试用例, 100% 通过率**
+  - 覆盖核心服务: Post, Auth, Comment, Category, Tag, EmailTemplate, Stats, Plan, SiteContent, Image, Anniversary
+  - 技术栈: xUnit + FluentAssertions + Moq + EF Core InMemory
+  - 修复 CI 兼容性: CategoryService 排序测试改为跨平台写法
+
+### 历史更新 (2026-01-01)
 
 - 🏗️ **架构重构与代码质量提升**:
   - **Controller 层解耦**: 新增 `StatsService`、`SiteContentService`、`CommentNotificationService`，Controller 不再直接注入 `DbContext`

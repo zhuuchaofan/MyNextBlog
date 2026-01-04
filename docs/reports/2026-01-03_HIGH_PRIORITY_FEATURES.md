@@ -28,7 +28,7 @@
 
 ### 新增文件
 
-- `backend.Tests/` 测试项目 (8 个测试类)
+- `backend.Tests/` 测试项目 (11 个测试类)
 
 ### 技术栈
 
@@ -39,11 +39,11 @@
 | FluentAssertions | 可读断言   |
 | EF Core InMemory | 内存数据库 |
 
-### 测试统计 (93 个用例)
+### 测试统计 (129 个用例) ✅ 2026-01-04
 
 | 测试类                    | 数量 | 覆盖功能                   |
 | :------------------------ | :--: | :------------------------- |
-| PostServiceTests          |  9   | 分页、获取、可见性         |
+| PostServiceTests          |  14  | CRUD、分页、可见性         |
 | AuthServiceTests          |  12  | 登录、注册、Token、密码    |
 | CommentServiceTests       |  16  | CRUD、批量、频率限制       |
 | CategoryServiceTests      |  9   | 获取、创建、去重           |
@@ -51,6 +51,9 @@
 | EmailTemplateServiceTests |  10  | 获取、更新、渲染、XSS      |
 | StatsServiceTests         |  10  | 公开统计、仪表盘           |
 | PlanServiceTests          |  17  | CRUD、日程、活动、公开 API |
+| SiteContentServiceTests   |  11  | 获取、Upsert、批量操作     |
+| ImageServiceTests         |  10  | 记录、关联、清理僵尸图片   |
+| AnniversaryServiceTests   |  11  | CRUD、公开获取、日期校验   |
 
 ### 运行命令
 
