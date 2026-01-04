@@ -1,14 +1,19 @@
 // ============================================================================
-// Controllers/Api/ProductsAdminController.cs - 商品管理 API
+// Controllers/Admin/ProductsController.cs - 商品管理 API
 // ============================================================================
 // 管理员专用的商品 CRUD 接口。
+//
+// **路由规范 (Rule 10.1)**:
+//   - 管理员 Controller 位于 Controllers/Admin/ 目录
+//   - 命名空间: MyNextBlog.Controllers.Admin
+//   - 路由前缀: api/admin/*
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.DTOs;
 using MyNextBlog.Services;
 
-namespace MyNextBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Admin;
 
 /// <summary>
 /// 商品管理 API 控制器（管理员）
@@ -16,7 +21,7 @@ namespace MyNextBlog.Controllers.Api;
 [Route("api/admin/products")]
 [ApiController]
 [Authorize(Roles = "Admin")]
-public class ProductsAdminController(IProductService productService) : ControllerBase
+public class ProductsController(IProductService productService) : ControllerBase
 {
     /// <summary>
     /// 获取所有商品（含下架）

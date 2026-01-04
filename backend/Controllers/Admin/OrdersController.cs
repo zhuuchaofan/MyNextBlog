@@ -1,13 +1,18 @@
 // ============================================================================
-// Controllers/Api/OrdersAdminController.cs - 订单管理 API
+// Controllers/Admin/OrdersController.cs - 订单管理 API
 // ============================================================================
 // 管理员的订单管理接口。
+//
+// **路由规范 (Rule 10.1)**:
+//   - 管理员 Controller 位于 Controllers/Admin/ 目录
+//   - 命名空间: MyNextBlog.Controllers.Admin
+//   - 路由前缀: api/admin/*
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyNextBlog.Services;
 
-namespace MyNextBlog.Controllers.Api;
+namespace MyNextBlog.Controllers.Admin;
 
 /// <summary>
 /// 订单管理 API 控制器（管理员）
@@ -15,7 +20,7 @@ namespace MyNextBlog.Controllers.Api;
 [Route("api/admin/orders")]
 [ApiController]
 [Authorize(Roles = "Admin")]
-public class OrdersAdminController(IOrderService orderService) : ControllerBase
+public class OrdersController(IOrderService orderService) : ControllerBase
 {
     /// <summary>
     /// 获取所有订单（分页）
