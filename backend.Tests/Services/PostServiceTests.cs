@@ -209,4 +209,93 @@ public class PostServiceTests : IDisposable
         // Assert
         success.Should().BeFalse();
     }
+
+    // ========== 创建文章测试 ==========
+
+    [Fact]
+    public async Task AddPostAsync_ShouldCreatePost()
+    {
+        // Arrange
+        var dto = new CreatePostDto("新文章", "新内容", 1, null, null, 0);
+        _mockTagService.Setup(s => s.GetOrCreateTagsAsync(It.IsAny<string[]>()))
+            .ReturnsAsync(new List<Tag>());
+        _mockImageService.Setup(s => s.AssociateImagesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var post = await _postService.AddPostAsync(dto, 1);
+
+        // Assert
+        post.Should().NotBeNull();
+        post.Title.Should().Be("新文章");
+        post.UserId.Should().Be(1);
+        post.Id.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task AddPostAsync_ShouldAssociateTags()
+    {
+        // Arrange
+        var tags = new List<string> { "C#", "测试" };
+        var dto = new CreatePostDto("带标签文章", "内容", 1, tags, null, 0);
+        
+        _mockTagService.Setup(s => s.GetOrCreateTagsAsync(It.IsAny<string[]>()))
+            .ReturnsAsync(new List<Tag> { new Tag { Name = "C#" }, new Tag { Name = "测试" } });
+        _mockImageService.Setup(s => s.AssociateImagesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var post = await _postService.AddPostAsync(dto, 1);
+
+        // Assert
+        _mockTagService.Verify(s => s.GetOrCreateTagsAsync(It.Is<string[]>(t => t.Length == 2)), Times.Once);
+    }
+
+    // ========== 更新文章测试 ==========
+
+    [Fact]
+    public async Task UpdatePostAsync_ShouldUpdateTitle()
+    {
+        // Arrange
+        _mockTagService.Setup(s => s.GetOrCreateTagsAsync(It.IsAny<string[]>()))
+            .ReturnsAsync(new List<Tag>());
+        _mockImageService.Setup(s => s.AssociateImagesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        
+        var dto = new UpdatePostDto("更新后的标题", "更新后的内容", 1, null, false, null, 0);
+
+        // Act
+        var post = await _postService.UpdatePostAsync(1, dto);
+
+        // Assert
+        post.Should().NotBeNull();
+        post.Title.Should().Be("更新后的标题");
+    }
+
+    [Fact]
+    public async Task UpdatePostAsync_ShouldThrow_WhenPostNotExists()
+    {
+        // Arrange
+        var dto = new UpdatePostDto("标题", "内容", 1, null, false, null, 0);
+
+        // Act
+        var action = async () => await _postService.UpdatePostAsync(999, dto);
+
+        // Assert
+        await action.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*文章不存在*");
+    }
+
+    // ========== 软删除测试 ==========
+
+    [Fact]
+    public async Task DeletePostAsync_ShouldMarkAsDeleted()
+    {
+        // Act
+        await _postService.DeletePostAsync(1);
+
+        // Assert
+        var post = await _context.Posts.FindAsync(1);
+        post!.IsDeleted.Should().BeTrue();
+    }
 }

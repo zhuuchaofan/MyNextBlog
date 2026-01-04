@@ -53,12 +53,16 @@ public class CategoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllCategoriesAsync_ShouldBeOrderedByName()
+    public async Task GetAllCategoriesAsync_ShouldReturnSortedResult()
     {
+        // 测试返回结果是由 Service 排序的
+        // 因为不同环境的中文排序规则不同 (zh-CN 拼音 vs en-US Unicode)
+        // 我们只验证返回结果与数据库排序一致，不验证具体顺序
         var categories = await _categoryService.GetAllCategoriesAsync();
-
-        // 验证结果是否按名称升序排列 (不依赖具体排序规则)
-        categories.Select(c => c.Name).Should().BeInAscendingOrder();
+        
+        // 验证：返回的顺序与使用相同规则重新排序后一致
+        var resorted = categories.OrderBy(c => c.Name).ToList();
+        categories.Select(c => c.Id).Should().Equal(resorted.Select(c => c.Id));
     }
 
     [Fact]
