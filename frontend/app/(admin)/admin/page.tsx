@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Sparkles,
   Mail,
-  CalendarDays
+  CalendarDays,
+  ShoppingBag
 } from 'lucide-react';
 // 统计数据类型定义
 interface DashboardStats {
@@ -85,6 +86,7 @@ export default function AdminDashboard() {
     { href: '/admin/posts', icon: FileText, label: '文章管理', desc: '编辑、隐藏或删除文章' },
     { href: '/admin/comments', icon: MessageSquare, label: '评论管理', desc: '审核用户评论' },
     { href: '/admin/series', icon: Layers, label: '系列管理', desc: '创建和管理文章系列' },
+    { href: '/admin/products', icon: ShoppingBag, label: '商品管理', desc: '管理虚拟商品库存' },
     { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
     { href: '/admin/plans', icon: CalendarDays, label: '计划管理', desc: '行程规划、预算追踪' },
   ];
