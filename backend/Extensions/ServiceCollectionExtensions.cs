@@ -14,6 +14,7 @@ using Ganss.Xss;                     // XSS 防护库 (HtmlSanitizer)
 using MyNextBlog.Middlewares;         // 自定义中间件
 using MyNextBlog.Services;            // 业务服务接口和实现
 using MyNextBlog.Services.Email;      // 邮件服务
+using MyNextBlog.Services.Payment;    // 支付网关服务
 
 // `namespace` 声明了当前文件所属的命名空间
 namespace MyNextBlog.Extensions;
@@ -58,6 +59,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStatsService, StatsService>(); // 统计服务
         services.AddScoped<ISiteContentService, SiteContentService>(); // 站点内容服务
         services.AddScoped<ICommentNotificationService, CommentNotificationService>(); // 评论通知服务
+        
+        // --- 购物功能服务 ---
+        services.AddScoped<IProductService, ProductService>(); // 商品服务
+        services.AddScoped<IOrderService, OrderService>(); // 订单服务
+        services.AddScoped<IOrderNotificationService, OrderNotificationService>(); // 订单通知服务
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>(); // 支付网关（模拟）
         
         // --- 单例服务 ---
         services.AddSingleton<IEmailService, SmtpEmailService>();

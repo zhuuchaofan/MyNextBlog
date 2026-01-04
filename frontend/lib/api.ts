@@ -19,10 +19,13 @@ import type { Series } from "./types";
 
 // Re-export all shared types from types.ts for backwards compatibility
 // This ensures consumers of api.ts don't need to know about types.ts
-export type { Series, Category, Comment, PostDetail, SeriesInfo } from "./types";
-
-
-
+export type {
+  Series,
+  Category,
+  Comment,
+  PostDetail,
+  SeriesInfo,
+} from "./types";
 
 // 获取评论列表
 export function fetchComments(postId: number, page = 1, pageSize = 10) {
@@ -30,8 +33,6 @@ export function fetchComments(postId: number, page = 1, pageSize = 10) {
     `/api/backend/comments?postId=${postId}&page=${page}&pageSize=${pageSize}`
   );
 }
-
-
 
 // 获取所有分类
 export function fetchCategories() {
@@ -76,7 +77,7 @@ export function updatePost(
     tags?: string[];
     seriesId?: number;
     seriesOrder?: number;
-    isHidden?: boolean;  // 控制文章可见性
+    isHidden?: boolean; // 控制文章可见性
   }
 ) {
   return fetchClient(`/api/backend/posts/${id}`, {
@@ -101,7 +102,9 @@ export function togglePostVisibility(id: number) {
 
 // 管理员获取文章列表 (包含隐藏文章)
 export function fetchPostsWithAuth(page = 1, pageSize = 10) {
-  return fetchClient(`/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`);
+  return fetchClient(
+    `/api/backend/posts/admin?page=${page}&pageSize=${pageSize}`
+  );
 }
 
 // 管理员获取文章详情
@@ -139,8 +142,6 @@ export function updateProfile(data: {
     body: data,
   });
 }
-
-
 
 // 切换文章点赞状态
 export function toggleLike(postId: number) {
@@ -194,42 +195,57 @@ export function batchDeleteComments(ids: number[]) {
 
 // [Admin] 获取所有系列
 export function fetchAllSeries() {
-  return fetchClient<{ success: boolean; data: Series[] }>("/api/backend/series");
+  return fetchClient<{ success: boolean; data: Series[] }>(
+    "/api/backend/series"
+  );
 }
 
 // [Admin] 创建系列
 export function createSeries(name: string, description?: string) {
-  return fetchClient<{ success: boolean; message: string; data: Series }>("/api/backend/series", {
-    method: "POST",
-    body: { name, description },
-  });
+  return fetchClient<{ success: boolean; message: string; data: Series }>(
+    "/api/backend/series",
+    {
+      method: "POST",
+      body: { name, description },
+    }
+  );
 }
 
 // [Admin] 更新系列
 export function updateSeries(id: number, name: string, description?: string) {
-    return fetchClient<{ success: boolean; message: string; data: Series }>(`/api/backend/series/${id}`, {
+  return fetchClient<{ success: boolean; message: string; data: Series }>(
+    `/api/backend/series/${id}`,
+    {
       method: "PUT",
       body: { name, description },
-    });
+    }
+  );
 }
 
 // [Admin] 删除系列
 export function deleteSeries(id: number) {
-  return fetchClient<{ success: boolean; message: string }>(`/api/backend/series/${id}`, {
-    method: "DELETE",
-  });
+  return fetchClient<{ success: boolean; message: string }>(
+    `/api/backend/series/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 }
 
 // [Admin] 获取系列下一篇文章序号
 export function fetchNextSeriesOrder(seriesId: number) {
-    return fetchClient<{ success: boolean; data: number }>(`/api/backend/series/${seriesId}/next-order`);
+  return fetchClient<{ success: boolean; data: number }>(
+    `/api/backend/series/${seriesId}/next-order`
+  );
 }
 
 // --- 回收站功能 (Trash) ---
 
 // [Admin] 获取回收站中的文章列表
 export function fetchDeletedPosts(page = 1, pageSize = 10) {
-  return fetchClient(`/api/backend/posts/trash?page=${page}&pageSize=${pageSize}`);
+  return fetchClient(
+    `/api/backend/posts/trash?page=${page}&pageSize=${pageSize}`
+  );
 }
 
 // [Admin] 恢复文章
@@ -253,7 +269,7 @@ export function fetchRelatedPosts(postId: number, count = 4) {
 
 // 流量统计心跳
 export function pulseStats() {
-  return fetchClient<{ 
+  return fetchClient<{
     success: boolean;
     data: {
       visits: number;
@@ -273,9 +289,9 @@ export interface Anniversary {
   id: number;
   title: string;
   emoji: string;
-  startDate: string;  // "2024-06-01" 格式
+  startDate: string; // "2024-06-01" 格式
   repeatType: "yearly" | "monthly" | "once";
-  displayType: "duration" | "age";  // 显示类型
+  displayType: "duration" | "age"; // 显示类型
   daysSinceStart: number;
 }
 
@@ -285,7 +301,7 @@ export interface AnniversaryAdmin extends Anniversary {
   // 邮件提醒配置
   enableReminder: boolean;
   reminderEmail: string | null;
-  reminderDays: string;  // "30,15,7,1,0"
+  reminderDays: string; // "30,15,7,1,0"
   createdAt: string;
   updatedAt: string;
 }
@@ -318,18 +334,21 @@ export function createAnniversary(data: {
 }
 
 // [Admin] 更新纪念日
-export function updateAnniversary(id: number, data: {
-  title: string;
-  emoji: string;
-  startDate: string;
-  repeatType: string;
-  displayType: string;
-  isActive?: boolean;
-  displayOrder?: number;
-  enableReminder?: boolean;
-  reminderEmail?: string;
-  reminderDays?: string;
-}) {
+export function updateAnniversary(
+  id: number,
+  data: {
+    title: string;
+    emoji: string;
+    startDate: string;
+    repeatType: string;
+    displayType: string;
+    isActive?: boolean;
+    displayOrder?: number;
+    enableReminder?: boolean;
+    reminderEmail?: string;
+    reminderDays?: string;
+  }
+) {
   return fetchClient(`/api/backend/anniversaries/${id}`, {
     method: "PUT",
     body: data,
@@ -362,11 +381,11 @@ export interface EmailTemplate {
 
 // [Admin] 获取所有邮件模板
 export async function fetchEmailTemplates(): Promise<EmailTemplate[]> {
-  const res = await fetchClient<{ success: boolean; data: EmailTemplate[] }>("/api/backend/admin/email-templates");
+  const res = await fetchClient<{ success: boolean; data: EmailTemplate[] }>(
+    "/api/backend/admin/email-templates"
+  );
   return res.data;
 }
-
-
 
 // [Admin] 更新邮件模板
 export function updateEmailTemplate(
@@ -479,13 +498,17 @@ export function fetchPublicPlanById(id: number) {
 
 // [Admin] 获取所有计划
 export async function fetchPlans(): Promise<PlanListItem[]> {
-  const res = await fetchClient<{ success: boolean; data: PlanListItem[] }>("/api/backend/admin/plans");
+  const res = await fetchClient<{ success: boolean; data: PlanListItem[] }>(
+    "/api/backend/admin/plans"
+  );
   return res.data;
 }
 
 // [Admin] 获取计划详情
 export async function fetchPlanById(id: number): Promise<PlanDetail> {
-  const res = await fetchClient<{ success: boolean; data: PlanDetail }>(`/api/backend/admin/plans/${id}`);
+  const res = await fetchClient<{ success: boolean; data: PlanDetail }>(
+    `/api/backend/admin/plans/${id}`
+  );
   return res.data;
 }
 
@@ -511,22 +534,25 @@ export function createPlan(data: {
 }
 
 // [Admin] 更新计划
-export function updatePlan(id: number, data: {
-  title?: string;
-  description?: string;
-  type?: string;
-  startDate?: string;
-  endDate?: string;
-  budget?: number;
-  actualCost?: number;
-  currency?: string;
-  status?: string;
-  isSecret?: boolean;
-  enableReminder?: boolean;
-  reminderEmail?: string;
-  reminderDays?: string;
-  anniversaryId?: number;
-}) {
+export function updatePlan(
+  id: number,
+  data: {
+    title?: string;
+    description?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    budget?: number;
+    actualCost?: number;
+    currency?: string;
+    status?: string;
+    isSecret?: boolean;
+    enableReminder?: boolean;
+    reminderEmail?: string;
+    reminderDays?: string;
+    anniversaryId?: number;
+  }
+) {
   return fetchClient(`/api/backend/admin/plans/${id}`, {
     method: "PUT",
     body: data,
@@ -541,28 +567,41 @@ export function deletePlan(id: number) {
 }
 
 // [Admin] 添加一天
-export async function addPlanDay(planId: number, data: {
-  dayNumber: number;
-  date: string;
-  theme?: string;
-}): Promise<PlanDay> {
-  const res = await fetchClient<{ success: boolean; data: PlanDay }>(`/api/backend/admin/plans/${planId}/days`, {
-    method: "POST",
-    body: data,
-  });
+export async function addPlanDay(
+  planId: number,
+  data: {
+    dayNumber: number;
+    date: string;
+    theme?: string;
+  }
+): Promise<PlanDay> {
+  const res = await fetchClient<{ success: boolean; data: PlanDay }>(
+    `/api/backend/admin/plans/${planId}/days`,
+    {
+      method: "POST",
+      body: data,
+    }
+  );
   return res.data;
 }
 
 // [Admin] 更新一天
-export async function updatePlanDay(planId: number, dayId: number, data: {
-  dayNumber?: number;
-  date?: string;
-  theme?: string;
-}): Promise<PlanDay> {
-  const res = await fetchClient<{ success: boolean; data: PlanDay }>(`/api/backend/admin/plans/${planId}/days/${dayId}`, {
-    method: "PUT",
-    body: data,
-  });
+export async function updatePlanDay(
+  planId: number,
+  dayId: number,
+  data: {
+    dayNumber?: number;
+    date?: string;
+    theme?: string;
+  }
+): Promise<PlanDay> {
+  const res = await fetchClient<{ success: boolean; data: PlanDay }>(
+    `/api/backend/admin/plans/${planId}/days/${dayId}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
   return res.data;
 }
 
@@ -574,35 +613,47 @@ export function deletePlanDay(planId: number, dayId: number) {
 }
 
 // [Admin] 添加活动
-export async function addPlanActivity(dayId: number, data: {
-  time?: string;
-  title: string;
-  location?: string;
-  notes?: string;
-  estimatedCost?: number;
-  sortOrder?: number;
-}): Promise<PlanActivity> {
-  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(`/api/backend/admin/days/${dayId}/activities`, {
-    method: "POST",
-    body: data,
-  });
+export async function addPlanActivity(
+  dayId: number,
+  data: {
+    time?: string;
+    title: string;
+    location?: string;
+    notes?: string;
+    estimatedCost?: number;
+    sortOrder?: number;
+  }
+): Promise<PlanActivity> {
+  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(
+    `/api/backend/admin/days/${dayId}/activities`,
+    {
+      method: "POST",
+      body: data,
+    }
+  );
   return res.data;
 }
 
 // [Admin] 更新活动
-export async function updatePlanActivity(activityId: number, data: {
-  time?: string;
-  title?: string;
-  location?: string;
-  notes?: string;
-  estimatedCost?: number;
-  actualCost?: number;
-  sortOrder?: number;
-}): Promise<PlanActivity> {
-  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(`/api/backend/admin/activities/${activityId}`, {
-    method: "PUT",
-    body: data,
-  });
+export async function updatePlanActivity(
+  activityId: number,
+  data: {
+    time?: string;
+    title?: string;
+    location?: string;
+    notes?: string;
+    estimatedCost?: number;
+    actualCost?: number;
+    sortOrder?: number;
+  }
+): Promise<PlanActivity> {
+  const res = await fetchClient<{ success: boolean; data: PlanActivity }>(
+    `/api/backend/admin/activities/${activityId}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
   return res.data;
 }
 
@@ -614,10 +665,13 @@ export function deletePlanActivity(activityId: number) {
 }
 
 // [Admin] 获取预算统计
-export async function fetchPlanBudget(planId: number): Promise<{ totalEstimated: number; totalActual: number }> {
-  const res = await fetchClient<{ success: boolean; data: { totalEstimated: number; totalActual: number } }>(
-    `/api/backend/admin/plans/${planId}/budget`
-  );
+export async function fetchPlanBudget(
+  planId: number
+): Promise<{ totalEstimated: number; totalActual: number }> {
+  const res = await fetchClient<{
+    success: boolean;
+    data: { totalEstimated: number; totalActual: number };
+  }>(`/api/backend/admin/plans/${planId}/budget`);
   return res.data;
 }
 
@@ -631,3 +685,250 @@ export function batchUpdateActivitySortOrder(
   });
 }
 
+// ============================================================
+// 购物功能 (Shopping / E-commerce)
+// ============================================================
+
+// 商品类型定义
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string | null;
+  stock: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ProductDetail {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string | null;
+  stock: number;
+}
+
+export interface ProductAdmin extends Product {
+  downloadUrl: string | null;
+  redeemCode: string | null;
+  updatedAt: string | null;
+}
+
+// 订单类型定义
+export interface OrderItem {
+  productId: number;
+  productName: string;
+  price: number;
+  quantity: number;
+  downloadUrl?: string | null;
+  redeemCode?: string | null;
+}
+
+export interface Order {
+  id: number;
+  orderNo: string;
+  status: "Pending" | "Paid" | "Completed" | "Cancelled";
+  totalAmount: number;
+  createdAt: string;
+  paidAt: string | null;
+  completedAt: string | null;
+  items: OrderItem[];
+}
+
+export interface OrderAdmin extends Order {
+  userId: number;
+  username: string | null;
+  userEmail: string | null;
+}
+
+// 购物车项（本地存储用）
+export interface CartItem {
+  productId: number;
+  productName: string;
+  price: number;
+  imageUrl: string | null;
+  quantity: number;
+}
+
+// --- 公开商品 API ---
+
+// 获取所有上架商品
+export async function fetchProducts(): Promise<Product[]> {
+  const res = await fetchClient<{ success: boolean; data: Product[] }>(
+    "/api/backend/products"
+  );
+  return res.data;
+}
+
+// 获取商品详情
+export async function fetchProductById(
+  id: number
+): Promise<ProductDetail | null> {
+  try {
+    const res = await fetchClient<{ success: boolean; data: ProductDetail }>(
+      `/api/backend/products/${id}`
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+// --- 订单 API (需要登录) ---
+
+// 创建订单
+export function createOrder(data: {
+  items: Array<{ productId: number; quantity: number }>;
+  remark?: string;
+}) {
+  return fetchClient<{ success: boolean; data: Order; message?: string }>(
+    "/api/backend/orders",
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+}
+
+// 获取我的订单列表
+export async function fetchMyOrders(): Promise<Order[]> {
+  const res = await fetchClient<{ success: boolean; data: Order[] }>(
+    "/api/backend/orders"
+  );
+  return res.data;
+}
+
+// 获取订单详情
+export async function fetchOrderById(id: number): Promise<Order | null> {
+  try {
+    const res = await fetchClient<{ success: boolean; data: Order }>(
+      `/api/backend/orders/${id}`
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+// 模拟付款
+export function payOrder(id: number) {
+  return fetchClient<{ success: boolean; data: Order; message?: string }>(
+    `/api/backend/orders/${id}/pay`,
+    {
+      method: "POST",
+    }
+  );
+}
+
+// 确认收货
+export function confirmReceipt(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/orders/${id}/confirm`,
+    {
+      method: "POST",
+    }
+  );
+}
+
+// --- [Admin] 商品管理 API ---
+
+// [Admin] 获取所有商品（含下架）
+export async function fetchProductsAdmin(): Promise<ProductAdmin[]> {
+  const res = await fetchClient<{ success: boolean; data: ProductAdmin[] }>(
+    "/api/backend/admin/products"
+  );
+  return res.data;
+}
+
+// [Admin] 获取商品详情（含敏感信息）
+export async function fetchProductAdminById(
+  id: number
+): Promise<ProductAdmin | null> {
+  try {
+    const res = await fetchClient<{ success: boolean; data: ProductAdmin }>(
+      `/api/backend/admin/products/${id}`
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+// [Admin] 创建商品
+export function createProduct(data: {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl?: string;
+  downloadUrl?: string;
+  redeemCode?: string;
+  stock?: number;
+}) {
+  return fetchClient<{ success: boolean; data: ProductAdmin }>(
+    "/api/backend/admin/products",
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 更新商品
+export function updateProduct(
+  id: number,
+  data: {
+    name: string;
+    description: string;
+    price: number;
+    imageUrl?: string;
+    downloadUrl?: string;
+    redeemCode?: string;
+    stock: number;
+    isActive: boolean;
+  }
+) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/admin/products/${id}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 删除商品
+export function deleteProduct(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/admin/products/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// --- [Admin] 订单管理 API ---
+
+// [Admin] 获取所有订单
+export async function fetchOrdersAdmin(
+  page = 1,
+  pageSize = 20
+): Promise<{ orders: OrderAdmin[]; totalCount: number }> {
+  const res = await fetchClient<{
+    success: boolean;
+    data: OrderAdmin[];
+    meta: { totalCount: number };
+  }>(`/api/backend/admin/orders?page=${page}&pageSize=${pageSize}`);
+  return { orders: res.data, totalCount: res.meta.totalCount };
+}
+
+// [Admin] 取消订单
+export function cancelOrder(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/admin/orders/${id}/cancel`,
+    {
+      method: "POST",
+    }
+  );
+}

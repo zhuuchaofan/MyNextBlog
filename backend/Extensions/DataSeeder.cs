@@ -301,8 +301,75 @@ public static class DataSeederExtensions
                 AvailablePlaceholders = """{"PlanTitle":"计划标题","StartDate":"开始日期","EndDate":"结束日期","DaysRemaining":"剩余天数","Budget":"预算金额","DaysSummary":"行程概要"}""",
                 Description = "在计划临近时，发送邮件提醒",
                 IsEnabled = true
+            },
+
+            // 6. 订单创建通知
+            new EmailTemplate
+            {
+                TemplateKey = "order_created",
+                Name = "订单创建通知",
+                SubjectTemplate = "🛒 订单创建成功：{{OrderNo}}",
+                BodyTemplate = $@"
+<div style='{baseStyle}'>
+    <div style='border-bottom: 2px solid #10b981; padding-bottom: 15px; margin-bottom: 20px;'>
+        <h2 style='margin: 0; color: #10b981; font-size: 20px;'>✅ 订单创建成功</h2>
+    </div>
+    <div style='color: #24292e; line-height: 1.6;'>
+        <p>订单号：<strong>{{{{OrderNo}}}}</strong></p>
+        <p>下单时间：{{{{CreateTime}}}}</p>
+        <h3 style='margin-top: 20px; font-size: 16px;'>商品清单</h3>
+        {{{{Items}}}}
+        <p style='font-size: 18px; margin-top: 20px; text-align: right;'>
+            总金额：<strong style='color: #10b981;'>¥{{{{TotalAmount}}}}</strong>
+        </p>
+    </div>
+    <div style='background-color: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px;'>
+        <p style='margin: 0; color: #92400e;'>⏰ 请尽快完成付款，避免订单超时取消。</p>
+    </div>
+    <div style='{footerStyle}'>
+        © MyNextBlog Shop
+    </div>
+</div>",
+                AvailablePlaceholders = """{\"OrderNo\":\"订单号\",\"CreateTime\":\"下单时间\",\"Items\":\"商品清单HTML\",\"TotalAmount\":\"总金额\"}""",
+                Description = "用户下单成功后，发送订单确认邮件",
+                IsEnabled = true
+            },
+
+            // 7. 订单完成通知（含下载链接）
+            new EmailTemplate
+            {
+                TemplateKey = "order_completed",
+                Name = "订单完成通知",
+                SubjectTemplate = "🎉 付款成功 - 您的商品已发货：{{OrderNo}}",
+                BodyTemplate = $@"
+<div style='{baseStyle}'>
+    <div style='border-bottom: 2px solid #8b5cf6; padding-bottom: 15px; margin-bottom: 20px;'>
+        <h2 style='margin: 0; color: #8b5cf6; font-size: 20px;'>🎉 付款成功，商品已发货！</h2>
+    </div>
+    <div style='color: #24292e; line-height: 1.6;'>
+        <p>订单号：<strong>{{{{OrderNo}}}}</strong></p>
+        <p>付款时间：{{{{PaidTime}}}}</p>
+        <p>支付金额：<strong style='color: #8b5cf6;'>¥{{{{TotalAmount}}}}</strong></p>
+        
+        <h3 style='margin-top: 25px; font-size: 16px; color: #10b981;'>📥 下载链接</h3>
+        {{{{DownloadLinks}}}}
+        
+        <h3 style='margin-top: 25px; font-size: 16px; color: #f59e0b;'>🔑 兑换码</h3>
+        {{{{RedeemCodes}}}}
+    </div>
+    <div style='background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin-top: 20px;'>
+        <p style='margin: 0; color: #166534;'>💡 请妥善保存以上信息，下载链接长期有效。</p>
+    </div>
+    <div style='{footerStyle}'>
+        感谢您的支持！—— MyNextBlog Shop
+    </div>
+</div>",
+                AvailablePlaceholders = """{\"OrderNo\":\"订单号\",\"PaidTime\":\"付款时间\",\"TotalAmount\":\"支付金额\",\"DownloadLinks\":\"下载链接HTML\",\"RedeemCodes\":\"兑换码HTML\"}""",
+                Description = "用户付款成功后，发送包含下载链接和兑换码的邮件",
+                IsEnabled = true
             }
         };
+
 
         // 获取现有模板（避免每次循环都查库）
         var existingTemplates = context.EmailTemplates.ToDictionary(t => t.TemplateKey);

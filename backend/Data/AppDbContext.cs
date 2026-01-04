@@ -44,6 +44,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Plan> Plans { get; set; } // 计划主表
     public DbSet<PlanDay> PlanDays { get; set; } // 每日行程
     public DbSet<PlanActivity> PlanActivities { get; set; } // 活动项
+    
+    // --- 购物功能 ---
+    public DbSet<Product> Products { get; set; } // 商品
+    public DbSet<Order> Orders { get; set; } // 订单
+    public DbSet<OrderItem> OrderItems { get; set; } // 订单项
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。
@@ -166,5 +171,41 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // 为 Plan 添加索引
         modelBuilder.Entity<Plan>()
             .HasIndex(p => p.StartDate); // 优化按日期查询
+        
+        // --- 12. 配置 Order 订单相关关系 ---
+        modelBuilder.Entity<Order>(entity =>
+        {
+            // 订单号唯一索引
+            entity.HasIndex(o => o.OrderNo).IsUnique();
+            
+            // 用户ID索引（优化我的订单查询）
+            entity.HasIndex(o => o.UserId);
+            
+            // 订单与用户的多对一关系
+            entity.HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // 防止误删用户时删除订单
+            
+            // 订单与订单项的一对多关系
+            entity.HasMany(o => o.Items)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade); // 删除订单时，订单项也删除
+        });
+        
+        // --- 13. 配置 OrderItem 订单项关系 ---
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            // 订单项与商品的多对一关系
+            entity.HasOne(oi => oi.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict); // 防止删除有订单的商品
+        });
+        
+        // --- 14. 配置 Product 商品索引 ---
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.IsActive); // 优化上架商品查询
     }
 }
