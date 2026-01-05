@@ -107,7 +107,7 @@ export default function TrashPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
       {/* 页面标题 */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

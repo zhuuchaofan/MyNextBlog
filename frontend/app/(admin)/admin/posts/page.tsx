@@ -165,7 +165,7 @@ function AdminPostsContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
       {/* 页面标题和“写新文章”按钮 */}
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
