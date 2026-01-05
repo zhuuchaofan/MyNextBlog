@@ -209,7 +209,7 @@ export default function AdminCommentsPage() {
                     <TableHead className="min-w-[300px]">评论内容</TableHead>
                     <TableHead className="w-[180px]">文章</TableHead>
                     <TableHead className="w-[80px]">状态</TableHead>
-                    <TableHead className="w-[100px] text-right">操作</TableHead>
+                    <TableHead className="w-[100px] text-center">操作</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -261,8 +261,8 @@ export default function AdminCommentsPage() {
                                     </Badge>
                                 )}
                             </TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
+                            <TableCell className="text-center">
+                                <div className="flex justify-center gap-2">
                                     <Button 
                                         size="sm" 
                                         variant="ghost" 

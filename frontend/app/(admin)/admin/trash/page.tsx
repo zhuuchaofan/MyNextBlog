@@ -148,7 +148,7 @@ export default function TrashPage() {
                   <TableHead className="text-gray-500 dark:text-gray-400">分类</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">创建时间</TableHead>
-                  <TableHead className="text-right text-gray-500 dark:text-gray-400">操作</TableHead>
+                  <TableHead className="text-center text-gray-500 dark:text-gray-400">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -162,8 +162,8 @@ export default function TrashPage() {
                     </TableCell>
                     <TableCell>{post.authorName}</TableCell>
                     <TableCell>{new Date(post.createTime).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 

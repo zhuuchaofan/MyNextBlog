@@ -214,7 +214,7 @@ function AdminPostsContent() {
                   <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">发布时间</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400">状态</TableHead>
-                  <TableHead className="text-right text-gray-500 dark:text-gray-400">操作</TableHead>
+                  <TableHead className="text-center text-gray-500 dark:text-gray-400">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,8 +245,8 @@ function AdminPostsContent() {
                         {post.isHidden ? '草稿' : '已发布'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
                         {/* 切换可见性按钮 */}
                         <Button 
                           variant="outline" 

@@ -513,7 +513,7 @@ export default function ProductsAdminPage() {
                   <TableHead className="text-gray-500 dark:text-gray-400 text-right">价格</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400 text-center">库存</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">操作</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -551,8 +551,8 @@ export default function ProductsAdminPage() {
                         {product.isActive ? "上架" : "下架"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
                         {/* 切换上架状态 */}
                         <Button
                           variant="outline"

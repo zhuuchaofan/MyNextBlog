@@ -175,7 +175,7 @@ export default function SeriesManagementPage() {
                 <TableHead>名称</TableHead>
                 <TableHead>描述</TableHead>
                 <TableHead className="w-[100px] text-center">文章数</TableHead>
-                <TableHead className="w-[120px] text-right">操作</TableHead>
+                <TableHead className="w-[120px] text-center">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -203,8 +203,8 @@ export default function SeriesManagementPage() {
                         {series.postCount}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-1">
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(series)} className="h-8 w-8 p-0">
                           <Edit className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                         </Button>

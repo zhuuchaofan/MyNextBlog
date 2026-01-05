@@ -122,7 +122,7 @@ export default function OrdersAdminPage() {
                       <TableHead className="text-gray-500 dark:text-gray-400 text-right">金额</TableHead>
                       <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
                       <TableHead className="text-gray-500 dark:text-gray-400">下单时间</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-right">操作</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -150,7 +150,7 @@ export default function OrdersAdminPage() {
                           <TableCell className="text-sm text-gray-500 dark:text-gray-400">
                             {new Date(order.createdAt).toLocaleString("zh-CN")}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-center">
                             {(order.status === "Pending" || order.status === "Paid") && (
                               <Button
                                 variant="destructive"
