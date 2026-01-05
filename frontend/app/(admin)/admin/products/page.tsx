@@ -466,14 +466,8 @@ export default function ProductsAdminPage() {
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
           {/* 返回按钮 */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => router.back()} 
-            className="text-gray-500 dark:text-gray-400 h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span className="sr-only">返回</span>
+          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
+            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
           </Button>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Package className="w-5 h-5 sm:w-6 sm:h-6" />
