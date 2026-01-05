@@ -112,6 +112,9 @@ public class ProductService : IProductService
     
     public async Task<ProductAdminDto> CreateAsync(CreateProductDto dto)
     {
+        // 库存验证：只允许 -1（无限）或 >= 0 的值
+        var stock = dto.Stock < -1 ? -1 : dto.Stock;
+        
         var product = new Product
         {
             Name = dto.Name,
@@ -120,7 +123,7 @@ public class ProductService : IProductService
             ImageUrl = dto.ImageUrl,
             DownloadUrl = dto.DownloadUrl,
             RedeemCode = dto.RedeemCode,
-            Stock = dto.Stock,
+            Stock = stock,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -150,13 +153,16 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return false;
         
+        // 库存验证：只允许 -1（无限）或 >= 0 的值
+        var stock = dto.Stock < -1 ? -1 : dto.Stock;
+        
         product.Name = dto.Name;
         product.Description = dto.Description;
         product.Price = dto.Price;
         product.ImageUrl = dto.ImageUrl;
         product.DownloadUrl = dto.DownloadUrl;
         product.RedeemCode = dto.RedeemCode;
-        product.Stock = dto.Stock;
+        product.Stock = stock;
         product.IsActive = dto.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
         

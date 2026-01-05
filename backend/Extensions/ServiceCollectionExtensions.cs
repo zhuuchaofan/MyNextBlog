@@ -70,8 +70,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEmailService, SmtpEmailService>();
         
         // --- 后台服务 ---
-        // TODO: PostgreSQL 备份需使用 pg_dump，暂时禁用
-        // services.AddHostedService<DatabaseBackupService>();
+        // PostgreSQL 备份服务 (每天 03:00 UTC 自动备份到 R2)
+        services.AddHostedService<DatabaseBackupService>();
         services.AddHostedService<AnniversaryReminderHostedService>();
 
         return services;

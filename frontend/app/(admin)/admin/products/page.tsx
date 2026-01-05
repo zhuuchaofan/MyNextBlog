@@ -15,7 +15,9 @@ import {
   Eye, 
   EyeOff, 
   ChevronLeft,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +91,51 @@ function ProductForm({
   setFormData: (data: FormDataType) => void;
   editingProduct: ProductAdmin | null;
 }) {
+  const [uploading, setUploading] = useState(false);
+
+  // 处理图片上传
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith("image/")) {
+      alert("请选择图片文件");
+      return;
+    }
+
+    // 检查文件大小 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("图片大小不能超过 10MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      
+      const res = await fetch("/api/backend/upload", {
+        method: "POST",
+        body: formDataUpload,
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("上传失败");
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        setFormData({ ...formData, imageUrl: data.url });
+      }
+    } catch (error) {
+      console.error("上传失败:", error);
+      alert("图片上传失败，请重试");
+    } finally {
+      setUploading(false);
+    }
+  };
   return (
     <div className="grid gap-4 py-2">
       <div className="grid gap-2">
@@ -136,22 +183,65 @@ function ProductForm({
             min="-1"
             step="1"
             value={formData.stock}
-            onInput={(e) => {
-              const val = parseInt((e.target as HTMLInputElement).value);
-              setFormData({ ...formData, stock: isNaN(val) ? -1 : val });
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              // 只允许 -1 或 >= 0 的值
+              if (isNaN(val)) {
+                setFormData({ ...formData, stock: -1 });
+              } else if (val < -1) {
+                setFormData({ ...formData, stock: -1 }); // 小于 -1 自动修正为 -1
+              } else {
+                setFormData({ ...formData, stock: val });
+              }
             }}
           />
+          <p className="text-xs text-muted-foreground">输入 -1 表示无限库存</p>
         </div>
       </div>
 
+      {/* 封面图 */}
       <div className="grid gap-2">
-        <Label htmlFor="imageUrl">封面图 URL</Label>
-        <Input
-          id="imageUrl"
-          value={formData.imageUrl}
-          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          placeholder="https://..."
-        />
+        <Label>封面图</Label>
+        <div className="flex gap-3">
+          {/* 预览区域 */}
+          <div className="relative w-20 h-20 rounded-lg border border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-zinc-800 flex-shrink-0">
+            {formData.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img 
+                src={formData.imageUrl} 
+                alt="封面预览" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="w-6 h-6 text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            {/* 上传按钮 */}
+            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors text-sm">
+              {uploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {uploading ? "上传中..." : "上传图片"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+            {/* URL 输入 */}
+            <Input
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              placeholder="或直接输入图片 URL"
+              className="text-xs"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-2">
