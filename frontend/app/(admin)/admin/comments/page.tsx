@@ -199,17 +199,17 @@ export default function AdminCommentsPage() {
         <Table className="table-fixed">
             <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                    <TableHead className="w-[50px]">
+                    <TableHead className="w-[50px] text-center">
                         <Checkbox 
                             checked={comments.length > 0 && selectedIds.size === comments.length}
                             onCheckedChange={(checked) => handleSelectAll(!!checked)}
                         />
                     </TableHead>
-                    <TableHead className="w-[140px]">用户</TableHead>
-                    <TableHead className="min-w-[300px]">评论内容</TableHead>
-                    <TableHead className="w-[180px]">文章</TableHead>
-                    <TableHead className="w-[80px]">状态</TableHead>
-                    <TableHead className="w-[100px] text-right">操作</TableHead>
+                    <TableHead className="w-[140px] text-center">用户</TableHead>
+                    <TableHead className="min-w-[300px] text-center">评论内容</TableHead>
+                    <TableHead className="w-[180px] text-center">文章</TableHead>
+                    <TableHead className="w-[80px] text-center">状态</TableHead>
+                    <TableHead className="w-[100px] text-center">操作</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -230,27 +230,27 @@ export default function AdminCommentsPage() {
                 ) : (
                     comments.map(comment => (
                         <TableRow key={comment.id} className={selectedIds.has(comment.id) ? "bg-orange-50 dark:bg-orange-900/10" : ""}>
-                            <TableCell>
+                            <TableCell className="text-center">
                                 <Checkbox 
                                     checked={selectedIds.has(comment.id)}
                                     onCheckedChange={(checked) => handleSelectOne(comment.id, !!checked)}
                                 />
                             </TableCell>
-                            <TableCell className="align-top">
+                            <TableCell className="align-top text-center">
                                 <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-[120px]" title={comment.guestName}>{comment.guestName}</div>
                                 <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(comment.createTime).toLocaleString()}</div>
                             </TableCell>
-                            <TableCell className="align-top">
+                            <TableCell className="align-top text-center">
                                 <div className="break-words line-clamp-2 text-sm text-gray-600 dark:text-gray-300" title={comment.content}>
                                     {comment.content}
                                 </div>
                             </TableCell>
-                            <TableCell className="align-top">
+                            <TableCell className="align-top text-center">
                                 <Link href={`/posts/${comment.postId}`} target="_blank" className="text-xs text-blue-500 hover:underline line-clamp-2 block max-w-[160px]" title={comment.postTitle}>
                                     {comment.postTitle || `Post #${comment.postId}`}
                                 </Link>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                                 {comment.isApproved ? (
                                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
                                         已公开
@@ -261,8 +261,8 @@ export default function AdminCommentsPage() {
                                     </Badge>
                                 )}
                             </TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
+                            <TableCell className="text-center">
+                                <div className="flex justify-center gap-2">
                                     <Button 
                                         size="sm" 
                                         variant="ghost" 

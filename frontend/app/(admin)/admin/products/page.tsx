@@ -509,11 +509,11 @@ export default function ProductsAdminPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                  <TableHead className="text-gray-500 dark:text-gray-400">商品名称</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">价格</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">商品名称</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">价格</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400 text-center">库存</TableHead>
                   <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">操作</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -522,17 +522,17 @@ export default function ProductsAdminPage() {
                     key={product.id} 
                     className={`${!product.isActive ? 'bg-gray-50/30 dark:bg-zinc-800/30 text-gray-400 dark:text-gray-500' : 'dark:text-gray-300'} border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50`}
                   >
-                    <TableCell>
+                    <TableCell className="text-center">
                       <Link 
                         href={`/shop/${product.id}`} 
                         target="_blank" 
-                        className="hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-2 group transition-colors font-medium"
+                        className="hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-2 group transition-colors font-medium"
                       >
                         {product.name}
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50" />
                       </Link>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center font-medium text-orange-600 dark:text-orange-400">
                       ¥{product.price.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-center">
@@ -551,8 +551,8 @@ export default function ProductsAdminPage() {
                         {product.isActive ? "上架" : "下架"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
                         {/* 切换上架状态 */}
                         <Button
                           variant="outline"

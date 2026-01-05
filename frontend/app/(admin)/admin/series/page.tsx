@@ -172,10 +172,10 @@ export default function SeriesManagementPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                <TableHead>名称</TableHead>
-                <TableHead>描述</TableHead>
+                <TableHead className="text-center">名称</TableHead>
+                <TableHead className="text-center">描述</TableHead>
                 <TableHead className="w-[100px] text-center">文章数</TableHead>
-                <TableHead className="w-[120px] text-right">操作</TableHead>
+                <TableHead className="w-[120px] text-center">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -196,15 +196,15 @@ export default function SeriesManagementPage() {
               ) : (
                 seriesList.map(series => (
                   <TableRow key={series.id}>
-                    <TableCell className="font-medium text-gray-900 dark:text-gray-200">{series.name}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{series.description || '-'}</TableCell>
+                    <TableCell className="font-medium text-gray-900 dark:text-gray-200 text-center">{series.name}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-400 truncate max-w-[200px] text-center">{series.description || '-'}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
                         {series.postCount}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-1">
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(series)} className="h-8 w-8 p-0">
                           <Edit className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                         </Button>
