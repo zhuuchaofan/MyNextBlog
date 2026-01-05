@@ -40,6 +40,26 @@ export default function CartPage() {
       setMounted(true);
     };
     loadCart();
+
+    // 监听购物车更新事件（从其他组件触发）
+    const handleCartUpdate = () => {
+      setCart(getCart());
+    };
+    
+    // 监听 storage 事件（从其他标签页触发）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === CART_STORAGE_KEY) {
+        setCart(getCart());
+      }
+    };
+
+    window.addEventListener("cart-updated", handleCartUpdate);
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("cart-updated", handleCartUpdate);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   // 更新数量

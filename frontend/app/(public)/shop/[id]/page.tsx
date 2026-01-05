@@ -56,56 +56,65 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     loadProduct();
   }, [productId]);
 
-  // 加入购物车
-  const addToCart = () => {
-    if (!product) return;
-
-    setAdding(true);
-
-    // 模拟网络延迟
-    setTimeout(() => {
-      const cart = getCart();
-      const existingItem = cart.find((item) => item.productId === product.id);
-
-      // 计算添加后的总数量
-      const currentQty = existingItem ? existingItem.quantity : 0;
-      const newTotalQty = currentQty + quantity;
-      
-      // 检查库存限制 (stock === -1 表示无限库存)
-      if (product.stock !== -1 && newTotalQty > product.stock) {
-        toast.error(`库存不足！当前库存 ${product.stock} 件，购物车已有 ${currentQty} 件`);
-        setAdding(false);
+  // 加入购物车（返回 Promise 以支持立即购买等待）
+  const addToCart = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (!product) {
+        resolve(false);
         return;
       }
 
-      if (existingItem) {
-        existingItem.quantity = newTotalQty;
-        existingItem.stock = product.stock; // 更新库存信息
-      } else {
-        cart.push({
-          productId: product.id,
-          productName: product.name,
-          price: product.price,
-          imageUrl: product.imageUrl,
-          quantity,
-          stock: product.stock, // 保存库存信息
-        });
-      }
+      setAdding(true);
 
-      saveCart(cart);
-      // 触发自定义事件通知 Navbar 更新购物车数量
-      window.dispatchEvent(new Event("cart-updated"));
-      setAdding(false);
+      // 模拟网络延迟
+      setTimeout(() => {
+        const cart = getCart();
+        const existingItem = cart.find((item) => item.productId === product.id);
 
-      toast.success(`已加入购物车：${product.name} x ${quantity}`);
-    }, 300);
+        // 计算添加后的总数量
+        const currentQty = existingItem ? existingItem.quantity : 0;
+        const newTotalQty = currentQty + quantity;
+        
+        // 检查库存限制 (stock === -1 表示无限库存)
+        if (product.stock !== -1 && newTotalQty > product.stock) {
+          toast.error(`库存不足！当前库存 ${product.stock} 件，购物车已有 ${currentQty} 件`);
+          setAdding(false);
+          resolve(false);
+          return;
+        }
+
+        if (existingItem) {
+          existingItem.quantity = newTotalQty;
+          existingItem.stock = product.stock; // 更新库存信息
+        } else {
+          cart.push({
+            productId: product.id,
+            productName: product.name,
+            price: product.price,
+            imageUrl: product.imageUrl,
+            quantity,
+            stock: product.stock, // 保存库存信息
+          });
+        }
+
+        saveCart(cart);
+        // 触发自定义事件通知 Navbar 和 Cart 页面更新
+        window.dispatchEvent(new Event("cart-updated"));
+        setAdding(false);
+
+        toast.success(`已加入购物车：${product.name} x ${quantity}`);
+        resolve(true);
+      }, 300);
+    });
   };
 
-  // 立即购买
-  const buyNow = () => {
+  // 立即购买（等待加入购物车完成后跳转）
+  const buyNow = async () => {
     if (!product) return;
-    addToCart();
-    router.push("/cart");
+    const success = await addToCart();
+    if (success) {
+      router.push("/cart");
+    }
   };
 
   if (loading) {
