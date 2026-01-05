@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { fetchOrderById, payOrder, confirmReceipt, type Order } from "@/lib/api";
+import { fetchOrderById, payOrder, confirmReceipt, cancelMyOrder, type Order } from "@/lib/api";
 
 // 订单状态配置
 const statusConfig: Record<
@@ -36,6 +36,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
   // 解析动态路由参数
@@ -98,6 +99,27 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  // 取消订单
+  const handleCancel = async () => {
+    if (!order) return;
+    if (!confirm("确定要取消这个订单吗？")) return;
+
+    setCancelling(true);
+    try {
+      const result = await cancelMyOrder(order.id);
+      if (result.success) {
+        setOrder({ ...order, status: "Cancelled" });
+        toast.success("订单已取消");
+      } else {
+        throw new Error(result.message || "取消失败");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "取消失败，请稍后重试");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -153,19 +175,39 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             {/* 操作按钮 */}
             {order.status === "Pending" && (
-              <Button onClick={handlePay} disabled={paying} className="w-full sm:w-auto">
-                {paying ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    处理中...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    模拟付款
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button onClick={handlePay} disabled={paying || cancelling} className="w-full sm:w-auto">
+                  {paying ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      处理中...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      模拟付款
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancel} 
+                  disabled={cancelling || paying}
+                  className="w-full sm:w-auto text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  {cancelling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      取消中...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 mr-2" />
+                      取消订单
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
             {order.status === "Paid" && (
               <Button variant="outline" onClick={handleConfirm} disabled={confirming} className="w-full sm:w-auto">

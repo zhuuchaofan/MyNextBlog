@@ -140,6 +140,35 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
     
     /// <summary>
+    /// 用户取消自己的订单（仅限待付款状态）
+    /// </summary>
+    [HttpPost("{id:int}/cancel")]
+    public async Task<IActionResult> CancelOrder(int id)
+    {
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            return Unauthorized(new { success = false, message = "请先登录" });
+        }
+        
+        try
+        {
+            var success = await orderService.CancelOrderByUserAsync(id, userId.Value);
+            
+            if (!success)
+            {
+                return NotFound(new { success = false, message = "订单不存在" });
+            }
+            
+            return Ok(new { success = true, message = "订单已取消" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+    
+    /// <summary>
     /// 获取当前登录用户 ID
     /// </summary>
     private int? GetUserId()

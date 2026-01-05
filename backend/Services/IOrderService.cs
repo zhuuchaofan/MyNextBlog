@@ -41,6 +41,11 @@ public interface IOrderService
     /// </summary>
     Task<bool> ConfirmReceiptAsync(int orderId, int userId);
     
+    /// <summary>
+    /// 用户取消自己的订单（仅限 Pending 状态）
+    /// </summary>
+    Task<bool> CancelOrderByUserAsync(int orderId, int userId);
+    
     // --- 管理员 API ---
     
     /// <summary>

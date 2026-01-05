@@ -833,6 +833,16 @@ export function confirmReceipt(id: number) {
   );
 }
 
+// 用户取消自己的订单（仅限待付款状态）
+export function cancelMyOrder(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/orders/${id}/cancel`,
+    {
+      method: "POST",
+    }
+  );
+}
+
 // --- [Admin] 商品管理 API ---
 
 // [Admin] 获取所有商品（含下架）

@@ -266,6 +266,53 @@ public class OrderService : IOrderService
         return true;
     }
     
+    /// <summary>
+    /// 用户取消自己的订单（仅限 Pending 状态）
+    /// </summary>
+    public async Task<bool> CancelOrderByUserAsync(int orderId, int userId)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        
+        try
+        {
+            var order = await _context.Orders
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+            
+            if (order == null) return false;
+            
+            // 用户只能取消待付款状态的订单
+            if (order.Status != OrderStatus.Pending)
+            {
+                throw new InvalidOperationException("只能取消待付款的订单");
+            }
+            
+            // 恢复库存
+            foreach (var item in order.Items)
+            {
+                await _context.Products
+                    .Where(p => p.Id == item.ProductId && p.Stock != -1)
+                    .ExecuteUpdateAsync(s => s.SetProperty(
+                        p => p.Stock,
+                        p => p.Stock + item.Quantity
+                    ));
+            }
+            
+            order.Status = OrderStatus.Cancelled;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            _logger.LogInformation("用户取消订单: {OrderNo}, UserId: {UserId}", order.OrderNo, userId);
+            
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+    
     // --- 管理员 API ---
     
     public async Task<(List<OrderAdminDto> Orders, int TotalCount)> GetAllOrdersAsync(int page, int pageSize)
