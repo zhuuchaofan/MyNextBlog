@@ -478,7 +478,7 @@ export default function ProductsAdminPage() {
                   id="price"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="1"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                 />
@@ -489,6 +489,7 @@ export default function ProductsAdminPage() {
                   id="stock"
                   type="number"
                   min="-1"
+                  step="1"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || -1 })}
                 />
