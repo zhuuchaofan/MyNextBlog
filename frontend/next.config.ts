@@ -10,10 +10,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.dicebear.com',
       },
-      // 您的 R2 存储桶域名
+      // R2 存储桶域名 (新域名)
       {
         protocol: 'https',
         hostname: 'files.zhuchaofan.com', 
+      },
+      // R2 存储桶域名 (旧域名，兼容历史数据)
+      {
+        protocol: 'https',
+        hostname: 'picture.zhuchaofan.online', 
       },
       // 仅在开发环境下允许 localhost
       ...(process.env.NODE_ENV === 'development' ? [{
