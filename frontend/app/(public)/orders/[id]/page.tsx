@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { fetchOrderById, payOrder, confirmReceipt, type Order } from "@/lib/api";
 
@@ -138,18 +137,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* 状态图标和信息 */}
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-start sm:items-center gap-4 flex-1">
               <div className={`p-3 rounded-full bg-muted ${status.color} flex-shrink-0`}>
                 {status.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <h2 className="text-xl font-bold whitespace-nowrap">{status.label}</h2>
-                  <Badge variant={status.variant} className="text-xs truncate max-w-[180px] sm:max-w-none">
-                    {order.orderNo}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h2 className="text-xl font-bold">{status.label}</h2>
+                <p className="text-sm text-muted-foreground mt-1 font-mono break-all">
+                  {order.orderNo}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
                   下单时间：{new Date(order.createdAt).toLocaleString("zh-CN")}
                 </p>
               </div>
