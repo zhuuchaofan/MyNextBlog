@@ -144,26 +144,26 @@ export default function TrashPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">标题</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">分类</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">作者</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">创建时间</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">标题</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">分类</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">创建时间</TableHead>
+                  <TableHead className="text-right text-gray-500 dark:text-gray-400">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {posts.map((post) => (
                   <TableRow key={post.id} className="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50">
-                    <TableCell className="text-center">
+                    <TableCell>
                       <span className="line-through">{post.title}</span>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell>
                       <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400">{post.categoryName || '未分类'}</Badge>
                     </TableCell>
-                    <TableCell className="text-center">{post.authorName}</TableCell>
-                    <TableCell className="text-center">{new Date(post.createTime).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2">
+                    <TableCell>{post.authorName}</TableCell>
+                    <TableCell>{new Date(post.createTime).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 

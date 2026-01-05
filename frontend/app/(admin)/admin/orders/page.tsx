@@ -117,12 +117,12 @@ export default function OrdersAdminPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">订单号</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">用户</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">金额</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400">订单号</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400">用户</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400 text-right">金额</TableHead>
                       <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">下单时间</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400">下单时间</TableHead>
+                      <TableHead className="text-gray-500 dark:text-gray-400 text-right">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -130,10 +130,10 @@ export default function OrdersAdminPage() {
                       const status = statusMap[order.status];
                       return (
                         <TableRow key={order.id} className="border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50">
-                          <TableCell className="font-mono text-sm text-center">
+                          <TableCell className="font-mono text-sm">
                             {order.orderNo}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell>
                             <div className="text-sm">
                               <p className="text-gray-900 dark:text-gray-100">{order.username || "未知用户"}</p>
                               <p className="text-gray-500 dark:text-gray-500 text-xs">
@@ -141,16 +141,16 @@ export default function OrdersAdminPage() {
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center font-medium text-orange-600 dark:text-orange-400">
+                          <TableCell className="text-right font-medium text-orange-600 dark:text-orange-400">
                             ¥{order.totalAmount.toFixed(2)}
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant={status.variant}>{status.label}</Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                          <TableCell className="text-sm text-gray-500 dark:text-gray-400">
                             {new Date(order.createdAt).toLocaleString("zh-CN")}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="text-right">
                             {(order.status === "Pending" || order.status === "Paid") && (
                               <Button
                                 variant="destructive"

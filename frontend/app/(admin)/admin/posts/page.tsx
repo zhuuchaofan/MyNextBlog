@@ -208,45 +208,45 @@ function AdminPostsContent() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">标题</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">分类</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">系列</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">作者</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">发布时间</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">标题</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">分类</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">系列</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">发布时间</TableHead>
+                  <TableHead className="text-gray-500 dark:text-gray-400">状态</TableHead>
+                  <TableHead className="text-right text-gray-500 dark:text-gray-400">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {posts.map((post) => (
                   <TableRow key={post.id} className={`${post.isHidden ? 'bg-gray-50/30 dark:bg-zinc-800/30 text-gray-400 dark:text-gray-500' : 'dark:text-gray-300'} border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50`}>
-                    <TableCell className="text-center">
+                    <TableCell>
                       {/* 点击标题在新窗口查看文章详情 */}
-                      <Link href={`/posts/${post.id}`} target="_blank" className="hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-2 group transition-colors">
+                      <Link href={`/posts/${post.id}`} target="_blank" className="hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-2 group transition-colors">
                         {post.title}
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50" />
                       </Link>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell>
                        <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">{post.categoryName || '未分类'}</Badge>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell>
                       {post.seriesName ? (
                         <span className="text-sm text-orange-600 dark:text-orange-400">#{post.seriesOrder} {post.seriesName}</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">{post.authorName}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-500 text-center">{new Date(post.createTime).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell>{post.authorName}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-500">{new Date(post.createTime).toLocaleDateString()}</TableCell>
+                    <TableCell>
                       {/* 文章状态徽章 */}
                       <Badge variant={post.isHidden ? "outline" : "default"} className={post.isHidden ? "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-zinc-700" : "bg-green-500 hover:bg-green-600 text-white border-transparent"}>
                         {post.isHidden ? '草稿' : '已发布'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2">
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
                         {/* 切换可见性按钮 */}
                         <Button 
                           variant="outline" 
