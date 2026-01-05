@@ -35,7 +35,7 @@ export default function Navbar() {
     { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
     { href: '/series', icon: <Library className="w-4 h-4" />, label: '系列' },
     { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '猫咪相册' },
-    { href: '/shop', icon: <ShoppingBag className="w-4 h-4" />, label: '精品店' },
+    { href: '/shop', icon: <ShoppingBag className="w-4 h-4" />, label: '小卖部' },
     { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于铲屎官' },
   ];
 
