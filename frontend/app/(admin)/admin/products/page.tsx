@@ -1,6 +1,6 @@
 // 管理员商品管理页面
 // --------------------------------------------------------------------------------
-// 布局风格与文章管理页面保持一致：返回按钮、统计徽章、响应式表格/卡片
+// 布局重构：移动端使用 Drawer，桌面端使用 Dialog
 "use client";
 
 import { useState, useEffect } from "react";
@@ -45,11 +45,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   fetchProductsAdmin,
   createProduct,
@@ -58,8 +67,131 @@ import {
   type ProductAdmin,
 } from "@/lib/api";
 
+// 类型定义
+interface FormDataType {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  downloadUrl: string;
+  redeemCode: string;
+  stock: number;
+  isActive: boolean;
+}
+
+// 商品表单组件：在 Dialog 和 Drawer 中共享
+function ProductForm({
+  formData,
+  setFormData,
+  editingProduct,
+}: {
+  formData: FormDataType;
+  setFormData: (data: FormDataType) => void;
+  editingProduct: ProductAdmin | null;
+}) {
+  return (
+    <div className="grid gap-4 py-2">
+      <div className="grid gap-2">
+        <Label htmlFor="name">商品名称 *</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="例如：《C# 高级编程》电子版"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="description">商品描述</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="商品详细描述..."
+          rows={3}
+        />
+      </div>
+
+      {/* 价格和库存：移动端堆叠，桌面端并排 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="price">价格 (元)</Label>
+          <Input
+            id="price"
+            type="number"
+            min="0"
+            step="1"
+            value={formData.price}
+            onInput={(e) => {
+              const val = parseFloat((e.target as HTMLInputElement).value);
+              setFormData({ ...formData, price: isNaN(val) ? 0 : val });
+            }}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="stock">库存 (-1 为无限)</Label>
+          <Input
+            id="stock"
+            type="number"
+            min="-1"
+            step="1"
+            value={formData.stock}
+            onInput={(e) => {
+              const val = parseInt((e.target as HTMLInputElement).value);
+              setFormData({ ...formData, stock: isNaN(val) ? -1 : val });
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="imageUrl">封面图 URL</Label>
+        <Input
+          id="imageUrl"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="downloadUrl">下载链接 (付款后可见)</Label>
+        <Input
+          id="downloadUrl"
+          value={formData.downloadUrl}
+          onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="redeemCode">兑换码 (付款后可见)</Label>
+        <Input
+          id="redeemCode"
+          value={formData.redeemCode}
+          onChange={(e) => setFormData({ ...formData, redeemCode: e.target.value })}
+          placeholder="例如：VIP2026-XXXX"
+        />
+      </div>
+
+      {editingProduct && (
+        <div className="flex items-center justify-between">
+          <Label htmlFor="isActive">上架状态</Label>
+          <Switch
+            id="isActive"
+            checked={formData.isActive}
+            onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProductsAdminPage() {
   const router = useRouter();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  
   const [products, setProducts] = useState<ProductAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -239,7 +371,7 @@ export default function ProductsAdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* 页面标题和操作按钮 */}
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -404,7 +536,7 @@ export default function ProductsAdminPage() {
                   </span>
                   <span>库存: {product.stock === -1 ? "∞ 无限" : product.stock}</span>
                 </div>
-                <div className="flex gap-3 pt-1">
+                <div className="grid grid-cols-3 gap-2 pt-4">
                   <Button
                     variant="outline"
                     size="sm"
@@ -437,118 +569,70 @@ export default function ProductsAdminPage() {
         </>
       )}
 
-      {/* 新增/编辑对话框 */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? "编辑商品" : "添加商品"}
-            </DialogTitle>
-            <DialogDescription>
-              填写商品信息，带 * 的为必填项
-            </DialogDescription>
-          </DialogHeader>
+      {/* 新增/编辑：桌面端 Dialog，移动端 Drawer */}
+      {isDesktop ? (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProduct ? "编辑商品" : "添加商品"}
+              </DialogTitle>
+              <DialogDescription>
+                填写商品信息，带 * 的为必填项
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">商品名称 *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="例如：《C# 高级编程》电子版"
+            {/* 共享表单内容 */}
+            <ProductForm
+              formData={formData}
+              setFormData={setFormData}
+              editingProduct={editingProduct}
+            />
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                取消
+              </Button>
+              <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
+                {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                保存
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DrawerContent className="max-h-[85vh]">
+            <DrawerHeader className="text-left">
+              <DrawerTitle>
+                {editingProduct ? "编辑商品" : "添加商品"}
+              </DrawerTitle>
+              <DrawerDescription>
+                填写商品信息，带 * 的为必填项
+              </DrawerDescription>
+            </DrawerHeader>
+
+            {/* 滚动区域 */}
+            <div className="overflow-y-auto px-4 pb-4">
+              <ProductForm
+                formData={formData}
+                setFormData={setFormData}
+                editingProduct={editingProduct}
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="description">商品描述</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="商品详细描述..."
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="price">价格 (元)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="stock">库存 (-1 为无限)</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="-1"
-                  step="1"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || -1 })}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="imageUrl">封面图 URL</Label>
-              <Input
-                id="imageUrl"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="downloadUrl">下载链接 (付款后可见)</Label>
-              <Input
-                id="downloadUrl"
-                value={formData.downloadUrl}
-                onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="redeemCode">兑换码 (付款后可见)</Label>
-              <Input
-                id="redeemCode"
-                value={formData.redeemCode}
-                onChange={(e) => setFormData({ ...formData, redeemCode: e.target.value })}
-                placeholder="例如：VIP2026-XXXX"
-              />
-            </div>
-
-            {editingProduct && (
-              <div className="flex items-center justify-between">
-                <Label htmlFor="isActive">上架状态</Label>
-                <Switch
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                />
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
-              {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DrawerFooter className="pt-4">
+              <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
+                {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                保存
+              </Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                取消
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* 删除确认对话框 */}
       <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>

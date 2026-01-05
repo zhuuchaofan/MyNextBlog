@@ -23,7 +23,7 @@ async function getProducts(): Promise<Product[]> {
   
   try {
     const res = await fetch(`${backendUrl}/api/products`, {
-      next: { revalidate: 60 }, // ISR: 60秒缓存
+      cache: 'no-store', // 禁用缓存，确保商品增删改后立即生效
     });
     
     if (!res.ok) {

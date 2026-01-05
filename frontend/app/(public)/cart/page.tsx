@@ -47,6 +47,10 @@ export default function CartPage() {
     const newCart = cart.map((item) => {
       if (item.productId === productId) {
         const newQuantity = Math.max(1, item.quantity + delta);
+        // 检查库存限制 (stock === -1 表示无限库存)
+        if (item.stock !== -1 && newQuantity > item.stock) {
+          return item; // 不更新，保持原数量
+        }
         return { ...item, quantity: newQuantity };
       }
       return item;
@@ -187,6 +191,7 @@ export default function CartPage() {
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => updateQuantity(item.productId, 1)}
+                          disabled={item.stock !== -1 && item.quantity >= item.stock}
                         >
                           <Plus className="w-3 h-3" />
                         </Button>

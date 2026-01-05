@@ -750,6 +750,7 @@ export interface CartItem {
   price: number;
   imageUrl: string | null;
   quantity: number;
+  stock: number; // -1 表示无限库存
 }
 
 // --- 公开商品 API ---
