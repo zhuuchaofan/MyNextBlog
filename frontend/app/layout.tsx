@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL || "https://nextblog.zhuchaofan.com"),
-  title: "MyNextBlog - Tech & Life",
+  title: "球球布丁的摸鱼后花园",
   description: "A modern full-stack blog built with Next.js 16 and .NET 10.",
   manifest: "/manifest.json",
 };

@@ -8,6 +8,7 @@
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MyNextBlog.Data;
@@ -42,6 +43,16 @@ public class OrderServiceTests
         var mockPaymentGateway = new Mock<IPaymentGateway>();
         var mockNotificationService = new Mock<IOrderNotificationService>();
         var mockLogger = new Mock<ILogger<OrderService>>();
+        
+        // 创建 ServiceScopeFactory Mock，用于后台任务中的 DI
+        var mockServiceScope = new Mock<IServiceScope>();
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        mockServiceProvider.Setup(p => p.GetService(typeof(AppDbContext))).Returns(context);
+        mockServiceProvider.Setup(p => p.GetService(typeof(IOrderNotificationService))).Returns(mockNotificationService.Object);
+        mockServiceScope.Setup(s => s.ServiceProvider).Returns(mockServiceProvider.Object);
+        
+        var mockScopeFactory = new Mock<IServiceScopeFactory>();
+        mockScopeFactory.Setup(f => f.CreateScope()).Returns(mockServiceScope.Object);
 
         // 默认支付网关返回成功
         mockPaymentGateway.Setup(p => p.ProcessPaymentAsync(It.IsAny<Order>()))
@@ -51,7 +62,7 @@ public class OrderServiceTests
             context, 
             mockLogger.Object,
             mockPaymentGateway.Object,
-            mockNotificationService.Object);
+            mockScopeFactory.Object);
         
         // 播种测试数据
         SeedTestData(context);

@@ -8,6 +8,7 @@
 // - 条件可见性 DTO 映射
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MyNextBlog.Data;
 using MyNextBlog.DTOs;
@@ -24,18 +25,18 @@ public class OrderService : IOrderService
     private readonly AppDbContext _context;
     private readonly ILogger<OrderService> _logger;
     private readonly IPaymentGateway _paymentGateway;
-    private readonly IOrderNotificationService _notificationService;
+    private readonly IServiceScopeFactory _scopeFactory; // 用于后台任务创建独立 Scope
     
     public OrderService(
         AppDbContext context,
         ILogger<OrderService> logger,
         IPaymentGateway paymentGateway,
-        IOrderNotificationService notificationService)
+        IServiceScopeFactory scopeFactory) // 为后台邮件发送提供独立 DI 作用域
     {
         _context = context;
         _logger = logger;
         _paymentGateway = paymentGateway;
-        _notificationService = notificationService;
+        _scopeFactory = scopeFactory;
     }
     
     // --- 用户 API ---
@@ -134,20 +135,27 @@ public class OrderService : IOrderService
             );
             
             // 9. 发送订单创建通知邮件（异步，不阻塞）
+            // 注意: 使用 IServiceScopeFactory 创建新 Scope，避免 DbContext 被释放
+            // 未来迁移到 Azure Function 时，只需将此部分替换为队列消息发送
+            var createdOrderId = order.Id;
+            var createdOrderNo = order.OrderNo;
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    // 重新加载订单以获取完整关联数据
-                    var fullOrder = await _context.Orders
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var notificationService = scope.ServiceProvider.GetRequiredService<IOrderNotificationService>();
+                    
+                    var fullOrder = await db.Orders
                         .Include(o => o.User)
                         .Include(o => o.Items)
-                        .FirstAsync(o => o.Id == order.Id);
-                    await _notificationService.SendOrderCreatedEmailAsync(fullOrder);
+                        .FirstAsync(o => o.Id == createdOrderId);
+                    await notificationService.SendOrderCreatedEmailAsync(fullOrder);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "发送订单创建邮件失败: {OrderNo}", order.OrderNo);
+                    _logger.LogError(ex, "发送订单创建邮件失败: {OrderNo}", createdOrderNo);
                 }
             });
             
@@ -229,15 +237,27 @@ public class OrderService : IOrderService
         );
         
         // 3. 虚拟商品自动发货（发送邮件）
+        // 注意: 使用 IServiceScopeFactory 创建新 Scope，避免 DbContext 被释放
+        var completedOrderId = order.Id;
+        var completedOrderNo = order.OrderNo;
         _ = Task.Run(async () =>
         {
             try
             {
-                await _notificationService.SendOrderCompletedEmailAsync(order);
+                using var scope = _scopeFactory.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<IOrderNotificationService>();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                
+                var freshOrder = await db.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Items)
+                        .ThenInclude(oi => oi.Product)
+                    .FirstAsync(o => o.Id == completedOrderId);
+                await notificationService.SendOrderCompletedEmailAsync(freshOrder);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "发送发货邮件失败: {OrderNo}", order.OrderNo);
+                _logger.LogError(ex, "发送发货邮件失败: {OrderNo}", completedOrderNo);
             }
         });
         
