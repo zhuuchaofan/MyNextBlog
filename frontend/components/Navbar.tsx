@@ -166,7 +166,7 @@ export default function Navbar() {
                              </DropdownMenuItem>
                           </>
                       ) : (
-                          <Link href="/login">
+                          <Link href={`/login?redirect=${encodeURIComponent(pathname)}`}>
                               <DropdownMenuItem className="cursor-pointer gap-2">
                                   <LogIn className="w-4 h-4" />
                                   <span>登录</span>
@@ -234,7 +234,7 @@ export default function Navbar() {
                  </DropdownMenu>
                )
              ) : (
-               <Link href="/login" aria-label="登录账号">
+               <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} aria-label="登录账号">
                  <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950 ml-2 whitespace-nowrap">
                    登录
                  </Button>

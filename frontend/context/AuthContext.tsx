@@ -20,7 +20,7 @@ interface User {
 // 定义 AuthContext 提供的功能和数据接口
 interface AuthContextType {
   user: User | null;         // 当前登录用户，未登录为 null
-  login: (user: User) => void; // 登录成功后的回调函数，用于更新状态和跳转
+  login: (user: User, redirectTo?: string) => void; // 登录成功后的回调函数，用于更新状态和跳转
   logout: () => Promise<void>; // 登出函数
   updateUser: (user: User) => void; // 手动更新用户状态（例如修改头像后）
   isLoading: boolean;        // 是否正在检查登录状态（用于显示加载动画）
@@ -74,9 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 登录操作 (仅更新前端状态和跳转)
   // 注意：实际的登录 API 调用发生在 Login 页面组件中，这里只负责接收结果。
-  const login = (newUser: User) => {
+  // redirectTo 可选参数：登录后跳转到指定页面，默认跳转到后台首页
+  const login = (newUser: User, redirectTo?: string) => {
     setUser(newUser);
-    router.push('/admin'); // 登录后默认跳转到后台首页
+    router.push(redirectTo || '/admin'); // 登录后跳转到指定页面或后台首页
   };
 
   // 登出操作
