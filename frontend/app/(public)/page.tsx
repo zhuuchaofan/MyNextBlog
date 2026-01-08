@@ -27,8 +27,10 @@ async function getHomePageData() {
   }
 
   try {
+    // 管理员可查看隐藏文章，普通用户只能查看公开文章
+    const includeHidden = !!token;
     const res = await fetch(
-      `${backendUrl}/api/home/initial-data?page=1&pageSize=10`,
+      `${backendUrl}/api/home/initial-data?page=1&pageSize=10&includeHidden=${includeHidden}`,
       {
         headers,
         next: { revalidate: token ? 0 : 60 }, // ISR: 管理员实时，普通用户缓存
