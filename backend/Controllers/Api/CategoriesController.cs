@@ -71,4 +71,43 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         }
         return Ok(new { success = true, data = category });
     }
+
+    /// <summary>
+    /// 更新分类名称 (管理员)
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
+    {
+        // 检查是否与其他分类重名
+        var existing = await categoryService.GetByIdAsync(id);
+        if (existing == null)
+        {
+            return NotFound(new { success = false, message = "分类不存在" });
+        }
+
+        // 如果名称变更，检查是否重复
+        if (existing.Name != dto.Name.Trim() && await categoryService.ExistsAsync(dto.Name))
+        {
+            return Conflict(new { success = false, message = "该分类名称已存在" });
+        }
+
+        var updated = await categoryService.UpdateAsync(id, dto.Name);
+        return Ok(new { success = true, data = updated });
+    }
+
+    /// <summary>
+    /// 删除分类 (管理员)
+    /// </summary>
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var (success, error) = await categoryService.DeleteAsync(id);
+        
+        if (!success)
+        {
+            return BadRequest(new { success = false, message = error });
+        }
+
+        return Ok(new { success = true, message = "分类已删除" });
+    }
 }

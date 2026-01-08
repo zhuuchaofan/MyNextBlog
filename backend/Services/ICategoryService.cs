@@ -33,4 +33,14 @@ public interface ICategoryService
     /// 检查分类名称是否存在
     /// </summary>
     Task<bool> ExistsAsync(string name);
+
+    /// <summary>
+    /// 更新分类名称
+    /// </summary>
+    Task<CategoryDto?> UpdateAsync(int id, string name);
+
+    /// <summary>
+    /// 删除分类（如果分类下没有文章）
+    /// </summary>
+    Task<(bool Success, string? Error)> DeleteAsync(int id);
 }

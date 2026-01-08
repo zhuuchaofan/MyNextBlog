@@ -14,7 +14,16 @@ namespace MyNextBlog.DTOs;
 /// </summary>
 public record CreateCategoryDto(
     [Required(ErrorMessage = "分类名称不能为空")]
-    [StringLength(50, ErrorMessage = "分类名称不能超过50个字符")]
+    [StringLength(20, ErrorMessage = "分类名称不能超过20个字符")]
+    string Name
+);
+
+/// <summary>
+/// 更新分类请求 DTO
+/// </summary>
+public record UpdateCategoryDto(
+    [Required(ErrorMessage = "分类名称不能为空")]
+    [StringLength(20, ErrorMessage = "分类名称不能超过20个字符")]
     string Name
 );
 
@@ -23,4 +32,5 @@ public record CreateCategoryDto(
 /// </summary>
 /// <param name="Id">分类 ID</param>
 /// <param name="Name">分类名称</param>
-public record CategoryDto(int Id, string Name);
+/// <param name="PostCount">关联文章数量</param>
+public record CategoryDto(int Id, string Name, int PostCount = 0);

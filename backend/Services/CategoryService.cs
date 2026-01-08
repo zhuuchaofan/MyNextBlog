@@ -22,15 +22,19 @@ namespace MyNextBlog.Services;
 public class CategoryService(AppDbContext context) : ICategoryService
 {
     /// <summary>
-    /// 获取所有分类
+    /// 获取所有分类（包含关联文章数）
     /// </summary>
     public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
-        // 使用 Projection 直接映射到 DTO，避免加载整个 Entity
+        // 使用 Projection 直接映射到 DTO，并统计关联的公开文章数量
         return await context.Categories
             .AsNoTracking()
             .OrderBy(c => c.Name)
-            .Select(c => new CategoryDto(c.Id, c.Name))
+            .Select(c => new CategoryDto(
+                c.Id, 
+                c.Name,
+                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+            ))
             .ToListAsync();
     }
 
@@ -39,11 +43,15 @@ public class CategoryService(AppDbContext context) : ICategoryService
     /// </summary>
     public async Task<CategoryDto?> GetByIdAsync(int id)
     {
-        var category = await context.Categories
+        return await context.Categories
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == id);
-        
-        return category == null ? null : new CategoryDto(category.Id, category.Name);
+            .Where(c => c.Id == id)
+            .Select(c => new CategoryDto(
+                c.Id, 
+                c.Name,
+                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+            ))
+            .FirstOrDefaultAsync();
     }
 
     /// <summary>
@@ -71,5 +79,42 @@ public class CategoryService(AppDbContext context) : ICategoryService
     {
         // 使用 ToLower() 进行忽略大小写的比较
         return await context.Categories.AnyAsync(c => c.Name.ToLower() == name.Trim().ToLower());
+    }
+
+    /// <summary>
+    /// 更新分类名称
+    /// </summary>
+    public async Task<CategoryDto?> UpdateAsync(int id, string name)
+    {
+        var category = await context.Categories.FindAsync(id);
+        if (category == null) return null;
+
+        category.Name = name.Trim();
+        await context.SaveChangesAsync();
+
+        return new CategoryDto(category.Id, category.Name);
+    }
+
+    /// <summary>
+    /// 删除分类
+    /// </summary>
+    /// <returns>如果分类下有文章，返回 false；否则删除并返回 true</returns>
+    public async Task<(bool Success, string? Error)> DeleteAsync(int id)
+    {
+        var category = await context.Categories
+            .Include(c => c.Posts)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (category == null)
+            return (false, "分类不存在");
+
+        // 检查是否有关联的文章
+        if (category.Posts.Any())
+            return (false, "该分类下还有文章，无法删除");
+
+        context.Categories.Remove(category);
+        await context.SaveChangesAsync();
+
+        return (true, null);
     }
 }

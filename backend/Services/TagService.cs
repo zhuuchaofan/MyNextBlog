@@ -74,4 +74,91 @@ public class TagService(AppDbContext context) : ITagService
         await context.SaveChangesAsync();
         return tags;
     }
+
+    /// <summary>
+    /// 获取所有标签（包含使用次数）
+    /// </summary>
+    public async Task<List<DTOs.TagDto>> GetAllTagsAsync()
+    {
+        return await context.Tags
+            .AsNoTracking()
+            .OrderBy(t => t.Name)
+            .Select(t => new DTOs.TagDto(
+                t.Id,
+                t.Name,
+                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+            ))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// 根据 ID 获取标签
+    /// </summary>
+    public async Task<DTOs.TagDto?> GetByIdAsync(int id)
+    {
+        return await context.Tags
+            .AsNoTracking()
+            .Where(t => t.Id == id)
+            .Select(t => new DTOs.TagDto(
+                t.Id,
+                t.Name,
+                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+            ))
+            .FirstOrDefaultAsync();
+    }
+
+    /// <summary>
+    /// 创建新标签
+    /// </summary>
+    public async Task<DTOs.TagDto> AddTagAsync(string name)
+    {
+        var tag = new Tag { Name = name.Trim() };
+        context.Tags.Add(tag);
+        await context.SaveChangesAsync();
+        return new DTOs.TagDto(tag.Id, tag.Name, 0);
+    }
+
+    /// <summary>
+    /// 检查标签名称是否存在
+    /// </summary>
+    public async Task<bool> ExistsAsync(string name)
+    {
+        return await context.Tags.AnyAsync(t => t.Name.ToLower() == name.Trim().ToLower());
+    }
+
+    /// <summary>
+    /// 更新标签名称
+    /// </summary>
+    public async Task<DTOs.TagDto?> UpdateAsync(int id, string name)
+    {
+        var tag = await context.Tags.FindAsync(id);
+        if (tag == null) return null;
+
+        tag.Name = name.Trim();
+        await context.SaveChangesAsync();
+
+        return new DTOs.TagDto(tag.Id, tag.Name);
+    }
+
+    /// <summary>
+    /// 删除标签
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteAsync(int id)
+    {
+        var tag = await context.Tags
+            .Include(t => t.Posts)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tag == null)
+            return (false, "标签不存在");
+
+        // 检查是否有关联的文章
+        if (tag.Posts.Any())
+            return (false, "该标签下还有文章，无法删除");
+
+        context.Tags.Remove(tag);
+        await context.SaveChangesAsync();
+
+        return (true, null);
+    }
 }

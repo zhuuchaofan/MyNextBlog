@@ -113,7 +113,8 @@ export default function PostList({ initialPosts, initialHasMore, isAdmin = false
                      
                      <div className="flex-1 flex flex-col p-6 md:p-8">
                         {/* 第一行：定位信息（分类 + 系列）+ 时间 + 管理按钮 */}
-                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                        {/* 移除 flex-wrap 防止换行，使用 min-w-0 + overflow-hidden 处理溢出 */}
+                        <div className="flex items-center gap-2 mb-4 min-w-0 overflow-hidden">
                           {post.isHidden && (
                             <Badge variant="destructive" className="h-6 px-2 text-xs border-dashed border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                               Hidden
