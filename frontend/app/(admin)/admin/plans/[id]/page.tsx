@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { DragEndEvent } from "@dnd-kit/core";
@@ -161,22 +162,31 @@ export default function PlanEditPage({
     }
   }, [plan]);
 
-  // 更新计划基本信息
-  const handleUpdatePlan = async (
-    field: string,
-    value: string | number | boolean
-  ) => {
-    if (!plan) return;
+  // 数据库保存操作（防抖版本 - 1.5秒后才实际保存）
+  const debouncedSavePlan = useDebouncedCallback(
+    async (field: string, value: string | number | boolean) => {
+      try {
+        await updatePlan(planId, { [field]: value });
+        // 防抖保存成功不弹窗，避免频繁干扰
+      } catch (error) {
+        console.error("Failed to update plan:", error);
+        toast.error("保存失败");
+      }
+    },
+    1500 // 1.5秒防抖
+  );
 
-    try {
-      await updatePlan(planId, { [field]: value });
+  // 更新计划基本信息（立即更新 UI，延迟保存到数据库）
+  const handleUpdatePlan = useCallback(
+    (field: string, value: string | number | boolean) => {
+      if (!plan) return;
+      // 立即更新本地 UI 状态
       setPlan({ ...plan, [field]: value });
-      toast.success("已保存");
-    } catch (error) {
-      console.error("Failed to update plan:", error);
-      toast.error("保存失败");
-    }
-  };
+      // 延迟保存到数据库
+      debouncedSavePlan(field, value);
+    },
+    [plan, debouncedSavePlan]
+  );
 
   // 添加一天（自动扩展 endDate）
   const handleAddDay = async () => {

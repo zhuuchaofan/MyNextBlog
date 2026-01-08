@@ -91,16 +91,19 @@ export default function AdminDashboard() {
     { href: '/admin/series', icon: Layers, label: '系列管理', desc: '创建和管理文章系列' },
     { href: '/admin/categories', icon: FolderOpen, label: '分类管理', desc: '创建和管理文章分类' },
     { href: '/admin/tags', icon: Tag, label: '标签管理', desc: '创建和管理文章标签' },
+    { href: '/admin/plans', icon: CalendarDays, label: '计划管理', desc: '行程规划、预算追踪' },
+  ];
+
+  const shopLinks = [
     { href: '/admin/products', icon: ShoppingBag, label: '商品管理', desc: '管理虚拟商品库存' },
     { href: '/admin/orders', icon: ClipboardList, label: '订单管理', desc: '查看和管理用户订单' },
-    { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
-    { href: '/admin/plans', icon: CalendarDays, label: '计划管理', desc: '行程规划、预算追踪' },
   ];
 
   const systemLinks = [
     { href: '/admin/settings/content', icon: PenSquare, label: '内容配置', desc: '编辑主页、关于页介绍' },
     { href: '/admin/settings/email-templates', icon: Mail, label: '邮件模板', desc: '自定义系统邮件内容' },
-    { href: '/settings', icon: Settings, label: '系统设置', desc: '分类管理、友链设置' },
+    { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
+    { href: '/settings', icon: Settings, label: '个人设置', desc: '个人资料、账号安全' },
     { href: '/admin/trash', icon: Trash2, label: '回收站', desc: '恢复或永久删除文章' },
   ];
 
@@ -133,8 +136,8 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* 功能分组 */}
-      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+      {/* 功能分组 - 三列布局 */}
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         
         {/* 内容管理组 */}
         <Card className="dark:bg-zinc-900 dark:border-zinc-800">
@@ -155,6 +158,38 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
                       <link.icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{link.label}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">{link.desc}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 商城管理组 */}
+        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-orange-500" />
+              商城管理
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1">
+              {shopLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30 transition-colors">
+                      <link.icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400" />
                     </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-gray-100">{link.label}</div>
