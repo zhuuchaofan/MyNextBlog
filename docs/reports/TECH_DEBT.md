@@ -90,13 +90,16 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 ## 📋 待办清单
 
 - [x] Controller 层解耦，禁止直接注入 DbContext ✅ 2026-01-01
-- [x] 为所有核心 Service 添加单元测试 ✅ 2026-01-04 (129 个用例)
+- [x] 为所有核心 Service 添加单元测试 ✅ 2026-01-08 (187 个用例)
 - [x] 修复 `CommentMappers.cs` 的 nullable 警告 ✅ 2026-01-04
+- [x] 修复订单邮件发送失败问题 (DbContext 释放) ✅ 2026-01-08
+- [x] 补充 SeriesService / UserService 单元测试 ✅ 2026-01-08
 - [ ] 决定 DTO 投影方案（A/B/C）
 - [ ] 考虑将 `PostMappingExtensions.cs` 移动到 `Mappers/` 目录
 - [ ] 引入 Bogus 库优化测试数据生成 (当模型字段 > 15 或用例 > 300 时)
 - [ ] 添加集成测试 (WebApplicationFactory)
+- [ ] **邮件系统迁移到 Azure Function** (详见 [EMAIL_SYSTEM.md](../architecture/EMAIL_SYSTEM.md))
 
 ---
 
-_最后更新：2026-01-04_
+_最后更新：2026-01-08_

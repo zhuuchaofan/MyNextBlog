@@ -34,20 +34,17 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
-### 最新更新 (2026-01-04)
+### 最新更新 (2026-01-08)
 
-- 🛒 **购物功能模块 (Shopping Feature)**:
-  - **商品管理**: 支持上架/下架、库存管理、无限库存虚拟商品（库存=-1）
-  - **购物流程**: 商品列表 → 购物车 → 确认订单 → 模拟付款 → 自动发货
-  - **安全设计**: 后端价格查询（防篡改）、原子库存扣减（防超卖）、敏感信息保护（付款后才显示下载链接）
-  - **策略模式支付网关**: `IPaymentGateway` 接口设计，当前使用 MockPaymentGateway，可扩展接入真实支付
-  - **订单通知**: 订单创建和支付成功后自动发送邮件通知
+- 🔧 **订单邮件发送修复**: 修复 `Task.Run` 后台任务中 DbContext 被释放导致邮件发送失败的问题，使用 `IServiceScopeFactory` 创建独立 DI 作用域
 - 🧪 **单元测试体系完善**:
-  - **新增 32 个测试**: ProductServiceTests (14) + OrderServiceTests (18)
-  - **总计: 12 个测试类, 161 个测试用例, 100% 通过率**
-  - 技术栈: xUnit + FluentAssertions + Moq + SQLite 内存数据库
+  - **新增 28 个测试**: SeriesServiceTests (14) + UserServiceTests (12) + 更新 OrderServiceTests (2)
+  - **总计: 15 个测试类, 189 个测试用例, 100% 通过率**
+- 📄 **邮件系统文档**: 新增 [EMAIL_SYSTEM.md](docs/architecture/EMAIL_SYSTEM.md)，记录当前架构和 Azure Function 迁移方针
+- 🎨 **管理后台优化**: 将功能分组拆分为三栏布局 (内容管理/商城管理/系统设置)
+- ⚡️ **计划编辑防抖**: 使用 `useDebouncedCallback` 实现 1.5 秒延迟保存，减少数据库写入
 
-### 历史更新 (2026-01-04 早)
+### 历史更新 (2026-01-04)
 
 - 🏗️ **架构重构与代码质量提升**:
   - **Controller 层解耦**: 新增 `StatsService`、`SiteContentService`、`CommentNotificationService`，Controller 不再直接注入 `DbContext`
