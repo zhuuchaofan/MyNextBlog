@@ -144,6 +144,15 @@ public class EmailTemplateService(
         return (subject, body);
     }
     
+    // 允许包含原始 HTML 的占位符（这些是系统生成的，不是用户输入）
+    private static readonly HashSet<string> HtmlPlaceholders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Items",           // 订单商品清单
+        "DownloadLinks",   // 下载链接列表
+        "RedeemCodes",     // 兑换码列表
+        "DaysSummary"      // 计划行程概要
+    };
+    
     /// <summary>
     /// 从缓存或数据库获取模板
     /// </summary>
@@ -171,14 +180,18 @@ public class EmailTemplateService(
     /// <summary>
     /// 替换占位符（HTML 编码版本，用于邮件正文）
     /// 对用户输入内容进行 HTML 编码，防止 XSS 攻击
+    /// 但对系统生成的 HTML 内容（如商品清单）不编码
     /// </summary>
     private static string RenderPlaceholdersHtml(string template, Dictionary<string, string> data)
     {
         foreach (var (key, value) in data)
         {
-            // 对用户输入内容进行 HTML 编码，防止 XSS
-            // 例如：<script>alert(1)</script> -> &lt;script&gt;alert(1)&lt;/script&gt;
-            var safeValue = HttpUtility.HtmlEncode(value ?? "");
+            // 系统生成的 HTML 内容不需要编码（如商品清单、下载链接等）
+            // 这些内容由服务端生成，不是用户输入，是安全的
+            var safeValue = HtmlPlaceholders.Contains(key) 
+                ? (value ?? "")  // 直接使用原始 HTML
+                : HttpUtility.HtmlEncode(value ?? "");  // 用户输入需要编码
+            
             template = template.Replace($"{{{{{key}}}}}", safeValue);
         }
         return template;
