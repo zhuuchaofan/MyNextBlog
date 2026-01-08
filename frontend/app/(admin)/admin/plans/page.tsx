@@ -163,7 +163,7 @@ export default function PlansPage() {
           </Link>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" /> 计划管理
+              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" /> 计划管理
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
               管理旅行计划、活动安排和预算追踪
@@ -171,7 +171,7 @@ export default function PlansPage() {
           </div>
         </div>
         <Link href="/admin/plans/new">
-          <Button className="bg-blue-500 hover:bg-blue-600 w-full sm:w-auto">
+          <Button className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             新建计划
           </Button>
@@ -202,13 +202,13 @@ export default function PlansPage() {
             return (
               <Card 
                 key={plan.id} 
-                className="dark:bg-zinc-900 dark:border-zinc-800 hover:shadow-lg transition-all hover:border-blue-200 dark:hover:border-blue-800"
+                className="dark:bg-zinc-900 dark:border-zinc-800 hover:shadow-lg transition-all hover:border-orange-200 dark:hover:border-orange-800"
               >
                 <CardContent className="p-4 flex flex-col h-full">
                   {/* 头部：图标 + 标题 + 状态 */}
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20">
-                      <TypeIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20">
+                      <TypeIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -275,7 +275,7 @@ export default function PlansPage() {
                             🎉 今天出发！
                           </span>
                         ) : (
-                          <span className="text-blue-600 dark:text-blue-400">
+                          <span className="text-orange-600 dark:text-orange-400">
                             ⏰ 还有 <strong>{daysRemaining}</strong> 天
                           </span>
                         )
@@ -310,7 +310,7 @@ export default function PlansPage() {
                       分享
                     </Button>
                     <Link href={`/admin/plans/${plan.id}`} className="flex-1">
-                      <Button size="sm" className="w-full h-9 bg-blue-500 hover:bg-blue-600 text-white">
+                      <Button size="sm" className="w-full h-9 bg-orange-500 hover:bg-orange-600 text-white">
                         <Edit className="w-4 h-4 mr-1.5" />
                         编辑
                       </Button>

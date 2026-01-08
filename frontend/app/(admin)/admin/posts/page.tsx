@@ -170,9 +170,8 @@ function AdminPostsContent() {
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
            {/* 返回按钮 */}
-           <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400 h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
-             <ChevronLeft className="w-4 h-4" />
-             <span className="sr-only">返回</span>
+           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
+             <ChevronLeft className="w-4 h-4 mr-1" /> 返回
            </Button>
            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">文章管理</h1>
         </div>
@@ -204,41 +203,41 @@ function AdminPostsContent() {
       ) : (
         <>
           {/* 桌面端表格显示 */}
-          <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden transition-colors">
-            <Table>
+          <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-x-auto transition-colors">
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                  <TableHead className="text-gray-500 dark:text-gray-400">标题</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400">分类</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400">系列</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400">作者</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400">发布时间</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400">状态</TableHead>
-                  <TableHead className="text-center text-gray-500 dark:text-gray-400">操作</TableHead>
+                  <TableHead className="w-[30%] text-gray-500 dark:text-gray-400">标题</TableHead>
+                  <TableHead className="w-[10%] text-gray-500 dark:text-gray-400">分类</TableHead>
+                  <TableHead className="w-[15%] text-gray-500 dark:text-gray-400">系列</TableHead>
+                  <TableHead className="w-[8%] text-gray-500 dark:text-gray-400">作者</TableHead>
+                  <TableHead className="w-[10%] text-gray-500 dark:text-gray-400">发布时间</TableHead>
+                  <TableHead className="w-[7%] text-gray-500 dark:text-gray-400">状态</TableHead>
+                  <TableHead className="w-[20%] text-center text-gray-500 dark:text-gray-400">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {posts.map((post) => (
                   <TableRow key={post.id} className={`${post.isHidden ? 'bg-gray-50/30 dark:bg-zinc-800/30 text-gray-400 dark:text-gray-500' : 'dark:text-gray-300'} border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50`}>
-                    <TableCell>
+                    <TableCell className="truncate" title={post.title}>
                       {/* 点击标题在新窗口查看文章详情 */}
-                      <Link href={`/posts/${post.id}`} target="_blank" className="hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-2 group transition-colors">
-                        {post.title}
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                      <Link href={`/posts/${post.id}`} target="_blank" className="hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-2 group transition-colors max-w-full">
+                        <span className="truncate">{post.title}</span>
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 flex-shrink-0" />
                       </Link>
                     </TableCell>
                     <TableCell>
                        <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">{post.categoryName || '未分类'}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="truncate">
                       {post.seriesName ? (
-                        <span className="text-sm text-orange-600 dark:text-orange-400">#{post.seriesOrder} {post.seriesName}</span>
+                        <span className="text-sm text-orange-600 dark:text-orange-400 truncate block" title={`#${post.seriesOrder} ${post.seriesName}`}>#{post.seriesOrder} {post.seriesName}</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
-                    <TableCell>{post.authorName}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-500">{new Date(post.createTime).toLocaleDateString()}</TableCell>
+                    <TableCell className="truncate">{post.authorName}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-500 whitespace-nowrap">{new Date(post.createTime).toLocaleDateString()}</TableCell>
                     <TableCell>
                       {/* 文章状态徽章 */}
                       <Badge variant={post.isHidden ? "outline" : "default"} className={post.isHidden ? "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-zinc-700" : "bg-green-500 hover:bg-green-600 text-white border-transparent"}>

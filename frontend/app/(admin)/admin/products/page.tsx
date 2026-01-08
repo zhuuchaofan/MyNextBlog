@@ -506,14 +506,14 @@ export default function ProductsAdminPage() {
         <>
           {/* 桌面端表格 */}
           <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden transition-colors">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                  <TableHead className="text-gray-500 dark:text-gray-400">商品名称</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-right">价格</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">库存</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                  <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
+                  <TableHead className="w-[35%] text-gray-500 dark:text-gray-400">商品名称</TableHead>
+                  <TableHead className="w-[12%] text-gray-500 dark:text-gray-400 text-right">价格</TableHead>
+                  <TableHead className="w-[12%] text-gray-500 dark:text-gray-400 text-center">库存</TableHead>
+                  <TableHead className="w-[12%] text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
+                  <TableHead className="w-[29%] text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -522,14 +522,14 @@ export default function ProductsAdminPage() {
                     key={product.id} 
                     className={`${!product.isActive ? 'bg-gray-50/30 dark:bg-zinc-800/30 text-gray-400 dark:text-gray-500' : 'dark:text-gray-300'} border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50`}
                   >
-                    <TableCell>
+                    <TableCell className="truncate" title={product.name}>
                       <Link 
                         href={`/shop/${product.id}`} 
                         target="_blank" 
-                        className="hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-2 group transition-colors font-medium"
+                        className="hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-2 group transition-colors font-medium max-w-full"
                       >
-                        {product.name}
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                        <span className="truncate">{product.name}</span>
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 flex-shrink-0" />
                       </Link>
                     </TableCell>
                     <TableCell className="text-right">

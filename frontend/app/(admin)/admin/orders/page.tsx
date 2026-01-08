@@ -114,15 +114,15 @@ export default function OrdersAdminPage() {
             <>
               {/* 桌面端表格 */}
               <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden">
-                <Table>
+                <Table className="table-fixed w-full">
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
-                      <TableHead className="text-gray-500 dark:text-gray-400">订单号</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400">用户</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-right">金额</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400">下单时间</TableHead>
-                      <TableHead className="text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
+                      <TableHead className="w-[20%] text-gray-500 dark:text-gray-400">订单号</TableHead>
+                      <TableHead className="w-[20%] text-gray-500 dark:text-gray-400">用户</TableHead>
+                      <TableHead className="w-[12%] text-gray-500 dark:text-gray-400 text-right">金额</TableHead>
+                      <TableHead className="w-[12%] text-gray-500 dark:text-gray-400 text-center">状态</TableHead>
+                      <TableHead className="w-[20%] text-gray-500 dark:text-gray-400">下单时间</TableHead>
+                      <TableHead className="w-[16%] text-gray-500 dark:text-gray-400 text-center">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -130,13 +130,13 @@ export default function OrdersAdminPage() {
                       const status = statusMap[order.status];
                       return (
                         <TableRow key={order.id} className="border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50">
-                          <TableCell className="font-mono text-sm">
+                          <TableCell className="font-mono text-sm truncate" title={order.orderNo}>
                             {order.orderNo}
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              <p className="text-gray-900 dark:text-gray-100">{order.username || "未知用户"}</p>
-                              <p className="text-gray-500 dark:text-gray-500 text-xs">
+                            <div className="text-sm truncate">
+                              <p className="text-gray-900 dark:text-gray-100 truncate">{order.username || "未知用户"}</p>
+                              <p className="text-gray-500 dark:text-gray-500 text-xs truncate">
                                 {order.userEmail || "-"}
                               </p>
                             </div>
@@ -147,7 +147,7 @@ export default function OrdersAdminPage() {
                           <TableCell className="text-center">
                             <Badge variant={status.variant}>{status.label}</Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          <TableCell className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                             {new Date(order.createdAt).toLocaleString("zh-CN")}
                           </TableCell>
                           <TableCell className="text-center">

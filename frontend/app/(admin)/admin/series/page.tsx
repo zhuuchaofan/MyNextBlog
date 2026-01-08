@@ -169,13 +169,13 @@ export default function SeriesManagementPage() {
         
         {/* Desktop View: Table */}
         <div className="hidden md:block">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                <TableHead>名称</TableHead>
-                <TableHead>描述</TableHead>
-                <TableHead className="w-[100px] text-center">文章数</TableHead>
-                <TableHead className="w-[120px] text-center">操作</TableHead>
+                <TableHead className="w-[25%]">名称</TableHead>
+                <TableHead className="w-[45%]">描述</TableHead>
+                <TableHead className="w-[15%] text-center">文章数</TableHead>
+                <TableHead className="w-[15%] text-center">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -196,8 +196,8 @@ export default function SeriesManagementPage() {
               ) : (
                 seriesList.map(series => (
                   <TableRow key={series.id}>
-                    <TableCell className="font-medium text-gray-900 dark:text-gray-200">{series.name}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{series.description || '-'}</TableCell>
+                    <TableCell className="font-medium text-gray-900 dark:text-gray-200 truncate" title={series.name}>{series.name}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-400 truncate" title={series.description || ''}>{series.description || '-'}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
                         {series.postCount}
