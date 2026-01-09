@@ -78,6 +78,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFriendLinkService, FriendLinkService>();
         services.AddHostedService<FriendHealthCheckHostedService>();
         services.AddHttpClient("HealthCheck");  // 健康检查专用 HttpClient
+        
+        // --- Memo 动态服务 ---
+        services.AddScoped<IMemoService, MemoService>();
 
         return services;
     }

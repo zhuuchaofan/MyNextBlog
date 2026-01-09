@@ -1030,3 +1030,108 @@ export function deleteFriendLink(id: number) {
   );
 }
 
+// ============================================================
+// Memo 动态管理 (Memos)
+// ============================================================
+
+// Memo 类型定义
+export interface Memo {
+  id: number;
+  content: string;
+  imageUrls: string[];
+  source: string;
+  createdAt: string;
+}
+
+export interface MemoAdmin extends Memo {
+  isPublic: boolean;
+  updatedAt: string | null;
+}
+
+// 获取公开 Memo 列表 (Keyset Pagination)
+export async function fetchMemos(
+  cursor?: string,
+  limit = 20
+): Promise<{ items: Memo[]; nextCursor: string | null }> {
+  let url = `/api/backend/memos?limit=${limit}`;
+  if (cursor) url += `&cursor=${encodeURIComponent(cursor)}`;
+  const res = await fetchClient<{
+    success: boolean;
+    data: Memo[];
+    nextCursor: string | null;
+  }>(url);
+  return { items: res.data, nextCursor: res.nextCursor };
+}
+
+// 获取年度热力图数据
+export async function fetchMemoHeatmap(
+  year?: number
+): Promise<{ data: Record<string, number>; year: number }> {
+  let url = `/api/backend/memos/heatmap`;
+  if (year) url += `?year=${year}`;
+  const res = await fetchClient<{
+    success: boolean;
+    data: Record<string, number>;
+    year: number;
+  }>(url);
+  return { data: res.data, year: res.year };
+}
+
+// [Admin] 获取所有 Memo
+export async function fetchMemosAdmin(
+  page = 1,
+  pageSize = 20
+): Promise<{ memos: MemoAdmin[]; totalCount: number }> {
+  const res = await fetchClient<{
+    success: boolean;
+    data: MemoAdmin[];
+    meta: { totalCount: number };
+  }>(`/api/backend/memos/admin?page=${page}&pageSize=${pageSize}`);
+  return { memos: res.data, totalCount: res.meta.totalCount };
+}
+
+// [Admin] 创建 Memo
+export function createMemo(data: {
+  content: string;
+  imageUrls?: string[];
+  source?: string;
+  isPublic?: boolean;
+}) {
+  return fetchClient<{ success: boolean; data: MemoAdmin }>(
+    "/api/backend/memos/admin",
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 更新 Memo
+export function updateMemo(
+  id: number,
+  data: {
+    content: string;
+    imageUrls?: string[];
+    isPublic?: boolean;
+  }
+) {
+  return fetchClient<{ success: boolean; data: MemoAdmin }>(
+    `/api/backend/memos/admin/${id}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 删除 Memo
+export function deleteMemo(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/memos/admin/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+
