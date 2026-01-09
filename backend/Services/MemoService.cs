@@ -33,11 +33,10 @@ public class MemoService(
         // 限制每页最大数量
         limit = Math.Clamp(limit, 1, 50);
         
-        var query = context.Memos
+        // 构建基础查询 (先过滤，再排序)
+        IQueryable<Memo> query = context.Memos
             .AsNoTracking()
-            .Where(m => m.IsPublic)
-            .OrderByDescending(m => m.CreatedAt)
-            .ThenByDescending(m => m.Id);
+            .Where(m => m.IsPublic);
         
         // 解析游标并应用过滤
         if (!string.IsNullOrEmpty(cursor))
@@ -45,14 +44,20 @@ public class MemoService(
             var (cursorTime, cursorId) = DecodeCursor(cursor);
             if (cursorTime.HasValue && cursorId.HasValue)
             {
-                query = (IOrderedQueryable<Memo>)query.Where(m =>
+                // Keyset Pagination: 获取游标之后的数据
+                query = query.Where(m =>
                     m.CreatedAt < cursorTime.Value ||
                     (m.CreatedAt == cursorTime.Value && m.Id < cursorId.Value));
             }
         }
         
+        // 排序 (在过滤之后应用，确保排序不丢失)
+        var orderedQuery = query
+            .OrderByDescending(m => m.CreatedAt)
+            .ThenByDescending(m => m.Id);
+        
         // 获取 limit + 1 条数据判断是否有更多
-        var memos = await query.Take(limit + 1).ToListAsync();
+        var memos = await orderedQuery.Take(limit + 1).ToListAsync();
         var hasMore = memos.Count > limit;
         
         // 截取实际返回的数据
@@ -270,11 +275,11 @@ public class MemoService(
             var text = Encoding.UTF8.GetString(bytes);
             var parts = text.Split('_');
             
-            if (parts.Length == 2 &&
-                DateTime.TryParse(parts[0], out var timestamp) &&
-                int.TryParse(parts[1], out var id))
+            if (parts.Length >= 2 &&
+                DateTime.TryParse(parts[0], null, System.Globalization.DateTimeStyles.RoundtripKind, out var timestamp) &&
+                int.TryParse(parts[^1], out var id))  // 使用最后一个部分作为 ID (ISO 格式可能包含多个 _)
             {
-                return (timestamp, id);
+                return (timestamp.ToUniversalTime(), id);
             }
         }
         catch
