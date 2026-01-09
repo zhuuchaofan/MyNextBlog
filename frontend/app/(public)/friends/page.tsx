@@ -118,7 +118,7 @@ export default async function FriendsPage() {
           欢迎通过邮件联系我申请友链，格式：站点名称 + URL + 描述 + Logo
         </p>
         <Link 
-          href="mailto:hi@zhuchaofan.com?subject=友链申请" 
+          href="mailto:zhuuchaofan@gmail.com?subject=友链申请" 
           className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-sm font-medium transition-colors"
         >
           <UserPlus className="w-4 h-4" />
