@@ -73,6 +73,11 @@ public static class ServiceCollectionExtensions
         // PostgreSQL 备份服务 (每天 03:00 UTC 自动备份到 R2)
         services.AddHostedService<DatabaseBackupService>();
         services.AddHostedService<AnniversaryReminderHostedService>();
+        
+        // --- 友链功能服务 ---
+        services.AddScoped<IFriendLinkService, FriendLinkService>();
+        services.AddHostedService<FriendHealthCheckHostedService>();
+        services.AddHttpClient("HealthCheck");  // 健康检查专用 HttpClient
 
         return services;
     }

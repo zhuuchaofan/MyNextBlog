@@ -49,6 +49,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Product> Products { get; set; } // 商品
     public DbSet<Order> Orders { get; set; } // 订单
     public DbSet<OrderItem> OrderItems { get; set; } // 订单项
+    
+    // --- 社交功能 ---
+    public DbSet<FriendLink> FriendLinks { get; set; } // 友情链接
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。

@@ -943,3 +943,90 @@ export function cancelOrder(id: number) {
     }
   );
 }
+
+// ============================================================
+// 友链管理 (Friend Links)
+// ============================================================
+
+// 友链类型定义
+export interface FriendLink {
+  id: number;
+  name: string;
+  url: string;
+  description: string | null;
+  avatarUrl: string | null;
+  isOnline: boolean;
+  latencyMs: number | null;
+  lastCheckTime: string | null;
+  displayOrder: number;
+}
+
+export interface FriendLinkAdmin extends FriendLink {
+  isActive: boolean;
+  createdAt: string;
+}
+
+// 获取所有启用的友链（公开 API）
+export async function fetchFriendLinks(): Promise<FriendLink[]> {
+  const res = await fetchClient<{ success: boolean; data: FriendLink[] }>(
+    "/api/backend/friend-links"
+  );
+  return res.data;
+}
+
+// [Admin] 获取所有友链（含禁用）
+export async function fetchFriendLinksAdmin(): Promise<FriendLinkAdmin[]> {
+  const res = await fetchClient<{ success: boolean; data: FriendLinkAdmin[] }>(
+    "/api/backend/friend-links/admin"
+  );
+  return res.data;
+}
+
+// [Admin] 创建友链
+export function createFriendLink(data: {
+  name: string;
+  url: string;
+  description?: string;
+  avatarUrl?: string;
+  displayOrder?: number;
+}) {
+  return fetchClient<{ success: boolean; data: FriendLinkAdmin }>(
+    "/api/backend/friend-links/admin",
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 更新友链
+export function updateFriendLink(
+  id: number,
+  data: {
+    name: string;
+    url: string;
+    description?: string;
+    avatarUrl?: string;
+    displayOrder: number;
+    isActive: boolean;
+  }
+) {
+  return fetchClient<{ success: boolean; data: FriendLinkAdmin }>(
+    `/api/backend/friend-links/admin/${id}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
+}
+
+// [Admin] 删除友链
+export function deleteFriendLink(id: number) {
+  return fetchClient<{ success: boolean; message?: string }>(
+    `/api/backend/friend-links/admin/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
