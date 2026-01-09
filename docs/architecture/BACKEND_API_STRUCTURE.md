@@ -31,28 +31,32 @@
 
 API 层位于 `Controllers/Api` 目录下，负责接收 HTTP 请求，解析请求参数，调用业务逻辑层处理数据，并返回 HTTP 响应。
 
-| 控制器名称               | 路由前缀          | 主要功能          | 方法 (HTTP Verb & Path)                                                                               | 授权要求                 |
-| :----------------------- | :---------------- | :---------------- | :---------------------------------------------------------------------------------------------------- | :----------------------- |
-| **AccountController**    | `/api/account`    | 管理用户个人信息  | `GET /me`: 获取当前登录用户信息                                                                       | JWT (登录用户)           |
-|                          |                   |                   | `POST /avatar`: 上传并更新用户头像                                                                    | JWT (登录用户)           |
-| **AuthController**       | `/api/auth`       | 用户认证与登录    | `POST /login`: 用户登录，验证凭据并返回 JWT Token                                                     | 无 (公开)                |
-| **CategoriesController** | `/api/categories` | 文章分类管理      | `GET /`: 获取所有文章分类列表                                                                         | 无 (公开)                |
-|                          |                   |                   | `GET /{id}`: 获取指定 ID 的分类信息                                                                   | 无 (公开)                |
-|                          |                   |                   | `POST /`: 创建新文章分类                                                                              | JWT (Admin 角色)         |
-| **CommentsController**   | `/api/comments`   | 博客文章评论系统  | `POST /`: 发表评论 (支持匿名或登录用户)                                                               | 可选 JWT                 |
-|                          |                   |                   | `GET /?postId={id}&page={page}`: 获取指定文章的评论列表 (分页)                                        | 无 (公开)                |
-| **GalleryController**    | `/api/gallery`    | 图片画廊/资源列表 | `GET /`: 获取所有图片资源 (支持筛选、分页，关联到公开文章的图片)                                      | 无 (公开)                |
-| **PostsApiController**   | `/api/posts`      | **核心文章管理**  | `GET /?page={}&search={}&tag={}&categoryId={}`: 获取文章列表 (支持搜索、筛选、分页，自动过滤隐藏文章) | 无 (公开)                |
-|                          |                   |                   | `GET /admin?page={}`: 管理员专用文章列表 (包含隐藏文章)                                               | JWT (Admin 角色)         |
-|                          |                   |                   | `GET /admin/{id}`: 管理员获取指定文章详情 (包含隐藏文章)                                              | JWT (Admin 角色)         |
-|                          |                   |                   | `GET /{id}`: 获取指定文章详情 (非管理员用户会过滤隐藏文章)                                            | 无 (公开)                |
-|                          |                   |                   | `POST /`: 创建新文章                                                                                  | JWT (Admin 角色)         |
-|                          |                   |                   | `PUT /{id}`: 更新指定文章                                                                             | JWT (Admin 角色)         |
-|                          |                   |                   | `DELETE /{id}`: 删除指定文章                                                                          | JWT (Admin 角色)         |
-|                          |                   |                   | `PATCH /{id}/visibility`: 切换文章的显示/隐藏状态                                                     | JWT (Admin 角色)         |
-| **TagsController**       | `/api/tags`       | 标签管理          | `GET /popular?count={}`: 获取热门标签列表                                                             | 无 (公开)                |
-| **UploadController**     | `/api/upload`     | 文件上传服务      | `POST /`: 上传图片文件到 R2 存储                                                                      | JWT (登录用户) 或 Cookie |
-|                          |                   |                   | `POST /cleanup`: 手动触发清理未关联文章的“僵尸图片”                                                   | JWT (登录用户) 或 Cookie |
+| 控制器名称                | 路由前缀            | 主要功能          | 方法 (HTTP Verb & Path)                                                                               | 授权要求                 |
+| :------------------------ | :------------------ | :---------------- | :---------------------------------------------------------------------------------------------------- | :----------------------- |
+| **AccountController**     | `/api/account`      | 管理用户个人信息  | `GET /me`: 获取当前登录用户信息                                                                       | JWT (登录用户)           |
+|                           |                     |                   | `POST /avatar`: 上传并更新用户头像                                                                    | JWT (登录用户)           |
+| **AuthController**        | `/api/auth`         | 用户认证与登录    | `POST /login`: 用户登录，验证凭据并返回 JWT Token                                                     | 无 (公开)                |
+| **CategoriesController**  | `/api/categories`   | 文章分类管理      | `GET /`: 获取所有文章分类列表                                                                         | 无 (公开)                |
+|                           |                     |                   | `GET /{id}`: 获取指定 ID 的分类信息                                                                   | 无 (公开)                |
+|                           |                     |                   | `POST /`: 创建新文章分类                                                                              | JWT (Admin 角色)         |
+| **CommentsController**    | `/api/comments`     | 博客文章评论系统  | `POST /`: 发表评论 (支持匿名或登录用户)                                                               | 可选 JWT                 |
+|                           |                     |                   | `GET /?postId={id}&page={page}`: 获取指定文章的评论列表 (分页)                                        | 无 (公开)                |
+| **GalleryController**     | `/api/gallery`      | 图片画廊/资源列表 | `GET /`: 获取所有图片资源 (支持筛选、分页，关联到公开文章的图片)                                      | 无 (公开)                |
+| **PostsApiController**    | `/api/posts`        | **核心文章管理**  | `GET /?page={}&search={}&tag={}&categoryId={}`: 获取文章列表 (支持搜索、筛选、分页，自动过滤隐藏文章) | 无 (公开)                |
+|                           |                     |                   | `GET /admin?page={}`: 管理员专用文章列表 (包含隐藏文章)                                               | JWT (Admin 角色)         |
+|                           |                     |                   | `GET /admin/{id}`: 管理员获取指定文章详情 (包含隐藏文章)                                              | JWT (Admin 角色)         |
+|                           |                     |                   | `GET /{id}`: 获取指定文章详情 (非管理员用户会过滤隐藏文章)                                            | 无 (公开)                |
+|                           |                     |                   | `POST /`: 创建新文章                                                                                  | JWT (Admin 角色)         |
+|                           |                     |                   | `PUT /{id}`: 更新指定文章                                                                             | JWT (Admin 角色)         |
+|                           |                     |                   | `DELETE /{id}`: 删除指定文章                                                                          | JWT (Admin 角色)         |
+|                           |                     |                   | `PATCH /{id}/visibility`: 切换文章的显示/隐藏状态                                                     | JWT (Admin 角色)         |
+| **TagsController**        | `/api/tags`         | 标签管理          | `GET /popular?count={}`: 获取热门标签列表                                                             | 无 (公开)                |
+| **UploadController**      | `/api/upload`       | 文件上传服务      | `POST /`: 上传图片文件到 R2 存储                                                                      | JWT (登录用户) 或 Cookie |
+|                           |                     |                   | `POST /cleanup`: 手动触发清理未关联文章的“僵尸图片”                                                   | JWT (登录用户) 或 Cookie |
+| **FriendLinksController** | `/api/friend-links` | 友链管理 ✨       | `GET /`: 获取启用的友链 (含在线状态)                                                                  | 无 (公开)                |
+|                           |                     |                   | `GET/POST/PUT/DELETE /admin`: 管理员 CRUD                                                             | JWT (Admin)              |
+| **MemosController**       | `/api/memos`        | 碎碎念 ✨         | `GET /?cursor=&limit=`: Keyset 分页公开动态                                                           | 无 (公开)                |
+|                           |                     |                   | `GET/POST/PUT/DELETE /admin`: 管理员 CRUD                                                             | JWT (Admin)              |
 
 ---
 

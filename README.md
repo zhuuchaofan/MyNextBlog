@@ -34,7 +34,25 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 - **云原生**: 集成 Cloudflare R2 对象存储，实现代码与资源分离。
 - **RSS 订阅**: 内置标准 RSS 2.0 Feed 生成器，方便阅读器聚合。
 
-### 最新更新 (2026-01-08)
+### 最新更新 (2026-01-10)
+
+- 🔗 **友链技术雷达 (Friend Tech Radar)**: 公开展示友站链接，支持在线状态检测和响应时间监控
+  - **健康检查**: 后台服务每 30 分钟自动检测友链可达性和延迟
+  - **状态展示**: 公开页面显示在线/离线状态和响应时间
+  - **管理后台**: `/admin/friends` 支持 CRUD 操作和批量管理
+- 📝 **碎碎念 (Memos)**: 轻量级动态发布功能，类似 Twitter/微博
+  - **Keyset 分页**: 使用游标分页实现高性能无限滚动
+  - **九宫格图片**: 支持最多 9 张图片，自动适配布局
+  - **年度热力图**: API 支持生成年度发布热力图数据
+- 🕐 **时间规范统一**: 全局 UTC 时间规范修复
+  - **新增 UtcDateTimeConverter**: 确保所有 API 返回的 DateTime 带 `Z` 后缀
+  - **评论模块修复**: `CommentDto.CreateTime` 从 string 改为 DateTime，前端本地化渲染
+  - **Keyset Pagination 修复**: 修复排序丢失和游标精度问题
+- 🧪 **单元测试**: 新增 32 个测试用例
+  - FriendLinkServiceTests (15 用例)
+  - MemoServiceTests (17 用例)
+
+### 历史更新 (2026-01-08)
 
 - 🔧 **订单邮件发送修复**: 修复 `Task.Run` 后台任务中 DbContext 被释放导致邮件发送失败的问题，使用 `IServiceScopeFactory` 创建独立 DI 作用域
 - 🧪 **单元测试体系完善**:
