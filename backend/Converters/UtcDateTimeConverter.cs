@@ -40,12 +40,13 @@ public class UtcDateTimeConverter : JsonConverter<DateTime>
     /// </summary>
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        // 确保时间是 UTC，然后使用 O 格式输出 (ISO 8601)
-        var utcTime = value.Kind == DateTimeKind.Utc 
-            ? value 
-            : value.ToUniversalTime();
+        // 数据库通过 Npgsql.EnableLegacyTimestampBehavior=true 设置
+        // 存储的时间实际是 UTC 值 (但 Kind 可能是 Unspecified)
+        // 这里只需要添加 Z 后缀标识为 UTC，不需要额外转换
         
         // 使用 "O" 格式 = "2026-01-09T15:13:21.0000000Z"
+        // 但需要强制设置为 UTC Kind 才会输出 Z
+        var utcTime = DateTime.SpecifyKind(value, DateTimeKind.Utc);
         writer.WriteStringValue(utcTime.ToString("O"));
     }
 }
