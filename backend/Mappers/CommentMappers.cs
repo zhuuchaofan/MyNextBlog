@@ -35,7 +35,7 @@ public static class CommentMappers
         c.Id,
         GetAuthorName(c),
         c.Content,
-        c.CreateTime.ToString("yyyy/MM/dd HH:mm"),
+        c.CreateTime,  // 直接传递 DateTime，由全局 UtcDateTimeConverter 负责 ISO 8601 格式化
         c.User?.AvatarUrl,
         c.ParentId,
         // 递归映射子评论：使用相同的委托处理 Children 集合

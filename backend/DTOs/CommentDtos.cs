@@ -36,11 +36,14 @@ public record CreateCommentDto(
     int? ParentId
 );
 
+/// <summary>
+/// 评论 DTO - 公开 API 响应
+/// </summary>
 public record CommentDto(
     int Id,
     string GuestName,
     string Content,
-    string CreateTime,
+    DateTime CreateTime,  // 使用 DateTime，由全局 UtcDateTimeConverter 序列化为 ISO 8601 + Z
     string? UserAvatar,
     int? ParentId,
     List<CommentDto> Children

@@ -202,7 +202,7 @@ function CommentItem({
                             {node.guestName || '匿名网友'}
                         </span>
                         <span className="text-[10px] sm:text-xs text-gray-400">
-                            {node.createTime}
+                            {new Date(node.createTime).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </div>
 
@@ -290,7 +290,7 @@ function ReplyItem({
                         {comment.guestName || '匿名网友'}
                     </span>
                     <span className="text-[10px] text-gray-400">
-                        {comment.createTime}
+                        {new Date(comment.createTime).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                 </div>
 
