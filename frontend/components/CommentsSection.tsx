@@ -367,7 +367,7 @@ function CommentForm({
           }
         } catch (error) {
           console.error(error);
-          toast.error('网络错误，请稍后重试');
+          toast.error('操作失败，请稍后重试');
         } finally {
           setSubmitting(false);
         }

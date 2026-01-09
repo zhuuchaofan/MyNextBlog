@@ -106,7 +106,7 @@ export default function NewPostPage() {
       }
     } catch (error: unknown) {
       console.error('Create post error:', error);
-      toast.error('网络错误: ' + ((error as Error).message || "请检查后端服务")); // 捕获网络错误
+      toast.error('操作失败: ' + ((error as Error).message || "请检查网络连接")); // 捕获异常
     } finally {
       setLoading(false); // 结束加载状态
     }

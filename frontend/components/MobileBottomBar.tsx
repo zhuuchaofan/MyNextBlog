@@ -140,7 +140,7 @@ export default function MobileBottomBar({
         toast.error("提交失败：" + data.message);
       }
     } catch {
-      toast.error("网络错误，请稍后重试");
+      toast.error("操作失败，请稍后重试");
     } finally {
       setSubmitting(false);
     }

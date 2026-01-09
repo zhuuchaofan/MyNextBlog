@@ -133,7 +133,7 @@ function AdminPostsContent() {
         toast.error('文章删除失败: ' + res.message); // 显示失败通知
       }
     } catch {
-      toast.error('网络错误，请稍后重试'); // 捕获网络异常
+      toast.error('操作失败，请稍后重试'); // 捕获异常
     } finally {
       setIsDeleting(false); // 结束删除加载状态
       setPostToDelete(null); // 关闭删除确认对话框
@@ -160,7 +160,7 @@ function AdminPostsContent() {
       }
     } catch (error) {
       console.error(error);
-      toast.error('网络错误，请稍后重试');
+      toast.error('操作失败，请稍后重试');
     }
   };
 

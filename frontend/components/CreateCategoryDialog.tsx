@@ -5,19 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createCategory } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
 import { toast } from "sonner";
 
 interface CreateCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (newCategory: any) => void;
+  onCreated: (newCategory: { id: number; name: string }) => void;
 }
 
 export default function CreateCategoryDialog({ open, onOpenChange, onCreated }: CreateCategoryDialogProps) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +32,8 @@ export default function CreateCategoryDialog({ open, onOpenChange, onCreated }: 
       } else {
         toast.error('创建失败: ' + res.message);
       }
-    } catch (error) {
-      toast.error('网络错误');
+    } catch {
+      toast.error('操作失败');
     } finally {
       setLoading(false);
     }

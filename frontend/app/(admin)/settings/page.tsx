@@ -107,7 +107,7 @@ export default function SettingsPage() {
               toast.error(res.message || "更新失败");
           }
       } catch {
-          toast.error("网络错误");
+          toast.error("操作失败");
       } finally {
           setSaving(false);
       }

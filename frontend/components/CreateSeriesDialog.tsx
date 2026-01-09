@@ -37,7 +37,7 @@ export default function CreateSeriesDialog({ open, onOpenChange, onCreated }: Cr
         toast.error('创建失败: ' + res.message);
       }
     } catch {
-      toast.error('网络错误');
+      toast.error('操作失败');
     } finally {
       setLoading(false);
     }

@@ -59,7 +59,7 @@ export default function AdminCommentsPage() {
         toast.error("加载评论失败");
       }
     } catch {
-        toast.error("网络错误");
+        toast.error("加载失败");
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,7 @@ export default function AdminCommentsPage() {
               toast.error("批量操作失败");
           }
       } catch {
-          toast.error("网络错误");
+          toast.error("操作失败");
       }
   };
 
@@ -117,7 +117,7 @@ export default function AdminCommentsPage() {
               toast.error("批量删除失败");
           }
       } catch {
-          toast.error("网络错误");
+          toast.error("操作失败");
       }
   };
 

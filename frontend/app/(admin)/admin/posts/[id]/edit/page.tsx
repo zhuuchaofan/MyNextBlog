@@ -154,7 +154,7 @@ export default function EditPostPage({
       }
     } catch (error: unknown) {
       toast.error(
-        "网络错误: " + ((error as Error).message || "请检查后端服务")
+        "操作失败: " + ((error as Error).message || "请检查网络连接")
       );
     } finally {
       setLoading(false);

@@ -81,7 +81,7 @@ export default function TrashPage() {
         toast.error('恢复失败: ' + res.message);
       }
     } catch {
-      toast.error('网络错误');
+      toast.error('操作失败');
     }
   };
 
@@ -99,7 +99,7 @@ export default function TrashPage() {
         toast.error('删除失败: ' + res.message);
       }
     } catch {
-      toast.error('网络错误');
+      toast.error('操作失败');
     } finally {
       setIsDeleting(false);
       setPostToDelete(null);
