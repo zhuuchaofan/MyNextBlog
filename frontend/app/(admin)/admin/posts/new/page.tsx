@@ -113,7 +113,7 @@ export default function NewPostPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* 顶部操作栏：返回按钮和发布文章按钮 */}
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-4">
@@ -130,7 +130,8 @@ export default function NewPostPage() {
       </div>
 
       {/* 文章编辑表单区域 */}
-      <div className="grid gap-6">
+      {/* [&>*]:min-w-0 让 Grid 子项可以收缩到比内容更小，解决长标题导致的溢出问题 */}
+      <div className="grid gap-6 [&>*]:min-w-0">
         {/* 标题输入框 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -142,7 +143,7 @@ export default function NewPostPage() {
           <Input 
             id="title" 
             maxLength={50} // 最大输入长度
-            className="text-2xl py-6 font-medium border-transparent bg-white dark:bg-zinc-900 shadow-sm hover:border-orange-200 dark:hover:border-orange-800 focus:border-orange-500 dark:focus:border-orange-600 transition-all dark:text-gray-100 dark:placeholder:text-zinc-600"
+            className="w-full text-2xl py-6 font-medium border-transparent bg-white dark:bg-zinc-900 shadow-sm hover:border-orange-200 dark:hover:border-orange-800 focus:border-orange-500 dark:focus:border-orange-600 transition-all dark:text-gray-100 dark:placeholder:text-zinc-600"
             placeholder="请输入引人入胜的标题..." 
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -154,7 +155,7 @@ export default function NewPostPage() {
             {/* Left: Category */}
             <div className="space-y-2">
                <Label className="font-semibold dark:text-gray-200">选择分类</Label>
-               <div className="flex gap-2 flex-wrap">
+               <div className="w-full flex gap-2 flex-wrap">
                  {/* 渲染所有分类按钮 */}
                  {categories.map(cat => (
                    <Button 

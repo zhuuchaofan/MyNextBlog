@@ -87,10 +87,21 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 
 ---
 
+## 🧐 架构审计发现 (2026-01-08)
+
+| 等级     | 位置                           | 问题                                | 建议                                                            |
+| :------- | :----------------------------- | :---------------------------------- | :-------------------------------------------------------------- |
+| 🟢 Minor | `PostService.GetPostByIdAsync` | 返回实体而非 DTO                    | 拆分 `GetPostDtoByIdAsync` (公开) / `GetPostEntityAsync` (内部) |
+| 🟢 Minor | `GlobalExceptionMiddleware`    | 未区分 `ArgumentException` 返回 400 | Controller 已显式捕获，Middleware 只兜底                        |
+
+**权衡说明**: `GetPostByIdAsync` 返回实体是有意设计——Controller 需要多个字段组装复杂响应（系列信息）。重构需评估 Service 循环依赖风险。
+
+---
+
 ## 📋 待办清单
 
 - [x] Controller 层解耦，禁止直接注入 DbContext ✅ 2026-01-01
-- [x] 为所有核心 Service 添加单元测试 ✅ 2026-01-08 (187 个用例)
+- [x] 为所有核心 Service 添加单元测试 ✅ 2026-01-08 (189 个用例)
 - [x] 修复 `CommentMappers.cs` 的 nullable 警告 ✅ 2026-01-04
 - [x] 修复订单邮件发送失败问题 (DbContext 释放) ✅ 2026-01-08
 - [x] 补充 SeriesService / UserService 单元测试 ✅ 2026-01-08
@@ -99,6 +110,8 @@ public static Expression<Func<Post, PostSummaryDto>> ToSummaryProjection =
 - [ ] 引入 Bogus 库优化测试数据生成 (当模型字段 > 15 或用例 > 300 时)
 - [ ] 添加集成测试 (WebApplicationFactory)
 - [ ] **邮件系统迁移到 Azure Function** (详见 [EMAIL_SYSTEM.md](../architecture/EMAIL_SYSTEM.md))
+- [ ] (P3) 拆分 `GetPostByIdAsync` 为 DTO/Entity 双版本
+- [ ] (P4) `GlobalExceptionMiddleware` 增加 `ArgumentException` 区分
 
 ---
 
