@@ -45,9 +45,27 @@ export async function fetchClient<T = any>(
       if (text) {
         try {
           const errorData = JSON.parse(text);
+          // 优先使用 message 字段
           if (errorData?.message) {
             errorMessage = errorData.message;
-          } else {
+          } 
+          // ASP.NET Core 验证错误格式：{ errors: { field: ["error1", "error2"] } }
+          else if (errorData?.errors) {
+            const errorMessages = Object.values(errorData.errors)
+              .flat()
+              .filter(Boolean);
+            if (errorMessages.length > 0) {
+              errorMessage = errorMessages.join("; ");
+            } else if (errorData?.title) {
+              errorMessage = errorData.title;
+            }
+          }
+          // 使用 title 字段
+          else if (errorData?.title) {
+            errorMessage = errorData.title;
+          }
+          // 降级到原始文本
+          else {
             errorMessage += ` - ${text}`;
           }
         } catch {
