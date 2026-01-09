@@ -50,6 +50,11 @@ builder.Services.AddControllers()
         // `WhenWritingNull`: 不输出 null 值的属性
         // 减少 JSON 响应体积，前端使用可选链 (?.) 处理
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        
+        // **UTC DateTime 转换器**: 确保所有 DateTime 序列化时带 Z 后缀
+        // 修复前端 JavaScript new Date() 误解析为本地时间的问题
+        options.JsonSerializerOptions.Converters.Add(new MyNextBlog.Converters.UtcDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new MyNextBlog.Converters.NullableUtcDateTimeConverter());
     });
 
 // 2. **Swagger/OpenAPI 文档**
