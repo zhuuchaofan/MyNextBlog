@@ -160,6 +160,24 @@ export function toggleLike(postId: number) {
   });
 }
 
+// 获取单篇文章的点赞状态
+export function fetchLikeStatus(postId: number) {
+  return fetchClient<{ success: boolean; isLiked: boolean }>(
+    `/api/backend/posts/${postId}/like-status`
+  );
+}
+
+// 批量获取多篇文章的点赞状态
+export function fetchLikeStatusBatch(postIds: number[]) {
+  return fetchClient<{ success: boolean; data: Record<number, boolean> }>(
+    "/api/backend/posts/like-status/batch",
+    {
+      method: "POST",
+      body: postIds,
+    }
+  );
+}
+
 // [Admin] 获取所有评论 (带类型约束)
 export function fetchAllCommentsAdmin(
   page = 1,

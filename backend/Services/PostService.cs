@@ -663,6 +663,63 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         return result.Take(count).ToList();
     }
-}
 
-    
+    // --- 点赞状态查询 ---
+
+    /// <summary>
+    /// 查询当前用户是否已点赞指定文章
+    /// </summary>
+    public async Task<bool> IsLikedAsync(int postId, int? userId, string? ipAddress)
+    {
+        if (userId.HasValue)
+        {
+            return await context.PostLikes
+                .AsNoTracking()
+                .AnyAsync(l => l.PostId == postId && l.UserId == userId);
+        }
+        else if (!string.IsNullOrEmpty(ipAddress))
+        {
+            return await context.PostLikes
+                .AsNoTracking()
+                .AnyAsync(l => l.PostId == postId && l.IpAddress == ipAddress);
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// 批量查询多篇文章的点赞状态 (用于文章列表页)
+    /// </summary>
+    public async Task<Dictionary<int, bool>> GetLikeStatusBatchAsync(IEnumerable<int> postIds, int? userId, string? ipAddress)
+    {
+        var idList = postIds.ToList();
+        if (!idList.Any()) return new Dictionary<int, bool>();
+
+        HashSet<int> likedPostIds;
+        
+        if (userId.HasValue)
+        {
+            likedPostIds = (await context.PostLikes
+                .AsNoTracking()
+                .Where(l => idList.Contains(l.PostId) && l.UserId == userId)
+                .Select(l => l.PostId)
+                .ToListAsync())
+                .ToHashSet();
+        }
+        else if (!string.IsNullOrEmpty(ipAddress))
+        {
+            likedPostIds = (await context.PostLikes
+                .AsNoTracking()
+                .Where(l => idList.Contains(l.PostId) && l.IpAddress == ipAddress)
+                .Select(l => l.PostId)
+                .ToListAsync())
+                .ToHashSet();
+        }
+        else
+        {
+            likedPostIds = new HashSet<int>();
+        }
+
+        return idList.ToDictionary(id => id, id => likedPostIds.Contains(id));
+    }
+}

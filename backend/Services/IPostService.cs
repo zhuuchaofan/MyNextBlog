@@ -43,4 +43,11 @@ public interface IPostService
 
     // --- 相关文章推荐 ---
     Task<List<PostSummaryDto>> GetRelatedPostsAsync(int postId, int count = 4);
+
+    // --- 点赞状态查询 ---
+    // 查询当前用户是否已点赞指定文章
+    Task<bool> IsLikedAsync(int postId, int? userId, string? ipAddress);
+    
+    // 批量查询多篇文章的点赞状态 (用于文章列表页)
+    Task<Dictionary<int, bool>> GetLikeStatusBatchAsync(IEnumerable<int> postIds, int? userId, string? ipAddress);
 }
