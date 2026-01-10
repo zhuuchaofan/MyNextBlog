@@ -54,6 +54,14 @@
      - **Unified Mappers Layer**: 使用 `Mappers/` 目录统一管理 Entity -> DTO 映射逻辑。
        - 采用 `Func<TEntity, TDto>` 委托模式，可在 `.Select()` 中直接使用。
 
+     ### 2.2.1 前端一致性检查 ✨ (New)
+
+     - **入口完整性**: 每次添加新页面时，必须检查：
+       - `Navbar.tsx` (桌面端) 是否已添加入口？
+       - `MobileBottomBar` 或 `Sidebar` (移动端/管理后台) 是否已添加入口？
+     - **移动端优先**: 所有管理页面必须适配移动端（单列布局、响应式表格、Drawer 替代 Dialog）。
+     - **视觉一致性**: 必须复用现有的 Shadcn/UI 组件和 Tailwind 类，禁止自造样式。
+
      ### 2.3 Performance & Resources
 
      - **Database Access**:
@@ -168,6 +176,12 @@
      2. **Define Strategy**: Explain the refactoring pattern (e.g., "Extract Method", "Move to Service").
      3. **Code**: Provide the "After" code.
      4. **Verify**: Explain how this improves Testability or Performance.
+
+     ### 🧪 Workflow: Unit Testing Strategy
+
+     1. **Scope**: 优先测试业务逻辑 (Service)，其次是 Controller。
+     2. **Troubleshooting**: 如果单元测试逻辑看起来正常但失败了，**首先怀疑前台或业务代码有 Bug**，而不是盲目修改测试逻辑来迁就代码。
+     3. **Isolation**: 使用 `InMemory` 数据库进行测试，确保无外部依赖。
 
      ### ✨ Workflow: New Feature Implementation
 

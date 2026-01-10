@@ -82,6 +82,11 @@ public static class ServiceCollectionExtensions
         // --- Memo 动态服务 ---
         services.AddScoped<IMemoService, MemoService>();
 
+        // --- 用户状态服务 (Digital Presence) ---
+        services.AddSingleton<IPresenceService, PresenceService>();  // Singleton: 共享缓存状态
+        services.AddHostedService<PresenceBackgroundService>();      // 后台轮询服务
+        services.AddHttpClient("Presence");                          // Steam/WakaTime API 专用 HttpClient
+
         return services;
     }
 }

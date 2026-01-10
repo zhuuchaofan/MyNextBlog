@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
+import { UserPresenceWidget } from '@/components/UserPresenceWidget';
 import { useMounted } from '@/hooks/useMounted';
 import { useCartCount } from '@/hooks/useCartCount';
 
@@ -64,6 +65,9 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+             {/* 用户状态指示 (Digital Presence) */}
+             <UserPresenceWidget />
+             
              {/* 购物车按钮 */}
              <Link href="/cart" aria-label="购物车">
                <Button 

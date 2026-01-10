@@ -22,7 +22,8 @@ import {
   FolderOpen,
   Tag,
   Users,
-  MessageCircle
+  MessageCircle,
+  Bot
 } from 'lucide-react';
 // 统计数据类型定义
 interface DashboardStats {
@@ -107,6 +108,7 @@ export default function AdminDashboard() {
     { href: '/admin/settings/content', icon: PenSquare, label: '内容配置', desc: '编辑主页、关于页介绍' },
     { href: '/admin/settings/email-templates', icon: Mail, label: '邮件模板', desc: '自定义系统邮件内容' },
     { href: '/admin/settings/anniversaries', icon: Sparkles, label: '纪念日', desc: '管理首页纪念日挂件' },
+    { href: '/admin/settings/presence', icon: Bot, label: '数字分身', desc: '配置 Steam/WakaTime 状态' },
     { href: '/settings', icon: Settings, label: '个人设置', desc: '个人资料、账号安全' },
     { href: '/admin/trash', icon: Trash2, label: '回收站', desc: '恢复或永久删除文章' },
   ];
