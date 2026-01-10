@@ -171,31 +171,43 @@ export default function AdminFriendsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
-      {/* 头部导航 */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+      {/* 头部导航 - 响应式两行布局 */}
+      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
+        {/* 第一行：返回按钮 + 标题 + 徽章 */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 text-gray-500 dark:text-gray-400">
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline ml-1">返回</span>
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             友链管理
           </h1>
           {!loading && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            <Badge variant="secondary" className="hidden sm:inline-flex bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
               <LinkIcon className="w-3.5 h-3.5 mr-1" />
               共 {friends.length} 个
             </Badge>
           )}
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
-          <Button onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-1" /> 添加友链
-          </Button>
+        {/* 第二行：操作按钮 */}
+        <div className="flex items-center justify-between sm:justify-start gap-2">
+          {/* 移动端徽章 */}
+          {!loading && (
+            <Badge variant="secondary" className="sm:hidden bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+              <LinkIcon className="w-3.5 h-3.5 mr-1" />
+              共 {friends.length} 个
+            </Badge>
+          )}
+          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-1">刷新</span>
+            </Button>
+            <Button onClick={handleAdd} className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">添加友链</span>
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -170,16 +170,16 @@ export default function PresenceSettingsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-2xl">
-      {/* 头部 */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      {/* 头部 - 响应式布局 */}
+      <div className="flex items-start gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 sm:h-9 sm:w-9 text-gray-500 dark:text-gray-400 flex-shrink-0">
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            🤖 数字分身配置
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
+            🤖 <span className="truncate">数字分身配置</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
             配置站长状态检测服务 (Steam / WakaTime)
           </p>
         </div>
