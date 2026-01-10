@@ -174,4 +174,49 @@ test.describe("认证功能 (Authentication)", () => {
     expect(json).toHaveProperty("success", true);
     expect(json).toHaveProperty("message");
   });
+
+  // ========================================================================
+  // 登录持久化测试 (关键回归测试)
+  // ========================================================================
+
+  test("登录后刷新页面应保持用户身份", async ({ page, context }) => {
+    // 1. 清除所有 cookies 确保干净状态
+    await context.clearCookies();
+
+    // 2. 访问登录页面
+    await page.goto("/login");
+    await page.waitForLoadState("networkidle");
+
+    // 3. 填写登录表单
+    const usernameInput = page.locator('input[name="username"], input#username').first();
+    const passwordInput = page.locator('input[name="password"], input#password').first();
+    const submitButton = page.locator('button[type="submit"]').first();
+
+    await usernameInput.fill("chaofan");
+    await passwordInput.fill("chaofan0920");
+
+    // 4. 提交登录
+    await submitButton.click();
+
+    // 5. 等待登录成功并跳转
+    await page.waitForURL(/\/(admin|$)/, { timeout: 10000 });
+
+    // 6. 验证登录成功 - 调用 /api/auth/me 检查用户
+    const cookies = await context.cookies();
+    const tokenCookie = cookies.find(c => c.name === 'token');
+    expect(tokenCookie).toBeDefined();
+
+    // 7. 刷新页面
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    // 8. 再次验证用户身份 - 通过 /api/auth/me 检查
+    const response = await page.request.get("/api/auth/me");
+    expect(response.ok()).toBeTruthy();
+
+    const json = await response.json();
+    expect(json).toHaveProperty("user");
+    expect(json.user).toHaveProperty("username", "chaofan");
+    expect(json.user).toHaveProperty("role", "Admin");
+  });
 });
