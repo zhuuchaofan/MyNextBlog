@@ -91,9 +91,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         return Ok(new
         {
             success = true,
-            totalCount, 
-            comments,
-            hasMore
+            data = comments,
+            meta = new { totalCount, hasMore, page, pageSize }
         });
     }
 
@@ -114,8 +113,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
         return Ok(new
         {
             success = true,
-            totalCount,
-            comments
+            data = comments,
+            meta = new { totalCount, page, pageSize }
         });
     }
 

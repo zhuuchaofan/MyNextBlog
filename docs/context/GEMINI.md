@@ -166,6 +166,128 @@
      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
      ```
 
+     ### 3.5 API 类型自动生成规范 ✨ (2026-01 新增)
+
+     本项目使用 **openapi-typescript** 从后端 Swagger 自动生成 TypeScript 类型，消除前后端 DTO 的人工同步负担。
+
+     **架构示意**:
+
+     ```
+     后端 C# DTO ──[Swagger]──► api-types.ts ──[映射层]──► types.ts
+          ✅ 自动                    ✅ 自动              ✅ 类型安全
+     ```
+
+     **工作流**:
+
+     1. **开发时**: 当后端 DTO 变更时，运行 `npm run gen-types`（需后端运行中）
+     2. **提交时**: 必须将 `frontend/lib/generated/api-types.ts` **提交到 Git**
+     3. **构建时**: CI/CD 直接读取文件，**不连接后端**
+
+     **脚本用法**:
+
+     ```bash
+     # 默认连接本地 5095 (源码运行)
+     npm run gen-types
+
+     # 指定 Docker 环境
+     SWAGGER_URL=http://localhost:8080/swagger/v1/swagger.json npm run gen-types
+     ```
+
+     **类型映射层规范** (`frontend/lib/types.ts`):
+
+     ```typescript
+     import type { components } from "./generated/api-types";
+
+     // 辅助类型：处理 Swagger 的可空推断
+     type RequiredFields<T, K extends keyof T> = T & {
+       [P in K]-?: NonNullable<T[P]>;
+     };
+
+     // 导出别名，业务代码使用简洁名称
+     export type UserPresence = RequiredFields<
+       components["schemas"]["UserPresenceDto"],
+       "status" | "icon" | "message" | "timestamp"
+     >;
+     ```
+
+     **后端配合要求**:
+
+     - Controller 返回 DTO 时必须添加 `[ProducesResponseType(typeof(XxxResponse), 200)]`
+     - 创建响应包装类型（如 `UserPresenceResponse`）让 Swagger 能推断完整结构
+
+     ### 3.6 E2E 测试规范 ✨ (2026-01 新增)
+
+     本项目使用 **Playwright** 进行端到端测试，验证前后端集成的关键路径。
+
+     **测试文件位置**: `frontend/tests/*.spec.ts`
+
+     **运行方式**:
+
+     ```bash
+     # 前提: Docker 容器运行中
+     docker compose up -d
+
+     # 运行所有测试
+     npm run test:e2e
+
+     # 交互式 UI 模式
+     npm run test:e2e:ui
+
+     # 仅运行特定测试
+     npx playwright test tests/auth.spec.ts
+     ```
+
+     **测试覆盖范围**:
+
+     | 测试文件                  | 覆盖功能            |
+     | :------------------------ | :------------------ |
+     | `home.spec.ts`            | 首页加载、导航栏    |
+     | `presence.spec.ts`        | 用户状态 API 和组件 |
+     | `post-detail.spec.ts`     | 文章列表和详情 API  |
+     | `comments.spec.ts`        | 评论 API            |
+     | `categories-tags.spec.ts` | 分类、标签、筛选    |
+     | `auth.spec.ts`            | 登录认证、权限验证  |
+     | `search.spec.ts`          | 搜索和分页          |
+     | `friend-links.spec.ts`    | 友链 API 和页面     |
+     | `memos.spec.ts`           | 碎碎念功能          |
+     | `about.spec.ts`           | 关于页面            |
+
+     **编写规范**:
+
+     ```typescript
+     // 1. API 测试 - 验证响应结构
+     test("API 应返回正确结构", async ({ request }) => {
+       const response = await request.get("/api/backend/xxx");
+       expect(response.ok()).toBeTruthy();
+       const json = await response.json();
+       expect(json).toHaveProperty("success", true);
+       expect(json).toHaveProperty("data");
+     });
+
+     // 2. UI 测试 - 验证页面元素
+     test("页面应显示关键元素", async ({ page }) => {
+       await page.goto("/path");
+       await expect(page.locator("nav")).toBeVisible();
+     });
+
+     // 3. 截图验证 - 保存页面状态 ✨ (2026-01 新增)
+     await page.screenshot({
+       path: "test-results/screenshots/admin-comments-page.png",
+       fullPage: true,
+     });
+     ```
+
+     **登录优化 (2026-01)**:
+
+     `loginAsAdmin` 现在会先检查 cookie 中是否已有 token，已登录则跳过登录请求，避免触发频率限制。
+
+     **注意事项**:
+
+     - 登录 API 有频率限制（每分钟 5 次），登录测试需使用 `test.describe.configure({ mode: "serial" })`
+     - 测试应验证 `{ success, data }` 统一响应格式
+     - 敏感凭据不应硬编码，生产环境应使用环境变量
+     - **截图输出目录**: `frontend/test-results/screenshots/`
+
      ***
 
      ## 4. 🚀 Specific Workflows

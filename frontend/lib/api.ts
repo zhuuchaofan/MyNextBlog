@@ -15,7 +15,13 @@
 // **好处**: 前端代码完全不需要手动管理 Token（不需要 localStorage，不需要手动添加 Header），更加安全且简洁。
 
 import { fetchClient } from "./fetchClient";
-import type { Series } from "./types";
+import type { 
+  Series, 
+  PaginatedResponse, 
+  SimpleResponse, 
+  ApiResponse,
+  AdminComment 
+} from "./types";
 
 // Re-export all shared types from types.ts for backwards compatibility
 // This ensures consumers of api.ts don't need to know about types.ts
@@ -25,6 +31,10 @@ export type {
   Comment,
   PostDetail,
   SeriesInfo,
+  PaginatedResponse,
+  SimpleResponse,
+  ApiResponse,
+  AdminComment,
 } from "./types";
 
 // 获取评论列表
@@ -150,12 +160,12 @@ export function toggleLike(postId: number) {
   });
 }
 
-// [Admin] 获取所有评论
+// [Admin] 获取所有评论 (带类型约束)
 export function fetchAllCommentsAdmin(
   page = 1,
   pageSize = 20,
   isApproved?: boolean
-) {
+): Promise<PaginatedResponse<AdminComment>> {
   let url = `/api/backend/comments/admin?page=${page}&pageSize=${pageSize}`;
   if (isApproved !== undefined) {
     url += `&isApproved=${isApproved}`;
@@ -163,30 +173,30 @@ export function fetchAllCommentsAdmin(
   return fetchClient(url);
 }
 
-// [Admin] 切换评论审核状态
-export function toggleCommentApproval(id: number) {
+// [Admin] 切换评论审核状态 (带类型约束)
+export function toggleCommentApproval(id: number): Promise<SimpleResponse> {
   return fetchClient(`/api/backend/comments/${id}/approval`, {
     method: "PATCH",
   });
 }
 
-// [Admin] 删除评论
-export function deleteCommentAdmin(id: number) {
+// [Admin] 删除评论 (带类型约束)
+export function deleteCommentAdmin(id: number): Promise<SimpleResponse> {
   return fetchClient(`/api/backend/comments/${id}`, {
     method: "DELETE",
   });
 }
 
-// [Admin] 批量批准评论
-export function batchApproveComments(ids: number[]) {
+// [Admin] 批量批准评论 (带类型约束)
+export function batchApproveComments(ids: number[]): Promise<SimpleResponse> {
   return fetchClient("/api/backend/comments/batch-approve", {
     method: "POST",
     body: ids,
   });
 }
 
-// [Admin] 批量删除评论
-export function batchDeleteComments(ids: number[]) {
+// [Admin] 批量删除评论 (带类型约束)
+export function batchDeleteComments(ids: number[]): Promise<SimpleResponse> {
   return fetchClient("/api/backend/comments/batch-delete", {
     method: "POST",
     body: ids,

@@ -16,21 +16,13 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-// 状态类型定义
-interface UserPresenceStatus {
-  status: string;
-  icon: string;
-  message: string;
-  details?: string;
-  timestamp: string;
-}
+import type { UserPresence } from "@/lib/types";
 
 // 轮询间隔（毫秒）
 const POLL_INTERVAL = 30000;
 
 export function UserPresenceWidget() {
-  const [status, setStatus] = useState<UserPresenceStatus | null>(null);
+  const [status, setStatus] = useState<UserPresence | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // 获取状态

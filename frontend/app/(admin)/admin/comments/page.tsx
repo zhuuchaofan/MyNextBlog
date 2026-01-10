@@ -32,6 +32,7 @@ interface AdminComment {
   isApproved: boolean;
   postTitle?: string;
   postId: number;
+  userAvatar?: string;
 }
 
 export default function AdminCommentsPage() {
@@ -50,10 +51,11 @@ export default function AdminCommentsPage() {
     setSelectedIds(new Set()); // 翻页或刷新时清空选择
     try {
       const isApproved = filter === 'pending' ? false : undefined;
-      const data = await fetchAllCommentsAdmin(page, 20, isApproved);
-      if (data.success) {
-        setComments(data.comments);
-        setTotalCount(data.totalCount);
+      const result = await fetchAllCommentsAdmin(page, 20, isApproved);
+      if (result.success) {
+        // API 返回 { success, data, meta } 格式
+        setComments(result.data ?? []);
+        setTotalCount(result.meta?.totalCount ?? 0);
       } else {
         toast.error("加载评论失败");
       }
@@ -233,8 +235,16 @@ export default function AdminCommentsPage() {
                                 />
                             </TableCell>
                             <TableCell className="align-top">
-                                <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-[120px]" title={comment.guestName}>{comment.guestName}</div>
-                                <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(comment.createTime).toLocaleString()}</div>
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="w-8 h-8 flex-shrink-0">
+                                        <AvatarImage src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName}`} />
+                                        <AvatarFallback>{comment.guestName?.[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-[100px]" title={comment.guestName}>{comment.guestName}</div>
+                                        <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(comment.createTime).toLocaleString()}</div>
+                                    </div>
+                                </div>
                             </TableCell>
                             <TableCell className="align-top">
                                 <div className="break-words line-clamp-2 text-sm text-gray-600 dark:text-gray-300" title={comment.content}>
@@ -324,8 +334,8 @@ export default function AdminCommentsPage() {
                           <div className="flex justify-between items-start">
                              <div className="flex items-center gap-2 mb-1">
                                 <Avatar className="w-6 h-6">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName}`} />
-                                    <AvatarFallback>{comment.guestName[0]}</AvatarFallback>
+                                    <AvatarImage src={comment.userAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${comment.guestName}`} />
+                                    <AvatarFallback>{comment.guestName?.[0]}</AvatarFallback>
                                 </Avatar>
                                 <span className="font-bold text-sm text-gray-900 dark:text-gray-200 truncate">{comment.guestName}</span>
                              </div>

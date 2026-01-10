@@ -26,6 +26,16 @@ public record UserPresenceDto(
 );
 
 /// <summary>
+/// 用户在线状态 API 响应包装 (用于 Swagger 文档生成)
+/// </summary>
+/// <param name="Success">操作是否成功</param>
+/// <param name="Data">用户状态数据</param>
+public record UserPresenceResponse(
+    bool Success,
+    UserPresenceDto Data
+);
+
+/// <summary>
 /// 手动状态覆盖请求 DTO (Admin)
 /// </summary>
 /// <param name="Status">自定义状态标识，如 "busy", "traveling"</param>
@@ -36,3 +46,4 @@ public record SetPresenceOverrideDto(
     string? Message,
     DateTime? ExpireAt
 );
+

@@ -21,12 +21,12 @@ public class AccountController(IUserService userService) : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.GetUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null) return Unauthorized(new { success = false, message = "未登录" });
 
         var user = await userService.GetUserByIdAsync(userId.Value);
-        if (user == null) return NotFound("User not found");
+        if (user == null) return NotFound(new { success = false, message = "用户不存在" });
 
-        return Ok(UserDto.FromEntity(user));
+        return Ok(new { success = true, data = UserDto.FromEntity(user) });
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class AccountController(IUserService userService) : ControllerBase
              return BadRequest(new { success = false, message = result.Message });
         }
 
-        return Ok(new { success = true, user = UserDto.FromEntity(result.User!) });
+        return Ok(new { success = true, data = UserDto.FromEntity(result.User!) });
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class AccountController(IUserService userService) : ControllerBase
     public async Task<IActionResult> UploadAvatar(IFormFile? file)
     {
         if (file == null || file.Length == 0)
-            return BadRequest("请选择文件");
+            return BadRequest(new { success = false, message = "请选择文件" });
 
         var userId = User.GetUserId();
         if (userId == null) return Unauthorized();
