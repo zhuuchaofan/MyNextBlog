@@ -21,6 +21,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // 配置项定义
 interface PresenceConfig {
@@ -143,20 +145,6 @@ export default function PresenceSettingsPage() {
     }
   };
 
-  // 状态图标颜色
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "coding":
-        return "text-blue-500";
-      case "gaming":
-        return "text-purple-500";
-      case "listening":
-        return "text-green-500";
-      default:
-        return "text-gray-400";
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
@@ -192,30 +180,48 @@ export default function PresenceSettingsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {currentStatus ? (
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center ${getStatusColor(currentStatus.status)}`}
-              >
-                {currentStatus.status === "gaming" ? (
-                  <Gamepad2 className="w-5 h-5" />
-                ) : currentStatus.status === "coding" ? (
-                  <Code className="w-5 h-5" />
-                ) : (
-                  <span className="text-xl">😴</span>
-                )}
+          <div className="flex flex-col gap-4">
+            {currentStatus ? (
+              <div className="flex items-center gap-4">
+                <StatusBadge 
+                  status={currentStatus.status} 
+                  icon={currentStatus.icon} 
+                  showPulse={currentStatus.status !== "offline"}
+                  className="w-12 h-12"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-bold">{currentStatus.message}</p>
+                    {currentStatus.details && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                        {currentStatus.details}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    状态: <span className="font-mono">{currentStatus.status}</span> | 
+                    更新于: {new Date(currentStatus.timestamp).toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium">{currentStatus.message}</p>
-                <p className="text-sm text-muted-foreground">
-                  状态: {currentStatus.status} | 更新于:{" "}
-                  {new Date(currentStatus.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground">无法获取状态</p>
-          )}
+            ) : (
+              <p className="text-muted-foreground">无法获取状态，请确保后台服务正在运行。</p>
+            )}
+
+            {/* Debug 面板 */}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full text-xs h-7 text-muted-foreground">
+                  查看原始数据 (Debug)
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">
+                  <pre className="text-xs font-mono">{JSON.stringify(currentStatus, null, 2)}</pre>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </CardContent>
       </Card>
 
