@@ -37,7 +37,9 @@ export async function GET() {
         });
 
         if (res.ok) {
-          const userData = await res.json();
+          const json = await res.json();
+          // 后端现在返回 { success: true, data: user } 格式
+          const userData = json.data ?? json;
           const response = NextResponse.json({ user: userData });
 
           // 更新 Cookies
@@ -50,8 +52,10 @@ export async function GET() {
     }
 
     if (res.ok) {
-      const data = await res.json();
-      return NextResponse.json({ user: data });
+      const json = await res.json();
+      // 后端现在返回 { success: true, data: user } 格式
+      const userData = json.data ?? json;
+      return NextResponse.json({ user: userData });
     }
   } catch (e) {
     console.error("Session Check Error:", e);
