@@ -56,11 +56,10 @@ export default function PresenceSettingsPage() {
   const fetchConfig = useCallback(async () => {
     setLoading(true);
     try {
-      // 分别获取各个配置项
       const keys = ["config_steam_key", "config_steam_id", "config_wakatime_key"];
       const responses = await Promise.all(
         keys.map((key) =>
-          fetch(`/api/backend/site-contents/${key}`).then((r) =>
+          fetch(`/api/backend/site-content/${key}`).then((r) =>
             r.ok ? r.json() : null
           )
         )
@@ -123,13 +122,13 @@ export default function PresenceSettingsPage() {
         },
       ];
 
-      // 逐个保存
+      // 逐个保存（使用 PUT 方法）
       for (const item of updates) {
         if (item.value) {
-          await fetch("/api/backend/site-contents", {
-            method: "POST",
+          await fetch(`/api/backend/site-content/${item.key}`, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(item),
+            body: JSON.stringify({ value: item.value, description: item.description }),
           });
         }
       }
@@ -170,7 +169,8 @@ export default function PresenceSettingsPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-2xl">
       {/* 头部 - 响应式布局 */}
       <AdminPageHeader
-        title="🤖 数字分身配置"
+        title="数字分身配置"
+        icon={<Gamepad2 className="w-5 h-5 text-purple-500" />}
         description="配置站长状态检测服务 (Steam / WakaTime)"
       />
 
