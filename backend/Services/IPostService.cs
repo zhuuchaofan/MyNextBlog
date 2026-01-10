@@ -50,4 +50,7 @@ public interface IPostService
     
     // 批量查询多篇文章的点赞状态 (用于文章列表页)
     Task<Dictionary<int, bool>> GetLikeStatusBatchAsync(IEnumerable<int> postIds, int? userId, string? ipAddress);
+
+    // 获取用户点赞过的文章列表 (需要登录)
+    Task<(List<PostSummaryDto> Posts, int TotalCount)> GetLikedPostsAsync(int userId, int page, int pageSize);
 }

@@ -178,6 +178,32 @@ export function fetchLikeStatusBatch(postIds: number[]) {
   );
 }
 
+// 获取当前用户点赞过的文章列表 (需要登录)
+export function fetchLikedPosts(page = 1, pageSize = 10) {
+  return fetchClient<PaginatedResponse<PostSummary>>(
+    `/api/backend/account/liked-posts?page=${page}&pageSize=${pageSize}`
+  );
+}
+
+// PostSummary 类型 (用于列表展示)
+export interface PostSummary {
+  id: number;
+  title: string;
+  summary: string;
+  categoryName: string;
+  categoryId: number | null;
+  authorName: string;
+  authorAvatar: string | null;
+  createTime: string;
+  updatedAt: string | null;
+  coverImage: string | null;
+  tags: string[];
+  isHidden: boolean;
+  likeCount: number;
+  seriesName: string | null;
+  seriesOrder: number;
+}
+
 // [Admin] 获取所有评论 (带类型约束)
 export function fetchAllCommentsAdmin(
   page = 1,

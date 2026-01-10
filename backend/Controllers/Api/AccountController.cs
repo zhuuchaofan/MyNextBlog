@@ -12,7 +12,7 @@ namespace MyNextBlog.Controllers.Api;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
-public class AccountController(IUserService userService) : ControllerBase
+public class AccountController(IUserService userService, IPostService postService) : ControllerBase
 {
     /// <summary>
     /// 获取当前登录用户的详细信息
@@ -69,5 +69,27 @@ public class AccountController(IUserService userService) : ControllerBase
         }
 
         return Ok(new { success = true, avatarUrl = result.User?.AvatarUrl });
+    }
+
+    /// <summary>
+    /// 获取当前用户点赞过的文章列表
+    /// </summary>
+    [HttpGet("liked-posts")]
+    public async Task<IActionResult> GetLikedPosts(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized(new { success = false, message = "未登录" });
+
+        var (posts, totalCount) = await postService.GetLikedPostsAsync(userId.Value, page, pageSize);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return Ok(new
+        {
+            success = true,
+            data = posts,
+            meta = new { page, pageSize, totalCount, totalPages, hasMore = page < totalPages }
+        });
     }
 }
