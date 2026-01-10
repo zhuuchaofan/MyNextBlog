@@ -50,10 +50,11 @@ export default function AdminCommentsPage() {
     setSelectedIds(new Set()); // 翻页或刷新时清空选择
     try {
       const isApproved = filter === 'pending' ? false : undefined;
-      const data = await fetchAllCommentsAdmin(page, 20, isApproved);
-      if (data.success) {
-        setComments(data.comments);
-        setTotalCount(data.totalCount);
+      const result = await fetchAllCommentsAdmin(page, 20, isApproved);
+      if (result.success) {
+        // API 返回 { success, data, meta } 格式
+        setComments(result.data ?? []);
+        setTotalCount(result.meta?.totalCount ?? 0);
       } else {
         toast.error("加载评论失败");
       }

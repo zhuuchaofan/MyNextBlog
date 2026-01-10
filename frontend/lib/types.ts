@@ -17,6 +17,60 @@ type RequiredFields<T, K extends keyof T> = T & {
   [P in K]-?: NonNullable<T[P]>;
 };
 
+// ============================================================================
+// 通用 API 响应类型 (2026-01 新增)
+// ============================================================================
+// 所有 API 响应遵循 { success, data, meta } 格式
+// 这些类型用于约束 API 函数的返回值，确保编译时类型检查
+
+/**
+ * 通用 API 成功响应
+ * @example { success: true, data: { id: 1, name: "..." } }
+ */
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
+/**
+ * 分页 API 响应 (带 meta)
+ * @example { success: true, data: [...], meta: { totalCount: 100, hasMore: true } }
+ */
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  meta: {
+    totalCount: number;
+    page?: number;
+    pageSize?: number;
+    hasMore?: boolean;
+  };
+}
+
+/**
+ * 简单操作响应 (无 data，只有 message)
+ * @example { success: true, message: "操作成功" }
+ */
+export interface SimpleResponse {
+  success: boolean;
+  message?: string;
+  count?: number;  // 用于批量操作
+}
+
+// ============================================================================
+// 管理员评论类型
+// ============================================================================
+export interface AdminComment {
+  id: number;
+  content: string;
+  createTime: string;
+  guestName: string;
+  isApproved: boolean;
+  postTitle?: string;
+  postId: number;
+}
+
 /**
  * 用户在线状态数据结构
  * 基于后端 `UserPresenceDto` 自动生成，并对必填字段进行了严格化处理
