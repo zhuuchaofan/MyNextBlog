@@ -163,6 +163,7 @@ export default function AdminCommentsPage() {
       {/* 头部导航 */}
       <AdminPageHeader
         title="评论管理"
+        icon={<MessageCircle className="w-5 h-5 text-blue-500" />}
         loading={loading}
         stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">

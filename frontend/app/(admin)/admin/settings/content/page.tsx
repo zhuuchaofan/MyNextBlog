@@ -164,6 +164,7 @@ export default function ContentSettingsPage() {
       {/* 头部导航 */}
       <AdminPageHeader
         title="内容配置"
+        icon={<Home className="w-5 h-5 text-orange-500" />}
         description="管理主页和关于我页面的介绍文字"
         actions={
           <Button variant="outline" onClick={fetchContents} disabled={loading} className="border-gray-200 dark:border-zinc-700">

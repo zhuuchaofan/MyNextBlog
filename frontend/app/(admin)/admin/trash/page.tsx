@@ -109,6 +109,7 @@ export default function TrashPage() {
       {/* 页面标题 */}
       <AdminPageHeader
         title="回收站"
+        icon={<Trash2 className="w-5 h-5 text-red-500" />}
         stats={
           <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
             {totalCount} 篇

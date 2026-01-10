@@ -163,6 +163,7 @@ export default function CategoriesManagementPage() {
       {/* 头部导航 */}
       <AdminPageHeader
         title="分类管理"
+        icon={<FolderOpen className="w-5 h-5 text-orange-500" />}
         loading={loading}
         stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">

@@ -122,6 +122,7 @@ export default function SeriesManagementPage() {
       {/* 头部导航 */}
       <AdminPageHeader
         title="系列管理"
+        icon={<Layers className="w-5 h-5 text-purple-500" />}
         loading={loading}
         stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
