@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { 
   fetchMemosAdmin, 
   createMemo, 
@@ -9,6 +8,7 @@ import {
   deleteMemo,
   type MemoAdmin 
 } from '@/lib/api';
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ChevronLeft, Plus, Pencil, Trash2, Loader2, MessageCircle,
+  Plus, Pencil, Trash2, Loader2, MessageCircle,
   Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 import { toast } from "sonner";
@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminMemosPage() {
-  const router = useRouter();
   const [memos, setMemos] = useState<MemoAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -151,34 +150,17 @@ export default function AdminMemosPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
-      {/* 头部 - 响应式两行布局 */}
-      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
-        {/* 第一行：返回按钮 + 标题 + 徽章 */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="h-8 w-8 p-0 sm:w-auto sm:px-3 text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline ml-1">返回</span>
-          </Button>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            动态管理
-          </h1>
-          {!loading && (
-            <Badge variant="secondary" className="hidden sm:inline-flex bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
-              共 {totalCount} 条
-            </Badge>
-          )}
-        </div>
-        {/* 第二行：操作按钮 */}
-        <div className="flex items-center justify-between sm:justify-start gap-2">
-          {/* 移动端徽章 */}
-          {!loading && (
-            <Badge variant="secondary" className="sm:hidden bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
-              共 {totalCount} 条
-            </Badge>
-          )}
-          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+      <AdminPageHeader
+        title="动态管理"
+        loading={loading}
+        stats={
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            <MessageCircle className="w-3.5 h-3.5 mr-1" />
+            共 {totalCount} 条
+          </Badge>
+        }
+        actions={
+          <>
             <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline ml-1">刷新</span>
@@ -187,9 +169,9 @@ export default function AdminMemosPage() {
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline ml-1">发布动态</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* 列表 */}
       {loading ? (

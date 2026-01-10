@@ -1,10 +1,11 @@
 'use client'; // 标记为客户端组件，因为需要状态管理、事件处理和 useEffect
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 // import { useAuth } from '@/context/AuthContext'; // Unused
 import { fetchPostsWithAuth, deletePost, togglePostVisibility } from '@/lib/api'; // 导入 API 请求函数
+import { AdminPageHeader } from "@/components/AdminPageHeader"; // 统一头部组件
 import { Button } from "@/components/ui/button"; // shadcn/ui 按钮组件
 import { Badge } from "@/components/ui/badge"; // shadcn/ui 徽章组件
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // shadcn/ui 表格组件
@@ -18,7 +19,7 @@ import { // shadcn/ui 警告对话框组件，用于删除确认
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Plus, ChevronLeft, ExternalLink, Eye, EyeOff } from 'lucide-react'; // 图标库
+import { Edit, Trash2, Plus, ExternalLink, Eye, EyeOff } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件，用于显示操作结果
 
 // 定义文章数据接口，匹配后端返回的结构

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { 
   fetchFriendLinksAdmin, 
   createFriendLink, 
@@ -9,6 +8,7 @@ import {
   deleteFriendLink,
   type FriendLinkAdmin 
 } from '@/lib/api';
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  ChevronLeft, Plus, Pencil, Trash2, Loader2, Link as LinkIcon, 
+  Plus, Pencil, Trash2, Loader2, Link as LinkIcon, 
   ExternalLink, RefreshCw
 } from 'lucide-react';
 import { toast } from "sonner";
@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminFriendsPage() {
-  const router = useRouter();
   const [friends, setFriends] = useState<FriendLinkAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -171,34 +170,17 @@ export default function AdminFriendsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
-      {/* 头部导航 - 响应式两行布局 */}
-      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
-        {/* 第一行：返回按钮 + 标题 + 徽章 */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="h-8 w-8 p-0 sm:w-auto sm:px-3 text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline ml-1">返回</span>
-          </Button>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            友链管理
-          </h1>
-          {!loading && (
-            <Badge variant="secondary" className="hidden sm:inline-flex bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-              <LinkIcon className="w-3.5 h-3.5 mr-1" />
-              共 {friends.length} 个
-            </Badge>
-          )}
-        </div>
-        {/* 第二行：操作按钮 */}
-        <div className="flex items-center justify-between sm:justify-start gap-2">
-          {/* 移动端徽章 */}
-          {!loading && (
-            <Badge variant="secondary" className="sm:hidden bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-              <LinkIcon className="w-3.5 h-3.5 mr-1" />
-              共 {friends.length} 个
-            </Badge>
-          )}
-          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+      <AdminPageHeader
+        title="友链管理"
+        loading={loading}
+        stats={
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            <LinkIcon className="w-3.5 h-3.5 mr-1" />
+            共 {friends.length} 个
+          </Badge>
+        }
+        actions={
+          <>
             <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline ml-1">刷新</span>
@@ -207,9 +189,9 @@ export default function AdminFriendsPage() {
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline ml-1">添加友链</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* 列表 */}
       {loading ? (
