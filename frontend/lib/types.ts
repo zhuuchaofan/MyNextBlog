@@ -7,29 +7,30 @@
 // 后端 DTO 可通过 `npm run gen-types` 自动生成到 `lib/generated/api-types.ts`。
 // 本文件作为"映射层"，将冗长的 `components['schemas']['...']` 包装为简洁的别名。
 
-// 导入自动生成的类型（如果存在）
-// 注意: 部分类型（如 UserPresenceDto）因后端返回 IActionResult 未被 Swagger 捕获
-// TODO: 后端添加 [ProducesResponseType] 后可移除手动定义
-// import type { components } from './generated/api-types';
+// ============================================================================
+// 从自动生成的 Swagger 类型导入
+// ============================================================================
+import type { components } from "./generated/api-types";
 
-// ============================================================================
-// 手动定义类型 (待后端完善 Swagger 后可迁移到 generated)
-// ============================================================================
+// 辅助类型：移除 null 和 undefined，使字段成为必填
+type RequiredFields<T, K extends keyof T> = T & {
+  [P in K]-?: NonNullable<T[P]>;
+};
 
 /**
  * 用户在线状态数据结构
- * 对应后端 UserPresenceDto
+ * 基于后端 `UserPresenceDto` 自动生成，并对必填字段进行了严格化处理
  *
- * **注意**: 此类型暂为手动定义，因后端 `PresenceController.GetStatus()` 返回
- * `IActionResult` 而非强类型，Swagger 无法推断。
+ * **使用方式**: 直接 `import { UserPresence } from '@/lib/types'`
+ * **数据来源**: 由 `npm run gen-types` 从 Swagger 自动生成
+ *
+ * **注意**: Swagger 生成的类型默认都是可空的，但后端实际上保证了
+ * status, icon, message, timestamp 一定有值，因此这里做了类型收窄。
  */
-export interface UserPresence {
-  status: string;
-  icon: string;
-  message: string;
-  details?: string;
-  timestamp: string;
-}
+export type UserPresence = RequiredFields<
+  components["schemas"]["UserPresenceDto"],
+  "status" | "icon" | "message" | "timestamp"
+>;
 
 // ============================================================================
 // 文章相关类型

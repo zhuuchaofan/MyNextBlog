@@ -2646,7 +2646,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["UserPresenceResponse"];
+                        "application/json": components["schemas"]["UserPresenceResponse"];
+                        "text/json": components["schemas"]["UserPresenceResponse"];
+                    };
                 };
             };
         };
@@ -3879,6 +3883,18 @@ export interface components {
         };
         UpdateTagDto: {
             name?: string | null;
+        };
+        UserPresenceDto: {
+            status?: string | null;
+            icon?: string | null;
+            message?: string | null;
+            details?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        UserPresenceResponse: {
+            success?: boolean;
+            data?: components["schemas"]["UserPresenceDto"];
         };
     };
     responses: never;
