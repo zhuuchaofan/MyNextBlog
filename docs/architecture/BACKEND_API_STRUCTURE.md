@@ -61,6 +61,40 @@ API 层位于 `Controllers/Api` 目录下，负责接收 HTTP 请求，解析请
 |                           |                     |                   | `POST /override`: 设置手动状态覆盖                                                                    | JWT (Admin)              |
 |                           |                     |                   | `DELETE /override`: 清除手动状态覆盖                                                                  | JWT (Admin)              |
 
+### 2.1. API 响应格式规范 ✨ (2026-01 更新)
+
+所有 API 端点必须遵循统一的响应格式：
+
+```csharp
+// ✅ 成功 - 列表
+return Ok(new {
+    success = true,
+    data = items,
+    meta = new { page, pageSize, totalCount, hasMore }
+});
+
+// ✅ 成功 - 单条数据
+return Ok(new { success = true, data = item });
+
+// ✅ 成功 - 操作确认
+return Ok(new { success = true, message = "操作成功" });
+
+// ✅ 失败 - 客户端错误
+return BadRequest(new { success = false, message = "参数错误详情" });
+
+// ✅ 失败 - 未找到
+return NotFound(new { success = false, message = "资源不存在" });
+
+// ✅ 失败 - 未授权
+return Unauthorized(new { success = false, message = "未登录" });
+```
+
+**已规范化的 Controller**:
+
+- `AuthController`: 登录/刷新/重置密码 - 错误响应统一格式
+- `CommentsController`: 评论列表使用 `data` 字段 + `meta` 对象
+- `AccountController`: 用户信息使用 `{ success, data }` 格式
+
 ---
 
 ## 2.5. 映射层 (Mappers) ✨ 新增

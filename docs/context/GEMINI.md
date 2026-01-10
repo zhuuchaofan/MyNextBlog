@@ -215,6 +215,68 @@
      - Controller 返回 DTO 时必须添加 `[ProducesResponseType(typeof(XxxResponse), 200)]`
      - 创建响应包装类型（如 `UserPresenceResponse`）让 Swagger 能推断完整结构
 
+     ### 3.6 E2E 测试规范 ✨ (2026-01 新增)
+
+     本项目使用 **Playwright** 进行端到端测试，验证前后端集成的关键路径。
+
+     **测试文件位置**: `frontend/tests/*.spec.ts`
+
+     **运行方式**:
+
+     ```bash
+     # 前提: Docker 容器运行中
+     docker compose up -d
+
+     # 运行所有测试
+     npm run test:e2e
+
+     # 交互式 UI 模式
+     npm run test:e2e:ui
+
+     # 仅运行特定测试
+     npx playwright test tests/auth.spec.ts
+     ```
+
+     **测试覆盖范围**:
+
+     | 测试文件                  | 覆盖功能            |
+     | :------------------------ | :------------------ |
+     | `home.spec.ts`            | 首页加载、导航栏    |
+     | `presence.spec.ts`        | 用户状态 API 和组件 |
+     | `post-detail.spec.ts`     | 文章列表和详情 API  |
+     | `comments.spec.ts`        | 评论 API            |
+     | `categories-tags.spec.ts` | 分类、标签、筛选    |
+     | `auth.spec.ts`            | 登录认证、权限验证  |
+     | `search.spec.ts`          | 搜索和分页          |
+     | `friend-links.spec.ts`    | 友链 API 和页面     |
+     | `memos.spec.ts`           | 碎碎念功能          |
+     | `about.spec.ts`           | 关于页面            |
+
+     **编写规范**:
+
+     ```typescript
+     // 1. API 测试 - 验证响应结构
+     test("API 应返回正确结构", async ({ request }) => {
+       const response = await request.get("/api/backend/xxx");
+       expect(response.ok()).toBeTruthy();
+       const json = await response.json();
+       expect(json).toHaveProperty("success", true);
+       expect(json).toHaveProperty("data");
+     });
+
+     // 2. UI 测试 - 验证页面元素
+     test("页面应显示关键元素", async ({ page }) => {
+       await page.goto("/path");
+       await expect(page.locator("nav")).toBeVisible();
+     });
+     ```
+
+     **注意事项**:
+
+     - 登录 API 有频率限制（每分钟 5 次），登录测试需使用 `test.describe.configure({ mode: "serial" })`
+     - 测试应验证 `{ success, data }` 统一响应格式
+     - 敏感凭据不应硬编码，生产环境应使用环境变量
+
      ***
 
      ## 4. 🚀 Specific Workflows
