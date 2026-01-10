@@ -166,6 +166,55 @@
      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
      ```
 
+     ### 3.5 API 类型自动生成规范 ✨ (2026-01 新增)
+
+     本项目使用 **openapi-typescript** 从后端 Swagger 自动生成 TypeScript 类型，消除前后端 DTO 的人工同步负担。
+
+     **架构示意**:
+
+     ```
+     后端 C# DTO ──[Swagger]──► api-types.ts ──[映射层]──► types.ts
+          ✅ 自动                    ✅ 自动              ✅ 类型安全
+     ```
+
+     **工作流**:
+
+     1. **开发时**: 当后端 DTO 变更时，运行 `npm run gen-types`（需后端运行中）
+     2. **提交时**: 必须将 `frontend/lib/generated/api-types.ts` **提交到 Git**
+     3. **构建时**: CI/CD 直接读取文件，**不连接后端**
+
+     **脚本用法**:
+
+     ```bash
+     # 默认连接本地 5095 (源码运行)
+     npm run gen-types
+
+     # 指定 Docker 环境
+     SWAGGER_URL=http://localhost:8080/swagger/v1/swagger.json npm run gen-types
+     ```
+
+     **类型映射层规范** (`frontend/lib/types.ts`):
+
+     ```typescript
+     import type { components } from "./generated/api-types";
+
+     // 辅助类型：处理 Swagger 的可空推断
+     type RequiredFields<T, K extends keyof T> = T & {
+       [P in K]-?: NonNullable<T[P]>;
+     };
+
+     // 导出别名，业务代码使用简洁名称
+     export type UserPresence = RequiredFields<
+       components["schemas"]["UserPresenceDto"],
+       "status" | "icon" | "message" | "timestamp"
+     >;
+     ```
+
+     **后端配合要求**:
+
+     - Controller 返回 DTO 时必须添加 `[ProducesResponseType(typeof(XxxResponse), 200)]`
+     - 创建响应包装类型（如 `UserPresenceResponse`）让 Swagger 能推断完整结构
+
      ***
 
      ## 4. 🚀 Specific Workflows

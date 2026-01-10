@@ -123,3 +123,22 @@
    - 实时状态预览 + JSON 调试面板
    - 手动覆盖 UI：状态选择 / 消息输入 / 过期时间
    - 每个 API Key 独立编辑/完成按钮，修改即存
+
+### ✅ Phase 4: 类型同步自动化 (2026-01 新增)
+
+**目标**: 消除前后端 DTO 类型的手动同步负担。
+
+1. **后端配合**:
+   - `PresenceController.GetStatus()` 添加 `[ProducesResponseType(typeof(UserPresenceResponse), 200)]`
+   - 创建 `UserPresenceResponse` 响应包装类型
+2. **前端工具链**:
+   - 安装 `openapi-typescript` 开发依赖
+   - 新增 `npm run gen-types` 脚本，从 Swagger 自动生成 `api-types.ts`
+3. **类型映射层** (`frontend/lib/types.ts`):
+   - 从 `generated/api-types.ts` 导入自动生成类型
+   - 使用 `RequiredFields<T, K>` 辅助类型处理 Swagger 的可空推断
+   - 导出 `UserPresence` 别名供业务组件使用
+
+---
+
+**最后更新**: 2026-01-10
