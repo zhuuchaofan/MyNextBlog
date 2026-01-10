@@ -175,7 +175,7 @@ export default function AdminFriendsPage() {
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         {/* 第一行：返回按钮 + 标题 + 徽章 */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 text-gray-500 dark:text-gray-400">
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="h-8 w-8 p-0 sm:w-auto sm:px-3 text-gray-500 dark:text-gray-400">
             <ChevronLeft className="w-4 h-4" />
             <span className="hidden sm:inline ml-1">返回</span>
           </Button>
