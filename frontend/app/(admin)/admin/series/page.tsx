@@ -119,10 +119,10 @@ export default function SeriesManagementPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
-      {/* 头部导航 */}
       <AdminPageHeader
         title="系列管理"
         icon={<Layers className="w-5 h-5 text-purple-500" />}
+        description="创建和管理文章系列，组织相关内容"
         loading={loading}
         stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">

@@ -460,10 +460,10 @@ export default function ProductsAdminPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      {/* 页面标题和操作按钮 */}
       <AdminPageHeader
         title="商品管理"
         icon={<Package className="w-5 h-5 sm:w-6 sm:h-6" />}
+        description="添加和管理精品店商品"
         stats={
           statsActive !== null && (
             <>

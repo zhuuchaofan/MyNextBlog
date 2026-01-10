@@ -160,10 +160,10 @@ export default function AdminCommentsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl pb-24">
-      {/* 头部导航 */}
       <AdminPageHeader
         title="评论管理"
         icon={<MessageCircle className="w-5 h-5 text-blue-500" />}
+        description="审核和管理文章评论"
         loading={loading}
         stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">

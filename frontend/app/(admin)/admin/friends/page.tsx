@@ -173,6 +173,7 @@ export default function AdminFriendsPage() {
       <AdminPageHeader
         title="友链管理"
         icon={<LinkIcon className="w-5 h-5 text-blue-500" />}
+        description="管理友情链接，与其他博客互换链接"
         loading={loading}
         stats={
           <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">

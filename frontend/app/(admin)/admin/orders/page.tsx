@@ -89,9 +89,9 @@ export default function OrdersAdminPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
-      {/* 头部导航 */}
       <AdminPageHeader
         title="订单管理"
+        description="查看和管理用户订单"
         icon={<ClipboardList className="w-5 h-5" />}
         stats={
           <Badge variant="secondary">

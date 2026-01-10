@@ -106,10 +106,10 @@ export default function TrashPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
-      {/* 页面标题 */}
       <AdminPageHeader
         title="回收站"
         icon={<Trash2 className="w-5 h-5 text-red-500" />}
+        description="恢复或永久删除已删除的文章"
         stats={
           <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
             {totalCount} 篇

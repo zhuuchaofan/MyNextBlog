@@ -153,6 +153,7 @@ export default function AdminMemosPage() {
       <AdminPageHeader
         title="动态管理"
         icon={<MessageCircle className="w-5 h-5 text-purple-500" />}
+        description="发布和管理个人动态、想法和碎片记录"
         loading={loading}
         stats={
           <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
