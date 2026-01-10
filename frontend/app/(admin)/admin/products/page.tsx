@@ -463,7 +463,7 @@ export default function ProductsAdminPage() {
       <AdminPageHeader
         title="商品管理"
         icon={<Package className="w-5 h-5 sm:w-6 sm:h-6" />}
-        description="添加和管理精品店商品"
+        description="添加和管理小卖部商品"
         stats={
           statsActive !== null && (
             <>
