@@ -31,6 +31,7 @@ const POLL_INTERVAL = 30000;
 export function UserPresenceWidget() {
   const [status, setStatus] = useState<UserPresenceStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false); // 移动端展开状态
 
   // 获取状态
   const fetchStatus = useCallback(async () => {
@@ -59,24 +60,41 @@ export function UserPresenceWidget() {
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
+  // 移动端点击后自动收起
+  useEffect(() => {
+    if (isExpanded) {
+      const timer = setTimeout(() => setIsExpanded(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded]);
+
   if (isLoading || !status) {
     return null;
   }
 
   const isOnline = status.status !== "offline";
 
+  const textColorClass = 
+    status.status === "coding" ? "text-blue-600 dark:text-blue-400" :
+    status.status === "gaming" ? "text-purple-600 dark:text-purple-400" :
+    status.status === "listening" ? "text-green-600 dark:text-green-400" :
+    "text-gray-500 dark:text-gray-400";
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
-        "relative flex items-center gap-2 px-2.5 py-1.5 rounded-full cursor-default transition-colors duration-300",
+        "relative flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-colors duration-300",
         status.status === "coding" ? "bg-blue-500/10 dark:bg-blue-500/20" :
         status.status === "gaming" ? "bg-purple-500/10 dark:bg-purple-500/20" :
         status.status === "listening" ? "bg-green-500/10 dark:bg-green-500/20" :
-        "bg-gray-500/5 dark:bg-gray-500/10"
+        "bg-gray-500/5 dark:bg-gray-500/10",
+        // 移动端可点击
+        "sm:cursor-default cursor-pointer"
       )}
       title={`${status.message}${status.details ? ` (${status.details})` : ""}`}
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       <StatusBadge 
         status={status.status} 
@@ -85,36 +103,37 @@ export function UserPresenceWidget() {
         className="w-5 h-5 border-0 bg-transparent"
       />
 
-      {/* 状态文本 (桌面端显示，超长时滚动) */}
+      {/* 桌面端始终显示（超长时滚动） */}
       <div className="hidden sm:block relative overflow-hidden max-w-[120px]">
         <motion.span
-          className={cn(
-            "inline-block text-xs font-medium whitespace-nowrap",
-            status.status === "coding" ? "text-blue-600 dark:text-blue-400" :
-            status.status === "gaming" ? "text-purple-600 dark:text-purple-400" :
-            status.status === "listening" ? "text-green-600 dark:text-green-400" :
-            "text-gray-500 dark:text-gray-400"
-          )}
-          // 如果文本超过 10 个字符，则启动滚动动画
-          animate={status.message.length > 10 ? {
-            x: ["0%", "-50%"],
-          } : {}}
-          transition={status.message.length > 10 ? {
-            x: {
-              repeat: Infinity,
-              repeatType: "loop",
-              duration: Math.max(status.message.length * 0.3, 3),
-              ease: "linear",
-            }
+          className={cn("inline-block text-xs font-medium whitespace-nowrap", textColorClass)}
+          animate={status.message.length > 8 ? { x: ["0%", "-50%"] } : {}}
+          transition={status.message.length > 8 ? {
+            x: { repeat: Infinity, repeatType: "loop", duration: Math.max(status.message.length * 0.3, 3), ease: "linear" }
           } : {}}
         >
-          {/* 滚动时需要两份文本来实现无缝循环 */}
-          {status.message.length > 10 
+          {status.message.length > 8 
             ? `${status.message}　　　${status.message}　　　`
             : status.message
           }
         </motion.span>
       </div>
+
+      {/* 移动端点击展开 */}
+      <motion.div
+        className="sm:hidden overflow-hidden"
+        initial={false}
+        animate={{ 
+          width: isExpanded ? "auto" : 0,
+          opacity: isExpanded ? 1 : 0 
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        <span className={cn("text-xs font-medium whitespace-nowrap pr-1", textColorClass)}>
+          {status.message}
+        </span>
+      </motion.div>
     </motion.div>
   );
 }
+

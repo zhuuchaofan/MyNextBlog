@@ -23,6 +23,7 @@ import {
   Coffee,
   Sparkles,
   RotateCcw,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -50,6 +51,7 @@ export default function PresenceSettingsPage() {
   const [showKeys, setShowKeys] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<CurrentStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // 编辑模式
 
   // 手动覆盖状态
   const [overrideStatus, setOverrideStatus] = useState("custom");
@@ -376,10 +378,18 @@ export default function PresenceSettingsPage() {
       {/* Steam 配置 */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Gamepad2 className="w-5 h-5 text-purple-500" />
-            Steam 配置
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Gamepad2 className="w-5 h-5 text-purple-500" />
+              Steam 配置
+            </CardTitle>
+            {config.steamKey && !isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                <Pencil className="w-4 h-4 mr-1" />
+                编辑
+              </Button>
+            )}
+          </div>
           <CardDescription>
             监测 Steam 游戏状态，显示正在游玩的游戏
           </CardDescription>
@@ -396,6 +406,8 @@ export default function PresenceSettingsPage() {
                   setConfig({ ...config, steamKey: e.target.value })
                 }
                 placeholder="输入你的 Steam API Key"
+                disabled={!!config.steamKey && !isEditing}
+                className={config.steamKey && !isEditing ? "bg-muted" : ""}
               />
               <Button
                 variant="ghost"
@@ -428,6 +440,8 @@ export default function PresenceSettingsPage() {
                 setConfig({ ...config, steamId: e.target.value })
               }
               placeholder="如 76561198xxxxx"
+              disabled={!!config.steamId && !isEditing}
+              className={config.steamId && !isEditing ? "bg-muted" : ""}
             />
             <p className="text-xs text-muted-foreground">
               在 Steam 个人资料 URL 中找到 (steamcommunity.com/profiles/
@@ -440,10 +454,18 @@ export default function PresenceSettingsPage() {
       {/* WakaTime 配置 */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Code className="w-5 h-5 text-blue-500" />
-            WakaTime 配置
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Code className="w-5 h-5 text-blue-500" />
+              WakaTime 配置
+            </CardTitle>
+            {config.wakatimeKey && !isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                <Pencil className="w-4 h-4 mr-1" />
+                编辑
+              </Button>
+            )}
+          </div>
           <CardDescription>
             监测 IDE 编程活动，显示编程状态
           </CardDescription>
@@ -460,6 +482,8 @@ export default function PresenceSettingsPage() {
                   setConfig({ ...config, wakatimeKey: e.target.value })
                 }
                 placeholder="输入你的 WakaTime API Key"
+                disabled={!!config.wakatimeKey && !isEditing}
+                className={config.wakatimeKey && !isEditing ? "bg-muted" : ""}
               />
               <Button
                 variant="ghost"
