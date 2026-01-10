@@ -23,8 +23,8 @@ test.describe("评论功能 (Comments)", () => {
 
       const commentsJson = await commentsResponse.json();
       expect(commentsJson).toHaveProperty("success", true);
-      expect(commentsJson).toHaveProperty("comments");
-      expect(Array.isArray(commentsJson.comments)).toBeTruthy();
+      expect(commentsJson).toHaveProperty("data");
+      expect(Array.isArray(commentsJson.data)).toBeTruthy();
     }
   });
 

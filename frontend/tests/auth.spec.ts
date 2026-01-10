@@ -19,7 +19,8 @@ test.describe("认证功能 (Authentication)", () => {
     expect([400, 401]).toContain(response.status());
 
     const json = await response.json();
-    // 响应应包含错误信息
+    // 响应应包含 success: false 和错误信息
+    expect(json).toHaveProperty("success", false);
     expect(json).toHaveProperty("message");
   });
 

@@ -111,9 +111,9 @@ export async function getCommentsServer(
     const json = await res.json();
     return {
       success: json.success ?? false,
-      comments: json.comments ?? [],
-      totalCount: json.totalCount ?? 0,
-      hasMore: json.hasMore ?? false,
+      comments: json.data ?? [],  // 后端改为 data 字段
+      totalCount: json.meta?.totalCount ?? 0,
+      hasMore: json.meta?.hasMore ?? false,
     };
   } catch (error) {
     console.error("Fetch comments error:", error);

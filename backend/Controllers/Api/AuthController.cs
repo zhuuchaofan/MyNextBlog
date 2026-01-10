@@ -40,7 +40,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         var result = await authService.LoginAsync(dto);
         if (result == null)
         {
-            return Unauthorized(new { message = "用户名或密码错误" });
+            return Unauthorized(new { success = false, message = "用户名或密码错误" });
         }
         
         // 返回 Token 和用户信息
@@ -73,7 +73,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         var result = await authService.RefreshTokenAsync(dto);
         if (result == null)
         {
-             return Unauthorized(new { message = "无效的令牌" });
+             return Unauthorized(new { success = false, message = "无效的令牌" });
         }
 
         return Ok(new 
@@ -107,7 +107,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
         var result = await authService.ForgotPasswordAsync(dto.Email);
-        return Ok(new { message = result.Message });
+        return Ok(new { success = true, message = result.Message });
     }
 
     /// <summary>
@@ -120,9 +120,9 @@ public class AuthController(IAuthService authService) : ControllerBase
         
         if (!result.Success)
         {
-            return BadRequest(new { message = result.Message });
+            return BadRequest(new { success = false, message = result.Message });
         }
 
-        return Ok(new { message = result.Message });
+        return Ok(new { success = true, message = result.Message });
     }
 }
