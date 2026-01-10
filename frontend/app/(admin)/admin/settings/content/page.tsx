@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Loader2, RefreshCw, Home, User, ChevronLeft, Wrench, Clock, BookOpen, Cpu, Cat, UserCircle } from "lucide-react";
+import { Save, Loader2, RefreshCw, Home, User, Wrench, Clock, BookOpen, Cpu, Cat, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -87,7 +87,6 @@ const CONTENT_GROUPS = [
 ];
 
 export default function ContentSettingsPage() {
-  const router = useRouter();
   const [contents, setContents] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -163,23 +162,16 @@ export default function ContentSettingsPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl overflow-x-hidden">
       {/* 头部导航 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+      <AdminPageHeader
+        title="内容配置"
+        description="管理主页和关于我页面的介绍文字"
+        actions={
+          <Button variant="outline" onClick={fetchContents} disabled={loading} className="border-gray-200 dark:border-zinc-700">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline ml-1">刷新</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">内容配置</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              管理主页和关于我页面的介绍文字
-            </p>
-          </div>
-        </div>
-        <Button variant="outline" onClick={fetchContents} disabled={loading} className="border-gray-200 dark:border-zinc-700">
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          刷新
-        </Button>
-      </div>
+        }
+      />
 
       {/* 内容编辑卡片 */}
       {loading ? (

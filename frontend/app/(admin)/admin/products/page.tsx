@@ -4,7 +4,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   Plus, 
@@ -14,11 +13,11 @@ import {
   Package, 
   Eye, 
   EyeOff, 
-  ChevronLeft,
   ExternalLink,
   Upload,
   ImageIcon
 } from "lucide-react";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -279,7 +278,6 @@ function ProductForm({
 }
 
 export default function ProductsAdminPage() {
-  const router = useRouter();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   
   const [products, setProducts] = useState<ProductAdmin[]>([]);
@@ -463,21 +461,12 @@ export default function ProductsAdminPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* 页面标题和操作按钮 */}
-      <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <div className="flex items-center gap-2 sm:gap-4">
-          {/* 返回按钮 */}
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <Package className="w-5 h-5 sm:w-6 sm:h-6" />
-            商品管理
-          </h1>
-        </div>
-        {/* 第二行：统计徽章 + 按钮 */}
-        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-          {statsActive !== null && (
-            <div className="flex items-center gap-2">
+      <AdminPageHeader
+        title="商品管理"
+        icon={<Package className="w-5 h-5 sm:w-6 sm:h-6" />}
+        stats={
+          statsActive !== null && (
+            <>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                 <Eye className="w-3.5 h-3.5" />
                 上架 {statsActive}
@@ -486,17 +475,19 @@ export default function ProductsAdminPage() {
                 <EyeOff className="w-3.5 h-3.5" />
                 下架 {statsInactive}
               </span>
-            </div>
-          )}
+            </>
+          )
+        }
+        actions={
           <Button 
             onClick={openCreateDialog}
-            className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            添加商品
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline ml-1">添加商品</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {products.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800">

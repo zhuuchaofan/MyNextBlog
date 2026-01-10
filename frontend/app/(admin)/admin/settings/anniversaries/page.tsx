@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -214,31 +215,23 @@ export default function AnniversariesPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
       {/* 头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Heart className="w-6 h-6 text-pink-500" /> 纪念日管理
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              管理首页浮动挂件显示的纪念日
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchList} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            刷新
-          </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleOpenCreate}>
-                <Plus className="w-4 h-4 mr-2" /> 添加纪念日
-              </Button>
-            </DialogTrigger>
+      <AdminPageHeader
+        title="纪念日管理"
+        icon={<Heart className="w-6 h-6 text-pink-500" />}
+        description="管理首页浮动挂件显示的纪念日"
+        actions={
+          <>
+            <Button variant="outline" onClick={fetchList} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline ml-1">刷新</span>
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={handleOpenCreate}>
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-1">添加纪念日</span>
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -402,8 +395,9 @@ export default function AnniversariesPage() {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* 列表 */}
       {loading ? (

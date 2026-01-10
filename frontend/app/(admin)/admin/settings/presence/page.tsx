@@ -5,13 +5,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  ChevronLeft,
   Loader2,
   Save,
   Gamepad2,
@@ -40,7 +39,6 @@ interface CurrentStatus {
 }
 
 export default function PresenceSettingsPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
@@ -171,19 +169,10 @@ export default function PresenceSettingsPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-2xl">
       {/* 头部 - 响应式布局 */}
-      <div className="flex items-start gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 sm:h-9 sm:w-9 text-gray-500 dark:text-gray-400 flex-shrink-0">
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <div className="min-w-0">
-          <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-            🤖 <span className="truncate">数字分身配置</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
-            配置站长状态检测服务 (Steam / WakaTime)
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="🤖 数字分身配置"
+        description="配置站长状态检测服务 (Steam / WakaTime)"
+      />
 
       {/* 当前状态卡片 */}
       <Card className="mb-6">

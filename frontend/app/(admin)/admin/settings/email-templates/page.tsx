@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  ChevronLeft,
   Loader2,
   RefreshCw,
   Mail,
@@ -78,7 +77,6 @@ function renderTemplate(
 }
 
 export default function EmailTemplatesPage() {
-  const router = useRouter();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -202,27 +200,17 @@ export default function EmailTemplatesPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
       {/* 头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+      <AdminPageHeader
+        title="邮件模板管理"
+        icon={<Mail className="w-6 h-6 text-blue-500" />}
+        description="自定义系统发送的邮件内容和样式"
+        actions={
+          <Button variant="outline" onClick={fetchList} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline ml-1">刷新</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Mail className="w-6 h-6 text-blue-500" /> 邮件模板管理
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              自定义系统发送的邮件内容和样式
-            </p>
-          </div>
-        </div>
-        <Button variant="outline" onClick={fetchList} disabled={loading}>
-          <RefreshCw
-            className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-          />
-          刷新
-        </Button>
-      </div>
+        }
+      />
 
       {/* 列表 */}
       {loading ? (
