@@ -44,7 +44,7 @@ public class PresenceController(
     /// </summary>
     /// <param name="dto">覆盖请求</param>
     [HttpPost("override")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> SetOverride([FromBody] SetPresenceOverrideDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Status))
@@ -63,7 +63,7 @@ public class PresenceController(
     /// 清除手动状态覆盖（Admin）
     /// </summary>
     [HttpDelete("override")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ClearOverride()
     {
         await presenceService.ClearOverrideAsync();

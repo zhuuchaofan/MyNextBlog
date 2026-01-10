@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     { href: '/admin/categories', icon: FolderOpen, label: '分类管理', desc: '创建和管理文章分类' },
     { href: '/admin/tags', icon: Tag, label: '标签管理', desc: '创建和管理文章标签' },
     { href: '/admin/friends', icon: Users, label: '友链管理', desc: '管理友情链接' },
-    { href: '/admin/memos', icon: MessageCircle, label: '碎碎念', desc: '发布和管理短动态' },
+    { href: '/admin/memos', icon: MessageCircle, label: '动态管理', desc: '发布和管理短动态' },
     { href: '/admin/plans', icon: CalendarDays, label: '计划管理', desc: '行程规划、预算追踪' },
   ];
 

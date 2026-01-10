@@ -69,6 +69,16 @@ public class PresenceService(
     /// </summary>
     public async Task SetOverrideAsync(string status, string? message, DateTime? expireAt)
     {
+        // 输入验证：防止过长输入导致存储爆炸
+        if (status.Length > 50)
+        {
+            throw new ArgumentException("状态标识最长 50 字符", nameof(status));
+        }
+        if (message?.Length > 200)
+        {
+            throw new ArgumentException("消息最长 200 字符", nameof(message));
+        }
+
         using var scope = scopeFactory.CreateScope();
         var siteContentService = scope.ServiceProvider.GetRequiredService<ISiteContentService>();
 

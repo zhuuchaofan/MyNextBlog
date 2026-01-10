@@ -10,7 +10,7 @@
 
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.Extensions.Caching.Memory;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyNextBlog.DTOs;
@@ -26,7 +26,6 @@ namespace MyNextBlog.Services;
 public class PresenceBackgroundService(
     IHttpClientFactory httpClientFactory,
     IServiceScopeFactory scopeFactory,
-    IMemoryCache memoryCache,
     ILogger<PresenceBackgroundService> logger) : BackgroundService
 {
     // 轮询间隔配置
@@ -58,8 +57,12 @@ public class PresenceBackgroundService(
             {
                 var status = await CheckAllSourcesAsync();
                 
-                // 更新缓存
-                memoryCache.Set(CacheKey, status, TimeSpan.FromMinutes(5));
+                // 通过 PresenceService 更新缓存（遵循单一职责原则）
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var presenceService = scope.ServiceProvider.GetRequiredService<IPresenceService>();
+                    presenceService.UpdateStatus(status);
+                }
 
                 // 决定下次轮询间隔
                 TimeSpan delay;
