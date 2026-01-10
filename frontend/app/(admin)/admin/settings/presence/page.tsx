@@ -283,15 +283,12 @@ export default function PresenceSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* WakaTime 配置 (预留) */}
-      <Card className="mb-6 opacity-60">
+      {/* WakaTime 配置 */}
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Code className="w-5 h-5 text-blue-500" />
             WakaTime 配置
-            <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
-              即将推出
-            </span>
           </CardTitle>
           <CardDescription>
             监测 IDE 编程活动，显示编程状态
@@ -300,16 +297,36 @@ export default function PresenceSettingsPage() {
         <CardContent>
           <div className="space-y-2">
             <Label htmlFor="wakatimeKey">WakaTime API Key</Label>
-            <Input
-              id="wakatimeKey"
-              type={showKeys ? "text" : "password"}
-              value={config.wakatimeKey}
-              onChange={(e) =>
-                setConfig({ ...config, wakatimeKey: e.target.value })
-              }
-              placeholder="功能开发中..."
-              disabled
-            />
+            <div className="flex gap-2">
+              <Input
+                id="wakatimeKey"
+                type={showKeys ? "text" : "password"}
+                value={config.wakatimeKey}
+                onChange={(e) =>
+                  setConfig({ ...config, wakatimeKey: e.target.value })
+                }
+                placeholder="输入你的 WakaTime API Key"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowKeys(!showKeys)}
+              >
+                {showKeys ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            <a
+              href="https://wakatime.com/settings/api-key"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+            >
+              获取 WakaTime API Key <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </CardContent>
       </Card>

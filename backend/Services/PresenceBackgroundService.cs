@@ -121,9 +121,18 @@ public class PresenceBackgroundService(
             return overrideStatus;
         }
 
-        // 2. 检查 WakaTime (Coding) - Phase 2 实现
-        // var isCoding = await CheckWakaTimeAsync(scope);
-        // if (isCoding) return CreateCodingStatus();
+        // 2. 检查 WakaTime (Coding) - 优先级高于 Gaming
+        var (isCoding, projectName) = await CheckWakaTimeAsync(scope);
+        if (isCoding)
+        {
+            return new UserPresenceDto(
+                Status: "coding",
+                Icon: "Code",
+                Message: string.IsNullOrEmpty(projectName) ? "正在编程" : $"正在编程 {projectName}",
+                Details: null,
+                Timestamp: DateTime.UtcNow
+            );
+        }
 
         // 3. 检查 Steam (Gaming)
         var gameName = await CheckSteamAsync(scope);
@@ -209,13 +218,98 @@ public class PresenceBackgroundService(
     }
 
     /// <summary>
-    /// 检查 WakaTime 编程状态 (Phase 2 预留)
+    /// 检查 WakaTime 编程状态
+    /// 
+    /// **API**: https://wakatime.com/api/v1/users/current/status_bar/today
+    /// **认证**: HTTP Basic Auth (API Key)
     /// </summary>
-    // private async Task<bool> CheckWakaTimeAsync(IServiceScope scope)
-    // {
-    //     // TODO: 实现 WakaTime API 调用
-    //     // Endpoint: https://wakatime.com/api/v1/users/current/heartbeats
-    //     // Header: Authorization: Basic {base64(api_key)}
-    //     return false;
-    // }
+    /// <returns>元组：是否在编程，当前项目名称</returns>
+    private async Task<(bool IsCoding, string? ProjectName)> CheckWakaTimeAsync(IServiceScope scope)
+    {
+        try
+        {
+            var siteContentService = scope.ServiceProvider.GetRequiredService<ISiteContentService>();
+
+            // 获取 WakaTime API Key
+            var wakaTimeKey = await siteContentService.GetByKeyAsync(WakaTimeKeyConfig);
+            if (wakaTimeKey?.Value == null)
+            {
+                logger.LogDebug("WakaTime 配置未设置，跳过检测");
+                return (false, null);
+            }
+
+            // 构建 HTTP Basic Auth Header
+            // WakaTime 使用 "api_key:" 格式（注意冒号）
+            var authBytes = System.Text.Encoding.UTF8.GetBytes($"{wakaTimeKey.Value}:");
+            var authBase64 = Convert.ToBase64String(authBytes);
+
+            // 调用 WakaTime Status Bar API
+            var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Basic {authBase64}");
+
+            var url = "https://wakatime.com/api/v1/users/current/status_bar/today";
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("WakaTime API 请求失败: {StatusCode}", response.StatusCode);
+                return (false, null);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            // 解析响应
+            if (!doc.RootElement.TryGetProperty("data", out var dataProp))
+            {
+                return (false, null);
+            }
+
+            // 检查是否有编程活动
+            // cached_at 字段可以判断数据是否新鲜
+            // grand_total.total_seconds > 0 表示今天有编程活动
+            if (dataProp.TryGetProperty("grand_total", out var grandTotal) &&
+                grandTotal.TryGetProperty("total_seconds", out var totalSeconds) &&
+                totalSeconds.GetDouble() > 0)
+            {
+                // 检查最近是否活跃（通过 is_up_to_date 或 cached_at）
+                bool isRecent = false;
+                
+                if (dataProp.TryGetProperty("is_up_to_date", out var isUpToDate))
+                {
+                    isRecent = isUpToDate.GetBoolean();
+                }
+                else if (dataProp.TryGetProperty("cached_at", out var cachedAt))
+                {
+                    // 如果 cached_at 在 15 分钟内，视为活跃
+                    if (DateTime.TryParse(cachedAt.GetString(), out var cachedTime))
+                    {
+                        isRecent = (DateTime.UtcNow - cachedTime).TotalMinutes < 15;
+                    }
+                }
+
+                if (isRecent)
+                {
+                    // 获取当前项目名称
+                    string? projectName = null;
+                    if (dataProp.TryGetProperty("projects", out var projects) &&
+                        projects.GetArrayLength() > 0 &&
+                        projects[0].TryGetProperty("name", out var nameProp))
+                    {
+                        projectName = nameProp.GetString();
+                    }
+
+                    logger.LogInformation("检测到 WakaTime 编程活动: {Project}", projectName ?? "未知项目");
+                    return (true, projectName);
+                }
+            }
+
+            return (false, null);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "WakaTime 状态检测失败");
+            return (false, null);
+        }
+    }
 }

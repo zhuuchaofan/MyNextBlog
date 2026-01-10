@@ -95,19 +95,19 @@
 3. **缓存逻辑**: 将结果写入 `_memoryCache`。
 4. **API 暴露**: 创建 `Controllers/Api/PresenceController.cs`，读取缓存并返回。
 
-### 🚧 Phase 2: 完整感知与自适应
+### ✅ Phase 2: 完整感知与自适应
 
 **目标**: 接入 WakaTime，实现优先级逻辑和自适应频率。
 
 1. **WakaTime 接入**:
-   - 编写 `CheckWakaTimeAsync()`: 调用 `https://wakatime.com/api/v1/users/current/heartbeats`。
-   - 注意处理 API Key 的 Header 认证。
+   - 编写 `CheckWakaTimeAsync()`: 调用 `https://wakatime.com/api/v1/users/current/status_bar/today`。
+   - 使用 HTTP Basic Auth 认证 (`Authorization: Basic {base64(api_key:)}`)。
 2. **仲裁逻辑**:
-   - 在 `ExecuteAsync` 主循环中加入 `if (coding) ... else if (gaming) ...` 逻辑。
+   - 优先级: Manual Override > Coding > Gaming > Offline
 3. **管理配置**:
-   - 在管理后台提供 UI 配置 API Keys。
+   - Admin 后台提供 WakaTime API Key 配置 UI。
 
-### 🎨 Phase 3: 前端组件与手动控制
+### ✅ Phase 3: 前端组件与手动控制
 
 **目标**: 在 Next.js 前端展示酷炫的 UI，并支持手动覆盖。
 
