@@ -57,6 +57,9 @@ API 层位于 `Controllers/Api` 目录下，负责接收 HTTP 请求，解析请
 |                           |                     |                   | `GET/POST/PUT/DELETE /admin`: 管理员 CRUD                                                             | JWT (Admin)              |
 | **MemosController**       | `/api/memos`        | 碎碎念 ✨         | `GET /?cursor=&limit=`: Keyset 分页公开动态                                                           | 无 (公开)                |
 |                           |                     |                   | `GET/POST/PUT/DELETE /admin`: 管理员 CRUD                                                             | JWT (Admin)              |
+| **PresenceController**    | `/api/presence`     | 数字分身 ✨       | `GET /`: 获取当前站长状态                                                                             | 无 (公开)                |
+|                           |                     |                   | `POST /override`: 设置手动状态覆盖                                                                    | JWT (Admin)              |
+|                           |                     |                   | `DELETE /override`: 清除手动状态覆盖                                                                  | JWT (Admin)              |
 
 ---
 
@@ -257,6 +260,28 @@ public async Task<IActionResult> GetComments(int postId, int page = 1)
   - **主要功能**:
     - `SendOrderCreatedEmailAsync`: 发送订单创建通知
     - `SendOrderCompletedEmailAsync`: 发送发货邮件（含下载链接/兑换码）
+
+- **`IPresenceService` & `PresenceService`**: ✨ **新增 (2026-01 数字分身)**
+
+  - **职责**: 管理站长在线状态的读写和手动覆盖逻辑。
+  - **主要功能**:
+    - `GetCurrentStatus`: 获取当前缓存的用户状态
+    - `UpdateStatus`: 更新内存缓存中的状态（供后台服务调用）
+    - `SetOverrideAsync`: 设置手动状态覆盖（Admin）
+    - `ClearOverrideAsync`: 清除手动覆盖
+    - `GetOverrideAsync`: 获取手动覆盖状态（含过期检测）
+  - **技术实现**: Singleton 生命周期，使用 `IMemoryCache` 存储状态，`SiteContents` 表持久化覆盖配置。
+
+- **`PresenceBackgroundService`**: ✨ **新增 (2026-01 数字分身)**
+
+  - **职责**: 后台轮询第三方 API（Steam、WakaTime），检测站长活动状态。
+  - **轮询策略**:
+    - **活跃模式**: 30 秒间隔（检测到活动时）
+    - **待机模式**: 5 分钟间隔（连续离线 5 次后）
+  - **数据源优先级**: Manual Override > Coding (WakaTime) > Gaming (Steam) > Offline
+  - **API 集成**:
+    - **WakaTime**: `status_bar/today` 接口，HTTP Basic Auth 认证
+    - **Steam**: `GetPlayerSummaries` 接口，检测 `gameextrainfo` 字段
 
 ---
 
