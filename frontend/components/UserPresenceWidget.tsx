@@ -85,18 +85,36 @@ export function UserPresenceWidget() {
         className="w-5 h-5 border-0 bg-transparent"
       />
 
-      {/* 状态文本 (桌面端显示) */}
-      <span
-        className={cn(
-          "hidden sm:inline text-xs font-medium truncate max-w-[100px]",
-          status.status === "coding" ? "text-blue-600 dark:text-blue-400" :
-          status.status === "gaming" ? "text-purple-600 dark:text-purple-400" :
-          status.status === "listening" ? "text-green-600 dark:text-green-400" :
-          "text-gray-500 dark:text-gray-400"
-        )}
-      >
-        {status.message}
-      </span>
+      {/* 状态文本 (桌面端显示，超长时滚动) */}
+      <div className="hidden sm:block relative overflow-hidden max-w-[120px]">
+        <motion.span
+          className={cn(
+            "inline-block text-xs font-medium whitespace-nowrap",
+            status.status === "coding" ? "text-blue-600 dark:text-blue-400" :
+            status.status === "gaming" ? "text-purple-600 dark:text-purple-400" :
+            status.status === "listening" ? "text-green-600 dark:text-green-400" :
+            "text-gray-500 dark:text-gray-400"
+          )}
+          // 如果文本超过 10 个字符，则启动滚动动画
+          animate={status.message.length > 10 ? {
+            x: ["0%", "-50%"],
+          } : {}}
+          transition={status.message.length > 10 ? {
+            x: {
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: Math.max(status.message.length * 0.3, 3),
+              ease: "linear",
+            }
+          } : {}}
+        >
+          {/* 滚动时需要两份文本来实现无缝循环 */}
+          {status.message.length > 10 
+            ? `${status.message}　　　${status.message}　　　`
+            : status.message
+          }
+        </motion.span>
+      </div>
     </motion.div>
   );
 }
