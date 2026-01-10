@@ -1,6 +1,30 @@
 # E2E 测试规范
 
-## 核心工具
+## 1. 快速开始 (Quick Start)
+
+### 运行环境要求
+
+- **Backend**: Docker 容器需运行中 (`docker compose up -d`) 或本地启动 API。
+- **Frontend**: 测试会自动连接 `http://localhost:3000` (默认) 或 `E2E_BASE_URL`。
+
+### 常用命令
+
+| 命令                                     | 说明                           |
+| :--------------------------------------- | :----------------------------- |
+| `npm run test:e2e`                       | 运行所有测试 (Headless 模式)   |
+| `npm run test:e2e:ui`                    | 打开交互式测试 UI (推荐调试用) |
+| `npm run test:e2e:headed`                | 开启浏览器窗口运行             |
+| `npx playwright test --update-snapshots` | 更新视觉回归测试的基准截图     |
+
+## 2. 项目结构 (Project Structure)
+
+- **配置文件**: `frontend/playwright.config.ts`
+- **测试目录**: `frontend/tests/`
+- **命名规范**: `*.spec.ts` (如 `auth.spec.ts`)
+- **截图目录**: `frontend/test-results/screenshots/`
+- **辅助工具**: `frontend/tests/utils/test-helpers.ts`
+
+## 3. 核心工具
 
 ### `tests/utils/test-helpers.ts`
 
@@ -26,7 +50,7 @@ await validator.expectNotErrorPage(); // 非错误页面
 await validator.expectTitleContains("评论"); // 标题正确
 ```
 
-## 测试编写规范
+## 4. 测试编写规范
 
 ### 1. 始终检测客户端错误
 
@@ -202,7 +226,7 @@ await expect(header).toHaveScreenshot("header-baseline.png");
 
 ---
 
-## 测试分层策略
+## 5. 测试分层策略
 
 | 层级     | 测试类型 | 工具                     | 关注点                     |
 | -------- | -------- | ------------------------ | -------------------------- |
