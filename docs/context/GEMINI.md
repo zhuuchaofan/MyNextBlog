@@ -215,78 +215,89 @@
      - Controller 返回 DTO 时必须添加 `[ProducesResponseType(typeof(XxxResponse), 200)]`
      - 创建响应包装类型（如 `UserPresenceResponse`）让 Swagger 能推断完整结构
 
-     ### 3.6 E2E 测试规范 ✨ (2026-01 新增)
+     ### 3.6 E2E 测试规范 ✨ (2026-01 升级版)
 
-     本项目使用 **Playwright** 进行端到端测试，验证前后端集成的关键路径。
+     本项目使用 **Playwright** 进行生产级端到端测试，验证前后端集成的关键路径。
 
      **测试文件位置**: `frontend/tests/*.spec.ts`
 
-     **运行方式**:
+     **核心原则**:
+     1.  **真实环境**: 尽可能连接真实后端容器，而非 Mock API（除非测试第三方服务故障）。
+     2.  **移动端优先**: 关键管理流程必须包含 Mobile Viewport 测试。
+     3.  **零脏数据**: 测试产生的数据应具有可识别性或自动清理。
+
+     #### 3.6.1 运行配置与安全
+
+     | 环境变量              | 说明                               | 默认值/要求             |
+     | :-------------------- | :--------------------------------- | :---------------------- |
+     | `E2E_BASE_URL`        | 测试目标地址                       | `http://localhost:3000` |
+     | `TEST_ADMIN_USER`     | 管理员用户名                       | **必须**从 CI Secret 读取 |
+     | `TEST_ADMIN_PASSWORD` | 管理员密码                         | **必须**从 CI Secret 读取 |
+     | `CI`                  | CI 环境标识 (禁用 only, 开启重试) | `false`                 |
 
      ```bash
-     # 前提: Docker 容器运行中
-     docker compose up -d
-
-     # 运行所有测试
+     # 运行所有测试 (包含 Desktop & Mobile)
      npm run test:e2e
 
-     # 交互式 UI 模式
+     # 仅运行 UI 交互模式 (调试用)
      npm run test:e2e:ui
-
-     # 仅运行特定测试
-     npx playwright test tests/auth.spec.ts
      ```
 
-     **测试覆盖范围**:
+     #### 3.6.2 编写规范 (Production Grade)
 
-     | 测试文件                  | 覆盖功能            |
-     | :------------------------ | :------------------ |
-     | `home.spec.ts`            | 首页加载、导航栏    |
-     | `presence.spec.ts`        | 用户状态 API 和组件 |
-     | `post-detail.spec.ts`     | 文章列表和详情 API  |
-     | `comments.spec.ts`        | 评论 API            |
-     | `categories-tags.spec.ts` | 分类、标签、筛选    |
-     | `auth.spec.ts`            | 登录认证、权限验证  |
-     | `search.spec.ts`          | 搜索和分页          |
-     | `friend-links.spec.ts`    | 友链 API 和页面     |
-     | `memos.spec.ts`           | 碎碎念功能          |
-     | `about.spec.ts`           | 关于页面            |
-
-     **编写规范**:
+     **1. 使用 Fixtures 模式**
+     推荐封装 `adminPage` 或 `authedRequest` fixture，简化登录逻辑并统一鉴权状态。
 
      ```typescript
-     // 1. API 测试 - 验证响应结构
-     test("API 应返回正确结构", async ({ request }) => {
-       const response = await request.get("/api/backend/xxx");
-       expect(response.ok()).toBeTruthy();
-       const json = await response.json();
-       expect(json).toHaveProperty("success", true);
-       expect(json).toHaveProperty("data");
-     });
-
-     // 2. UI 测试 - 验证页面元素
-     test("页面应显示关键元素", async ({ page }) => {
-       await page.goto("/path");
-       await expect(page.locator("nav")).toBeVisible();
-     });
-
-     // 3. 截图验证 - 保存页面状态 ✨ (2026-01 新增)
-     await page.screenshot({
-       path: "test-results/screenshots/admin-comments-page.png",
-       fullPage: true,
+     // ✅ Good: 自动处理登录状态与清理
+     test("管理员可以删除评论", async ({ adminPage }) => {
+       await adminPage.goto("/admin/comments");
+       // ...
      });
      ```
 
-     **登录优化 (2026-01)**:
+     **2. 数据隔离与清理 (Data Hygiene)**
+     所有测试生成的实体（文章、评论、标签）必须使用统一前缀，以便于生产环境识别和清理：
+     - **格式**: `[E2E_AUTO] <当前时间戳> <名称>`
+     - **清理**: 在 `test.afterAll` 中调用清理 API，或配置定时任务删除该前缀数据。
 
-     `loginAsAdmin` 现在会先检查 cookie 中是否已有 token，已登录则跳过登录请求，避免触发频率限制。
+     **3. 视觉回归测试 (Visual Regression)**
+     不仅仅是保存截图，更要**比对**截图，防止 CSS 样式倒退：
+
+     ```typescript
+     // ✅ 验证页面布局未发生非预期变化
+     await expect(page).toHaveScreenshot('admin-dashboard-mobile.png', {
+       maxDiffPixels: 100, // 允许微小像素差异 (抗锯齿等)
+       fullPage: true
+     });
+     ```
+
+     **4. 移动端强制测试**
+     在 `playwright.config.ts` 中必须保留 `Mobile Chrome` 项目，并在关键 UI 测试中显式覆盖：
+
+     ```typescript
+     test.describe("移动端适配", () => {
+       test.use({ viewport: { width: 390, height: 844 } }); // iPhone 13
+       
+       test("侧边栏应折叠为汉堡菜单", async ({ page }) => {
+         // ...
+       });
+     });
+     ```
+
+     #### 3.6.3 测试覆盖清单与注意事项
+
+     | 测试文件                  | 关键覆盖点                          | 备注                     |
+     | :------------------------ | :---------------------------------- | :----------------------- |
+     | `auth.spec.ts`            | 登录/登出、JWT 过期处理             | **Serial Mode** (防限流) |
+     | `admin-comments.spec.ts`  | 批量审核、删除、移动端表格适配      | 需验证截图比对           |
+     | `post-creation.spec.ts`   | Markdown 编辑器、图片上传           | **必须清理生成的数据**   |
+     | `layout-mobile.spec.ts`   | Navbar 响应式、底部导航栏(Mobile)   | 纯 UI 布局测试           |
 
      **注意事项**:
-
-     - 登录 API 有频率限制（每分钟 5 次），登录测试需使用 `test.describe.configure({ mode: "serial" })`
-     - 测试应验证 `{ success, data }` 统一响应格式
-     - 敏感凭据不应硬编码，生产环境应使用环境变量
-     - **截图输出目录**: `frontend/test-results/screenshots/`
+     - **登录限流**: 登录 API 有频率限制（每分钟 5 次），测试代码必须复用 Token (StorageState)。
+     - **API 契约**: 必须验证 JSON 响应符合 `{ success: true, data: ... }` 统一格式。
+     - **截图目录**: 统一输出至 `frontend/test-results/screenshots/`。
 
      ***
 
