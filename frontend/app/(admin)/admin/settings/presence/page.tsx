@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Loader2,
-  Save,
   Gamepad2,
   Code,
   Eye,
@@ -24,6 +23,7 @@ import {
   Sparkles,
   RotateCcw,
   Pencil,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -47,11 +47,15 @@ interface CurrentStatus {
 
 export default function PresenceSettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<CurrentStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // 编辑模式
+  
+  // 独立编辑状态
+  const [editingSteamKey, setEditingSteamKey] = useState(false);
+  const [editingSteamId, setEditingSteamId] = useState(false);
+  const [editingWakatimeKey, setEditingWakatimeKey] = useState(false);
+  const [savingField, setSavingField] = useState<string | null>(null);
 
   // 手动覆盖状态
   const [overrideStatus, setOverrideStatus] = useState("custom");
@@ -163,46 +167,35 @@ export default function PresenceSettingsPage() {
     }
   };
 
-  // 保存配置
-  const handleSave = async () => {
-    setSaving(true);
+  // 保存单个配置项
+  const handleSaveField = async (field: 'steamKey' | 'steamId' | 'wakatimeKey') => {
+    const fieldMap = {
+      steamKey: { key: 'config_steam_key', value: config.steamKey, desc: 'Steam Web API Key', setEditing: setEditingSteamKey },
+      steamId: { key: 'config_steam_id', value: config.steamId, desc: 'Steam 用户 ID', setEditing: setEditingSteamId },
+      wakatimeKey: { key: 'config_wakatime_key', value: config.wakatimeKey, desc: 'WakaTime API Key', setEditing: setEditingWakatimeKey },
+    };
+    
+    const item = fieldMap[field];
+    setSavingField(field);
+    
     try {
-      const updates = [
-        {
-          key: "config_steam_key",
-          value: config.steamKey,
-          description: "Steam Web API Key",
-        },
-        {
-          key: "config_steam_id",
-          value: config.steamId,
-          description: "Steam 用户 ID",
-        },
-        {
-          key: "config_wakatime_key",
-          value: config.wakatimeKey,
-          description: "WakaTime API Key",
-        },
-      ];
-
-      // 逐个保存（使用 PUT 方法）
-      for (const item of updates) {
-        if (item.value) {
-          await fetch(`/api/backend/site-content/${item.key}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ value: item.value, description: item.description }),
-          });
-        }
+      const res = await fetch(`/api/backend/site-content/${item.key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: item.value, description: item.desc }),
+      });
+      
+      if (res.ok) {
+        toast.success('配置已保存');
+        item.setEditing(false);
+        setTimeout(fetchStatus, 1000);
+      } else {
+        toast.error('保存失败');
       }
-
-      toast.success("配置已保存");
-      // 刷新状态
-      setTimeout(fetchStatus, 2000);
     } catch {
-      toast.error("保存失败");
+      toast.error('网络错误');
     } finally {
-      setSaving(false);
+      setSavingField(null);
     }
   };
 
@@ -383,18 +376,13 @@ export default function PresenceSettingsPage() {
               <Gamepad2 className="w-5 h-5 text-purple-500" />
               Steam 配置
             </CardTitle>
-            {config.steamKey && !isEditing && (
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-                <Pencil className="w-4 h-4 mr-1" />
-                编辑
-              </Button>
-            )}
           </div>
           <CardDescription>
             监测 Steam 游戏状态，显示正在游玩的游戏
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Steam API Key */}
           <div className="space-y-2">
             <Label htmlFor="steamKey">Steam Web API Key</Label>
             <div className="flex gap-2">
@@ -406,8 +394,8 @@ export default function PresenceSettingsPage() {
                   setConfig({ ...config, steamKey: e.target.value })
                 }
                 placeholder="输入你的 Steam API Key"
-                disabled={!!config.steamKey && !isEditing}
-                className={config.steamKey && !isEditing ? "bg-muted" : ""}
+                disabled={!!config.steamKey && !editingSteamKey}
+                className={config.steamKey && !editingSteamKey ? "bg-muted" : ""}
               />
               <Button
                 variant="ghost"
@@ -420,6 +408,20 @@ export default function PresenceSettingsPage() {
                   <Eye className="w-4 h-4" />
                 )}
               </Button>
+              {/* 编辑/完成按钮 */}
+              {config.steamKey && !editingSteamKey ? (
+                <Button variant="outline" size="icon" onClick={() => setEditingSteamKey(true)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              ) : editingSteamKey ? (
+                <Button 
+                  size="icon" 
+                  onClick={() => handleSaveField('steamKey')}
+                  disabled={savingField === 'steamKey'}
+                >
+                  {savingField === 'steamKey' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                </Button>
+              ) : null}
             </div>
             <a
               href="https://steamcommunity.com/dev/apikey"
@@ -431,18 +433,35 @@ export default function PresenceSettingsPage() {
             </a>
           </div>
 
+          {/* Steam ID */}
           <div className="space-y-2">
             <Label htmlFor="steamId">Steam ID</Label>
-            <Input
-              id="steamId"
-              value={config.steamId}
-              onChange={(e) =>
-                setConfig({ ...config, steamId: e.target.value })
-              }
-              placeholder="如 76561198xxxxx"
-              disabled={!!config.steamId && !isEditing}
-              className={config.steamId && !isEditing ? "bg-muted" : ""}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="steamId"
+                value={config.steamId}
+                onChange={(e) =>
+                  setConfig({ ...config, steamId: e.target.value })
+                }
+                placeholder="如 76561198xxxxx"
+                disabled={!!config.steamId && !editingSteamId}
+                className={config.steamId && !editingSteamId ? "bg-muted" : ""}
+              />
+              {/* 编辑/完成按钮 */}
+              {config.steamId && !editingSteamId ? (
+                <Button variant="outline" size="icon" onClick={() => setEditingSteamId(true)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              ) : editingSteamId ? (
+                <Button 
+                  size="icon" 
+                  onClick={() => handleSaveField('steamId')}
+                  disabled={savingField === 'steamId'}
+                >
+                  {savingField === 'steamId' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                </Button>
+              ) : null}
+            </div>
             <p className="text-xs text-muted-foreground">
               在 Steam 个人资料 URL 中找到 (steamcommunity.com/profiles/
               <strong>76561198xxxxx</strong>)
@@ -459,12 +478,6 @@ export default function PresenceSettingsPage() {
               <Code className="w-5 h-5 text-blue-500" />
               WakaTime 配置
             </CardTitle>
-            {config.wakatimeKey && !isEditing && (
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-                <Pencil className="w-4 h-4 mr-1" />
-                编辑
-              </Button>
-            )}
           </div>
           <CardDescription>
             监测 IDE 编程活动，显示编程状态
@@ -482,8 +495,8 @@ export default function PresenceSettingsPage() {
                   setConfig({ ...config, wakatimeKey: e.target.value })
                 }
                 placeholder="输入你的 WakaTime API Key"
-                disabled={!!config.wakatimeKey && !isEditing}
-                className={config.wakatimeKey && !isEditing ? "bg-muted" : ""}
+                disabled={!!config.wakatimeKey && !editingWakatimeKey}
+                className={config.wakatimeKey && !editingWakatimeKey ? "bg-muted" : ""}
               />
               <Button
                 variant="ghost"
@@ -496,6 +509,20 @@ export default function PresenceSettingsPage() {
                   <Eye className="w-4 h-4" />
                 )}
               </Button>
+              {/* 编辑/完成按钮 */}
+              {config.wakatimeKey && !editingWakatimeKey ? (
+                <Button variant="outline" size="icon" onClick={() => setEditingWakatimeKey(true)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              ) : editingWakatimeKey ? (
+                <Button 
+                  size="icon" 
+                  onClick={() => handleSaveField('wakatimeKey')}
+                  disabled={savingField === 'wakatimeKey'}
+                >
+                  {savingField === 'wakatimeKey' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                </Button>
+              ) : null}
             </div>
             <a
               href="https://wakatime.com/settings/api-key"
@@ -508,18 +535,6 @@ export default function PresenceSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* 保存按钮 */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          保存配置
-        </Button>
-      </div>
     </div>
   );
 }
