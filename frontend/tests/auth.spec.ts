@@ -81,8 +81,8 @@ test.describe("认证功能 (Authentication)", () => {
 
     expect(meResponse.ok()).toBeTruthy();
     const meJson = await meResponse.json();
-    // /api/account/me 直接返回用户对象 (TODO: 后续可统一为 { success, data } 格式)
-    expect(meJson).toHaveProperty("username", "chaofan");
+    expect(meJson).toHaveProperty("success", true);
+    expect(meJson.data).toHaveProperty("username", "chaofan");
 
     // 3. 访问管理员专用 API
     const adminResponse = await request.get("/api/backend/posts/admin", {
