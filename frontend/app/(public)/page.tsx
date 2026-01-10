@@ -6,7 +6,7 @@ import Image from "next/image";
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 import StatsWidget from "./_components/StatsWidget";
-import { cookies } from "next/headers"; // 导入 cookies 工具
+import { cookies } from "next/headers";
 
 // 移除 force-dynamic，允许 Next.js 自动优化
 // export const dynamic = "force-dynamic";
@@ -107,11 +107,10 @@ export default async function Home() {
     }
   }
 
-  // 检查是否登录 (简单判断 Token)
-  // 后端会进行实际的权限验证，所以这里主要用于控制 UI 显示
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token");
-  const isAdmin = !!token; // 暂时简单视为管理员 (为了显示管理按钮)
+  // 检查是否为管理员
+  // 使用后端返回的 isAdmin 字段进行权限判断，而非简单检查 Token 存在
+  // 后端 HomeController 会通过 User.IsInRole("Admin") 验证用户角色
+  const isAdmin = homeData?.isAdmin ?? false;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">

@@ -89,7 +89,8 @@ public class HomeController(
                         }
                     },
                     tags = tags.Select(t => t.Name).ToList(), // 仅返回标签名称，与前端期望格式一致
-                    content = contentDict
+                    content = contentDict,
+                    isAdmin = User.IsInRole("Admin") // 新增：管理员标识，用于前端控制管理按钮显示
                 }
             });
         }

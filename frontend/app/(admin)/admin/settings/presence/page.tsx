@@ -271,7 +271,10 @@ export default function PresenceSettingsPage() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">
-                  <pre className="text-xs font-mono">{JSON.stringify(currentStatus, null, 2)}</pre>
+                  <pre className="text-xs font-mono">{currentStatus && JSON.stringify({
+                    ...currentStatus,
+                    timestamp: new Date(currentStatus.timestamp).toLocaleString('zh-CN')
+                  }, null, 2)}</pre>
                 </div>
               </CollapsibleContent>
             </Collapsible>
