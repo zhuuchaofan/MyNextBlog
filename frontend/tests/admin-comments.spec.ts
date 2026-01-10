@@ -63,6 +63,11 @@ test.describe("管理员评论管理 (Admin Comments)", () => {
       expect(comment).toHaveProperty("id");
       expect(comment).toHaveProperty("content");
       expect(comment).toHaveProperty("isApproved");
+      // userAvatar 字段：访客评论可能不包含此字段 (后端 WhenWritingNull)
+      // 如果存在则验证类型为 string
+      if ("userAvatar" in comment) {
+        expect(typeof comment.userAvatar).toBe("string");
+      }
     }
   });
 
@@ -112,7 +117,7 @@ test.describe("管理员评论管理 (Admin Comments)", () => {
   // UI 测试 (关键: 检测客户端渲染错误)
   // ========================================================================
 
-  test("评论管理页面应正常加载 (无 JS 错误)", async ({ page, context }) => {
+  test("评论管理页面应正常加载 (无 JS 错误) 并截图验证", async ({ page, context }) => {
     // 尝试登录
     const loggedIn = await loginAsAdmin(context);
 
@@ -133,6 +138,26 @@ test.describe("管理员评论管理 (Admin Comments)", () => {
 
     // ✅ 核心断言：页面标题正确
     await validator.expectTitleContains("评论");
+
+    // ✅ 截图验证：保存页面完整状态用于视觉验证
+    await page.screenshot({
+      path: "test-results/screenshots/admin-comments-page.png",
+      fullPage: true,
+    });
+
+    // ✅ 头像验证：检查头像元素渲染
+    const avatarImages = page.locator('img[class*="avatar"], [data-slot="avatar-image"]');
+    const avatarCount = await avatarImages.count();
+
+    if (avatarCount > 0) {
+      // 验证前 5 个头像的 src 属性
+      for (let i = 0; i < Math.min(avatarCount, 5); i++) {
+        const img = avatarImages.nth(i);
+        const src = await img.getAttribute("src");
+        expect(src, `头像 ${i + 1} 应有 src 属性`).toBeTruthy();
+        expect(src, `头像 ${i + 1} 的 src 应是有效 URL`).toMatch(/^https?:\/\//);
+      }
+    }
   });
 
   test("评论管理页面应显示评论列表或空状态", async ({ page, context }) => {
@@ -156,4 +181,7 @@ test.describe("管理员评论管理 (Admin Comments)", () => {
     
     expect(hasTable || hasEmptyState).toBeTruthy();
   });
+
+
 });
+

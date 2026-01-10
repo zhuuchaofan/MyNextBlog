@@ -69,6 +69,7 @@ export interface AdminComment {
   isApproved: boolean;
   postTitle?: string;
   postId: number;
+  userAvatar?: string;  // 评论者头像 URL (登录用户或 null)
 }
 
 /**

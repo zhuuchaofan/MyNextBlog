@@ -7,9 +7,18 @@ import { Page, BrowserContext, expect } from "@playwright/test";
 
 /**
  * 管理员登录并获取认证状态
- * @returns true 登录成功, false 触发频率限制或失败
+ * 优化：先检查是否已登录，避免重复登录触发频率限制
+ * @returns true 登录成功或已登录, false 触发频率限制或失败
  */
 export async function loginAsAdmin(context: BrowserContext): Promise<boolean> {
+  // 1. 先检查是否已有 token（已登录）
+  const cookies = await context.cookies();
+  const existingToken = cookies.find((c) => c.name === "token");
+  if (existingToken) {
+    return true; // 已登录，直接返回
+  }
+
+  // 2. 未登录，执行登录请求
   const loginResponse = await context.request.post("/api/auth/login", {
     data: {
       username: "chaofan",
@@ -22,8 +31,8 @@ export async function loginAsAdmin(context: BrowserContext): Promise<boolean> {
   }
 
   if (loginResponse.ok()) {
-    const cookies = await context.cookies();
-    const tokenCookie = cookies.find((c) => c.name === "token");
+    const newCookies = await context.cookies();
+    const tokenCookie = newCookies.find((c) => c.name === "token");
     return !!tokenCookie;
   }
   return false;

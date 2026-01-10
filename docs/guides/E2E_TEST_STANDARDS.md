@@ -6,13 +6,13 @@
 
 提供以下工具：
 
-| 工具                            | 用途                           |
-| :------------------------------ | :----------------------------- |
-| `loginAsAdmin(context)`         | 通过 BFF 登录，返回 boolean    |
-| `loginAndGetToken(request)`     | 通过后端 API 登录，返回 token  |
-| `PageValidator`                 | 页面验证器（详见下方）         |
-| `expectApiSuccess(json)`        | 验证 `{ success: true }`       |
-| `expectPaginatedResponse(json)` | 验证 `{ success, data, meta }` |
+| 工具                            | 用途                                          |
+| :------------------------------ | :-------------------------------------------- |
+| `loginAsAdmin(context)`         | 通过 BFF 登录，自动检测已登录状态避免重复登录 |
+| `loginAndGetToken(request)`     | 通过后端 API 登录，返回 token                 |
+| `PageValidator`                 | 页面验证器（详见下方）                        |
+| `expectApiSuccess(json)`        | 验证 `{ success: true }`                      |
+| `expectPaginatedResponse(json)` | 验证 `{ success, data, meta }`                |
 
 ### PageValidator 使用
 
@@ -65,3 +65,38 @@ if (!token) {
   return;
 }
 ```
+
+> **优化 (2026-01)**: `loginAsAdmin` 现在会先检查 cookie 中是否已有 token，
+> 如果已登录则跳过登录请求，避免触发频率限制。
+
+### 4. 截图验证 ✨ (2026-01 新增)
+
+使用 Playwright 截图功能进行视觉验证：
+
+```typescript
+// 保存整页截图
+await page.screenshot({
+  path: "test-results/screenshots/admin-comments-page.png",
+  fullPage: true,
+});
+
+// 验证元素存在并检查属性
+const avatarImages = page.locator('img[class*="avatar"]');
+const count = await avatarImages.count();
+
+if (count > 0) {
+  for (let i = 0; i < Math.min(count, 5); i++) {
+    const src = await avatarImages.nth(i).getAttribute("src");
+    expect(src).toBeTruthy();
+    expect(src).toMatch(/^https?:\/\//);
+  }
+}
+```
+
+**截图输出目录**: `frontend/test-results/screenshots/`
+
+**使用场景**:
+
+- UI 回归测试（对比截图差异）
+- 调试页面渲染问题
+- 验证动态内容正确显示（如头像、图片）

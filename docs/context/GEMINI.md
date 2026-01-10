@@ -269,13 +269,24 @@
        await page.goto("/path");
        await expect(page.locator("nav")).toBeVisible();
      });
+
+     // 3. 截图验证 - 保存页面状态 ✨ (2026-01 新增)
+     await page.screenshot({
+       path: "test-results/screenshots/admin-comments-page.png",
+       fullPage: true,
+     });
      ```
+
+     **登录优化 (2026-01)**:
+
+     `loginAsAdmin` 现在会先检查 cookie 中是否已有 token，已登录则跳过登录请求，避免触发频率限制。
 
      **注意事项**:
 
      - 登录 API 有频率限制（每分钟 5 次），登录测试需使用 `test.describe.configure({ mode: "serial" })`
      - 测试应验证 `{ success, data }` 统一响应格式
      - 敏感凭据不应硬编码，生产环境应使用环境变量
+     - **截图输出目录**: `frontend/test-results/screenshots/`
 
      ***
 
