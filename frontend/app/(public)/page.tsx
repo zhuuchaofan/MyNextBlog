@@ -27,10 +27,10 @@ async function getHomePageData() {
   }
 
   try {
-    // 管理员可查看隐藏文章，普通用户只能查看公开文章
-    const includeHidden = !!token;
+    // 后端会根据用户角色（JWT token 中的 Admin 角色）自动决定是否返回隐藏文章
+    // 普通用户：只返回公开文章；管理员：返回所有文章（包括隐藏）
     const res = await fetch(
-      `${backendUrl}/api/home/initial-data?page=1&pageSize=10&includeHidden=${includeHidden}`,
+      `${backendUrl}/api/home/initial-data?page=1&pageSize=10`,
       {
         headers,
         next: { revalidate: token ? 0 : 60 }, // ISR: 管理员实时，普通用户缓存

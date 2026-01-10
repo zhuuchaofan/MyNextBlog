@@ -55,7 +55,6 @@ public class HomeController(
     /// </summary>
     [HttpGet("initial-data")]
     public async Task<IActionResult> GetInitialData(
-        [FromQuery] bool includeHidden = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -63,12 +62,16 @@ public class HomeController(
 
         try
         {
+            // 安全修复 (2026-01): 只有管理员才能看到隐藏文章
+            // 不再信任客户端传入的 includeHidden 参数，由后端根据角色决定
+            var isAdmin = User.IsInRole("Admin");
+            
             // 1. 串行获取文章和标签
             // ⚠️ 不能使用 Task.WhenAll 并行执行！
             // 原因：PostService 和 TagService 共享同一个 Scoped 的 DbContext 实例，
             // 而 EF Core 的 DbContext 不是线程安全的，并行访问会导致：
             // "A second operation was started on this context instance before a previous operation completed"
-            var (posts, totalCount) = await postService.GetAllPostsAsync(page, pageSize, includeHidden);
+            var (posts, totalCount) = await postService.GetAllPostsAsync(page, pageSize, includeHidden: isAdmin);
             var tags = await tagService.GetPopularTagsAsync(10, includeHidden: false);
 
             // 2. 批量获取 SiteContent（通过 Service 层）
@@ -90,7 +93,7 @@ public class HomeController(
                     },
                     tags = tags.Select(t => t.Name).ToList(), // 仅返回标签名称，与前端期望格式一致
                     content = contentDict,
-                    isAdmin = User.IsInRole("Admin") // 新增：管理员标识，用于前端控制管理按钮显示
+                    isAdmin // 复用上面计算的变量
                 }
             });
         }

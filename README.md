@@ -36,6 +36,27 @@ MyNextBlog 是一个采用 **BFF (Backend for Frontend)** 架构设计的 Headle
 
 ### 最新更新 (2026-01-10)
 
+- ❤️ **点赞功能全面改进**:
+  - **后端 API 增强**:
+    - `GET /api/posts/{id}/like-status`: 查询单篇文章点赞状态
+    - `POST /api/posts/like-status/batch`: 批量查询点赞状态（≤50 篇）
+    - `GET /api/account/liked-posts`: 获取用户点赞文章列表
+    - Rate Limiting: 点赞接口限制 10 次/分钟/IP
+  - **前端重构**:
+    - 新建 `useLike.ts` Hook 统一管理点赞逻辑
+    - 页面加载时从后端验证真实点赞状态（解决 LocalStorage 不同步问题）
+    - 点赞动画效果 + 统一 Toast 提示
+  - **用户中心"我的点赞"**:
+    - 新增 `/liked` 页面，展示用户点赞过的文章
+    - Navbar 用户菜单添加入口
+  - **E2E 测试**: `like.spec.ts` 覆盖 API 验证和 Rate Limiting
+- 🔒 **安全修复: 隐藏文章可见性**:
+  - **漏洞描述**: 普通用户登录后能看到隐藏文章卡片（虽然点击后 404）
+  - **根因**: 后端 `HomeController` 直接使用客户端传入的 `includeHidden` 参数
+  - **修复方案**: 后端改用 `User.IsInRole("Admin")` 内部判断，不再信任客户端参数
+
+### 历史更新 (2026-01-10)
+
 - 🤖 **数字分身系统完善 (Digital Presence)**: 全自动站长状态感知系统
   - **WakaTime 集成**: 检测 IDE 编程活动，显示"正在编程 {项目名}"状态
   - **Steam 集成**: 检测游戏状态，显示"正在游玩 {游戏名}"状态
