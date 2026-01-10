@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer; // 引入 JWT Bearer 认证方案相关类型
 using Microsoft.AspNetCore.Authorization;            // 引入授权相关特性，如 [Authorize]
 using Microsoft.AspNetCore.Mvc;                      // 引入 ASP.NET Core MVC 核心类型，如 ControllerBase, IActionResult, [HttpGet] 等
+using Microsoft.AspNetCore.RateLimiting;            // 引入 Rate Limiting 特性
 using MyNextBlog.Models;                             // 引入应用程序的领域模型，如 Post
 using MyNextBlog.Services;                           // 引入业务服务层接口，如 IPostService, ITagService
 using MyNextBlog.DTOs;                              // 引入数据传输对象，用于 API 请求和响应
@@ -297,8 +298,10 @@ public class PostsApiController(IPostService postService, ICommentService commen
 
     /// <summary>
     /// 切换点赞状态 (公开接口，支持游客)
+    /// 频率限制: 每分钟最多 10 次 (按 IP)
     /// </summary>
     [HttpPost("{id}/like")]
+    [EnableRateLimiting("like")]
     public async Task<IActionResult> ToggleLike(int id)
     {
         // 使用扩展方法获取用户ID（如果已认证）
@@ -322,6 +325,53 @@ public class PostsApiController(IPostService postService, ICommentService commen
         {
             return NotFound(new { success = false, message = "文章不存在" });
         }
+    }
+
+    /// <summary>
+    /// 获取当前用户对指定文章的点赞状态 (公开接口)
+    /// </summary>
+    [HttpGet("{id}/like-status")]
+    public async Task<IActionResult> GetLikeStatus(int id)
+    {
+        int? userId = User.GetUserId();
+        string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        if (!userId.HasValue && string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = "unknown";
+        }
+
+        var isLiked = await postService.IsLikedAsync(id, userId, ipAddress);
+        return Ok(new { success = true, isLiked });
+    }
+
+    /// <summary>
+    /// 批量获取多篇文章的点赞状态 (用于文章列表页)
+    /// </summary>
+    [HttpPost("like-status/batch")]
+    public async Task<IActionResult> GetLikeStatusBatch([FromBody] List<int> postIds)
+    {
+        if (postIds == null || !postIds.Any())
+        {
+            return Ok(new { success = true, data = new Dictionary<int, bool>() });
+        }
+
+        // 限制单次查询数量，防止滥用
+        if (postIds.Count > 50)
+        {
+            return BadRequest(new { success = false, message = "单次最多查询 50 篇文章" });
+        }
+
+        int? userId = User.GetUserId();
+        string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        if (!userId.HasValue && string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = "unknown";
+        }
+
+        var likeStatus = await postService.GetLikeStatusBatchAsync(postIds, userId, ipAddress);
+        return Ok(new { success = true, data = likeStatus });
     }
 
     // --- 回收站功能 (Trash) ---

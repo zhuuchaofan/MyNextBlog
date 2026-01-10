@@ -663,6 +663,124 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
 
         return result.Take(count).ToList();
     }
-}
 
-    
+    // --- 点赞状态查询 ---
+
+    /// <summary>
+    /// 查询当前用户是否已点赞指定文章
+    /// </summary>
+    public async Task<bool> IsLikedAsync(int postId, int? userId, string? ipAddress)
+    {
+        if (userId.HasValue)
+        {
+            return await context.PostLikes
+                .AsNoTracking()
+                .AnyAsync(l => l.PostId == postId && l.UserId == userId);
+        }
+        else if (!string.IsNullOrEmpty(ipAddress))
+        {
+            return await context.PostLikes
+                .AsNoTracking()
+                .AnyAsync(l => l.PostId == postId && l.IpAddress == ipAddress);
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// 批量查询多篇文章的点赞状态 (用于文章列表页)
+    /// </summary>
+    public async Task<Dictionary<int, bool>> GetLikeStatusBatchAsync(IEnumerable<int> postIds, int? userId, string? ipAddress)
+    {
+        var idList = postIds.ToList();
+        if (!idList.Any()) return new Dictionary<int, bool>();
+
+        HashSet<int> likedPostIds;
+        
+        if (userId.HasValue)
+        {
+            likedPostIds = (await context.PostLikes
+                .AsNoTracking()
+                .Where(l => idList.Contains(l.PostId) && l.UserId == userId)
+                .Select(l => l.PostId)
+                .ToListAsync())
+                .ToHashSet();
+        }
+        else if (!string.IsNullOrEmpty(ipAddress))
+        {
+            likedPostIds = (await context.PostLikes
+                .AsNoTracking()
+                .Where(l => idList.Contains(l.PostId) && l.IpAddress == ipAddress)
+                .Select(l => l.PostId)
+                .ToListAsync())
+                .ToHashSet();
+        }
+        else
+        {
+            likedPostIds = new HashSet<int>();
+        }
+
+        return idList.ToDictionary(id => id, id => likedPostIds.Contains(id));
+    }
+
+    /// <summary>
+    /// 获取用户点赞过的文章列表
+    /// </summary>
+    public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetLikedPostsAsync(int userId, int page, int pageSize)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
+        // 获取用户点赞的文章 ID 列表
+        var likedPostIds = await context.PostLikes
+            .AsNoTracking()
+            .Where(l => l.UserId == userId)
+            .OrderByDescending(l => l.CreateTime)
+            .Select(l => l.PostId)
+            .ToListAsync();
+
+        var totalCount = likedPostIds.Count;
+
+        // 分页获取文章 ID
+        var pagedPostIds = likedPostIds
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        if (!pagedPostIds.Any())
+        {
+            return (new List<PostSummaryDto>(), totalCount);
+        }
+
+        // 获取文章详情
+        var posts = await context.Posts
+            .AsNoTracking()
+            .Where(p => pagedPostIds.Contains(p.Id) && !p.IsDeleted && !p.IsHidden)
+            .Select(p => new PostSummaryDto(
+                p.Id,
+                p.Title,
+                p.Content.Length > 150 ? p.Content.Substring(0, 150) + "..." : p.Content,
+                p.Category != null ? p.Category.Name : "未分类",
+                p.CategoryId,
+                p.User != null ? (p.User.Nickname ?? p.User.Username) : "Unknown",
+                p.User != null ? p.User.AvatarUrl : null,
+                p.CreateTime,
+                p.UpdatedAt,
+                null,
+                new List<string>(),
+                p.IsHidden,
+                p.LikeCount,
+                p.Series != null ? p.Series.Name : null,
+                0
+            ))
+            .ToListAsync();
+
+        // 按点赞时间顺序排序返回
+        var orderedPosts = pagedPostIds
+            .Select(id => posts.FirstOrDefault(p => p.Id == id))
+            .Where(p => p != null)
+            .ToList()!;
+
+        return (orderedPosts!, totalCount);
+    }
+}

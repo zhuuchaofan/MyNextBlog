@@ -160,6 +160,50 @@ export function toggleLike(postId: number) {
   });
 }
 
+// 获取单篇文章的点赞状态
+export function fetchLikeStatus(postId: number) {
+  return fetchClient<{ success: boolean; isLiked: boolean }>(
+    `/api/backend/posts/${postId}/like-status`
+  );
+}
+
+// 批量获取多篇文章的点赞状态
+export function fetchLikeStatusBatch(postIds: number[]) {
+  return fetchClient<{ success: boolean; data: Record<number, boolean> }>(
+    "/api/backend/posts/like-status/batch",
+    {
+      method: "POST",
+      body: postIds,
+    }
+  );
+}
+
+// 获取当前用户点赞过的文章列表 (需要登录)
+export function fetchLikedPosts(page = 1, pageSize = 10) {
+  return fetchClient<PaginatedResponse<PostSummary>>(
+    `/api/backend/account/liked-posts?page=${page}&pageSize=${pageSize}`
+  );
+}
+
+// PostSummary 类型 (用于列表展示)
+export interface PostSummary {
+  id: number;
+  title: string;
+  summary: string;
+  categoryName: string;
+  categoryId: number | null;
+  authorName: string;
+  authorAvatar: string | null;
+  createTime: string;
+  updatedAt: string | null;
+  coverImage: string | null;
+  tags: string[];
+  isHidden: boolean;
+  likeCount: number;
+  seriesName: string | null;
+  seriesOrder: number;
+}
+
 // [Admin] 获取所有评论 (带类型约束)
 export function fetchAllCommentsAdmin(
   page = 1,

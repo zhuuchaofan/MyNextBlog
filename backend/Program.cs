@@ -104,6 +104,19 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0 // 不排队，直接拒绝
             }));
     
+    // 点赞接口策略: 每分钟最多 10 次 (基于 IP)
+    // 防止刷赞行为，同时保证正常用户体验
+    options.AddPolicy("like", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+    
     // 全局策略: 每分钟最多 100 次请求 (针对同一 IP)
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {

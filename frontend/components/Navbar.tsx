@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle, Heart } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { UserPresenceWidget } from '@/components/UserPresenceWidget';
@@ -155,11 +155,17 @@ export default function Navbar() {
                                </Link>
                              )}
                              <Link href="/orders">
-                               <DropdownMenuItem className="cursor-pointer gap-2">
-                                 <Package className="w-4 h-4" />
-                                 <span>我的订单</span>
-                               </DropdownMenuItem>
-                             </Link>
+                                <DropdownMenuItem className="cursor-pointer gap-2">
+                                  <Package className="w-4 h-4" />
+                                  <span>我的订单</span>
+                                </DropdownMenuItem>
+                              </Link>
+                              <Link href="/liked">
+                                <DropdownMenuItem className="cursor-pointer gap-2">
+                                  <Heart className="w-4 h-4" />
+                                  <span>我的点赞</span>
+                                </DropdownMenuItem>
+                              </Link>
                              <Link href="/settings">
                                <DropdownMenuItem className="cursor-pointer gap-2">
                                  <UserIcon className="w-4 h-4" />
@@ -220,12 +226,18 @@ export default function Navbar() {
                           </DropdownMenuItem>
                        </Link>
                      )}
-                     <Link href="/orders">
-                        <DropdownMenuItem className="cursor-pointer">
-                          <Package className="mr-2 h-4 w-4" />
-                          <span>我的订单</span>
-                        </DropdownMenuItem>
-                     </Link>
+                      <Link href="/orders">
+                         <DropdownMenuItem className="cursor-pointer">
+                           <Package className="mr-2 h-4 w-4" />
+                           <span>我的订单</span>
+                         </DropdownMenuItem>
+                      </Link>
+                      <Link href="/liked">
+                         <DropdownMenuItem className="cursor-pointer">
+                           <Heart className="mr-2 h-4 w-4" />
+                           <span>我的点赞</span>
+                         </DropdownMenuItem>
+                      </Link>
                      <Link href="/settings">
                         <DropdownMenuItem className="cursor-pointer">
                           <UserIcon className="mr-2 h-4 w-4" />

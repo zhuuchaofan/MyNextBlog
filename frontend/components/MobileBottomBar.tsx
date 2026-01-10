@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, Heart, Share2, Send, Loader2 } from "lucide-react";
-import { toggleLike, Comment } from "@/lib/api";
+import { Comment } from "@/lib/api";
 import { submitCommentAction } from "@/lib/actions/comment";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { useLike } from "@/lib/hooks/useLike";
 import {
   Drawer,
   DrawerContent,
@@ -31,9 +32,9 @@ export default function MobileBottomBar({
   onCommentSuccess,
 }: MobileBottomBarProps) {
   const { user } = useAuth();
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [loading, setLoading] = useState(false);
+  
+  // 使用 useLike Hook 管理点赞状态
+  const { liked, likeCount, loading, handleLike } = useLike(postId, initialLikeCount);
 
   // Drawer 状态
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -52,55 +53,6 @@ export default function MobileBottomBar({
     window.addEventListener('comment-added', handleCommentAdded);
     return () => window.removeEventListener('comment-added', handleCommentAdded);
   }, []);
-
-  useEffect(() => {
-    try {
-      const likedPosts = JSON.parse(
-        localStorage.getItem("liked_posts") || "[]"
-      );
-      if (Array.isArray(likedPosts) && likedPosts.includes(postId)) {
-        setLiked(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, [postId]);
-
-  const handleLike = async () => {
-    if (loading) return;
-    setLoading(true);
-
-    const previousLiked = liked;
-    setLiked(!previousLiked);
-    setLikeCount((prev) => (previousLiked ? Math.max(0, prev - 1) : prev + 1));
-
-    try {
-      const res = await toggleLike(postId);
-      if (res.success) {
-        setLiked(res.isLiked);
-        setLikeCount(res.likeCount);
-        const likedPosts = JSON.parse(
-          localStorage.getItem("liked_posts") || "[]"
-        );
-        let newLikedPosts = [];
-        if (res.isLiked) {
-          if (!likedPosts.includes(postId))
-            newLikedPosts = [...likedPosts, postId];
-          else newLikedPosts = likedPosts;
-        } else {
-          newLikedPosts = likedPosts.filter((id: number) => id !== postId);
-        }
-        localStorage.setItem("liked_posts", JSON.stringify(newLikedPosts));
-        toast.success(res.isLiked ? "点赞成功" : "已取消点赞");
-      }
-    } catch {
-      setLiked(previousLiked);
-      setLikeCount((prev) => (previousLiked ? prev + 1 : prev - 1));
-      toast.error("操作失败");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -179,6 +131,7 @@ export default function MobileBottomBar({
             <Button
               variant="ghost"
               size="icon"
+              disabled={loading}
               className={liked ? "text-red-500" : "text-gray-500"}
               onClick={handleLike}
             >
