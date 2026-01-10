@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { fetchAllCommentsAdmin, toggleCommentApproval, deleteCommentAdmin, batchApproveComments, batchDeleteComments } from '@/lib/api';
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, CheckCircle, XCircle, Trash2, CheckSquare, ChevronLeft, MessageCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Trash2, CheckSquare, MessageCircle } from 'lucide-react';
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -35,7 +35,6 @@ interface AdminComment {
 }
 
 export default function AdminCommentsPage() {
-  const router = useRouter();
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -162,20 +161,16 @@ export default function AdminCommentsPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl pb-24">
       {/* 头部导航 */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-          <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-        </Button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            评论管理
-        </h1>
-        {!loading && (
+      <AdminPageHeader
+        title="评论管理"
+        loading={loading}
+        stats={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
             <MessageCircle className="w-3.5 h-3.5" />
             共 {totalCount} 条
           </span>
-        )}
-      </div>
+        }
+      />
 
       {/* 筛选器 */}
       <div className="flex items-center justify-between mb-6">

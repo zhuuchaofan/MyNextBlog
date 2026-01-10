@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { fetchAllSeries, createSeries, deleteSeries, updateSeries, Series } from '@/lib/api';
-import { Plus, Edit, Trash2, Loader2, ChevronLeft, Layers } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Layers } from 'lucide-react';
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function SeriesManagementPage() {
-  const router = useRouter();
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -121,27 +120,23 @@ export default function SeriesManagementPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
       {/* 头部导航 */}
-      <div className="flex flex-col gap-4 mb-8">
-        {/* 第一行：返回按钮 + 标题 + 徽章 */}
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">系列管理</h1>
-          {!loading && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-              <Layers className="w-3.5 h-3.5" />
-              共 {seriesList.length} 个
-            </span>
-          )}
-        </div>
-        {/* 第二行：新建按钮 */}
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white">
-              <Plus className="w-4 h-4 mr-2" /> 新建系列
-            </Button>
-          </DialogTrigger>
+      <AdminPageHeader
+        title="系列管理"
+        loading={loading}
+        stats={
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+            <Layers className="w-3.5 h-3.5" />
+            共 {seriesList.length} 个
+          </span>
+        }
+        actions={
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline ml-1">新建系列</span>
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>新建系列</DialogTitle>
@@ -162,7 +157,8 @@ export default function SeriesManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
 
       {/* 内容区域 - 与评论管理页面风格一致 */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[300px]">

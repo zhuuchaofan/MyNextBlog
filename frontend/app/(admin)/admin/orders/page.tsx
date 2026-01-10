@@ -3,8 +3,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClipboardList, Loader2, XCircle, ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ClipboardList, Loader2, XCircle } from "lucide-react";
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -30,7 +30,6 @@ const statusMap: Record<
 };
 
 export default function OrdersAdminPage() {
-  const router = useRouter();
   const [orders, setOrders] = useState<OrderAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -91,20 +90,15 @@ export default function OrdersAdminPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
       {/* 头部导航 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-            <ClipboardList className="w-5 h-5" />
-            订单管理
-          </h1>
-          <Badge variant="secondary" className="hidden sm:inline-flex">
+      <AdminPageHeader
+        title="订单管理"
+        icon={<ClipboardList className="w-5 h-5" />}
+        stats={
+          <Badge variant="secondary">
             共 {totalCount} 个
           </Badge>
-        </div>
-      </div>
+        }
+      />
 
       {orders.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-800">

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { fetchDeletedPosts, restorePost, permanentDeletePost } from '@/lib/api';
+import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Undo2, Trash2, ChevronLeft, AlertTriangle } from 'lucide-react';
+import { Undo2, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from "sonner";
 
 interface DeletedPost {
@@ -32,8 +32,6 @@ interface DeletedPost {
  * 回收站页面：管理已删除的文章
  */
 export default function TrashPage() {
-  const router = useRouter();
-  
   const [posts, setPosts] = useState<DeletedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -109,17 +107,14 @@ export default function TrashPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
       {/* 页面标题 */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-            <ChevronLeft className="w-4 h-4 mr-1" /> 返回
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">回收站</h1>
+      <AdminPageHeader
+        title="回收站"
+        stats={
           <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
             {totalCount} 篇
           </Badge>
-        </div>
-      </div>
+        }
+      />
 
       {/* 警告提示 */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6 flex items-start gap-3">
