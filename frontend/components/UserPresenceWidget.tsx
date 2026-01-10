@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // 状态类型定义
 interface UserPresenceStatus {
@@ -31,7 +32,6 @@ const POLL_INTERVAL = 30000;
 export function UserPresenceWidget() {
   const [status, setStatus] = useState<UserPresenceStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(false); // 移动端展开状态
 
   // 获取状态
   const fetchStatus = useCallback(async () => {
@@ -45,7 +45,6 @@ export function UserPresenceWidget() {
         setStatus(json.data);
       }
     } catch {
-      // 网络错误时保持上一次状态，不清空
       console.warn("Presence fetch failed");
     } finally {
       setIsLoading(false);
@@ -55,18 +54,9 @@ export function UserPresenceWidget() {
   // 初始加载 + 轮询
   useEffect(() => {
     fetchStatus();
-
     const interval = setInterval(fetchStatus, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchStatus]);
-
-  // 移动端点击后自动收起
-  useEffect(() => {
-    if (isExpanded) {
-      const timer = setTimeout(() => setIsExpanded(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isExpanded]);
 
   if (isLoading || !status) {
     return null;
@@ -80,21 +70,22 @@ export function UserPresenceWidget() {
     status.status === "listening" ? "text-green-600 dark:text-green-400" :
     "text-gray-500 dark:text-gray-400";
 
-  return (
+  const bgClass = 
+    status.status === "coding" ? "bg-blue-500/10 dark:bg-blue-500/20" :
+    status.status === "gaming" ? "bg-purple-500/10 dark:bg-purple-500/20" :
+    status.status === "listening" ? "bg-green-500/10 dark:bg-green-500/20" :
+    "bg-gray-500/5 dark:bg-gray-500/10";
+
+  // 桌面端内容（始终显示文本，超长滚动）
+  const desktopContent = (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
         "relative flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-colors duration-300",
-        status.status === "coding" ? "bg-blue-500/10 dark:bg-blue-500/20" :
-        status.status === "gaming" ? "bg-purple-500/10 dark:bg-purple-500/20" :
-        status.status === "listening" ? "bg-green-500/10 dark:bg-green-500/20" :
-        "bg-gray-500/5 dark:bg-gray-500/10",
-        // 移动端可点击
-        "sm:cursor-default cursor-pointer"
+        bgClass
       )}
       title={`${status.message}${status.details ? ` (${status.details})` : ""}`}
-      onClick={() => setIsExpanded(!isExpanded)}
     >
       <StatusBadge 
         status={status.status} 
@@ -102,9 +93,7 @@ export function UserPresenceWidget() {
         showPulse={isOnline}
         className="w-5 h-5 border-0 bg-transparent"
       />
-
-      {/* 桌面端始终显示（超长时滚动） */}
-      <div className="hidden sm:block relative overflow-hidden max-w-[120px]">
+      <div className="relative overflow-hidden max-w-[120px]">
         <motion.span
           className={cn("inline-block text-xs font-medium whitespace-nowrap", textColorClass)}
           animate={status.message.length > 8 ? { x: ["0%", "-50%"] } : {}}
@@ -118,22 +107,57 @@ export function UserPresenceWidget() {
           }
         </motion.span>
       </div>
-
-      {/* 移动端点击展开 */}
-      <motion.div
-        className="sm:hidden overflow-hidden"
-        initial={false}
-        animate={{ 
-          width: isExpanded ? "auto" : 0,
-          opacity: isExpanded ? 1 : 0 
-        }}
-        transition={{ duration: 0.2 }}
-      >
-        <span className={cn("text-xs font-medium whitespace-nowrap pr-1", textColorClass)}>
-          {status.message}
-        </span>
-      </motion.div>
     </motion.div>
   );
-}
 
+  // 移动端 Popover（点击弹出浮层，不挤开布局）
+  const mobileContent = (
+    <Popover>
+      <PopoverTrigger asChild>
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={cn(
+            "relative flex items-center px-2 py-1.5 rounded-full transition-colors duration-300",
+            bgClass
+          )}
+        >
+          <StatusBadge 
+            status={status.status} 
+            icon={status.icon} 
+            showPulse={isOnline}
+            className="w-5 h-5 border-0 bg-transparent"
+          />
+        </motion.button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-3" align="end">
+        <div className="flex items-center gap-3">
+          <StatusBadge 
+            status={status.status} 
+            icon={status.icon} 
+            showPulse={isOnline}
+            className="w-8 h-8"
+          />
+          <div>
+            <p className={cn("text-sm font-medium", textColorClass)}>{status.message}</p>
+            {status.details && (
+              <p className="text-xs text-muted-foreground">{status.details}</p>
+            )}
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {new Date(status.timestamp).toLocaleTimeString()}
+            </p>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+
+  return (
+    <>
+      {/* 桌面端：始终显示文本 */}
+      <div className="hidden sm:block">{desktopContent}</div>
+      {/* 移动端：点击弹出 Popover */}
+      <div className="sm:hidden">{mobileContent}</div>
+    </>
+  );
+}
