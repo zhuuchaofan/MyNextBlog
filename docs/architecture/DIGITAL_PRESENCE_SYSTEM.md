@@ -112,9 +112,14 @@
 **目标**: 在 Next.js 前端展示酷炫的 UI，并支持手动覆盖。
 
 1. **UI 组件**:
-   - 创建 `frontend/components/UserStatusWidget.tsx`。
-   - 使用 `SWR` 或 `React Query` 轮询后端 `/api/presence`。
-   - 设计不同状态的 CSS 动画。
-   - **集成入口**: 确保在 `MobileBottomBar` (移动端) 和 `Navbar` / `Hero Section` (桌面端) 正确添加展示入口。
+   - **`StatusBadge.tsx`**: 通用状态徽章组件，根据状态渲染图标/颜色/呼吸灯
+   - **`UserPresenceWidget.tsx`**: 导航栏状态展示组件
+     - 桌面端：始终显示文本，超过 8 字符自动跑马灯滚动
+     - 移动端：仅显示图标，点击弹出 Popover 显示完整状态
+   - 使用 `framer-motion` 实现动画效果
+   - 使用 shadcn/ui `Popover` 组件
 2. **手动控制 (后台)**:
-   - 在 Admin 后台增加“状态管理”面板，写入 `status_override` 到数据库。
+   - `/admin/settings/presence` 配置页
+   - 实时状态预览 + JSON 调试面板
+   - 手动覆盖 UI：状态选择 / 消息输入 / 过期时间
+   - 每个 API Key 独立编辑/完成按钮，修改即存
