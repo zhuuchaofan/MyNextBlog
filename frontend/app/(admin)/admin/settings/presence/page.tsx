@@ -19,6 +19,10 @@ import {
   EyeOff,
   ExternalLink,
   RefreshCw,
+  Zap,
+  Coffee,
+  Sparkles,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -46,6 +50,12 @@ export default function PresenceSettingsPage() {
   const [showKeys, setShowKeys] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<CurrentStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
+
+  // 手动覆盖状态
+  const [overrideStatus, setOverrideStatus] = useState("custom");
+  const [overrideMessage, setOverrideMessage] = useState("");
+  const [overrideExpire, setOverrideExpire] = useState("");
+  const [overrideLoading, setOverrideLoading] = useState(false);
 
   // 表单数据
   const [config, setConfig] = useState<PresenceConfig>({
@@ -101,6 +111,55 @@ export default function PresenceSettingsPage() {
     fetchConfig();
     fetchStatus();
   }, [fetchConfig, fetchStatus]);
+
+  // 设置手动覆盖
+  const handleSetOverride = async () => {
+    if (!overrideMessage.trim()) return;
+    setOverrideLoading(true);
+    try {
+      const res = await fetch("/api/backend/presence/override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: overrideStatus,
+          message: overrideMessage,
+          expireAt: overrideExpire ? new Date(overrideExpire).toISOString() : null,
+        }),
+      });
+      if (res.ok) {
+        toast.success("状态已覆盖");
+        setOverrideMessage("");
+        setOverrideExpire("");
+        setTimeout(fetchStatus, 1000);
+      } else {
+        toast.error("设置失败");
+      }
+    } catch {
+      toast.error("网络错误");
+    } finally {
+      setOverrideLoading(false);
+    }
+  };
+
+  // 清除覆盖
+  const handleClearOverride = async () => {
+    setOverrideLoading(true);
+    try {
+      const res = await fetch("/api/backend/presence/override", {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("已恢复自动检测");
+        setTimeout(fetchStatus, 1000);
+      } else {
+        toast.error("清除失败");
+      }
+    } catch {
+      toast.error("网络错误");
+    } finally {
+      setOverrideLoading(false);
+    }
+  };
 
   // 保存配置
   const handleSave = async () => {
@@ -221,6 +280,95 @@ export default function PresenceSettingsPage() {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 手动覆盖卡片 */}
+      <Card className="mb-6 border-orange-200 dark:border-orange-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-orange-500" />
+            手动设置状态
+          </CardTitle>
+          <CardDescription>
+            临时覆盖自动检测结果，优先级最高
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* 状态选择 */}
+          <div className="space-y-2">
+            <Label>状态类型</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "coding", label: "编程中", icon: Code, color: "text-blue-500" },
+                { value: "gaming", label: "游戏中", icon: Gamepad2, color: "text-purple-500" },
+                { value: "busy", label: "忙碌中", icon: Coffee, color: "text-orange-500" },
+                { value: "custom", label: "自定义", icon: Sparkles, color: "text-yellow-500" },
+              ].map((item) => (
+                <Button
+                  key={item.value}
+                  type="button"
+                  variant={overrideStatus === item.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setOverrideStatus(item.value)}
+                  className="gap-1.5"
+                >
+                  <item.icon className={`w-4 h-4 ${overrideStatus === item.value ? "" : item.color}`} />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* 自定义消息 */}
+          <div className="space-y-2">
+            <Label htmlFor="overrideMessage">显示消息</Label>
+            <Input
+              id="overrideMessage"
+              value={overrideMessage}
+              onChange={(e) => setOverrideMessage(e.target.value)}
+              placeholder="如：正在开会、外出中..."
+              maxLength={50}
+            />
+          </div>
+
+          {/* 过期时间 */}
+          <div className="space-y-2">
+            <Label htmlFor="overrideExpire">自动恢复时间 (可选)</Label>
+            <Input
+              id="overrideExpire"
+              type="datetime-local"
+              value={overrideExpire}
+              onChange={(e) => setOverrideExpire(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              留空则需手动清除覆盖
+            </p>
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="flex gap-2 pt-2">
+            <Button 
+              onClick={handleSetOverride} 
+              disabled={overrideLoading || !overrideMessage.trim()}
+              className="flex-1"
+            >
+              {overrideLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              设置覆盖
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleClearOverride}
+              disabled={overrideLoading}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              恢复自动
+            </Button>
           </div>
         </CardContent>
       </Card>
