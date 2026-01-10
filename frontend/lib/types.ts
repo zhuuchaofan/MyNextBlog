@@ -2,6 +2,38 @@
 // --------------------------------------------------------------------------------
 // 此文件包含前端应用中共享的 TypeScript 类型定义。
 // 将公共类型集中在这里可以避免在 data.ts 和 api.ts 中重复定义。
+//
+// **自动生成类型映射** (2026-01 新增)
+// 后端 DTO 可通过 `npm run gen-types` 自动生成到 `lib/generated/api-types.ts`。
+// 本文件作为"映射层"，将冗长的 `components['schemas']['...']` 包装为简洁的别名。
+
+// 导入自动生成的类型（如果存在）
+// 注意: 部分类型（如 UserPresenceDto）因后端返回 IActionResult 未被 Swagger 捕获
+// TODO: 后端添加 [ProducesResponseType] 后可移除手动定义
+// import type { components } from './generated/api-types';
+
+// ============================================================================
+// 手动定义类型 (待后端完善 Swagger 后可迁移到 generated)
+// ============================================================================
+
+/**
+ * 用户在线状态数据结构
+ * 对应后端 UserPresenceDto
+ *
+ * **注意**: 此类型暂为手动定义，因后端 `PresenceController.GetStatus()` 返回
+ * `IActionResult` 而非强类型，Swagger 无法推断。
+ */
+export interface UserPresence {
+  status: string;
+  icon: string;
+  message: string;
+  details?: string;
+  timestamp: string;
+}
+
+// ============================================================================
+// 文章相关类型
+// ============================================================================
 
 /**
  * 文章详情数据结构

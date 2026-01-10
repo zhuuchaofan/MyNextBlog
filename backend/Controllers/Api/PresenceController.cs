@@ -33,6 +33,7 @@ public class PresenceController(
     /// </summary>
     /// <returns>用户状态 DTO</returns>
     [HttpGet]
+    [ProducesResponseType(typeof(UserPresenceResponse), StatusCodes.Status200OK)]
     public IActionResult GetStatus()
     {
         var status = presenceService.GetCurrentStatus();
