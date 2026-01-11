@@ -14,12 +14,11 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, Package, ShoppingCart, Users, MessageCircle, Heart, Cat, MoreHorizontal } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, Package, Users, MessageCircle, Heart, Cat, MoreHorizontal } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { UserPresenceWidget } from '@/components/UserPresenceWidget';
 import { useMounted } from '@/hooks/useMounted';
-import { useCartCount } from '@/hooks/useCartCount';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -27,9 +26,7 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   // 使用自定义 Hook 避免 ESLint set-state-in-effect 警告
   const mounted = useMounted();
-  
-  // 购物车商品数量 (使用自定义 Hook 监听 localStorage 变化)
-  const cartCount = useCartCount();
+
 
   // 主导航链接 (直接显示在导航栏)
   const mainNavLinks = [
@@ -82,7 +79,7 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-40">
-                {moreNavLinks.map(link => (
+                  {moreNavLinks.map(link => (
                   <Link key={link.href} href={link.href}>
                     <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
                       {link.icon}
@@ -90,6 +87,13 @@ export default function Navbar() {
                     </DropdownMenuItem>
                   </Link>
                 ))}
+                <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+                    <DropdownMenuItem className="cursor-pointer gap-2">
+                      <Rss className="w-4 h-4" />
+                      <span>RSS 订阅</span>
+                    </DropdownMenuItem>
+                </Link>
+
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -107,33 +111,10 @@ export default function Navbar() {
              {/* 用户状态指示 (Digital Presence) */}
              <UserPresenceWidget />
              
-             {/* 购物车按钮 */}
-             <Link href="/cart" aria-label="购物车">
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 className="relative rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400"
-               >
-                 <ShoppingCart className="w-5 h-5" />
-                 {cartCount > 0 && (
-                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                     {cartCount > 99 ? '99+' : cartCount}
-                   </span>
-                 )}
-               </Button>
-             </Link>
 
              <ModeToggle />
              
-             <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 className="rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hidden sm:flex"
-               >
-                 <Rss className="w-5 h-5" />
-               </Button>
-             </Link>
+
 
              <Button 
                variant="ghost" 
@@ -170,6 +151,12 @@ export default function Navbar() {
                         </Link>
                       ))}
                       <DropdownMenuSeparator />
+                      <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+                        <DropdownMenuItem className="cursor-pointer gap-2">
+                          <Rss className="w-4 h-4" />
+                          <span>RSS 订阅</span>
+                        </DropdownMenuItem>
+                      </Link>
                       <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => {setIsSearchOpen(true);}}>
                         <Search className="w-4 h-4" />
                         <span>搜索</span>
