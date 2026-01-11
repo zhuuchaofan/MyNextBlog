@@ -19,6 +19,8 @@ import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { UserPresenceWidget } from '@/components/UserPresenceWidget';
 import { useMounted } from '@/hooks/useMounted';
+import { useTranslations } from 'next-intl';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -26,22 +28,24 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   // 使用自定义 Hook 避免 ESLint set-state-in-effect 警告
   const mounted = useMounted();
+  // i18n 翻译 Hook
+  const t = useTranslations('nav');
 
 
   // 主导航链接 (直接显示在导航栏)
   const mainNavLinks = [
-    { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },
-    { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
-    { href: '/series', icon: <Library className="w-4 h-4" />, label: '系列' },
-    { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '相册' },
+    { href: '/', icon: <Home className="w-4 h-4" />, label: t('home') },
+    { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: t('archive') },
+    { href: '/series', icon: <Library className="w-4 h-4" />, label: t('series') },
+    { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: t('gallery') },
   ];
   
-  const aboutLink = { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于' };
+  const aboutLink = { href: '/about', icon: <Info className="w-4 h-4" />, label: t('about') };
 
   // "更多"菜单链接
   const moreNavLinks = [
-    { href: '/memos', icon: <MessageCircle className="w-4 h-4" />, label: '碎碎念' },
-    { href: '/friends', icon: <Users className="w-4 h-4" />, label: '友链' },
+    { href: '/memos', icon: <MessageCircle className="w-4 h-4" />, label: t('memos') },
+    { href: '/friends', icon: <Users className="w-4 h-4" />, label: t('friends') },
   ];
   
   // 移动端完整导航（包含更多菜单项）
@@ -75,7 +79,7 @@ export default function Navbar() {
                   className="rounded-full gap-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800"
                 >
                   <MoreHorizontal className="w-4 h-4" />
-                  更多
+                  {t('more')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-40">
@@ -90,7 +94,7 @@ export default function Navbar() {
                 <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
                     <DropdownMenuItem className="cursor-pointer gap-2">
                       <Rss className="w-4 h-4" />
-                      <span>RSS 订阅</span>
+                      <span>{t('rss')}</span>
                     </DropdownMenuItem>
                 </Link>
 
@@ -111,6 +115,7 @@ export default function Navbar() {
              {/* 用户状态指示 (Digital Presence) */}
              <UserPresenceWidget />
              
+             <LocaleSwitcher />
 
              <ModeToggle />
              

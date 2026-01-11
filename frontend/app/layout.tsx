@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { BackgroundGrid } from "@/components/ui/BackgroundGrid";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getLocale } from "next-intl/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,28 +40,34 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 获取当前语言和翻译消息
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang={locale === 'en' ? 'en' : 'zh-CN'} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoEmoji.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <BackgroundGrid />
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <BackgroundGrid />
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
       <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
     </html>
