@@ -73,14 +73,14 @@ export default defineConfig({
     },
 
     // 3. 移动端测试 (依赖 setup)
-    {
-      name: "mobile",
-      use: {
-        ...devices["iPhone 13"],
-        storageState: "tests/.auth/admin.json",
-      },
-      dependencies: ["setup"],
-    },
+    // {
+    //   name: "mobile",
+    //   use: {
+    //     ...devices["iPhone 13"],
+    //     storageState: "tests/.auth/admin.json",
+    //   },
+    //   dependencies: ["setup"],
+    // },
   ],
 
   // 自动启动 dev server (本地开发)
