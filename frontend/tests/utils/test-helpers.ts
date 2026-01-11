@@ -141,3 +141,86 @@ export function expectPaginatedResponse(json: unknown) {
   expect(json).toHaveProperty("meta");
   expect(Array.isArray((json as { data: unknown[] }).data)).toBeTruthy();
 }
+
+// ============================================================================
+// 测试数据管理
+// ============================================================================
+
+/**
+ * 测试数据前缀，用于标识 E2E 测试创建的数据
+ * 便于后续清理：可搜索 "[E2E_AUTO]" 前缀的数据进行删除
+ */
+export const E2E_PREFIX = "[E2E_AUTO]";
+
+/**
+ * 生成带时间戳的测试数据名称
+ * @example generateTestName("文章") => "[E2E_AUTO] 20260111_133101_文章"
+ */
+export function generateTestName(baseName: string): string {
+  const timestamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 15);
+  return `${E2E_PREFIX} ${timestamp}_${baseName}`;
+}
+
+// ============================================================================
+// 视觉测试辅助
+// ============================================================================
+
+/**
+ * 获取常用的视觉遮罩定位器
+ * 用于截图时遮盖变动区域（时间戳、会话 ID 等）
+ */
+export function getCommonMasks(page: Page) {
+  return [
+    page.locator('[data-testid="timestamp"]'),
+    page.locator('[data-testid="session-id"]'),
+    page.locator(".relative-time"),
+    page.locator(".order-id"),
+  ];
+}
+
+/**
+ * 常用视口尺寸
+ */
+export const VIEWPORTS = {
+  mobile: { width: 375, height: 667 },   // iPhone SE
+  tablet: { width: 768, height: 1024 },  // iPad
+  desktop: { width: 1280, height: 800 }, // 标准桌面
+} as const;
+
+// ============================================================================
+// 测试结果记录器 (用于"先记录，后分析"策略)
+// ============================================================================
+
+export interface TestResult {
+  name: string;
+  status: "pass" | "fail" | "skip";
+  error?: string;
+  duration?: number;
+}
+
+/**
+ * 测试结果收集器
+ * 支持先运行所有测试，最后统一分析失败原因
+ */
+export class TestResultRecorder {
+  private results: TestResult[] = [];
+
+  record(result: TestResult) {
+    this.results.push(result);
+  }
+
+  getAll(): TestResult[] {
+    return this.results;
+  }
+
+  getSummary() {
+    const pass = this.results.filter((r) => r.status === "pass").length;
+    const fail = this.results.filter((r) => r.status === "fail").length;
+    const skip = this.results.filter((r) => r.status === "skip").length;
+    return { total: this.results.length, pass, fail, skip };
+  }
+
+  getFailures(): TestResult[] {
+    return this.results.filter((r) => r.status === "fail");
+  }
+}

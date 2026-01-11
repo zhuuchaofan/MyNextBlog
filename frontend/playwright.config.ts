@@ -43,18 +43,44 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
 
-  // 仅在 Chromium 上运行 (加快速度)
-  // 生产环境可启用多浏览器
+  // 测试输出目录
+  outputDir: "test-results",
+
+  // 视觉回归配置
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01, // 允许 1% 像素差异 (抗锯齿)
+    },
+  },
+
+  // 多平台测试 (使用 setup 项目统一登录)
   projects: [
+    // 1. Setup 项目: 执行一次登录，保存 storageState
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    // 2. Chromium 桌面测试 (依赖 setup)
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // 使用 setup 保存的登录状态
+        storageState: "tests/.auth/admin.json",
+      },
+      dependencies: ["setup"],
     },
-    // 移动端测试 (可选)
-    // {
-    //   name: 'mobile',
-    //   use: { ...devices['iPhone 13'] },
-    // },
+
+    // 3. 移动端测试 (依赖 setup)
+    {
+      name: "mobile",
+      use: {
+        ...devices["iPhone 13"],
+        storageState: "tests/.auth/admin.json",
+      },
+      dependencies: ["setup"],
+    },
   ],
 
   // 自动启动 dev server (本地开发)

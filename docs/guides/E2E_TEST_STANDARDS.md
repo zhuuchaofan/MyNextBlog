@@ -1,5 +1,7 @@
 # E2E 测试规范
 
+> **最后更新**: 2026-01-11 (新增登录状态复用架构)
+
 ## 1. 快速开始 (Quick Start)
 
 ### 运行环境要求
@@ -18,17 +20,121 @@
 
 ## 2. 项目结构 (Project Structure)
 
-- **配置文件**: `frontend/playwright.config.ts`
-- **测试目录**: `frontend/tests/`
-- **命名规范**: `*.spec.ts` (如 `auth.spec.ts`)
-- **截图目录**: `frontend/test-results/screenshots/`
-- **辅助工具**: `frontend/tests/utils/test-helpers.ts`
+```
+frontend/
+├── playwright.config.ts          # 测试配置 (含 setup 项目)
+├── tests/
+│   ├── .auth/
+│   │   └── admin.json            # 登录状态缓存 (自动生成)
+│   ├── utils/
+│   │   └── test-helpers.ts       # 共享辅助函数
+│   ├── auth.setup.ts             # 全局登录 Setup ⭐
+│   ├── visual-regression.spec.ts-snapshots/  # 视觉回归基准截图
+│   ├── auth.spec.ts              # 认证测试
+│   ├── admin-posts.spec.ts       # 文章管理测试
+│   ├── admin-orders.spec.ts      # 订单管理测试
+│   └── ...
+└── test-results/                 # 测试输出 (失败截图、trace)
+```
 
-## 3. 核心工具
+**命名规范**:
+
+- `*.spec.ts` - 常规测试文件
+- `*.setup.ts` - Setup 项目文件 (仅执行一次)
+
+---
+
+## 3. 登录状态复用架构 ⭐ (2026-01 新增)
+
+> [!IMPORTANT]
+> 这是本项目最重要的测试架构优化。解决了"每个测试都重复登录导致频率限制"的问题。
+
+### 3.1 架构原理
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    playwright.config.ts                      │
+├─────────────────────────────────────────────────────────────┤
+│  projects:                                                   │
+│    ┌──────────┐                                             │
+│    │  setup   │ ← 执行一次，保存 storageState               │
+│    └────┬─────┘                                             │
+│         │ dependencies                                       │
+│    ┌────▼─────┐  ┌──────────┐                               │
+│    │ chromium │  │  mobile  │ ← 复用 storageState           │
+│    └──────────┘  └──────────┘                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 配置方法
+
+**Step 1: 创建 `auth.setup.ts`**
+
+```typescript
+// tests/auth.setup.ts
+import { test as setup } from "@playwright/test";
+import { loginAsAdmin } from "./utils/test-helpers";
+
+const authFile = "tests/.auth/admin.json";
+
+setup("管理员登录", async ({ context }) => {
+  const loggedIn = await loginAsAdmin(context);
+  if (!loggedIn) {
+    throw new Error("管理员登录失败");
+  }
+  await context.storageState({ path: authFile });
+});
+```
+
+**Step 2: 配置 `playwright.config.ts`**
+
+```typescript
+projects: [
+  // 1. Setup 项目 (仅执行一次)
+  {
+    name: "setup",
+    testMatch: /auth\.setup\.ts/,
+  },
+  // 2. 主测试项目 (依赖 setup)
+  {
+    name: "chromium",
+    use: {
+      ...devices["Desktop Chrome"],
+      storageState: "tests/.auth/admin.json",
+    },
+    dependencies: ["setup"],
+  },
+  // 3. 移动端测试 (同样依赖)
+  {
+    name: "mobile",
+    use: {
+      ...devices["iPhone 13"],
+      storageState: "tests/.auth/admin.json",
+    },
+    dependencies: ["setup"],
+  },
+],
+```
+
+### 3.3 使用效果
+
+```
+Running 15 tests using 5 workers
+
+  ✓   1 管理员登录 (160ms)        ← 只登录一次
+  ✓   5 管理员仪表盘视觉回归      ← 直接复用登录状态
+  ✓   8 文章管理页面视觉回归
+  ... (15 passed)
+```
+
+> [!WARNING] > **常见错误**：使用 `test.describe.configure({ mode: "serial" })` 无法共享登录状态！
+> 串行模式只保证顺序执行，每个测试仍有独立 context。必须使用 storageState。
+
+---
+
+## 4. 核心工具
 
 ### `tests/utils/test-helpers.ts`
-
-提供以下工具：
 
 | 工具                            | 用途                                          |
 | :------------------------------ | :-------------------------------------------- |
@@ -37,6 +143,10 @@
 | `PageValidator`                 | 页面验证器（详见下方）                        |
 | `expectApiSuccess(json)`        | 验证 `{ success: true }`                      |
 | `expectPaginatedResponse(json)` | 验证 `{ success, data, meta }`                |
+| `E2E_PREFIX`                    | 测试数据前缀 `[E2E_AUTO]`                     |
+| `generateTestName(name)`        | 生成带时间戳的测试数据名称                    |
+| `getCommonMasks(page)`          | 获取视觉测试常用遮罩定位器                    |
+| `VIEWPORTS`                     | 常用视口尺寸 (mobile/tablet/desktop)          |
 
 ### PageValidator 使用
 
@@ -50,9 +160,11 @@ await validator.expectNotErrorPage(); // 非错误页面
 await validator.expectTitleContains("评论"); // 标题正确
 ```
 
-## 4. 测试编写规范
+---
 
-### 1. 始终检测客户端错误
+## 5. 测试编写规范
+
+### 5.1 始终检测客户端错误
 
 ```typescript
 // ❌ 错误: 只检查内容
@@ -64,169 +176,84 @@ const validator = new PageValidator(page);
 await validator.goto("/admin/comments");
 await validator.expectNoErrors();
 await validator.expectNotErrorPage();
-await validator.expectTitleContains("评论");
 ```
 
-### 2. API 响应验证
+### 5.2 API 响应验证
 
 ```typescript
 // ❌ 错误: 手动检查
 expect(json.success).toBe(true);
-expect(json.data).toBeDefined();
 
 // ✅ 正确: 使用辅助函数
 expectPaginatedResponse(json); // 分页响应
 expectApiSuccess(json); // 简单响应
 ```
 
-### 3. 登录处理
+### 5.3 需要登录的测试
 
 ```typescript
-// ✅ 处理频率限制
-const token = await loginAndGetToken(request);
-if (!token) {
-  test.skip(true, "登录频率限制触发");
-  return;
-}
-```
+// ✅ 依赖 setup 项目后，storageState 自动注入
+// 无需在每个测试中调用 loginAsAdmin
 
-> **优化 (2026-01)**: `loginAsAdmin` 现在会先检查 cookie 中是否已有 token，
-> 如果已登录则跳过登录请求，避免触发频率限制。
-
-### 4. 截图验证 ✨ (2026-01 新增)
-
-使用 Playwright 截图功能进行视觉验证：
-
-```typescript
-// 保存整页截图
-await page.screenshot({
-  path: "test-results/screenshots/admin-comments-page.png",
-  fullPage: true,
+test("管理员仪表盘", async ({ page }) => {
+  // storageState 已自动加载，直接访问管理页面
+  await page.goto("/admin");
+  // ...
 });
 
-// 验证元素存在并检查属性
-const avatarImages = page.locator('img[class*="avatar"]');
-const count = await avatarImages.count();
-
-if (count > 0) {
-  for (let i = 0; i < Math.min(count, 5); i++) {
-    const src = await avatarImages.nth(i).getAttribute("src");
-    expect(src).toBeTruthy();
-    expect(src).toMatch(/^https?:\/\//);
+// ⚠️ 如果需要在测试中验证登录状态
+test("管理员页面", async ({ page, context }) => {
+  const loggedIn = await loginAsAdmin(context);
+  if (!loggedIn) {
+    test.skip(true, "无法登录");
+    return;
   }
-}
-```
-
-**截图输出目录**: `frontend/test-results/screenshots/`
-
-**使用场景**:
-
-- UI 回归测试（对比截图差异）
-- 调试页面渲染问题
-- 验证动态内容正确显示（如头像、图片）
-
-### 5. 页面布局检测
-
-检测元素位置、尺寸和 CSS 样式：
-
-```typescript
-// 获取元素边界框 (位置和尺寸)
-const element = page.locator(".comment-card");
-const box = await element.boundingBox();
-expect(box?.width).toBeGreaterThan(100);
-expect(box?.height).toBeGreaterThan(50);
-
-// 检测 CSS 样式
-const display = await element.evaluate(
-  (el) => window.getComputedStyle(el).display
-);
-expect(display).toBe("flex");
-
-// 检测元素是否在视口内
-await expect(element).toBeInViewport();
-```
-
-### 6. 数据一致性验证
-
-对比 API 响应与页面显示的数据，确保一致性：
-
-```typescript
-// 1. 获取 API 数据
-const apiRes = await request.get("/api/backend/comments/admin", {
-  headers: { Authorization: `Bearer ${token}` },
-});
-const apiData = await apiRes.json();
-
-// 2. 获取页面显示的数据条数
-const pageRows = await page.locator("tbody tr").count();
-
-// 3. 验证数据条数一致
-expect(pageRows).toBe(apiData.data.length);
-
-// 4. 验证具体内容 (可选)
-if (apiData.data.length > 0) {
-  const firstComment = apiData.data[0];
-  const pageContent = await page.locator("tbody tr").first().textContent();
-  expect(pageContent).toContain(firstComment.content.substring(0, 20));
-}
-```
-
-### 7. 响应式布局测试
-
-模拟不同设备视口验证响应式布局：
-
-```typescript
-// 定义常用视口
-const viewports = {
-  mobile: { width: 375, height: 667 }, // iPhone SE
-  tablet: { width: 768, height: 1024 }, // iPad
-  desktop: { width: 1280, height: 800 }, // 标准桌面
-};
-
-// 移动端测试
-test("移动端布局正确", async ({ page }) => {
-  await page.setViewportSize(viewports.mobile);
-  await page.goto("/admin/comments");
-
-  // 移动端应隐藏桌面表格
-  await expect(page.locator(".hidden.md\\:block")).not.toBeVisible();
-  // 移动端应显示卡片布局
-  await expect(page.locator(".md\\:hidden")).toBeVisible();
-});
-
-// 桌面端测试
-test("桌面端布局正确", async ({ page }) => {
-  await page.setViewportSize(viewports.desktop);
-  await page.goto("/admin/comments");
-
-  // 桌面端应显示表格
-  await expect(page.locator("table")).toBeVisible();
+  // ...
 });
 ```
 
-### 8. 视觉回归测试
-
-使用 Playwright 内置截图对比功能：
+### 5.4 视觉回归测试
 
 ```typescript
-// 基准截图对比 (首次运行生成基准)
-await expect(page).toHaveScreenshot("admin-comments-baseline.png", {
+// 使用遮罩处理变动区域 (时间戳、ID 等)
+await expect(page).toHaveScreenshot("admin-dashboard.png", {
   fullPage: true,
-  maxDiffPixelRatio: 0.01, // 允许 1% 像素差异
+  mask: getCommonMasks(page),
 });
-
-// 元素级截图对比
-const header = page.locator("header");
-await expect(header).toHaveScreenshot("header-baseline.png");
 ```
 
-**初次运行**: `npx playwright test --update-snapshots` 生成基准截图
+**基准截图管理**:
 
-**CI 环境**: 对比截图差异，超过阈值则测试失败
+```bash
+# 首次运行或 UI 变更后更新基准
+npx playwright test --update-snapshots
+
+# 基准截图目录 (已添加到 .gitignore，不提交)
+tests/visual-regression.spec.ts-snapshots/
+├── home-page-chromium-darwin.png
+├── home-page-mobile-darwin.png
+└── ...
+```
+
+> [!NOTE]
+> 截图文件较大且与操作系统/字体相关，已在 `.gitignore` 中忽略。
+> CI 环境需首次运行 `--update-snapshots` 生成本地基准。
+
+### 5.5 响应式布局测试
+
+```typescript
+import { VIEWPORTS } from "./utils/test-helpers";
+
+test("移动端布局", async ({ page }) => {
+  await page.setViewportSize(VIEWPORTS.mobile);
+  await page.goto("/admin/comments");
+  // ...
+});
+```
 
 ---
 
-## 5. 测试分层策略
+## 6. 测试分层策略
 
 | 层级     | 测试类型 | 工具                     | 关注点                     |
 | -------- | -------- | ------------------------ | -------------------------- |
@@ -234,3 +261,43 @@ await expect(header).toHaveScreenshot("header-baseline.png");
 | **UI**   | 页面渲染 | `page` + `PageValidator` | JS 错误、元素可见性        |
 | **视觉** | 截图对比 | `toHaveScreenshot`       | 布局变化、样式回归         |
 | **数据** | 一致性   | API + DOM                | 前后端数据同步             |
+
+---
+
+## 7. 经验教训总结 ✨ (2026-01)
+
+### ❌ 错误做法
+
+| 做法                              | 问题                                 |
+| :-------------------------------- | :----------------------------------- |
+| 每个测试独立调用 `loginAsAdmin()` | 触发频率限制，测试被跳过             |
+| 使用 `serial` 模式共享登录        | 无效！串行只保证顺序，不共享 context |
+| 不提交视觉回归基准截图            | CI 环境首次运行全部失败              |
+| 测试数据不加前缀                  | 难以区分和清理测试数据               |
+
+### ✅ 正确做法
+
+| 做法                                  | 效果                             |
+| :------------------------------------ | :------------------------------- |
+| 使用 `auth.setup.ts` + `storageState` | 全局登录一次，所有测试复用       |
+| 视觉回归基准截图提交到 Git            | CI 可正常对比截图差异            |
+| 测试数据使用 `E2E_PREFIX` 前缀        | 便于识别和清理 `[E2E_AUTO]` 数据 |
+| 使用 `getCommonMasks()` 遮罩变动区域  | 避免时间戳导致的截图差异         |
+
+---
+
+## 8. 文件清单
+
+| 文件                        | 用途       | 用例数 |
+| :-------------------------- | :--------- | :----- |
+| `auth.setup.ts`             | 全局登录   | 1      |
+| `auth.spec.ts`              | 认证流程   | 10     |
+| `admin-posts.spec.ts`       | 文章管理   | 13     |
+| `admin-orders.spec.ts`      | 订单管理   | 10     |
+| `admin-series.spec.ts`      | 系列管理   | 10     |
+| `admin-comments.spec.ts`    | 评论管理   | 6      |
+| `visual-regression.spec.ts` | 视觉回归   | 7      |
+| `mobile-layout.spec.ts`     | 移动端布局 | 8      |
+| `upload.spec.ts`            | 文件上传   | 4      |
+| `like.spec.ts`              | 点赞功能   | 6      |
+| 其他...                     | -          | ~20    |
