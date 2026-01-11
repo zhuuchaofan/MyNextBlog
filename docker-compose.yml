@@ -55,6 +55,8 @@ services:
       - SmtpSettings__AdminEmail=${SMTP_EMAIL}
       # App
       - AppUrl=${APP_URL}
+      # Rate Limiting (测试时可设更高，如 1000)
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-500}
     volumes:
       # 挂载数据库文件，保证重启不丢数据 (宿主机 ./data -> 容器 /app/data)
       - ./data:/app/data

@@ -6,11 +6,23 @@
 
 import { test as setup } from "@playwright/test";
 import { loginAsAdmin } from "./utils/test-helpers";
+import fs from "fs";
+import path from "path";
 
 // 认证状态文件路径
 const authFile = "tests/.auth/admin.json";
 
 setup("管理员登录", async ({ context }) => {
+  // 检查现有 auth 文件是否有效 (例如 1 小时内)
+  if (fs.existsSync(authFile)) {
+    const stats = fs.statSync(authFile);
+    const now = new Date().getTime();
+    if (now - stats.mtimeMs < 60 * 60 * 1000) {
+      console.log("复用现有认证状态 (1小时内)");
+      return;
+    }
+  }
+
   const loggedIn = await loginAsAdmin(context);
   
   if (!loggedIn) {
