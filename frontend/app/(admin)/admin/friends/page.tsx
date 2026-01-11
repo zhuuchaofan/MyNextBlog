@@ -367,12 +367,14 @@ export default function AdminFriendsPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="displayOrder">排序</Label>
+                <Label htmlFor="displayOrder">排序 (0/留空 = 自动递增)</Label>
                 <Input
                   id="displayOrder"
                   type="number"
+                  min="0"
                   value={formData.displayOrder}
                   onChange={e => setFormData(prev => ({ ...prev, displayOrder: parseInt(e.target.value) || 0 }))}
+                  placeholder="0 (自动)"
                 />
               </div>
               

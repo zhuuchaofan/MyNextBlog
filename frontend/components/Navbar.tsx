@@ -37,9 +37,10 @@ export default function Navbar() {
     { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
     { href: '/series', icon: <Library className="w-4 h-4" />, label: '系列' },
     { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '相册' },
-    { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于' },
   ];
   
+  const aboutLink = { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于' };
+
   // "更多"菜单链接
   const moreNavLinks = [
     { href: '/memos', icon: <MessageCircle className="w-4 h-4" />, label: '碎碎念' },
@@ -47,7 +48,7 @@ export default function Navbar() {
   ];
   
   // 移动端完整导航（包含更多菜单项）
-  const allNavLinks = [...mainNavLinks, ...moreNavLinks];
+  const allNavLinks = [...mainNavLinks, ...moreNavLinks, aboutLink];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-lg transition-all shadow-sm">
@@ -68,6 +69,7 @@ export default function Navbar() {
             {mainNavLinks.map(link => (
               <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} active={pathname === link.href} />
             ))}
+            
             {/* 更多下拉菜单 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -90,6 +92,14 @@ export default function Navbar() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* 关于 (放在更多后面) */}
+            <NavLink 
+              href={aboutLink.href} 
+              icon={aboutLink.icon} 
+              label={aboutLink.label} 
+              active={pathname === aboutLink.href} 
+            />
           </div>
 
           {/* Right Actions */}
