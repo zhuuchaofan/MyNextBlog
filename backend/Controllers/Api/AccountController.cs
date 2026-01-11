@@ -18,6 +18,9 @@ public class AccountController(IUserService userService, IPostService postServic
     /// 获取当前登录用户的详细信息
     /// </summary>
     [HttpGet("me")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.GetUserId();
@@ -33,6 +36,9 @@ public class AccountController(IUserService userService, IPostService postServic
     /// 更新个人资料
     /// </summary>
     [HttpPut("profile")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
         var userId = User.GetUserId();
@@ -52,6 +58,9 @@ public class AccountController(IUserService userService, IPostService postServic
     /// 上传并更新用户头像
     /// </summary>
     [HttpPost("avatar")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UploadAvatar(IFormFile? file)
     {
         if (file == null || file.Length == 0)
@@ -75,6 +84,8 @@ public class AccountController(IUserService userService, IPostService postServic
     /// 获取当前用户点赞过的文章列表
     /// </summary>
     [HttpGet("liked-posts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetLikedPosts(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)

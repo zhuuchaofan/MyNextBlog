@@ -776,11 +776,12 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             .ToListAsync();
 
         // 按点赞时间顺序排序返回
+        // 使用 OfType<T>() 同时过滤 null 并转换类型，避免 CS8619 警告
         var orderedPosts = pagedPostIds
             .Select(id => posts.FirstOrDefault(p => p.Id == id))
-            .Where(p => p != null)
-            .ToList()!;
+            .OfType<PostSummaryDto>()
+            .ToList();
 
-        return (orderedPosts!, totalCount);
+        return (orderedPosts, totalCount);
     }
 }

@@ -24,6 +24,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 创建订单
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
         var userId = GetUserId();
@@ -47,6 +50,8 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 获取我的订单列表
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMyOrders()
     {
         var userId = GetUserId();
@@ -63,6 +68,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 获取订单详情
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOrder(int id)
     {
         var userId = GetUserId();
@@ -85,6 +93,10 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 模拟付款
     /// </summary>
     [HttpPost("{id:int}/pay")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PayOrder(int id)
     {
         var userId = GetUserId();
@@ -114,6 +126,10 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 确认收货
     /// </summary>
     [HttpPost("{id:int}/confirm")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ConfirmReceipt(int id)
     {
         var userId = GetUserId();
@@ -143,6 +159,10 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 用户取消自己的订单（仅限待付款状态）
     /// </summary>
     [HttpPost("{id:int}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CancelOrder(int id)
     {
         var userId = GetUserId();

@@ -33,6 +33,9 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// 创建新分类 (管理员)
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
         // 自动验证：如果模型状态无效，[ApiController] 属性会自动返回 400 BadRequest
@@ -51,6 +54,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// </summary>
     [HttpGet]
     [AllowAnonymous] 
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
         var categories = await categoryService.GetAllCategoriesAsync();
@@ -62,6 +66,8 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// </summary>
     [HttpGet("{id}")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var category = await categoryService.GetByIdAsync(id);
@@ -76,6 +82,10 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// 更新分类名称 (管理员)
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
     {
         // 检查是否与其他分类重名
@@ -99,6 +109,9 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// 删除分类 (管理员)
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Delete(int id)
     {
         var (success, error) = await categoryService.DeleteAsync(id);

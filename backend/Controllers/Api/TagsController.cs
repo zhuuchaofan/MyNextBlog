@@ -36,6 +36,7 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// <returns>按使用频率排序的标签名称列表</returns>
     [HttpGet("popular")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPopular(int count = 10)
     {
         // 边界保护：限制返回数量范围
@@ -51,6 +52,7 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
         var tags = await tagService.GetAllTagsAsync();
@@ -62,6 +64,8 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// </summary>
     [HttpGet("{id}")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var tag = await tagService.GetByIdAsync(id);
@@ -76,6 +80,9 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// 创建新标签 (管理员)
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateTagDto dto)
     {
         if (await tagService.ExistsAsync(dto.Name))
@@ -91,6 +98,10 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// 更新标签名称 (管理员)
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTagDto dto)
     {
         // 检查是否存在
@@ -114,6 +125,9 @@ public class TagsController(ITagService tagService) : ControllerBase
     /// 删除标签 (管理员)
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Delete(int id)
     {
         var (success, error) = await tagService.DeleteAsync(id);

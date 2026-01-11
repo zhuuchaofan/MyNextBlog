@@ -48,6 +48,7 @@ public class PostsApiController(IPostService postService, ICommentService commen
     // `[HttpGet]`: HTTP Get 请求的路由特性。表示这个方法会响应 HTTP GET 请求。
     // 因为控制器类上已经有 `[Route("api/posts")]`，所以这个方法的完整路由是 `GET /api/posts`。
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     // `public async Task<IActionResult> GetPosts(...)`: 这是方法的签名。
     // `async Task<IActionResult>`: 表示这是一个异步方法，并且会返回一个实现了 `IActionResult` 接口的对象。
     //   - `async`/`await`: 异步编程的关键。`await` 关键字用于等待一个异步操作（例如数据库查询）完成，
@@ -98,6 +99,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     // 因此，这个方法的完整路由是 `GET /api/posts/admin`。
     [HttpGet("admin")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAdminPosts(
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
@@ -133,6 +136,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpGet("admin/{id}")]
     // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAdminPost(int id)
     {
         // 1. **获取文章详情 (允许隐藏文章)**
@@ -171,6 +177,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     // `[HttpGet("{id}")]`: HTTP Get 请求路由。`{id}` 是路由参数，表示文章 ID。
     // 完整路由为 `GET /api/posts/{id}`。
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPost(int id)
     {
         // 公开API：永远只返回公开文章（!IsHidden && !IsDeleted）
@@ -206,6 +214,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpPost]
     // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     // `[FromBody] CreatePostDto dto`:
     //   - `[FromBody]`: 特性，指示 `dto` 参数的值应该从 HTTP 请求的 Body（请求体）中绑定。
     //     ASP.NET Core 会自动将 JSON 格式的请求体反序列化为 `CreatePostDto` 对象。
@@ -224,6 +235,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
 
     [HttpPut("{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostDto dto)
     {
         try 
@@ -247,6 +261,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpDelete("{id}")]
     // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeletePost(int id)
     {
         // 1. **验证文章是否存在**
@@ -279,6 +296,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     [HttpPatch("{id}/visibility")]
     // `[Authorize(...)]`: 同样需要通过 JWT Bearer 认证，并且用户角色必须是 "Admin"。
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleVisibility(int id)
     {
         // 1. **执行可见性切换操作**
@@ -302,6 +322,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// </summary>
     [HttpPost("{id}/like")]
     [EnableRateLimiting("like")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ToggleLike(int id)
     {
         // 使用扩展方法获取用户ID（如果已认证）
@@ -331,6 +354,7 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// 获取当前用户对指定文章的点赞状态 (公开接口)
     /// </summary>
     [HttpGet("{id}/like-status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLikeStatus(int id)
     {
         int? userId = User.GetUserId();
@@ -349,6 +373,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// 批量获取多篇文章的点赞状态 (用于文章列表页)
     /// </summary>
     [HttpPost("like-status/batch")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLikeStatusBatch([FromBody] List<int> postIds)
     {
         if (postIds == null || !postIds.Any())
@@ -381,6 +407,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// </summary>
     [HttpGet("trash")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetDeletedPosts(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -405,6 +433,9 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// </summary>
     [HttpPost("{id}/restore")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RestorePost(int id)
     {
         var success = await postService.RestorePostAsync(id);
@@ -418,6 +449,8 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// </summary>
     [HttpDelete("{id}/permanent")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> PermanentDeletePost(int id)
     {
         await postService.PermanentDeletePostAsync(id);
@@ -430,6 +463,7 @@ public class PostsApiController(IPostService postService, ICommentService commen
     /// 获取与指定文章相关的推荐文章（公开接口）
     /// </summary>
     [HttpGet("{id}/related")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelatedPosts(int id, [FromQuery] int count = 4)
     {
         var posts = await postService.GetRelatedPostsAsync(id, count);
