@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchMyOrders, fetchCurrentUser, type Order } from "@/lib/api";
+import { EndOfList } from "@/components/EndOfList";
 
 // 订单状态映射
 const statusMap: Record<Order["status"], { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -133,6 +134,9 @@ export default function OrdersPage() {
               </Card>
             );
           })}
+
+          {/* 已到底提示 */}
+          {orders.length > 0 && <EndOfList />}
         </div>
       )}
     </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Eye, EyeOff, Library } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { EndOfList } from "@/components/EndOfList";
 
 export interface Post {
   id: number;
@@ -269,6 +270,11 @@ export default function PostList({
             {loading ? "加载中..." : "加载更多文章"}
           </Button>
         </div>
+      )}
+
+      {/* 已到底提示 */}
+      {!hasMore && posts.length > 0 && (
+        <EndOfList />
       )}
     </div>
   );

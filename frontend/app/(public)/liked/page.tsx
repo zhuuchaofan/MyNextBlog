@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ChevronLeft, LogIn, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { EndOfList } from '@/components/EndOfList';
 
 export default function LikedPostsPage() {
   const router = useRouter();
@@ -172,6 +173,11 @@ export default function LikedPostsPage() {
                 {loading ? '加载中...' : '加载更多'}
               </Button>
             </div>
+          )}
+
+          {/* 已到底提示 */}
+          {!hasMore && posts.length > 0 && (
+            <EndOfList />
           )}
         </div>
       )}
