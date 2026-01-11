@@ -20,8 +20,7 @@ namespace MyNextBlog.Services;
 /// <summary>
 /// 用户状态后台轮询服务
 /// 
-/// **数据流**:
-///   Third-Party APIs -> CheckAllSourcesAsync -> IMemoryCache <- Controller
+/// **数据流**: Third-Party APIs → CheckAllSourcesAsync → IMemoryCache ← Controller
 /// </summary>
 public class PresenceBackgroundService(
     IHttpClientFactory httpClientFactory,

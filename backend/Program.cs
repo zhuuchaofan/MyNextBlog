@@ -59,7 +59,19 @@ builder.Services.AddControllers()
 
 // 2. **Swagger/OpenAPI 文档**
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // 启用 XML 注释，让 Swagger UI 显示 /// <summary> 内容
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+    
+    // 启用非可空引用类型支持，提高类型精确度
+    options.SupportNonNullableReferenceTypes();
+});
 
 // 3. **应用程序业务服务**
 // 具体服务注册拆分到 Extensions/ServiceCollectionExtensions.cs
