@@ -142,8 +142,24 @@ className = "gap-2 sm:gap-3"; // 8px → 12px
 
 ### 6.1 返回按钮
 
+**模式 A: 响应式文字 (推荐用于 Public 页面)**
+
+移动端仅图标，桌面端图标+文字：
+
 ```tsx
-// 移动端仅图标，桌面端图标+文字
+<Button
+  variant="ghost"
+  onClick={() => router.back()}
+  className="h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+>
+  <ChevronLeft className="w-4 h-4" />
+  <span className="hidden sm:inline ml-1">返回</span>
+</Button>
+```
+
+**模式 B: 纯图标 (适用于空间紧凑的 Admin 页面)**
+
+```tsx
 <Button
   variant="ghost"
   size="icon"

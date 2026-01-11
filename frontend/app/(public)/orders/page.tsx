@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Package, Loader2, ChevronRight, AlertCircle } from "lucide-react";
+import { ShoppingBag, Package, Loader2, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,10 +68,21 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-3">
-        <ShoppingBag className="w-7 h-7" />
-        我的订单
-      </h1>
+      {/* 页面标题 */}
+      <div className="flex items-center gap-4 mb-6 sm:mb-8">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline ml-1">返回</span>
+        </Button>
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-3">
+          <ShoppingBag className="w-6 h-6" />
+          我的订单
+        </h1>
+      </div>
 
       {orders.length === 0 ? (
         <Card className="text-center py-12">
