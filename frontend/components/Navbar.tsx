@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle, Heart } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle, Heart, Cat } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { UserPresenceWidget } from '@/components/UserPresenceWidget';
@@ -50,7 +50,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0 mr-4">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-800 dark:text-gray-100 hover:text-orange-500 transition-colors">
-              <span className="text-2xl">🐱</span>
+              <Cat className="w-6 h-6 text-orange-500" />
               <span className="hidden sm:inline">球球布丁的后花园</span>
               <span className="sm:hidden">球球&布丁</span>
             </Link>

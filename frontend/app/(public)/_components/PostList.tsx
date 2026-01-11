@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Calendar, ArrowRight, Eye, EyeOff, Library } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
@@ -175,7 +175,7 @@ export default function PostList({
                       variant="outline"
                       className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2 py-0.5"
                     >
-                      📚 {post.seriesName}{" "}
+                      <Library className="w-3 h-3 inline mr-1" />{post.seriesName}{" "}
                       {post.seriesOrder ? `第${post.seriesOrder}篇` : ""}
                     </Badge>
                   )}
