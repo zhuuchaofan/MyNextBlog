@@ -109,6 +109,23 @@ export default function PostList({
             }`}
           >
             <div className="flex flex-col md:flex-row h-full relative">
+              {/* 管理员控制按钮 - 左上角绝对定位 */}
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 left-2 z-10 h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm shadow-sm hover:bg-white dark:hover:bg-zinc-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-zinc-700"
+                  onClick={(e) => toggleVisibility(e, post)}
+                  title={post.isHidden ? "点击公开" : "点击隐藏"}
+                >
+                  {post.isHidden ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </Button>
+              )}
+
               {post.coverImage && (
                 <div className="md:w-64 h-48 md:h-auto relative p-3">
                   <div className="w-full h-full relative rounded-2xl overflow-hidden">
@@ -171,23 +188,6 @@ export default function PostList({
                       day: "2-digit",
                     })}
                   </span>
-
-                  {/* 管理员控制按钮 */}
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                      onClick={(e) => toggleVisibility(e, post)}
-                      title={post.isHidden ? "点击公开" : "点击隐藏"}
-                    >
-                      {post.isHidden ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
                 </div>
 
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
