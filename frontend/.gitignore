@@ -6,3 +6,7 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# 测试截图和认证缓存
+tests/.auth/
+tests/**/*-snapshots/

@@ -4,6 +4,8 @@
 // 定义友链相关的 DTO，用于 API 层数据传输。
 // 使用 record 类型确保不可变性。
 
+using System.ComponentModel.DataAnnotations;
+
 namespace MyNextBlog.DTOs;
 
 /// <summary>
@@ -54,23 +56,23 @@ public record FriendLinkAdminDto(
 /// <param name="Url">友站 URL (必填)</param>
 /// <param name="Description">友站描述</param>
 /// <param name="AvatarUrl">头像 URL</param>
-/// <param name="DisplayOrder">显示顺序</param>
+/// <param name="DisplayOrder">显示顺序 (留空或传 0 将自动递增)</param>
 public record CreateFriendLinkDto(
-    string Name,
-    string Url,
+    [Required] string Name,
+    [Required] [Url] string Url,
     string? Description,
     string? AvatarUrl,
-    int DisplayOrder = 0
+    [Range(0, int.MaxValue, ErrorMessage = "显示顺序不能为负数")] int DisplayOrder = 0
 );
 
 /// <summary>
 /// 更新友链 DTO
 /// </summary>
 public record UpdateFriendLinkDto(
-    string Name,
-    string Url,
+    [Required] string Name,
+    [Required] [Url] string Url,
     string? Description,
     string? AvatarUrl,
-    int DisplayOrder,
+    [Range(0, int.MaxValue, ErrorMessage = "显示顺序不能为负数")] int DisplayOrder,
     bool IsActive
 );

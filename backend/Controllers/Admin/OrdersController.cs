@@ -26,6 +26,8 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 获取所有订单（分页）
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var (orders, totalCount) = await orderService.GetAllOrdersAsync(page, pageSize);
@@ -48,6 +50,10 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// 取消订单
     /// </summary>
     [HttpPost("{id:int}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CancelOrder(int id)
     {
         try

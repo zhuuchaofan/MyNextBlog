@@ -38,6 +38,9 @@ public class UploadController(IStorageService storageService, IImageService imag
     /// <param name="file">图片文件 (jpg, png, gif, webp)</param>
     /// <returns>图片的 URL</returns>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Upload(IFormFile? file)
     {
         // 1. 基础参数验证
@@ -95,6 +98,8 @@ public class UploadController(IStorageService storageService, IImageService imag
     /// 手动触发清理僵尸图片
     /// </summary>
     [HttpPost("cleanup")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Cleanup()
     {
         // 调用服务执行清理逻辑

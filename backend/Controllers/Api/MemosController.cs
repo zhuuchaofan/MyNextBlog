@@ -27,6 +27,7 @@ public class MemosController(
     /// GET /api/memos?cursor=xxx&limit=20
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPublicMemos(
         [FromQuery] string? cursor = null,
         [FromQuery] int limit = 20)
@@ -40,6 +41,7 @@ public class MemosController(
     /// GET /api/memos/heatmap?year=2026
     /// </summary>
     [HttpGet("heatmap")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHeatmap([FromQuery] int? year = null)
     {
         var targetYear = year ?? DateTime.UtcNow.Year;
@@ -55,6 +57,8 @@ public class MemosController(
     /// </summary>
     [HttpGet("admin")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAllAdmin(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
@@ -82,6 +86,9 @@ public class MemosController(
     /// </summary>
     [HttpGet("admin/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var memo = await memoService.GetByIdAsync(id);
@@ -98,6 +105,9 @@ public class MemosController(
     /// </summary>
     [HttpPost("admin")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateMemoDto dto)
     {
         // 验证内容
@@ -128,6 +138,10 @@ public class MemosController(
     /// </summary>
     [HttpPut("admin/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateMemoDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Content))
@@ -156,6 +170,9 @@ public class MemosController(
     /// </summary>
     [HttpDelete("admin/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await memoService.DeleteAsync(id);

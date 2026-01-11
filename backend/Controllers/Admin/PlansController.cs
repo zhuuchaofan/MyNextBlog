@@ -34,6 +34,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 获取所有计划列表
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll()
     {
         var plans = await planService.GetAllPlansAsync();
@@ -44,6 +46,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 获取计划详情（含日程和活动）
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var plan = await planService.GetPlanByIdAsync(id);
@@ -55,6 +60,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 创建新计划
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreatePlanDto dto)
     {
         var plan = await planService.CreatePlanAsync(dto);
@@ -65,6 +72,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 更新计划
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePlanDto dto)
     {
         var plan = await planService.UpdatePlanAsync(id, dto);
@@ -76,6 +86,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 删除计划
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await planService.DeletePlanAsync(id);
@@ -87,6 +100,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 获取计划预算统计
     /// </summary>
     [HttpGet("{id}/budget")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetBudget(int id)
     {
         var (totalEstimated, totalActual) = await planService.GetBudgetSummaryAsync(id);
@@ -99,6 +114,8 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 为计划添加一天
     /// </summary>
     [HttpPost("{planId}/days")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> AddDay(int planId, [FromBody] CreatePlanDayDto dto)
     {
         var day = await planService.AddDayAsync(planId, dto);
@@ -109,6 +126,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 更新某天
     /// </summary>
     [HttpPut("{planId}/days/{dayId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateDay(int planId, int dayId, [FromBody] UpdatePlanDayDto dto)
     {
         var day = await planService.UpdateDayAsync(dayId, dto);
@@ -120,6 +140,9 @@ public class PlansController(IPlanService planService) : ControllerBase
     /// 删除某天
     /// </summary>
     [HttpDelete("{planId}/days/{dayId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDay(int planId, int dayId)
     {
         var result = await planService.DeleteDayAsync(dayId);
@@ -140,6 +163,8 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     /// 为某天添加活动
     /// </summary>
     [HttpPost("days/{dayId}/activities")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> AddActivity(int dayId, [FromBody] CreateActivityDto dto)
     {
         var activity = await planService.AddActivityAsync(dayId, dto);
@@ -150,6 +175,9 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     /// 更新活动
     /// </summary>
     [HttpPut("activities/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateActivity(int id, [FromBody] UpdateActivityDto dto)
     {
         var activity = await planService.UpdateActivityAsync(id, dto);
@@ -161,6 +189,9 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     /// 删除活动
     /// </summary>
     [HttpDelete("activities/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteActivity(int id)
     {
         var result = await planService.DeleteActivityAsync(id);
@@ -172,6 +203,8 @@ public class ActivitiesController(IPlanService planService) : ControllerBase
     /// 批量更新活动排序（拖拽排序优化）
     /// </summary>
     [HttpPatch("activities/batch-sort")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> BatchUpdateSort([FromBody] BatchUpdateActivitySortDto dto)
     {
         await planService.BatchUpdateActivitySortOrderAsync(dto.Items);

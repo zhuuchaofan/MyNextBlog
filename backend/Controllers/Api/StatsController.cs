@@ -34,6 +34,7 @@ public class StatsController(IStatsService statsService) : ControllerBase
     /// <returns>统计数据 DTO</returns>
     // `[HttpPost("pulse")]`: 响应 POST /api/stats/pulse 请求
     [HttpPost("pulse")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Pulse()
     {
         // 1. 记录访问量

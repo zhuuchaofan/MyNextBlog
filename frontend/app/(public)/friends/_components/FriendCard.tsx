@@ -10,6 +10,20 @@ interface FriendCardProps {
 }
 
 /**
+ * 从 URL 获取网站 Favicon
+ * 使用 Google Favicon 服务：https://www.google.com/s2/favicons?domain=xxx&sz=64
+ */
+function getFaviconUrl(url: string): string {
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  } catch {
+    // URL 解析失败时返回默认图标
+    return `https://api.dicebear.com/7.x/initials/svg?seed=?`;
+  }
+}
+
+/**
  * 友链卡片组件
  * - 在线: 右上角绿色呼吸灯 + 显示延迟
  * - 离线: 红色/灰色点 + 灰度滤镜
@@ -35,10 +49,10 @@ export function FriendCard({ friend }: FriendCardProps) {
       
       <CardContent className={`p-5 ${!friend.isOnline ? 'grayscale-[50%]' : ''}`}>
         <div className="flex items-start gap-4">
-          {/* 头像 */}
+          {/* 头像 - 优先使用设置的头像，否则使用网站 Favicon */}
           <Avatar className="w-14 h-14 border-2 border-white dark:border-zinc-700 shadow-sm flex-shrink-0">
             <AvatarImage 
-              src={friend.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.name)}`} 
+              src={friend.avatarUrl || getFaviconUrl(friend.url)} 
               alt={friend.name}
             />
             <AvatarFallback className="bg-orange-100 text-orange-600 font-bold">

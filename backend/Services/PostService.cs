@@ -374,9 +374,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     }
 
     /// <summary>
-    /// `GetCategoriesAsync` 方法用于获取数据库中所有可用的文章分类。
+    /// GetCategoriesAsync 方法用于获取数据库中所有可用的文章分类。
     /// </summary>
-    /// <returns>返回一个 `Task<List<CategoryDto>>`，其中包含所有分类的 DTO 列表。</returns>
+    /// <returns>返回包含所有分类 DTO 的列表。</returns>
     public async Task<List<CategoryDto>> GetCategoriesAsync()
     {
         // 使用 Projection 直接映射到 DTO，避免 Entity 泄露
@@ -387,11 +387,11 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     }
 
     /// <summary>
-    /// `TogglePostVisibilityAsync` 方法用于快速切换指定文章的可见性状态。
-    /// （即将 `IsHidden` 从 `true` 改为 `false`，或从 `false` 改为 `true`）。
+    /// TogglePostVisibilityAsync 方法用于快速切换指定文章的可见性状态。
+    /// （即将 IsHidden 从 true 改为 false，或从 false 改为 true）。
     /// </summary>
     /// <param name="id">要切换状态的文章的整数 ID。</param>
-    /// <returns>返回一个 `Task<bool>`。如果文章存在并成功切换了状态，则返回 `true`；否则返回 `false`。</returns>
+    /// <returns>如果文章存在并成功切换了状态，则返回 true；否则返回 false。</returns>
     public async Task<bool> TogglePostVisibilityAsync(int id)
     {
         var post = await context.Posts.FindAsync(id);
@@ -776,11 +776,12 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             .ToListAsync();
 
         // 按点赞时间顺序排序返回
+        // 使用 OfType<T>() 同时过滤 null 并转换类型，避免 CS8619 警告
         var orderedPosts = pagedPostIds
             .Select(id => posts.FirstOrDefault(p => p.Id == id))
-            .Where(p => p != null)
-            .ToList()!;
+            .OfType<PostSummaryDto>()
+            .ToList();
 
-        return (orderedPosts!, totalCount);
+        return (orderedPosts, totalCount);
     }
 }

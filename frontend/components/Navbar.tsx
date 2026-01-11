@@ -14,12 +14,13 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, ShoppingBag, Package, ShoppingCart, Users, MessageCircle, Heart } from 'lucide-react';
+import { Home, BookOpen, Camera, Info, Search, LogOut, LayoutDashboard, Menu, LogIn, User as UserIcon, Rss, Library, Package, Users, MessageCircle, Heart, Cat, MoreHorizontal } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { UserPresenceWidget } from '@/components/UserPresenceWidget';
 import { useMounted } from '@/hooks/useMounted';
-import { useCartCount } from '@/hooks/useCartCount';
+import { useTranslations } from 'next-intl';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -27,20 +28,28 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   // 使用自定义 Hook 避免 ESLint set-state-in-effect 警告
   const mounted = useMounted();
-  
-  // 购物车商品数量 (使用自定义 Hook 监听 localStorage 变化)
-  const cartCount = useCartCount();
+  // i18n 翻译 Hook
+  const t = useTranslations('nav');
 
-  const navLinks = [
-    { href: '/', icon: <Home className="w-4 h-4" />, label: '首页' },
-    { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: '归档' },
-    { href: '/series', icon: <Library className="w-4 h-4" />, label: '系列' },
-    { href: '/memos', icon: <MessageCircle className="w-4 h-4" />, label: '碎碎念' },
-    { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: '相册' },
-    { href: '/friends', icon: <Users className="w-4 h-4" />, label: '友链' },
-    { href: '/shop', icon: <ShoppingBag className="w-4 h-4" />, label: '小卖部' },
-    { href: '/about', icon: <Info className="w-4 h-4" />, label: '关于' },
+
+  // 主导航链接 (直接显示在导航栏)
+  const mainNavLinks = [
+    { href: '/', icon: <Home className="w-4 h-4" />, label: t('home') },
+    { href: '/archive', icon: <BookOpen className="w-4 h-4" />, label: t('archive') },
+    { href: '/series', icon: <Library className="w-4 h-4" />, label: t('series') },
+    { href: '/gallery', icon: <Camera className="w-4 h-4" />, label: t('gallery') },
   ];
+  
+  const aboutLink = { href: '/about', icon: <Info className="w-4 h-4" />, label: t('about') };
+
+  // "更多"菜单链接
+  const moreNavLinks = [
+    { href: '/memos', icon: <MessageCircle className="w-4 h-4" />, label: t('memos') },
+    { href: '/friends', icon: <Users className="w-4 h-4" />, label: t('friends') },
+  ];
+  
+  // 移动端完整导航（包含更多菜单项）
+  const allNavLinks = [...mainNavLinks, ...moreNavLinks, aboutLink];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-lg transition-all shadow-sm">
@@ -50,7 +59,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0 mr-4">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-800 dark:text-gray-100 hover:text-orange-500 transition-colors">
-              <span className="text-2xl">🐱</span>
+              <Cat className="w-6 h-6 text-orange-500" />
               <span className="hidden sm:inline">球球布丁的后花园</span>
               <span className="sm:hidden">球球&布丁</span>
             </Link>
@@ -58,9 +67,47 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
-            {navLinks.map(link => (
+            {mainNavLinks.map(link => (
               <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} active={pathname === link.href} />
             ))}
+            
+            {/* 更多下拉菜单 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="rounded-full gap-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                  {t('more')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-40">
+                  {moreNavLinks.map(link => (
+                  <Link key={link.href} href={link.href}>
+                    <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
+                      {link.icon}
+                      <span>{link.label}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                ))}
+                <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+                    <DropdownMenuItem className="cursor-pointer gap-2">
+                      <Rss className="w-4 h-4" />
+                      <span>{t('rss')}</span>
+                    </DropdownMenuItem>
+                </Link>
+
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* 关于 (放在更多后面) */}
+            <NavLink 
+              href={aboutLink.href} 
+              icon={aboutLink.icon} 
+              label={aboutLink.label} 
+              active={pathname === aboutLink.href} 
+            />
           </div>
 
           {/* Right Actions */}
@@ -68,33 +115,11 @@ export default function Navbar() {
              {/* 用户状态指示 (Digital Presence) */}
              <UserPresenceWidget />
              
-             {/* 购物车按钮 */}
-             <Link href="/cart" aria-label="购物车">
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 className="relative rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400"
-               >
-                 <ShoppingCart className="w-5 h-5" />
-                 {cartCount > 0 && (
-                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                     {cartCount > 99 ? '99+' : cartCount}
-                   </span>
-                 )}
-               </Button>
-             </Link>
+             <LocaleSwitcher />
 
              <ModeToggle />
              
-             <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 className="rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hidden sm:flex"
-               >
-                 <Rss className="w-5 h-5" />
-               </Button>
-             </Link>
+
 
              <Button 
                variant="ghost" 
@@ -122,7 +147,7 @@ export default function Navbar() {
                    <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md">
                       <DropdownMenuLabel>导航</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {navLinks.map(link => (
+                       {allNavLinks.map(link => (
                         <Link key={link.href} href={link.href}>
                           <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
                             {link.icon}
@@ -131,6 +156,12 @@ export default function Navbar() {
                         </Link>
                       ))}
                       <DropdownMenuSeparator />
+                      <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+                        <DropdownMenuItem className="cursor-pointer gap-2">
+                          <Rss className="w-4 h-4" />
+                          <span>RSS 订阅</span>
+                        </DropdownMenuItem>
+                      </Link>
                       <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => {setIsSearchOpen(true);}}>
                         <Search className="w-4 h-4" />
                         <span>搜索</span>

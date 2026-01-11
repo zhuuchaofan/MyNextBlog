@@ -15,6 +15,7 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     private bool IsAdmin => User.IsAdmin();
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllSeries()
     {
         var series = await seriesService.GetAllSeriesAsync(includeHidden: IsAdmin);
@@ -22,6 +23,8 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSeriesById(int id)
     {
         var series = await seriesService.GetSeriesByIdAsync(id, includeHidden: IsAdmin);
@@ -33,6 +36,8 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
 
     [HttpPost]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateSeries([FromBody] CreateSeriesDto dto)
     {
         var series = await seriesService.CreateSeriesAsync(dto);
@@ -41,6 +46,9 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateSeries(int id, [FromBody] UpdateSeriesDto dto)
     {
         try
@@ -56,6 +64,8 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> DeleteSeries(int id)
     {
         await seriesService.DeleteSeriesAsync(id);
@@ -63,6 +73,7 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     }
 
     [HttpGet("{id}/next-order")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetNextOrder(int id)
     {
         var nextOrder = await seriesService.GetNextOrderAsync(id);
@@ -73,6 +84,8 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     /// 获取系列下的所有文章（公开接口，游客只能看公开文章）
     /// </summary>
     [HttpGet("{id}/posts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSeriesPosts(int id)
     {
         // 检查系列是否存在

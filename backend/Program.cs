@@ -59,7 +59,19 @@ builder.Services.AddControllers()
 
 // 2. **Swagger/OpenAPI 文档**
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // 启用 XML 注释，让 Swagger UI 显示 /// <summary> 内容
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+    
+    // 启用非可空引用类型支持，提高类型精确度
+    options.SupportNonNullableReferenceTypes();
+});
 
 // 3. **应用程序业务服务**
 // 具体服务注册拆分到 Extensions/ServiceCollectionExtensions.cs
@@ -90,6 +102,11 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // 8. **Rate Limiting (频率限制)**
 // 防止暴力破解登录和 API 滥用
+// 全局限流阈值可通过环境变量 RATE_LIMIT_PER_MINUTE 调整（测试环境可设置更高）
+var globalRateLimit = int.TryParse(
+    Environment.GetEnvironmentVariable("RATE_LIMIT_PER_MINUTE"), 
+    out var limit) ? limit : 100;
+
 builder.Services.AddRateLimiter(options =>
 {
     // 登录接口专用策略: 每分钟最多 5 次尝试 (基于 IP)
@@ -117,14 +134,15 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
     
-    // 全局策略: 每分钟最多 100 次请求 (针对同一 IP)
+    // 全局策略: 每分钟最多 N 次请求 (针对同一 IP)
+    // 默认 100，可通过环境变量 RATE_LIMIT_PER_MINUTE 提高
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
             new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 100,
+                PermitLimit = globalRateLimit,
                 Window = TimeSpan.FromMinutes(1)
             });
     });

@@ -120,3 +120,111 @@ export async function getCommentsServer(
     return { success: false, comments: [], totalCount: 0, hasMore: false };
   }
 }
+
+// ============================================================================
+// 管理后台文章列表类型 (Admin Posts)
+// ============================================================================
+
+/**
+ * 管理后台文章列表项（包含 isHidden 等管理字段）
+ */
+export interface AdminPostItem {
+  id: number;
+  title: string;
+  createTime: string;
+  categoryName: string;
+  authorName: string;
+  isHidden: boolean;
+  seriesName?: string;
+  seriesOrder: number;
+}
+
+/**
+ * 分页元数据
+ */
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
+/**
+ * 获取管理后台文章列表 (Server Component 专用)
+ *
+ * 此函数设计用于在 Next.js 的 Server Components 中调用。
+ * 它会自动注入 Cookie 中的 JWT Token，用于获取包括草稿在内的所有文章。
+ *
+ * @param page 页码 (从 1 开始)
+ * @param pageSize 每页条数
+ */
+export async function getAdminPostsServer(
+  page = 1,
+  pageSize = 10
+): Promise<{
+  success: boolean;
+  posts: AdminPostItem[];
+  meta: PaginationMeta;
+}> {
+  try {
+    const baseUrl = process.env.BACKEND_URL || "http://backend:8080";
+
+    // 读取 Cookie 中的 Token (Server Component 环境)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token");
+
+    // 如果没有 Token，说明未登录，返回空结果
+    if (!token) {
+      return {
+        success: false,
+        posts: [],
+        meta: { page, pageSize, totalCount: 0, totalPages: 0, hasMore: false },
+      };
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.value}`,
+    };
+
+    const res = await fetch(
+      `${baseUrl}/api/posts/admin?page=${page}&pageSize=${pageSize}`,
+      {
+        headers,
+        // 管理后台数据不缓存，确保实时性
+        next: { revalidate: 0 },
+      }
+    );
+
+    if (!res.ok) {
+      console.error("Admin posts fetch failed:", res.status, res.statusText);
+      return {
+        success: false,
+        posts: [],
+        meta: { page, pageSize, totalCount: 0, totalPages: 0, hasMore: false },
+      };
+    }
+
+    const json = await res.json();
+
+    return {
+      success: json.success ?? false,
+      posts: json.data ?? [],
+      meta: {
+        page: json.meta?.page ?? page,
+        pageSize: json.meta?.pageSize ?? pageSize,
+        totalCount: json.meta?.totalCount ?? 0,
+        totalPages: json.meta?.totalPages ?? 0,
+        hasMore: json.meta?.hasMore ?? false,
+      },
+    };
+  } catch (error) {
+    console.error("Fetch admin posts error:", error);
+    return {
+      success: false,
+      posts: [],
+      meta: { page, pageSize, totalCount: 0, totalPages: 0, hasMore: false },
+    };
+  }
+}

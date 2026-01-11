@@ -116,13 +116,22 @@ public class FriendLinkService(
     /// </summary>
     public async Task<FriendLinkAdminDto> CreateAsync(CreateFriendLinkDto dto)
     {
+        // 自动递增 DisplayOrder：如果传入 <= 0，则自动设为最大值 + 1
+        var displayOrder = dto.DisplayOrder;
+        if (displayOrder <= 0)
+        {
+            var maxOrder = await context.FriendLinks
+                .MaxAsync(f => (int?)f.DisplayOrder) ?? 0;
+            displayOrder = maxOrder + 1;
+        }
+        
         var friend = new FriendLink
         {
             Name = dto.Name.Trim(),
             Url = dto.Url.Trim(),
             Description = dto.Description?.Trim(),
             AvatarUrl = dto.AvatarUrl?.Trim(),
-            DisplayOrder = dto.DisplayOrder,
+            DisplayOrder = displayOrder,
             IsActive = true,
             IsOnline = true,  // 默认在线，等待健康检查更新
             CreatedAt = DateTime.UtcNow
@@ -134,7 +143,7 @@ public class FriendLinkService(
         // 清除缓存
         InvalidateCache();
         
-        logger.LogInformation("创建友链: {Name} ({Url})", friend.Name, friend.Url);
+        logger.LogInformation("创建友链: {Name} ({Url}), DisplayOrder: {Order}", friend.Name, friend.Url, displayOrder);
         
         return new FriendLinkAdminDto(
             friend.Id,

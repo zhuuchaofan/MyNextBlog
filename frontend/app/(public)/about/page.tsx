@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Github, Mail, Twitter, 
   Code2, Database, Layout, Server, Terminal, Cpu, Globe, Palette, Cloud, Container, GitGraph,
-  BookOpen, Wrench, Briefcase, MapPin, Calendar
+  BookOpen, Wrench, Briefcase, MapPin, Calendar, HeartHandshake, PawPrint
 } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG, PETS, SKILL_CATEGORIES, BOOKS, TIMELINE, GEARS } from "@/lib/constants"; 
@@ -311,7 +311,7 @@ export default async function AboutPage() {
                           {/* 特别致谢（可配置） */}
               <section className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
-                   <span className="text-2xl">💝</span> 
+                   <HeartHandshake className="w-6 h-6 text-pink-500" /> 
                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">特别致谢</h2>
                 </div>
                 <Card className="border-pink-100 dark:border-pink-900/30 bg-gradient-to-br from-pink-50/50 to-white dark:from-pink-950/10 dark:to-zinc-900/50 overflow-hidden relative">
@@ -337,7 +337,7 @@ export default async function AboutPage() {
              {/* 猫主子 */}
              <section>
                 <div className="flex items-center gap-3 mb-4 px-1">
-                   <span className="text-2xl">🐾</span> 
+                   <PawPrint className="w-6 h-6 text-orange-500" /> 
                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">猫主子</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">

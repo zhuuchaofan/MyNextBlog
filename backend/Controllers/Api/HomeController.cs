@@ -54,6 +54,8 @@ public class HomeController(
     /// 替代原来的 12 个独立请求
     /// </summary>
     [HttpGet("initial-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetInitialData(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)

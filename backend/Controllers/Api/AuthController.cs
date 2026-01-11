@@ -34,6 +34,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// </summary>
     [HttpPost("login")]
     [EnableRateLimiting("login")]  // 频率限制: 每分钟最多 5 次
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         // 使用 Service 提供的 Helper 方法进行认证
@@ -68,6 +71,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// 刷新令牌
     /// </summary>
     [HttpPost("refresh-token")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
     {
         var result = await authService.RefreshTokenAsync(dto);
@@ -87,6 +92,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// 用户注册
     /// </summary>
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var response = await authService.RegisterAsync(dto.Username, dto.Password, dto.Email);
@@ -104,6 +111,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// 忘记密码
     /// </summary>
     [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
         var result = await authService.ForgotPasswordAsync(dto.Email);
@@ -114,6 +122,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// 重置密码
     /// </summary>
     [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
         var result = await authService.ResetPasswordAsync(dto.Email, dto.Token, dto.NewPassword);

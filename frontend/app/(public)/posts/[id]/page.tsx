@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'; // Next.js 用于处理 404 错误�
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, ChevronLeft } from "lucide-react";
+import { Calendar, Clock, ChevronLeft, Library } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { Metadata } from 'next';
@@ -113,7 +113,7 @@ export default async function PostPage({ params }: Props) {
                {post.seriesInfo && (
                   <Link href={`/series/${post.seriesInfo.id}`}>
                     <Badge variant="secondary" className="bg-blue-500/30 backdrop-blur-md text-white hover:bg-blue-500/40 border-none px-3 py-1">
-                      📚 {post.seriesInfo.name} · 第{post.seriesInfo.currentOrder}篇
+                      <Library className="w-3.5 h-3.5 inline mr-1" />{post.seriesInfo.name} · 第{post.seriesInfo.currentOrder}篇
                     </Badge>
                   </Link>
                )}

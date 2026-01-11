@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { MemoCard } from './MemoCard';
 import { type Memo, fetchMemos as fetchMemosApi } from '@/lib/api';
+import { EndOfList } from '@/components/EndOfList';
 
 interface MemoListProps {
   initialMemos: Memo[];
@@ -88,9 +89,7 @@ export function MemoList({ initialMemos, initialCursor }: MemoListProps) {
           )}
           
           {!cursor && memos.length > 0 && (
-            <div className="p-4 text-center text-gray-400 dark:text-gray-500 text-sm">
-              已经到底了 ~
-            </div>
+            <EndOfList />
           )}
         </>
       )}

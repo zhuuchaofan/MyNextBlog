@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { fetchLikedPosts, PostSummary } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ChevronLeft, LogIn, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { EndOfList } from '@/components/EndOfList';
 
 export default function LikedPostsPage() {
+  const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,14 +78,17 @@ export default function LikedPostsPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline ml-1">返回</span>
+        </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <Heart className="w-6 h-6 text-red-500 fill-current" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 fill-current" />
             我的点赞
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -167,6 +173,11 @@ export default function LikedPostsPage() {
                 {loading ? '加载中...' : '加载更多'}
               </Button>
             </div>
+          )}
+
+          {/* 已到底提示 */}
+          {!hasMore && posts.length > 0 && (
+            <EndOfList />
           )}
         </div>
       )}

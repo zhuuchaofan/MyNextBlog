@@ -6,9 +6,10 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Calendar, ArrowRight, Eye, EyeOff, Library } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { EndOfList } from "@/components/EndOfList";
 
 export interface Post {
   id: number;
@@ -108,7 +109,7 @@ export default function PostList({
                 : ""
             }`}
           >
-            <div className="flex flex-col md:flex-row h-full relative">
+            <div className="flex flex-col md:flex-row h-full">
               {post.coverImage && (
                 <div className="md:w-64 h-48 md:h-auto relative p-3">
                   <div className="w-full h-full relative rounded-2xl overflow-hidden">
@@ -129,8 +130,26 @@ export default function PostList({
               )}
 
               <div className="flex-1 flex flex-col p-6 md:p-8">
-                {/* 第一行：定位信息（分类 + 系列）+ 时间 + 管理按钮 */}
-                {/* 移除 flex-wrap 防止换行，使用 min-w-0 + overflow-hidden 处理溢出 */}
+                {/* 管理员控制按钮 - 放在内容流中，标签行上方 */}
+                {isAdmin && (
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 hover:text-orange-600 dark:hover:text-orange-400 border border-gray-200 dark:border-zinc-600 transition-all"
+                      onClick={(e) => toggleVisibility(e, post)}
+                      title={post.isHidden ? "点击公开" : "点击隐藏"}
+                    >
+                      {post.isHidden ? (
+                        <EyeOff className="w-3.5 h-3.5 mr-1" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                      )}
+                      <span className="text-xs">{post.isHidden ? "已隐藏" : "公开中"}</span>
+                    </Button>
+                  </div>
+                )}
+                {/* 第一行：定位信息（分类 + 系列）+ 时间 */}
                 <div className="flex items-center gap-2 mb-4 min-w-0 overflow-hidden">
                   {post.isHidden && (
                     <Badge
@@ -157,7 +176,7 @@ export default function PostList({
                       variant="outline"
                       className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2 py-0.5"
                     >
-                      📚 {post.seriesName}{" "}
+                      <Library className="w-3 h-3 inline mr-1" />{post.seriesName}{" "}
                       {post.seriesOrder ? `第${post.seriesOrder}篇` : ""}
                     </Badge>
                   )}
@@ -171,23 +190,6 @@ export default function PostList({
                       day: "2-digit",
                     })}
                   </span>
-
-                  {/* 管理员控制按钮 */}
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                      onClick={(e) => toggleVisibility(e, post)}
-                      title={post.isHidden ? "点击公开" : "点击隐藏"}
-                    >
-                      {post.isHidden ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
                 </div>
 
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
@@ -268,6 +270,11 @@ export default function PostList({
             {loading ? "加载中..." : "加载更多文章"}
           </Button>
         </div>
+      )}
+
+      {/* 已到底提示 */}
+      {!hasMore && posts.length > 0 && (
+        <EndOfList />
       )}
     </div>
   );

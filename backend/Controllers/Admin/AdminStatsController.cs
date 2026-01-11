@@ -31,6 +31,8 @@ public class AdminStatsController(IStatsService statsService) : ControllerBase
     /// <returns>包含文章、评论、分类、标签、系列统计的 DTO</returns>
     // `[HttpGet("dashboard")]`: 响应 GET /api/admin/stats/dashboard 请求
     [HttpGet("dashboard")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetDashboardStats()
     {
         var stats = await statsService.GetAdminDashboardAsync();

@@ -39,6 +39,9 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// 发表新评论
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> CreateComment([FromBody] CreateCommentDto dto)
     {
         // 0. 频率限制 (Rate Limiting) - 逻辑已移至 Service 层
@@ -77,6 +80,7 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// 获取文章的评论列表 (分页)
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetComments(int postId, int page = 1, int pageSize = 5)
     {
         // 边界保护：限制分页参数范围
@@ -101,6 +105,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAdminComments(int page = 1, int pageSize = 20, bool? isApproved = null)
     {
         // 边界保护：限制分页参数范围
@@ -123,6 +129,9 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpPatch("{id}/approval")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleApproval(int id)
     {
         var result = await commentService.ToggleApprovalAsync(id);
@@ -135,6 +144,9 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteComment(int id)
     {
         var result = await commentService.DeleteCommentAsync(id);
@@ -147,6 +159,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpPost("batch-approve")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> BatchApprove([FromBody] List<int> ids)
     {
         var count = await commentService.BatchApproveAsync(ids);
@@ -158,6 +172,8 @@ public class CommentsController(ICommentService commentService) : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpPost("batch-delete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> BatchDelete([FromBody] List<int> ids)
     {
         var count = await commentService.BatchDeleteAsync(ids);

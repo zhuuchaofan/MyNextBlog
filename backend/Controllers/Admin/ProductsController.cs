@@ -27,6 +27,8 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// 获取所有商品（含下架）
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetProducts()
     {
         var products = await productService.GetAllAsync();
@@ -37,6 +39,9 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// 获取商品详情（含敏感信息）
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProduct(int id)
     {
         var product = await productService.GetAdminByIdAsync(id);
@@ -53,6 +58,9 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// 创建商品
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
@@ -68,6 +76,9 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// 更新商品
     /// </summary>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
     {
         var success = await productService.UpdateAsync(id, dto);
@@ -84,6 +95,9 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// 删除商品
     /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> DeleteProduct(int id)
     {
         var success = await productService.DeleteAsync(id);

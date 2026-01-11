@@ -8,7 +8,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    var(--font-noto-emoji), "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -72,11 +73,11 @@
   --chart-4: hsl(43 74% 66%);
   --chart-5: hsl(27 87% 67%);
   --radius: 0.5rem;
-  /* 字体栈：使用 Twemoji 渲染 emoji，无须字体支持 */
+  /* 字体栈：使用 Noto Color Emoji 提供一致的 Emoji 显示 */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    "Noto Color Emoji";
+    sans-serif, var(--font-noto-emoji), "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
@@ -122,22 +123,14 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Twemoji 样式 - 确保 emoji SVG 与文字正确对齐 */
-  img.twemoji {
-    display: inline-block;
-    height: 1.2em;
-    width: 1.2em;
-    vertical-align: -0.2em;
-    margin: 0 0.1em;
-  }
 
   /* iOS Date/Time Input Reset - FIX for iOS Safari overflow/overlap */
   input[type="date"],
   input[type="time"] {
     -webkit-appearance: none; /* 移除 iOS 默认外观 */
-    appearance: none;         /* 标准属性 */
-    min-width: 0;            /* 允许在 Grid 中收缩，防止撑大容器 */
-    min-height: auto;        /* 重置最小高度，服从 h-9 */
+    appearance: none; /* 标准属性 */
+    min-width: 0; /* 允许在 Grid 中收缩，防止撑大容器 */
+    min-height: auto; /* 重置最小高度，服从 h-9 */
     background-color: transparent;
   }
 

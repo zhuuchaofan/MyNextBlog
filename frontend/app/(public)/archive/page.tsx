@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Calendar, PawPrint, ArrowRight, Tag } from "lucide-react";
+import { EndOfList } from "@/components/EndOfList";
 
 // 定义文章数据的接口
 interface Post {
@@ -150,6 +151,11 @@ export default function ArchivePage() {
               </div>
             </div>
           ))}
+
+          {/* 已到底提示 */}
+          {posts.length > 0 && (
+            <EndOfList />
+          )}
         </div>
       )}
     </div>

@@ -27,6 +27,7 @@ public class GalleryController(IGalleryService galleryService) : ControllerBase
     /// 获取公开文章中的图片列表
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetImages(int page = 1, int pageSize = 20, string? keyword = null)
     {
         var result = await galleryService.GetImagesAsync(page, pageSize, keyword);
