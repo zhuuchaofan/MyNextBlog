@@ -108,24 +108,7 @@ export default function PostList({
                 : ""
             }`}
           >
-            <div className="flex flex-col md:flex-row h-full relative">
-              {/* 管理员控制按钮 - 左上角绝对定位 */}
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 left-2 z-10 h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm shadow-sm hover:bg-white dark:hover:bg-zinc-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-zinc-700"
-                  onClick={(e) => toggleVisibility(e, post)}
-                  title={post.isHidden ? "点击公开" : "点击隐藏"}
-                >
-                  {post.isHidden ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </Button>
-              )}
-
+            <div className="flex flex-col md:flex-row h-full">
               {post.coverImage && (
                 <div className="md:w-64 h-48 md:h-auto relative p-3">
                   <div className="w-full h-full relative rounded-2xl overflow-hidden">
@@ -146,8 +129,26 @@ export default function PostList({
               )}
 
               <div className="flex-1 flex flex-col p-6 md:p-8">
-                {/* 第一行：定位信息（分类 + 系列）+ 时间 + 管理按钮 */}
-                {/* 移除 flex-wrap 防止换行，使用 min-w-0 + overflow-hidden 处理溢出 */}
+                {/* 管理员控制按钮 - 放在内容流中，标签行上方 */}
+                {isAdmin && (
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 hover:text-orange-600 dark:hover:text-orange-400 border border-gray-200 dark:border-zinc-600 transition-all"
+                      onClick={(e) => toggleVisibility(e, post)}
+                      title={post.isHidden ? "点击公开" : "点击隐藏"}
+                    >
+                      {post.isHidden ? (
+                        <EyeOff className="w-3.5 h-3.5 mr-1" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                      )}
+                      <span className="text-xs">{post.isHidden ? "已隐藏" : "公开中"}</span>
+                    </Button>
+                  </div>
+                )}
+                {/* 第一行：定位信息（分类 + 系列）+ 时间 */}
                 <div className="flex items-center gap-2 mb-4 min-w-0 overflow-hidden">
                   {post.isHidden && (
                     <Badge
