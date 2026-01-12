@@ -196,9 +196,17 @@ export default function SeriesManagementPage() {
                     <TableCell className="font-medium text-gray-900 dark:text-gray-200 truncate" title={series.name}>{series.name}</TableCell>
                     <TableCell className="text-gray-500 dark:text-gray-400 truncate" title={series.description || ''}>{series.description || '-'}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
-                        {series.postCount}
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5">
+                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                          {series.postCount} 公开
+                        </Badge>
+                        <Badge 
+                          variant="secondary" 
+                          className={`bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 ${(series.hiddenPostCount ?? 0) === 0 ? 'invisible' : ''}`}
+                        >
+                          {series.hiddenPostCount ?? 0} 隐藏
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -239,9 +247,16 @@ export default function SeriesManagementPage() {
                       <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
                              <span className="font-bold text-gray-900 dark:text-gray-200 truncate">{series.name}</span>
-                             <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-800 ml-2 flex-shrink-0">
-                               {series.postCount} 篇
-                             </Badge>
+                             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                               <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                 {series.postCount}
+                               </Badge>
+                               {(series.hiddenPostCount ?? 0) > 0 && (
+                                 <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400">
+                                   +{series.hiddenPostCount}
+                                 </Badge>
+                               )}
+                             </div>
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                               {series.description || '暂无描述'}

@@ -16,11 +16,17 @@ namespace MyNextBlog.DTOs;
 /// <summary>
 /// 系列信息响应 DTO
 /// </summary>
+/// <param name="Id">系列 ID</param>
+/// <param name="Name">系列名称</param>
+/// <param name="Description">系列描述</param>
+/// <param name="PostCount">公开文章数</param>
+/// <param name="HiddenPostCount">隐藏文章数</param>
 public record SeriesDto(
     int Id,
     string Name,
     string? Description,
-    int PostCount
+    int PostCount,
+    int HiddenPostCount = 0
 );
 
 public record CreateSeriesDto(

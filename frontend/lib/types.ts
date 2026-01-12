@@ -165,6 +165,7 @@ export interface Series {
   name: string;
   description?: string;
   postCount: number;
+  hiddenPostCount?: number;  // 隐藏文章数
 }
 
 /**
