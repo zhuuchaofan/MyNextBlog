@@ -31,7 +31,8 @@ import {
 interface TagItem {
   id: number;
   name: string;
-  postCount: number;
+  postCount: number;       // 公开文章数
+  hiddenPostCount: number; // 隐藏文章数
 }
 
 // API 函数
@@ -234,9 +235,18 @@ export default function TagsManagementPage() {
                       <span className="text-gray-400 mr-1">#</span>{tag.name}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
-                        {tag.postCount}
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5">
+                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                          {tag.postCount} 公开
+                        </Badge>
+                        {/* 始终渲染占位元素，无隐藏时用 invisible 保持布局一致 */}
+                        <Badge 
+                          variant="secondary" 
+                          className={`bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 ${tag.hiddenPostCount === 0 ? 'invisible' : ''}`}
+                        >
+                          {tag.hiddenPostCount || 0} 隐藏
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -279,9 +289,16 @@ export default function TagsManagementPage() {
                              <span className="font-bold text-gray-900 dark:text-gray-200 truncate">
                                <span className="text-gray-400 mr-1">#</span>{tag.name}
                              </span>
-                             <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-800 ml-2 flex-shrink-0">
-                               {tag.postCount} 次
-                             </Badge>
+                             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                               <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                 {tag.postCount}
+                               </Badge>
+                               {tag.hiddenPostCount > 0 && (
+                                 <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400">
+                                   +{tag.hiddenPostCount}
+                                 </Badge>
+                               )}
+                             </div>
                           </div>
                       </div>
                    </div>

@@ -32,5 +32,6 @@ public record UpdateCategoryDto(
 /// </summary>
 /// <param name="Id">分类 ID</param>
 /// <param name="Name">分类名称</param>
-/// <param name="PostCount">关联文章数量</param>
-public record CategoryDto(int Id, string Name, int PostCount = 0);
+/// <param name="PostCount">公开文章数</param>
+/// <param name="HiddenPostCount">隐藏文章数（管理后台使用）</param>
+public record CategoryDto(int Id, string Name, int PostCount = 0, int HiddenPostCount = 0);

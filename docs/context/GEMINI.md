@@ -222,18 +222,19 @@
      **测试文件位置**: `frontend/tests/*.spec.ts`
 
      **核心原则**:
-     1.  **真实环境**: 尽可能连接真实后端容器，而非 Mock API（除非测试第三方服务故障）。
-     2.  **移动端优先**: 关键管理流程必须包含 Mobile Viewport 测试。
-     3.  **零脏数据**: 测试产生的数据应具有可识别性或自动清理。
+
+     1. **真实环境**: 尽可能连接真实后端容器，而非 Mock API（除非测试第三方服务故障）。
+     2. **移动端优先**: 关键管理流程必须包含 Mobile Viewport 测试。
+     3. **零脏数据**: 测试产生的数据应具有可识别性或自动清理。
 
      #### 3.6.1 运行配置与安全
 
-     | 环境变量              | 说明                               | 默认值/要求             |
-     | :-------------------- | :--------------------------------- | :---------------------- |
-     | `E2E_BASE_URL`        | 测试目标地址                       | `http://localhost:3000` |
-     | `TEST_ADMIN_USER`     | 管理员用户名                       | **必须**从 CI Secret 读取 |
-     | `TEST_ADMIN_PASSWORD` | 管理员密码                         | **必须**从 CI Secret 读取 |
-     | `CI`                  | CI 环境标识 (禁用 only, 开启重试) | `false`                 |
+     | 环境变量              | 说明                              | 默认值/要求               |
+     | :-------------------- | :-------------------------------- | :------------------------ |
+     | `E2E_BASE_URL`        | 测试目标地址                      | `http://localhost:3000`   |
+     | `TEST_ADMIN_USER`     | 管理员用户名                      | **必须**从 CI Secret 读取 |
+     | `TEST_ADMIN_PASSWORD` | 管理员密码                        | **必须**从 CI Secret 读取 |
+     | `CI`                  | CI 环境标识 (禁用 only, 开启重试) | `false`                   |
 
      ```bash
      # 运行所有测试 (包含 Desktop & Mobile)
@@ -258,6 +259,7 @@
 
      **2. 数据隔离与清理 (Data Hygiene)**
      所有测试生成的实体（文章、评论、标签）必须使用统一前缀，以便于生产环境识别和清理：
+
      - **格式**: `[E2E_AUTO] <当前时间戳> <名称>`
      - **清理**: 在 `test.afterAll` 中调用清理 API，或配置定时任务删除该前缀数据。
 
@@ -266,9 +268,9 @@
 
      ```typescript
      // ✅ 验证页面布局未发生非预期变化
-     await expect(page).toHaveScreenshot('admin-dashboard-mobile.png', {
+     await expect(page).toHaveScreenshot("admin-dashboard-mobile.png", {
        maxDiffPixels: 100, // 允许微小像素差异 (抗锯齿等)
-       fullPage: true
+       fullPage: true,
      });
      ```
 
@@ -278,7 +280,7 @@
      ```typescript
      test.describe("移动端适配", () => {
        test.use({ viewport: { width: 390, height: 844 } }); // iPhone 13
-       
+
        test("侧边栏应折叠为汉堡菜单", async ({ page }) => {
          // ...
        });
@@ -287,14 +289,15 @@
 
      #### 3.6.3 测试覆盖清单与注意事项
 
-     | 测试文件                  | 关键覆盖点                          | 备注                     |
-     | :------------------------ | :---------------------------------- | :----------------------- |
-     | `auth.spec.ts`            | 登录/登出、JWT 过期处理             | **Serial Mode** (防限流) |
-     | `admin-comments.spec.ts`  | 批量审核、删除、移动端表格适配      | 需验证截图比对           |
-     | `post-creation.spec.ts`   | Markdown 编辑器、图片上传           | **必须清理生成的数据**   |
-     | `layout-mobile.spec.ts`   | Navbar 响应式、底部导航栏(Mobile)   | 纯 UI 布局测试           |
+     | 测试文件                 | 关键覆盖点                        | 备注                     |
+     | :----------------------- | :-------------------------------- | :----------------------- |
+     | `auth.spec.ts`           | 登录/登出、JWT 过期处理           | **Serial Mode** (防限流) |
+     | `admin-comments.spec.ts` | 批量审核、删除、移动端表格适配    | 需验证截图比对           |
+     | `post-creation.spec.ts`  | Markdown 编辑器、图片上传         | **必须清理生成的数据**   |
+     | `layout-mobile.spec.ts`  | Navbar 响应式、底部导航栏(Mobile) | 纯 UI 布局测试           |
 
      **注意事项**:
+
      - **登录限流**: 登录 API 有频率限制（每分钟 5 次），测试代码必须复用 Token (StorageState)。
      - **API 契约**: 必须验证 JSON 响应符合 `{ success: true, data: ... }` 统一格式。
      - **截图目录**: 统一输出至 `frontend/test-results/screenshots/`。
@@ -910,4 +913,32 @@ const diff = differenceInDays(startDate, new Date()); // 可能少算一天
 
 ---
 
-**最后更新**: 2026-01-01
+**最后更新**: 2026-01-12
+
+### 11.9 条件渲染占位规范 ✨ (2026-01 新增)
+
+**问题**: 当表格或卡片中使用条件渲染 (`{condition && <Badge>}`) 时，不满足条件的行会因为缺少元素而导致**行高不一致**。
+
+**解决方案**: 始终渲染占位元素，使用 `invisible` 类隐藏但保留空间：
+
+```tsx
+// ❌ 错误 - 行高不一致
+<div className="inline-flex items-center gap-1.5">
+  <Badge>5 公开</Badge>
+  {hiddenCount > 0 && <Badge>3 隐藏</Badge>}  // 0 时无元素，行变矮
+</div>
+
+// ✅ 正确 - 始终渲染占位元素
+<div className="inline-flex items-center gap-1.5">
+  <Badge>5 公开</Badge>
+  <Badge className={`${hiddenCount === 0 ? 'invisible' : ''}`}>
+    {hiddenCount} 隐藏
+  </Badge>
+</div>
+```
+
+**适用场景**:
+
+- 表格中的可选 Badge 列 (如：标签/分类的隐藏文章数)
+- 卡片中的元数据显示 (如：评论状态、文章统计)
+- 任何需要保持行高一致的并排元素

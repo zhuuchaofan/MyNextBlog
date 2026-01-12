@@ -31,7 +31,8 @@ import {
 interface Category {
   id: number;
   name: string;
-  postCount: number;
+  postCount: number;       // 公开文章数
+  hiddenPostCount: number; // 隐藏文章数
 }
 
 // API 函数
@@ -232,9 +233,18 @@ export default function CategoriesManagementPage() {
                   <TableRow key={category.id}>
                     <TableCell className="font-medium text-gray-900 dark:text-gray-200 truncate" title={category.name}>{category.name}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
-                        {category.postCount}
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5">
+                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                          {category.postCount} 公开
+                        </Badge>
+                        {/* 始终渲染占位元素，无隐藏时用 invisible 保持布局一致 */}
+                        <Badge 
+                          variant="secondary" 
+                          className={`bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 ${category.hiddenPostCount === 0 ? 'invisible' : ''}`}
+                        >
+                          {category.hiddenPostCount || 0} 隐藏
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -275,9 +285,16 @@ export default function CategoriesManagementPage() {
                       <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center">
                              <span className="font-bold text-gray-900 dark:text-gray-200 truncate">{category.name}</span>
-                             <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-800 ml-2 flex-shrink-0">
-                               {category.postCount} 篇
-                             </Badge>
+                             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                               <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                 {category.postCount}
+                               </Badge>
+                               {category.hiddenPostCount > 0 && (
+                                 <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400">
+                                   +{category.hiddenPostCount}
+                                 </Badge>
+                               )}
+                             </div>
                           </div>
                       </div>
                    </div>
