@@ -6,7 +6,7 @@ import Image from "next/image";
 import { SITE_CONFIG, PETS } from "@/lib/constants";
 import PostList from "./_components/PostList";
 import StatsWidget from "./_components/StatsWidget";
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers"; // 暂时禁用管理员预览功能
 
 // 移除 force-dynamic，允许 Next.js 自动优化
 // export const dynamic = "force-dynamic";
@@ -17,23 +17,16 @@ import { cookies } from "next/headers";
 async function getHomePageData() {
   const backendUrl = process.env.BACKEND_URL || "http://backend:8080";
 
-  // 获取 Token 以便识别管理员
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token");
-  const headers: Record<string, string> = {};
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token.value}`;
-  }
+  // [暂时禁用] 管理员在首页预览隐藏文章的功能
+  // 原因：Full Route Cache 可能导致管理员看到缓存的普通用户页面
+  // TODO: 恢复功能时取消下面注释，并启用 force-dynamic
 
   try {
-    // 后端会根据用户角色（JWT token 中的 Admin 角色）自动决定是否返回隐藏文章
-    // 普通用户：只返回公开文章；管理员：返回所有文章（包括隐藏）
+    // 首页统一返回公开文章，不区分用户身份
     const res = await fetch(
       `${backendUrl}/api/home/initial-data?page=1&pageSize=10`,
       {
-        headers,
-        next: { revalidate: token ? 0 : 60 }, // ISR: 管理员实时，普通用户缓存
+        next: { revalidate: 60 }, // ISR 缓存 60 秒
       }
     );
 
@@ -107,10 +100,9 @@ export default async function Home() {
     }
   }
 
-  // 检查是否为管理员
-  // 使用后端返回的 isAdmin 字段进行权限判断，而非简单检查 Token 存在
-  // 后端 HomeController 会通过 User.IsInRole("Admin") 验证用户角色
-  const isAdmin = homeData?.isAdmin ?? false;
+  // [暂时禁用] 首页管理员预览功能
+  // 原始代码: const isAdmin = homeData?.isAdmin ?? false;
+  const isAdmin = false;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
