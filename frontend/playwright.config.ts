@@ -37,7 +37,14 @@ export default defineConfig({
     baseURL: process.env.E2E_BASE_URL || "http://localhost:3000",
 
     // 失败时收集 trace
-    trace: "on-first-retry",
+    // CI: 仅在重试时收集 (节省资源)
+    // Local: 失败保留 (方便调试)
+    trace: process.env.CI ? "on-first-retry" : "retain-on-failure",
+
+    // 视频录制策略
+    // CI: 关闭 (节省资源)
+    // Local: 失败保留 (方便回溯)
+    video: process.env.CI ? "off" : "retain-on-failure",
 
     // 截图策略
     screenshot: "only-on-failure",
