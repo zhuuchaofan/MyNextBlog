@@ -95,7 +95,6 @@ export default function AdminDashboard() {
     { href: '/admin/categories', icon: FolderOpen, label: '分类管理', desc: '创建和管理文章分类' },
     { href: '/admin/tags', icon: Tag, label: '标签管理', desc: '创建和管理文章标签' },
     { href: '/admin/friends', icon: Users, label: '友链管理', desc: '管理友情链接' },
-    { href: '/admin/memos', icon: MessageCircle, label: '动态管理', desc: '发布和管理短动态' },
     { href: '/admin/plans', icon: CalendarDays, label: '计划管理', desc: '行程规划、预算追踪' },
   ];
 
@@ -132,12 +131,20 @@ export default function AdminDashboard() {
                 </p>
               )}
             </div>
-            <Link href="/admin/posts/new">
-              <Button size="lg" className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white shadow-md">
-                <PenSquare className="w-4 h-4 mr-2" />
-                写新文章
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <Link href="/admin/posts/new" className="flex-1 sm:flex-none">
+                <Button size="lg" className="w-full bg-orange-500 hover:bg-orange-600 text-white shadow-md">
+                  <PenSquare className="w-4 h-4 mr-2" />
+                  写新文章
+                </Button>
+              </Link>
+              <Link href="/admin/memos" className="flex-1 sm:flex-none">
+                <Button size="lg" variant="outline" className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/30">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  写碎碎念
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
