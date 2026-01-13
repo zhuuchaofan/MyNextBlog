@@ -27,8 +27,8 @@ public class SeriesService(AppDbContext context) : ISeriesService
                 s.Id,
                 s.Name,
                 s.Description,
-                // 根据权限过滤隐藏文章
-                includeHidden ? s.Posts.Count : s.Posts.Count(p => !p.IsHidden)
+                s.Posts.Count(p => !p.IsHidden),  // 公开文章数
+                s.Posts.Count(p => p.IsHidden)    // 隐藏文章数
             ))
             .ToListAsync();
     }
@@ -42,16 +42,16 @@ public class SeriesService(AppDbContext context) : ISeriesService
 
         if (series == null) return null;
 
-        // 根据权限过滤隐藏文章
-        var postCount = includeHidden 
-            ? series.Posts.Count 
-            : series.Posts.Count(p => !p.IsHidden);
+        // 分开统计公开和隐藏文章数
+        var publicCount = series.Posts.Count(p => !p.IsHidden);
+        var hiddenCount = series.Posts.Count(p => p.IsHidden);
 
         return new SeriesDto(
             series.Id,
             series.Name,
             series.Description,
-            postCount
+            publicCount,
+            hiddenCount
         );
     }
 

@@ -125,37 +125,58 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             该系列暂无文章
           </div>
-        ) : (
-          posts.map((post: { id: number; title: string; excerpt?: string; createTime: string; seriesOrder: number }, index: number) => (
-            <Link 
-              key={post.id} 
-              href={`/posts/${post.id}`}
-              className="block group"
-            >
-              <div className="flex items-start gap-4 p-6 bg-white dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-800/50 hover:shadow-md transition-all">
-                {/* Order Number */}
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold rounded-full">
-                  {index + 1}
-                </div>
-                
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors mb-1">
-                    {post.title}
-                  </h2>
-                  {post.excerpt && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
-                      {post.excerpt}
-                    </p>
+        ) : (() => {
+          // 维护公开文章的连续序号
+          let publicIndex = 0;
+          return posts.map((post: { id: number; title: string; excerpt?: string; createTime: string; seriesOrder: number; isHidden?: boolean }) => {
+            const isHidden = post.isHidden ?? false;
+            if (!isHidden) publicIndex++;
+            
+            return (
+              <Link 
+                key={post.id} 
+                href={`/posts/${post.id}`}
+                className="block group"
+              >
+                <div className={`flex items-start gap-4 p-6 rounded-xl border transition-all ${
+                  isHidden 
+                    ? 'bg-gray-50 dark:bg-zinc-900/30 border-dashed border-gray-200 dark:border-zinc-700 opacity-70' 
+                    : 'bg-white dark:bg-zinc-900/50 border-gray-100 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-800/50 hover:shadow-md'
+                }`}>
+                  {/* Order Number - 隐藏文章不显示序号 */}
+                  {isHidden ? (
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-gray-500 rounded-full border-2 border-dashed border-gray-300 dark:border-zinc-600">
+                      <span className="text-xs">隐藏</span>
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold rounded-full">
+                      {publicIndex}
+                    </div>
                   )}
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                    {new Date(post.createTime).toLocaleDateString('zh-CN')}
-                  </p>
+                  
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className={`text-lg font-semibold transition-colors mb-1 ${
+                      isHidden 
+                        ? 'text-gray-500 dark:text-gray-400' 
+                        : 'text-gray-900 dark:text-white group-hover:text-orange-500 dark:group-hover:text-orange-400'
+                    }`}>
+                      {post.title}
+                    </h2>
+                    {post.excerpt && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                      {new Date(post.createTime).toLocaleDateString('zh-CN')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))
-        )}
+              </Link>
+            );
+          });
+        })()}
       </div>
     </div>
   );

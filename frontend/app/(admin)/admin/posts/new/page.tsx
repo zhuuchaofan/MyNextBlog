@@ -190,9 +190,14 @@ export default function NewPostPage() {
                     onChange={(e) => handleSeriesChange(e.target.value ? Number(e.target.value) : undefined)}
                 >
                     <option value="">-- 不属于任何系列 --</option>
-                    {seriesList.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} ({s.postCount}篇)</option>
-                    ))}
+                    {seriesList.map(s => {
+                        const totalCount = s.postCount + (s.hiddenPostCount || 0);
+                        return (
+                            <option key={s.id} value={s.id}>
+                                {s.name} ({totalCount}篇{s.hiddenPostCount ? `，含${s.hiddenPostCount}篇隐藏` : ''})
+                            </option>
+                        );
+                    })}
                 </select>
                 
                 <Button 

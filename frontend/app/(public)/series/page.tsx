@@ -6,9 +6,10 @@
 
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Library, BookOpen, ChevronRight } from 'lucide-react';
+import { Library, BookOpen, ChevronRight, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cookies } from 'next/headers';
 
 // 强制动态渲染，避免构建时预渲染空结果
 export const dynamic = 'force-dynamic';
@@ -17,16 +18,25 @@ export const dynamic = 'force-dynamic';
 async function getAllSeries() {
   const baseUrl = process.env.BACKEND_URL || 'http://backend:8080';
   
+  // 获取 Token 传递给后端识别管理员
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token.value}`;
+  }
+  
   try {
     const res = await fetch(`${baseUrl}/api/series`, {
-      next: { revalidate: 60 } // ISR 缓存 60 秒
+      headers,
+      next: { revalidate: token ? 0 : 60 } // 管理员不缓存
     });
-    if (!res.ok) return [];
+    if (!res.ok) return { series: [], isAdmin: false };
     const json = await res.json();
-    if (!json.success) return [];
-    return json.data;
+    if (!json.success) return { series: [], isAdmin: false };
+    return { series: json.data, isAdmin: json.isAdmin ?? false };
   } catch {
-    return [];
+    return { series: [], isAdmin: false };
   }
 }
 
@@ -40,11 +50,12 @@ interface Series {
   name: string;
   description?: string;
   postCount: number;
+  hiddenPostCount?: number;
   coverImage?: string;
 }
 
 export default async function SeriesListPage() {
-  const seriesList = await getAllSeries() as Series[];
+  const { series: seriesList, isAdmin } = await getAllSeries() as { series: Series[], isAdmin: boolean };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
@@ -88,10 +99,17 @@ export default async function SeriesListPage() {
                         </p>
                       )}
                       
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 font-medium">
                           {series.postCount} 篇文章
                         </Badge>
+                        {/* 管理员可见隐藏文章统计 */}
+                        {isAdmin && (series.hiddenPostCount ?? 0) > 0 && (
+                          <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 font-medium">
+                            <EyeOff className="w-3 h-3 mr-1" />
+                            {series.hiddenPostCount} 隐藏
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     

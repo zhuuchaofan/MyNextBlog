@@ -26,14 +26,15 @@ public class CategoryService(AppDbContext context) : ICategoryService
     /// </summary>
     public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
-        // 使用 Projection 直接映射到 DTO，并统计关联的公开文章数量
+        // 使用 Projection 直接映射到 DTO，并统计公开和隐藏文章数量
         return await context.Categories
             .AsNoTracking()
             .OrderBy(c => c.Name)
             .Select(c => new CategoryDto(
                 c.Id, 
                 c.Name,
-                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted),  // 公开文章数
+                c.Posts.Count(p => p.IsHidden && !p.IsDeleted)    // 隐藏文章数
             ))
             .ToListAsync();
     }
@@ -49,7 +50,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
             .Select(c => new CategoryDto(
                 c.Id, 
                 c.Name,
-                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+                c.Posts.Count(p => !p.IsHidden && !p.IsDeleted),  // 公开文章数
+                c.Posts.Count(p => p.IsHidden && !p.IsDeleted)    // 隐藏文章数
             ))
             .FirstOrDefaultAsync();
     }

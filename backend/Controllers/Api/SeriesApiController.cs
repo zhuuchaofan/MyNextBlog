@@ -19,7 +19,7 @@ public class SeriesApiController(ISeriesService seriesService) : ControllerBase
     public async Task<IActionResult> GetAllSeries()
     {
         var series = await seriesService.GetAllSeriesAsync(includeHidden: IsAdmin);
-        return Ok(new { success = true, data = series });
+        return Ok(new { success = true, data = series, isAdmin = IsAdmin });
     }
 
     [HttpGet("{id}")]

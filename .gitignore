@@ -385,4 +385,10 @@ build/
 dist/
 
 # User Uploads
-wwwroot/uploads/
+**/wwwroot/uploads/
+
+# Playwright
+test-results/
+playwright-report/
+**/test-results/
+**/playwright-report/

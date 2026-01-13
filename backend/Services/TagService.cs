@@ -86,7 +86,8 @@ public class TagService(AppDbContext context) : ITagService
             .Select(t => new DTOs.TagDto(
                 t.Id,
                 t.Name,
-                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted),  // 公开文章数
+                t.Posts.Count(p => p.IsHidden && !p.IsDeleted)    // 隐藏文章数
             ))
             .ToListAsync();
     }
@@ -102,7 +103,8 @@ public class TagService(AppDbContext context) : ITagService
             .Select(t => new DTOs.TagDto(
                 t.Id,
                 t.Name,
-                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted)
+                t.Posts.Count(p => !p.IsHidden && !p.IsDeleted),  // 公开文章数
+                t.Posts.Count(p => p.IsHidden && !p.IsDeleted)    // 隐藏文章数
             ))
             .FirstOrDefaultAsync();
     }

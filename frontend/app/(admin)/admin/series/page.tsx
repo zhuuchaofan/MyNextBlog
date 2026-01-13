@@ -196,9 +196,17 @@ export default function SeriesManagementPage() {
                     <TableCell className="font-medium text-gray-900 dark:text-gray-200 truncate" title={series.name}>{series.name}</TableCell>
                     <TableCell className="text-gray-500 dark:text-gray-400 truncate" title={series.description || ''}>{series.description || '-'}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-800">
-                        {series.postCount}
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5">
+                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                          {series.postCount} 公开
+                        </Badge>
+                        <Badge 
+                          variant="secondary" 
+                          className={`bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 ${(series.hiddenPostCount ?? 0) === 0 ? 'invisible' : ''}`}
+                        >
+                          {series.hiddenPostCount ?? 0} 隐藏
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -239,9 +247,16 @@ export default function SeriesManagementPage() {
                       <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
                              <span className="font-bold text-gray-900 dark:text-gray-200 truncate">{series.name}</span>
-                             <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-800 ml-2 flex-shrink-0">
-                               {series.postCount} 篇
-                             </Badge>
+                             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                               <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                 {series.postCount}
+                               </Badge>
+                               {(series.hiddenPostCount ?? 0) > 0 && (
+                                 <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400">
+                                   +{series.hiddenPostCount}
+                                 </Badge>
+                               )}
+                             </div>
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                               {series.description || '暂无描述'}
@@ -301,9 +316,12 @@ export default function SeriesManagementPage() {
         <AlertDialogHeader>
           <AlertDialogTitle>确定删除系列 &quot;{deleteSeriesTarget?.name}&quot; 吗？</AlertDialogTitle>
           <AlertDialogDescription>
-            {deleteSeriesTarget?.postCount && deleteSeriesTarget.postCount > 0 
-              ? `该系列包含 ${deleteSeriesTarget.postCount} 篇文章，删除后它们将变为无系列状态。`
-              : "此操作无法撤销。"}
+            {(() => {
+              const total = (deleteSeriesTarget?.postCount || 0) + (deleteSeriesTarget?.hiddenPostCount || 0);
+              return total > 0 
+                ? `该系列包含 ${total} 篇文章${deleteSeriesTarget?.hiddenPostCount ? `（含${deleteSeriesTarget.hiddenPostCount}篇隐藏）` : ''}，删除后它们将变为无系列状态。`
+                : "此操作无法撤销。";
+            })()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

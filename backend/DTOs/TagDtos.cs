@@ -32,5 +32,6 @@ public record UpdateTagDto(
 /// </summary>
 /// <param name="Id">标签 ID</param>
 /// <param name="Name">标签名称</param>
-/// <param name="PostCount">使用次数</param>
-public record TagDto(int Id, string Name, int PostCount = 0);
+/// <param name="PostCount">公开文章数</param>
+/// <param name="HiddenPostCount">隐藏文章数（管理后台使用）</param>
+public record TagDto(int Id, string Name, int PostCount = 0, int HiddenPostCount = 0);
