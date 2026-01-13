@@ -349,9 +349,12 @@ export default function CategoriesManagementPage() {
         <AlertDialogHeader>
           <AlertDialogTitle>确定删除分类 &quot;{deleteTarget?.name}&quot; 吗？</AlertDialogTitle>
           <AlertDialogDescription>
-            {deleteTarget?.postCount && deleteTarget.postCount > 0 
-              ? `该分类下有 ${deleteTarget.postCount} 篇文章，无法删除。请先将文章移到其他分类。`
-              : "此操作无法撤销。"}
+            {(() => {
+              const total = (deleteTarget?.postCount || 0) + (deleteTarget?.hiddenPostCount || 0);
+              return total > 0 
+                ? `该分类下有 ${total} 篇文章${deleteTarget?.hiddenPostCount ? `（含${deleteTarget.hiddenPostCount}篇隐藏）` : ''}，无法删除。请先将文章移到其他分类。`
+                : "此操作无法撤销。";
+            })()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -359,7 +362,7 @@ export default function CategoriesManagementPage() {
           <AlertDialogAction 
             onClick={handleDelete} 
             className="bg-red-500 hover:bg-red-600"
-            disabled={deleteTarget?.postCount ? deleteTarget.postCount > 0 : false}
+            disabled={(deleteTarget?.postCount || 0) + (deleteTarget?.hiddenPostCount || 0) > 0}
           >
             删除
           </AlertDialogAction>

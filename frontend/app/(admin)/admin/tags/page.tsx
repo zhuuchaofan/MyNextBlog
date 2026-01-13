@@ -353,9 +353,12 @@ export default function TagsManagementPage() {
         <AlertDialogHeader>
           <AlertDialogTitle>确定删除标签 &quot;{deleteTarget?.name}&quot; 吗？</AlertDialogTitle>
           <AlertDialogDescription>
-            {deleteTarget?.postCount && deleteTarget.postCount > 0 
-              ? `该标签被 ${deleteTarget.postCount} 篇文章使用，无法删除。请先从文章中移除此标签。`
-              : "此操作无法撤销。"}
+            {(() => {
+              const total = (deleteTarget?.postCount || 0) + (deleteTarget?.hiddenPostCount || 0);
+              return total > 0 
+                ? `该标签被 ${total} 篇文章使用${deleteTarget?.hiddenPostCount ? `（含${deleteTarget.hiddenPostCount}篇隐藏）` : ''}，无法删除。请先从文章中移除此标签。`
+                : "此操作无法撤销。";
+            })()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -363,7 +366,7 @@ export default function TagsManagementPage() {
           <AlertDialogAction 
             onClick={handleDelete} 
             className="bg-red-500 hover:bg-red-600"
-            disabled={deleteTarget?.postCount ? deleteTarget.postCount > 0 : false}
+            disabled={(deleteTarget?.postCount || 0) + (deleteTarget?.hiddenPostCount || 0) > 0}
           >
             删除
           </AlertDialogAction>

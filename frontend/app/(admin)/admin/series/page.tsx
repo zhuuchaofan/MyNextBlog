@@ -316,9 +316,12 @@ export default function SeriesManagementPage() {
         <AlertDialogHeader>
           <AlertDialogTitle>确定删除系列 &quot;{deleteSeriesTarget?.name}&quot; 吗？</AlertDialogTitle>
           <AlertDialogDescription>
-            {deleteSeriesTarget?.postCount && deleteSeriesTarget.postCount > 0 
-              ? `该系列包含 ${deleteSeriesTarget.postCount} 篇文章，删除后它们将变为无系列状态。`
-              : "此操作无法撤销。"}
+            {(() => {
+              const total = (deleteSeriesTarget?.postCount || 0) + (deleteSeriesTarget?.hiddenPostCount || 0);
+              return total > 0 
+                ? `该系列包含 ${total} 篇文章${deleteSeriesTarget?.hiddenPostCount ? `（含${deleteSeriesTarget.hiddenPostCount}篇隐藏）` : ''}，删除后它们将变为无系列状态。`
+                : "此操作无法撤销。";
+            })()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

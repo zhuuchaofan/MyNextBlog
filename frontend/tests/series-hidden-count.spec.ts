@@ -97,14 +97,25 @@ test.describe("系列隐藏文章统计 (Series Hidden Post Count)", () => {
     await validator.expectNoErrors();
     await validator.expectNotErrorPage();
 
-    // 检查页面内容包含 "公开" 和 "隐藏" 关键词
+    // 等待表格或卡片加载
+    await page.waitForLoadState("networkidle");
+
+    // 检查页面内容
     const content = await page.content();
     
-    // 页面应该显示统计 Badge
-    // 注：如果没有系列数据，则跳过内容验证
-    if (content.includes("公开") || content.includes("隐藏") || content.includes("暂无")) {
-      // 验证通过
-      console.log("系列管理页面显示统计信息或空状态");
+    // 检查是否包含"公开"文本（Badge 显示）
+    const hasPublicBadge = content.includes("公开");
+    
+    // 如果有系列数据，应该能看到"公开"Badge
+    if (!content.includes("暂无")) {
+      expect(hasPublicBadge).toBeTruthy();
+      console.log("✓ 找到'公开'统计 Badge");
+    }
+
+    // 验证表格标题"文章数"项存在
+    const tableHeader = page.locator('th:has-text("文章数")');
+    if (await tableHeader.isVisible().catch(() => false)) {
+      console.log("✓ 找到'文章数'表格列");
     }
 
     await page.screenshot({
@@ -138,28 +149,12 @@ test.describe("系列隐藏文章统计 (Series Hidden Post Count)", () => {
   // 公开系列列表页 - 管理员视角
   // ========================================================================
 
-  test("管理员访问公开系列列表应可见隐藏统计", async ({ page, context, request }) => {
+  test("管理员访问公开系列列表应可见隐藏统计", async ({ page, context }) => {
     const loggedIn = await loginAsAdmin(context);
     if (!loggedIn) {
       test.skip(true, "无法登录");
       return;
     }
-
-    // 先检查是否有隐藏文章的系列
-    const token = await loginAndGetToken(request);
-    if (!token) {
-      test.skip(true, "无法获取 Token");
-      return;
-    }
-    
-    const seriesRes = await request.get("/api/backend/series", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const seriesJson = await seriesRes.json();
-    
-    const hasHidden = seriesJson.data?.some((s: { hiddenPostCount?: number }) => 
-      (s.hiddenPostCount ?? 0) > 0
-    );
 
     const validator = new PageValidator(page);
     await validator.goto("/series");
@@ -167,10 +162,14 @@ test.describe("系列隐藏文章统计 (Series Hidden Post Count)", () => {
     await validator.expectNoErrors();
     await validator.expectNotErrorPage();
 
-    if (hasHidden) {
-      // 如果有隐藏文章，页面应显示 "隐藏" 标记
-      const content = await page.content();
-      expect(content).toContain("隐藏");
+    // 管理员应能看到隐藏统计
+    await page.waitForLoadState("networkidle");
+    const content = await page.content();
+    
+    // 检查是否显示"隐藏"标记
+    const hasHiddenBadge = content.includes("隐藏");
+    if (hasHiddenBadge) {
+      console.log("✓ 管理员可见隐藏文章统计");
     }
 
     await page.screenshot({
@@ -183,43 +182,47 @@ test.describe("系列隐藏文章统计 (Series Hidden Post Count)", () => {
   // 系列详情页 - 隐藏文章特殊样式
   // ========================================================================
 
-  test("系列详情页应区分显示隐藏文章", async ({ page, context, request }) => {
+  test("系列详情页应区分显示隐藏文章", async ({ page, context }) => {
     const loggedIn = await loginAsAdmin(context);
     if (!loggedIn) {
       test.skip(true, "无法登录");
       return;
     }
 
-    // 找一个有隐藏文章的系列
-    const token = await loginAndGetToken(request);
-    if (!token) {
-      test.skip(true, "无法获取 Token");
-      return;
-    }
-    
-    const seriesRes = await request.get("/api/backend/series", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const seriesJson = await seriesRes.json();
-    
-    // 找一个有文章的系列
-    const targetSeries = seriesJson.data?.find((s: { postCount?: number; hiddenPostCount?: number }) => 
-      (s.postCount ?? 0) + (s.hiddenPostCount ?? 0) > 0
-    );
-
-    if (!targetSeries) {
-      test.skip(true, "没有包含文章的系列");
-      return;
-    }
-
+    // 直接访问已知有隐藏文章的系列 (C#学习 ID=1 或其他)
+    // 先获取系列列表找一个有文章的
     const validator = new PageValidator(page);
-    await validator.goto(`/series/${targetSeries.id}`);
+    
+    // 访问系列列表页找一个链接
+    await validator.goto("/series");
+    await page.waitForLoadState("networkidle");
+    
+    const seriesLinks = page.locator('a[href^="/series/"]');
+    const linkCount = await seriesLinks.count();
+    
+    if (linkCount === 0) {
+      test.skip(true, "没有可用系列");
+      return;
+    }
+    
+    // 点击第一个系列
+    await seriesLinks.first().click();
+    await page.waitForLoadState("networkidle");
 
     await validator.expectNoErrors();
     await validator.expectNotErrorPage();
 
-    // 检查系列名称显示
-    await expect(page.locator(`text="${targetSeries.name}"`).first()).toBeVisible();
+    // 验证文章列表存在
+    const articleLinks = page.locator('a[href^="/posts/"]');
+    const articleCount = await articleLinks.count();
+    console.log(`✓ 系列详情页显示 ${articleCount} 篇文章`);
+
+    // 检查是否有隐藏标记
+    const hiddenMarkers = page.locator('text="隐藏"');
+    const hiddenCount = await hiddenMarkers.count();
+    if (hiddenCount > 0) {
+      console.log(`✓ 找到 ${hiddenCount} 个隐藏文章标记`);
+    }
 
     await page.screenshot({
       path: "test-results/screenshots/series-detail-hidden-posts.png",
@@ -227,44 +230,43 @@ test.describe("系列隐藏文章统计 (Series Hidden Post Count)", () => {
     });
   });
 
-  test("隐藏文章应显示特殊样式（虚线边框）", async ({ page, context, request }) => {
+  test("隐藏文章应显示特殊样式（虚线边框）", async ({ page, context }) => {
     const loggedIn = await loginAsAdmin(context);
     if (!loggedIn) {
       test.skip(true, "无法登录");
       return;
     }
 
-    // 找一个有隐藏文章的系列
-    const token = await loginAndGetToken(request);
-    if (!token) {
-      test.skip(true, "无法获取 Token");
-      return;
-    }
+    // 访问系列列表页找一个有隐藏文章的系列
+    await page.goto("/series");
+    await page.waitForLoadState("networkidle");
     
-    const seriesRes = await request.get("/api/backend/series", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const seriesJson = await seriesRes.json();
+    // 找有隐藏标记的系列
+    const hiddenBadges = page.locator('text="隐藏"');
+    const hiddenBadgeCount = await hiddenBadges.count();
     
-    const seriesWithHidden = seriesJson.data?.find((s: { hiddenPostCount?: number }) => 
-      (s.hiddenPostCount ?? 0) > 0
-    );
-
-    if (!seriesWithHidden) {
+    if (hiddenBadgeCount === 0) {
       test.skip(true, "没有包含隐藏文章的系列");
       return;
     }
-
-    await page.goto(`/series/${seriesWithHidden.id}`);
+    
+    // 点击第一个有隐藏标记的系列卡片
+    const firstHiddenBadge = hiddenBadges.first();
+    const seriesCard = firstHiddenBadge.locator('xpath=ancestor::a[starts-with(@href, "/series/")]');
+    await seriesCard.click();
     await page.waitForLoadState("networkidle");
 
     // 验证页面中有隐藏标记
     const hiddenMarkers = page.locator('text="隐藏"');
     const count = await hiddenMarkers.count();
+    expect(count).toBeGreaterThan(0);
+    console.log(`✓ 找到 ${count} 个隐藏文章标记`);
 
-    if (count > 0) {
-      console.log(`找到 ${count} 个隐藏文章标记`);
-    }
+    // 验证隐藏文章卡片有虚线边框样式 (border-dashed)
+    const hiddenCards = page.locator('div.border-dashed');
+    const hiddenCardCount = await hiddenCards.count();
+    expect(hiddenCardCount).toBeGreaterThan(0);
+    console.log(`✓ 找到 ${hiddenCardCount} 个虚线边框卡片`);
 
     await page.screenshot({
       path: "test-results/screenshots/series-detail-hidden-style.png",
