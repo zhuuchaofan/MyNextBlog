@@ -39,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 类型图标映射
 const typeIcons: Record<string, typeof Plane> = {
@@ -137,7 +138,7 @@ export default function PlansPage() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <PageContainer variant="admin" maxWidth="4xl">
         <div className="animate-pulse space-y-4">
           <div className="h-10 bg-gray-200 dark:bg-zinc-800 rounded w-1/4" />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -146,12 +147,12 @@ export default function PlansPage() {
             ))}
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="admin" maxWidth="4xl">
       {/* 头部 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -180,18 +181,18 @@ export default function PlansPage() {
 
       {/* 计划列表 */}
       {plans.length === 0 ? (
-        <Card className="dark:bg-zinc-900 dark:border-zinc-800">
-          <CardContent className="py-12 text-center">
-            <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">暂无计划</p>
+        <EmptyState
+          icon={<CalendarDays className="w-12 h-12" />}
+          title="暂无计划"
+          description="创建您的第一个旅行或活动计划"
+          action={
             <Link href="/admin/plans/new">
-              <Button variant="outline" className="mt-4">
-                <Plus className="w-4 h-4 mr-2" />
-                创建第一个计划
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />创建第一个计划
               </Button>
             </Link>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           {plans.map(plan => {
@@ -343,6 +344,6 @@ export default function PlansPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

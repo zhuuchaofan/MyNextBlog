@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createOrder, fetchCurrentUser, type CartItem } from "@/lib/api";
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 购物车本地存储 Key
 const CART_STORAGE_KEY = "shopping_cart";
@@ -112,35 +113,41 @@ export default function CheckoutPage() {
   // 未登录提示
   if (!isLoggedIn) {
     return (
-      <div className="container mx-auto px-4 py-12 max-w-lg text-center">
-        <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
-        <h1 className="text-2xl font-bold mb-2">请先登录</h1>
-        <p className="text-muted-foreground mb-6">
-          下单前需要登录您的账户
-        </p>
-        <Button asChild>
-          <Link href="/login?redirect=/checkout">去登录</Link>
-        </Button>
-      </div>
+      <PageContainer variant="public" maxWidth="lg">
+        <EmptyState
+          icon={<AlertCircle className="w-16 h-16" />}
+          title="请先登录"
+          description="下单前需要登录您的账户"
+          action={
+            <Button asChild>
+              <Link href="/login?redirect=/checkout">去登录</Link>
+            </Button>
+          }
+        />
+      </PageContainer>
     );
   }
 
   // 空购物车
   if (cart.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-12 max-w-lg text-center">
-        <Package className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-        <h1 className="text-2xl font-bold mb-2">购物车是空的</h1>
-        <p className="text-muted-foreground mb-6">请先添加商品到购物车</p>
-        <Button asChild>
-          <Link href="/shop">去商店</Link>
-        </Button>
-      </div>
+      <PageContainer variant="public" maxWidth="lg">
+        <EmptyState
+          icon={<Package className="w-16 h-16" />}
+          title="购物车是空的"
+          description="请先添加商品到购物车"
+          action={
+            <Button asChild>
+              <Link href="/shop">去商店</Link>
+            </Button>
+          }
+        />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* 返回按钮 */}
       <Button variant="ghost" size="sm" asChild className="mb-6">
         <Link href="/cart">
@@ -271,6 +278,6 @@ export default function CheckoutPage() {
           </CardFooter>
         </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }

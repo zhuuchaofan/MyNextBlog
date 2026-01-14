@@ -46,6 +46,7 @@ import {
 } from "@/lib/api";
 import { formatDaysSmart } from "@/lib/dateUtils";
 import { SwipeableItem } from "@/components/ui/swipeable-item";
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 重复类型选项
 const REPEAT_TYPES = [
@@ -213,7 +214,7 @@ export default function AnniversariesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="admin" maxWidth="4xl">
       {/* 头部 */}
       <AdminPageHeader
         title="纪念日管理"
@@ -405,15 +406,16 @@ export default function AnniversariesPage() {
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       ) : anniversaries.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Heart className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>还没有添加任何纪念日</p>
-            <Button variant="link" onClick={handleOpenCreate} className="mt-2">
-              点击添加第一个纪念日
+        <EmptyState
+          icon={<Heart className="w-12 h-12" />}
+          title="还没有添加任何纪念日"
+          description="点击上方按钮添加第一个纪念日"
+          action={
+            <Button onClick={handleOpenCreate}>
+              <Plus className="w-4 h-4 mr-2" />添加纪念日
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {anniversaries.map((ann) => (
@@ -516,6 +518,6 @@ export default function AnniversariesPage() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

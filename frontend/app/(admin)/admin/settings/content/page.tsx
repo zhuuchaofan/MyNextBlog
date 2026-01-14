@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, Loader2, RefreshCw, Home, User, Wrench, Clock, BookOpen, Cpu, Cat, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { PageContainer } from '@/components/common';
 
 // 表单组件
 import AuthorForm from "./_components/AuthorForm";
@@ -160,7 +161,7 @@ export default function ContentSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl overflow-x-hidden">
+    <PageContainer variant="admin" maxWidth="4xl" className="overflow-x-hidden">
       {/* 头部导航 */}
       <AdminPageHeader
         title="内容配置"
@@ -269,6 +270,6 @@ export default function ContentSettingsPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

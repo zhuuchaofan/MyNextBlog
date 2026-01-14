@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { CalendarDays, ChevronLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageContainer } from '@/components/common';
 
 /**
  * 新建计划表单组件
@@ -118,7 +119,7 @@ function NewPlanForm() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-2xl">
+    <PageContainer variant="admin" maxWidth="2xl">
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={() => router.back()}>
@@ -333,7 +334,7 @@ function NewPlanForm() {
           </Button>
         </div>
       </form>
-    </div>
+    </PageContainer>
   );
 }
 

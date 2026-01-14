@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { uploadAvatar, updateProfile } from "@/lib/api";
 import { Loader2, Upload, Save, User as UserIcon, Globe, Mail, Pencil, X, ChevronLeft, MapPin, Briefcase, Calendar } from "lucide-react";
+import { PageContainer } from '@/components/common';
 
 export default function SettingsPage() {
   const { user, updateUser, isLoading } = useAuth();
@@ -130,7 +131,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="admin" maxWidth="4xl">
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
           <ChevronLeft className="w-4 h-4 mr-1" /> 返回
@@ -301,6 +302,6 @@ export default function SettingsPage() {
         </div>
 
       </div>
-    </div>
+    </PageContainer>
   );
 }

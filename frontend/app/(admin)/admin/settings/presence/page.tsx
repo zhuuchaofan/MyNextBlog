@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PageContainer } from '@/components/common';
 
 // 配置项定义
 interface PresenceConfig {
@@ -208,7 +209,7 @@ export default function PresenceSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-2xl">
+    <PageContainer variant="admin" maxWidth="2xl">
       {/* 头部 - 响应式布局 */}
       <AdminPageHeader
         title="数字分身配置"
@@ -538,6 +539,6 @@ export default function PresenceSettingsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

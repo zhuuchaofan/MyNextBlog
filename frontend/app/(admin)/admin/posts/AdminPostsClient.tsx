@@ -29,6 +29,7 @@ import {
 import { Edit, Trash2, Plus, ChevronLeft, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { toast } from "sonner";
 import type { AdminPostItem, PaginationMeta } from '@/lib/data';
+import { PageContainer } from '@/components/common';
 
 interface AdminPostsClientProps {
   initialPosts: AdminPostItem[];
@@ -152,7 +153,7 @@ export default function AdminPostsClient({ initialPosts, initialMeta }: AdminPos
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       {/* 页面标题和"写新文章"按钮 */}
       <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -365,6 +366,6 @@ export default function AdminPostsClient({ initialPosts, initialMeta }: AdminPos
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

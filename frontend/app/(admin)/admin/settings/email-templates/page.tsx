@@ -28,6 +28,7 @@ import {
   updateEmailTemplate,
   type EmailTemplate,
 } from "@/lib/api";
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 占位符说明的 Mock 数据（用于预览）
 const MOCK_DATA: Record<string, Record<string, string>> = {
@@ -198,7 +199,7 @@ export default function EmailTemplatesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="admin" maxWidth="4xl">
       {/* 头部 */}
       <AdminPageHeader
         title="邮件模板管理"
@@ -218,12 +219,11 @@ export default function EmailTemplatesPage() {
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       ) : templates.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Mail className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>暂无邮件模板</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<Mail className="w-12 h-12" />}
+          title="暂无邮件模板"
+          description="系统暂时没有邮件模板"
+        />
       ) : (
         <div className="space-y-3">
           {templates.map((template) => (
@@ -418,6 +418,6 @@ export default function EmailTemplatesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

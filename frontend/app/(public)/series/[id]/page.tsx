@@ -7,8 +7,9 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText } from 'lucide-react';
 import { cookies } from 'next/headers';
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 获取系列详情 (Server-Side)
 async function getSeriesWithPosts(id: string) {
@@ -87,7 +88,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
   const posts = await getSeriesPosts(resolvedParams.id);
   
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-4xl">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* Back Link */}
       <Link 
         href="/series" 
@@ -122,9 +123,11 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
       {/* Posts List */}
       <div className="space-y-4">
         {posts.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            该系列暂无文章
-          </div>
+          <EmptyState
+            icon={<FileText className="w-12 h-12" />}
+            title="该系列暂无文章"
+            description="作者正在努力创作中"
+          />
         ) : (() => {
           // 维护公开文章的连续序号
           let publicIndex = 0;
@@ -178,6 +181,6 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
           });
         })()}
       </div>
-    </div>
+    </PageContainer>
   );
 }
