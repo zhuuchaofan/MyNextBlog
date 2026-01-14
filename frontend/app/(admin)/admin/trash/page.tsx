@@ -157,7 +157,7 @@ export default function TrashPage() {
                       <Badge variant="secondary" className="font-normal bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400">{post.categoryName || '未分类'}</Badge>
                     </TableCell>
                     <TableCell className="truncate">{post.authorName}</TableCell>
-                    <TableCell className="whitespace-nowrap">{new Date(post.createTime).toLocaleDateString()}</TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(post.createTime).toLocaleDateString('zh-CN')}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">
                         <Button 
@@ -193,7 +193,7 @@ export default function TrashPage() {
                 </div>
                 <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-between border-b border-gray-50 dark:border-zinc-800 pb-3">
                   <span>{post.authorName}</span>
-                  <span>{new Date(post.createTime).toLocaleDateString()}</span>
+                  <span>{new Date(post.createTime).toLocaleDateString('zh-CN')}</span>
                 </div>
                 <div className="flex gap-3 pt-1">
                   <Button 

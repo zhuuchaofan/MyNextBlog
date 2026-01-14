@@ -223,7 +223,7 @@ export default function AdminPostsClient({ initialPosts, initialMeta }: AdminPos
                       )}
                     </TableCell>
                     <TableCell className="truncate">{post.authorName}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-500 whitespace-nowrap">{new Date(post.createTime).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-500 whitespace-nowrap">{new Date(post.createTime).toLocaleDateString('zh-CN')}</TableCell>
                     <TableCell>
                       <Badge variant={post.isHidden ? "outline" : "default"} className={post.isHidden ? "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-zinc-700" : "bg-green-500 hover:bg-green-600 text-white border-transparent"}>
                         {post.isHidden ? '草稿' : '已发布'}
@@ -276,7 +276,7 @@ export default function AdminPostsClient({ initialPosts, initialMeta }: AdminPos
                  </div>
                  <div className="text-xs text-gray-500 dark:text-gray-500 flex items-center justify-between border-b border-gray-50 dark:border-zinc-800 pb-3">
                     <span>{post.authorName}</span>
-                    <span>{new Date(post.createTime).toLocaleDateString()}</span>
+                    <span>{new Date(post.createTime).toLocaleDateString('zh-CN')}</span>
                  </div>
                  <div className="flex gap-3 pt-1">
                     <Button 

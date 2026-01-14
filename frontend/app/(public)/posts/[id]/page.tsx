@@ -72,6 +72,13 @@ export default async function PostPage({ params }: Props) {
   // 简单估算阅读时间：假设每分钟阅读 300 字
   const readingTime = Math.ceil(post.content.length / 300);
 
+  // 判断两个日期是否为同一天
+  const isSameDay = (d1: string, d2: string) =>
+    new Date(d1).toDateString() === new Date(d2).toDateString();
+
+  // 判断是否需要显示更新日期（存在且不是同一天）
+  const showUpdatedAt = post.updatedAt && !isSameDay(post.createTime, post.updatedAt);
+
   return (
     <div className="min-h-screen pb-20 transition-colors duration-300">
       {/* --- 顶部 Hero 区域 (背景图/标题) --- */}
@@ -134,10 +141,10 @@ export default async function PostPage({ params }: Props) {
                    <span className="font-medium">{post.authorName || '匿名'}</span>
                 </div>
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" /> {new Date(post.createTime).toLocaleDateString()}
-                  {post.updatedAt && (
+                  <Calendar className="w-4 h-4" /> {new Date(post.createTime).toLocaleDateString('zh-CN')}
+                  {showUpdatedAt && (
                     <span className="text-white/70 ml-1">
-                      (更新于 {new Date(post.updatedAt).toLocaleDateString()})
+                      (更新于 {new Date(post.updatedAt!).toLocaleDateString('zh-CN')})
                     </span>
                   )}
                 </span>

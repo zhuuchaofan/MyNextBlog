@@ -81,7 +81,7 @@ export default function RelatedPosts({ postId, count = 4 }: RelatedPostsProps) {
                 {/* 发布时间 */}
                 <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                   <Calendar className="w-3 h-3" />
-                  <time>{new Date(post.createTime).toLocaleDateString()}</time>
+                  <time>{new Date(post.createTime).toLocaleDateString('zh-CN')}</time>
                 </div>
               </article>
             </Link>

@@ -155,7 +155,7 @@ export default async function CategoryPage({ params }: { params: { id: string } 
                         )}
                         <Badge variant="outline" className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/50">{post.category}</Badge>
                         <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString()}
+                          <Calendar className="w-3 h-3" /> {new Date(post.createTime).toLocaleDateString('zh-CN')}
                         </span>
                       </div>
                       <CardTitle className="text-xl md:text-2xl transition-colors">
