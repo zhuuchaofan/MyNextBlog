@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Lightbox from "yet-another-react-lightbox"; // 导入图片灯箱库
 import "yet-another-react-lightbox/styles.css"; // 导入灯箱库的样式
 import { Camera, Image as ImageIcon } from 'lucide-react'; // 图标库
+import { PageContainer } from '@/components/common';
 
 // 定义图库图片的数据接口
 interface GalleryImage {
@@ -39,7 +40,7 @@ export default function GalleryPage() {
   }, []); // 空依赖数组，只在组件首次渲染时执行一次
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-12 min-h-screen">
+    <PageContainer variant="public" maxWidth="7xl" className="min-h-screen">
        {/* 页面头部：标题和描述 */}
        <header className="text-center mb-16 space-y-4">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full mb-4">
@@ -90,6 +91,6 @@ export default function GalleryPage() {
         close={() => setIndex(-1)} // 关闭灯箱时重置 index
         slides={images}  // 提供所有图片数据给灯箱
       />
-    </div>
+    </PageContainer>
   );
 }

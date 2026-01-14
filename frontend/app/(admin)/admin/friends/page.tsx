@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PageContainer, EmptyState } from "@/components/common";
 
 export default function AdminFriendsPage() {
   const [friends, setFriends] = useState<FriendLinkAdmin[]>([]);
@@ -169,7 +170,7 @@ export default function AdminFriendsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="友链管理"
         icon={<LinkIcon className="w-5 h-5 text-blue-500" />}
@@ -201,13 +202,16 @@ export default function AdminFriendsPage() {
           <Loader2 className="w-6 h-6 animate-spin mr-2" /> 加载中...
         </div>
       ) : friends.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-800">
-          <LinkIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">暂无友链</p>
-          <Button variant="outline" className="mt-4" onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-1" /> 添加第一个友链
-          </Button>
-        </div>
+        <EmptyState
+          icon={<LinkIcon className="w-12 h-12" />}
+          title="暂无友链"
+          description="与其他博客互换友情链接"
+          action={
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 mr-1" />添加友链
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {friends.map(friend => (
@@ -402,6 +406,6 @@ export default function AdminFriendsPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

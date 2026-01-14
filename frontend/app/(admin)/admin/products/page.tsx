@@ -67,6 +67,7 @@ import {
   deleteProduct,
   type ProductAdmin,
 } from "@/lib/api";
+import { PageContainer, EmptyState } from "@/components/common";
 
 // 类型定义
 interface FormDataType {
@@ -99,13 +100,13 @@ function ProductForm({
 
     // 检查文件类型
     if (!file.type.startsWith("image/")) {
-      alert("请选择图片文件");
+      toast.error("请选择图片文件");
       return;
     }
 
     // 检查文件大小 (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("图片大小不能超过 10MB");
+      toast.error("图片大小不能超过 10MB");
       return;
     }
 
@@ -130,7 +131,7 @@ function ProductForm({
       }
     } catch (error) {
       console.error("上传失败:", error);
-      alert("图片上传失败，请重试");
+      toast.error("图片上传失败，请重试");
     } finally {
       setUploading(false);
     }
@@ -452,14 +453,16 @@ export default function ProductsAdminPage() {
 
   if (loading && products.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <PageContainer variant="admin" maxWidth="5xl">
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="商品管理"
         icon={<Package className="w-5 h-5 sm:w-6 sm:h-6" />}
@@ -490,9 +493,16 @@ export default function ProductsAdminPage() {
       />
 
       {products.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800">
-          暂无商品，点击上方按钮添加
-        </div>
+        <EmptyState
+          icon={<Package className="w-12 h-12" />}
+          title="暂无商品"
+          description="点击上方按钮添加商品"
+          action={
+            <Button onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600">
+              <Plus className="w-4 h-4 mr-1" />添加商品
+            </Button>
+          }
+        />
       ) : (
         <>
           {/* 桌面端表格 */}
@@ -733,6 +743,6 @@ export default function ProductsAdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

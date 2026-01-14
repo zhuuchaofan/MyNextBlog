@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Undo2, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from "sonner";
+import { PageContainer, EmptyState } from "@/components/common";
 
 interface DeletedPost {
   id: number;
@@ -105,7 +106,7 @@ export default function TrashPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="回收站"
         icon={<Trash2 className="w-5 h-5 text-red-500" />}
@@ -130,9 +131,11 @@ export default function TrashPage() {
       {loading && posts.length === 0 ? (
         <div className="p-10 text-center text-gray-500 dark:text-gray-400">加载中...</div>
       ) : posts.length === 0 ? (
-        <div className="p-10 text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-800">
-          🗑️ 回收站是空的
-        </div>
+        <EmptyState
+          icon={<Trash2 className="w-12 h-12" />}
+          title="🗑️ 回收站是空的"
+          description="没有已删除的文章"
+        />
       ) : (
         <>
           {/* 桌面端表格 */}
@@ -272,6 +275,6 @@ export default function TrashPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

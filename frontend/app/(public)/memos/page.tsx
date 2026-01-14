@@ -6,6 +6,7 @@
 import { Metadata } from 'next';
 import { MessageCircle } from 'lucide-react';
 import { MemoList } from './_components/MemoList';
+import { PageContainer } from '@/components/common';
 
 // 强制动态渲染
 export const dynamic = 'force-dynamic';
@@ -52,7 +53,7 @@ export default async function MemosPage() {
   const { items, nextCursor } = await getInitialMemos();
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-2xl">
+    <PageContainer variant="public" maxWidth="2xl">
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl mb-4">
@@ -68,6 +69,6 @@ export default async function MemosPage() {
 
       {/* Memo List */}
       <MemoList initialMemos={items} initialCursor={nextCursor} />
-    </div>
+    </PageContainer>
   );
 }

@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api";
+import { PageContainer, EmptyState } from "@/components/common";
 
 export const metadata: Metadata = {
   title: "商店 | MyNextBlog",
@@ -43,7 +44,7 @@ export default async function ShopPage() {
   const products = await getProducts();
   
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-6xl">
+    <PageContainer variant="public" maxWidth="6xl">
       {/* 页面标题 */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -57,11 +58,11 @@ export default async function ShopPage() {
 
       {/* 商品网格 */}
       {products.length === 0 ? (
-        <div className="text-center py-20">
-          <Package className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground text-lg">暂无商品</p>
-          <p className="text-muted-foreground text-sm mt-2">敬请期待...</p>
-        </div>
+        <EmptyState
+          icon={<Package className="w-12 h-12" />}
+          title="暂无商品"
+          description="敬请期待..."
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
@@ -119,6 +120,6 @@ export default async function ShopPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
