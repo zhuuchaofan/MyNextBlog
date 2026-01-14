@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageContainer, EmptyState } from "@/components/common";
 
 // 分类类型定义
 interface Category {
@@ -160,7 +161,7 @@ export default function CategoriesManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="分类管理"
         icon={<FolderOpen className="w-5 h-5 text-orange-500" />}
@@ -224,8 +225,13 @@ export default function CategoriesManagementPage() {
                  </TableRow>
               ) : categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-40 text-center text-gray-500">
-                    暂无分类数据
+                  <TableCell colSpan={3} className="h-40 p-0">
+                    <EmptyState
+                      icon={<FolderOpen className="w-12 h-12" />}
+                      title="暂无分类"
+                      description="开始创建您的第一个分类"
+                      variant="compact"
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -271,9 +277,12 @@ export default function CategoriesManagementPage() {
                 <span className="text-sm">加载中...</span>
              </div>
           ) : categories.length === 0 ? (
-             <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-                暂无分类数据
-             </div>
+             <EmptyState
+               icon={<FolderOpen className="w-12 h-12" />}
+               title="暂无分类"
+               description="开始创建您的第一个分类"
+               variant="compact"
+             />
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-zinc-800">
               {categories.map(category => (
@@ -369,6 +378,6 @@ export default function CategoriesManagementPage() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

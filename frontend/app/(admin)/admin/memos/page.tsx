@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PageContainer, EmptyState } from "@/components/common";
 
 export default function AdminMemosPage() {
   const [memos, setMemos] = useState<MemoAdmin[]>([]);
@@ -149,7 +150,7 @@ export default function AdminMemosPage() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="admin" maxWidth="4xl">
       <AdminPageHeader
         title="动态管理"
         icon={<MessageCircle className="w-5 h-5 text-purple-500" />}
@@ -181,13 +182,16 @@ export default function AdminMemosPage() {
           <Loader2 className="w-6 h-6 animate-spin mr-2" /> 加载中...
         </div>
       ) : memos.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-800">
-          <MessageCircle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">暂无动态</p>
-          <Button variant="outline" className="mt-4" onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-1" /> 发布第一条动态
-          </Button>
-        </div>
+        <EmptyState
+          icon={<MessageCircle className="w-12 h-12" />}
+          title="暂无动态"
+          description="发布您的第一条动态"
+          action={
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 mr-1" />发布动态
+            </Button>
+          }
+        />
       ) : (
         <>
           <div className="space-y-4">
@@ -353,6 +357,6 @@ export default function AdminMemosPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

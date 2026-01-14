@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchMyOrders, fetchCurrentUser, type Order } from "@/lib/api";
 import { EndOfList } from "@/components/EndOfList";
+import { PageContainer, EmptyState, PageSkeleton } from "@/components/common";
 
 // 订单状态映射
 const statusMap: Record<Order["status"], { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -46,11 +47,7 @@ export default function OrdersPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton variant="public" maxWidth="4xl" type="list" />;
   }
 
   // 未登录
@@ -68,7 +65,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-6 sm:mb-8">
         <Button
@@ -86,15 +83,16 @@ export default function OrdersPage() {
       </div>
 
       {orders.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Package className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground text-lg mb-4">暂无订单</p>
+        <EmptyState
+          icon={<Package className="w-12 h-12" />}
+          title="暂无订单"
+          description="您还没有任何订单记录"
+          action={
             <Button asChild>
               <Link href="/shop">去逛逛</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
@@ -139,6 +137,6 @@ export default function OrdersPage() {
           {orders.length > 0 && <EndOfList />}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

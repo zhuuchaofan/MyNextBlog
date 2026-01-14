@@ -72,34 +72,44 @@ export default function Navbar() {
             ))}
             
             {/* 更多下拉菜单 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="rounded-full gap-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800"
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                  {t('more')}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-40">
-                  {moreNavLinks.map(link => (
-                  <Link key={link.href} href={link.href}>
-                    <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
-                      {link.icon}
-                      <span>{link.label}</span>
-                    </DropdownMenuItem>
+            {!mounted ? (
+              <Button 
+                variant="ghost" 
+                className="rounded-full gap-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+                {t('more')}
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="rounded-full gap-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                    {t('more')}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-40">
+                    {moreNavLinks.map(link => (
+                    <Link key={link.href} href={link.href}>
+                      <DropdownMenuItem className={`cursor-pointer gap-2 ${pathname === link.href ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400' : ''}`}>
+                        {link.icon}
+                        <span>{link.label}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                  ))}
+                  <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
+                      <DropdownMenuItem className="cursor-pointer gap-2">
+                        <Rss className="w-4 h-4" />
+                        <span>{t('rss')}</span>
+                      </DropdownMenuItem>
                   </Link>
-                ))}
-                <Link href="/feed.xml" target="_blank" aria-label="RSS 订阅">
-                    <DropdownMenuItem className="cursor-pointer gap-2">
-                      <Rss className="w-4 h-4" />
-                      <span>{t('rss')}</span>
-                    </DropdownMenuItem>
-                </Link>
 
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* 关于 (放在更多后面) */}
             <NavLink 

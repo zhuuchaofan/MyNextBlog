@@ -19,6 +19,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { fetchOrderById, payOrder, confirmReceipt, cancelMyOrder, type Order } from "@/lib/api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // 订单状态配置
 const statusConfig: Record<
@@ -37,6 +47,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [paying, setPaying] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
   // 解析动态路由参数
@@ -100,9 +111,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   };
 
   // 取消订单
-  const handleCancel = async () => {
+  const handleConfirmCancel = async () => {
     if (!order) return;
-    if (!confirm("确定要取消这个订单吗？")) return;
 
     setCancelling(true);
     try {
@@ -117,6 +127,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       toast.error(error instanceof Error ? error.message : "取消失败，请稍后重试");
     } finally {
       setCancelling(false);
+      setCancelDialogOpen(false);
     }
   };
 
@@ -191,7 +202,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={handleCancel} 
+                  onClick={() => setCancelDialogOpen(true)} 
                   disabled={cancelling || paying}
                   className="w-full sm:w-auto text-destructive border-destructive/30 hover:bg-destructive/10"
                 >
@@ -304,6 +315,27 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           )}
         </CardContent>
       </Card>
+
+      {/* 取消订单确认对话框 */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认取消订单？</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要取消这个订单吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>返回</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              确认取消
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

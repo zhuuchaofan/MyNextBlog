@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PageContainer, EmptyState } from "@/components/common";
 
 interface AdminComment {
   id: number;
@@ -161,7 +162,7 @@ export default function AdminCommentsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl pb-24">
+    <PageContainer variant="admin" maxWidth="6xl" className="pb-24">
       <AdminPageHeader
         title="评论管理"
         icon={<MessageCircle className="w-5 h-5 text-blue-500" />}
@@ -221,8 +222,13 @@ export default function AdminCommentsPage() {
                     </TableRow>
                 ) : comments.length === 0 ? (
                     <TableRow>
-                         <TableCell colSpan={6} className="h-40 text-center text-gray-500">
-                             暂无数据
+                         <TableCell colSpan={6} className="h-40 p-0">
+                             <EmptyState
+                               icon={<MessageCircle className="w-12 h-12" />}
+                               title="暂无评论"
+                               description="没有找到符合条件的评论"
+                               variant="compact"
+                             />
                          </TableCell>
                     </TableRow>
                 ) : (
@@ -317,9 +323,12 @@ export default function AdminCommentsPage() {
                 <span className="text-sm">加载中...</span>
              </div>
           ) : comments.length === 0 ? (
-             <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-                暂无数据
-             </div>
+             <EmptyState
+               icon={<MessageCircle className="w-12 h-12" />}
+               title="暂无评论"
+               description="没有找到符合条件的评论"
+               variant="compact"
+             />
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-zinc-800">
               {comments.map(comment => (
@@ -461,6 +470,6 @@ export default function AdminCommentsPage() {
               </div>
           </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

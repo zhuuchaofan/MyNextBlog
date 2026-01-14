@@ -17,6 +17,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { fetchOrdersAdmin, cancelOrder, type OrderAdmin } from "@/lib/api";
+import { PageContainer, EmptyState, TableSkeleton } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // 订单状态映射
 const statusMap: Record<
@@ -53,14 +64,16 @@ export default function OrdersAdminPage() {
     };
     loadOrders();
   }, [page]);
+  // 取消确认弹窗目标
+  const [cancelTarget, setCancelTarget] = useState<number | null>(null);
 
   // 取消订单
-  const handleCancel = async (id: number) => {
-    if (!confirm("确定要取消这个订单吗？库存将自动恢复。")) return;
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
 
-    setCancelling(id);
+    setCancelling(cancelTarget);
     try {
-      const result = await cancelOrder(id);
+      const result = await cancelOrder(cancelTarget);
       if (result.success) {
         toast.success("订单已取消");
         // 重新加载
@@ -74,6 +87,7 @@ export default function OrdersAdminPage() {
       toast.error(error instanceof Error ? error.message : "取消失败");
     } finally {
       setCancelling(null);
+      setCancelTarget(null);
     }
   };
 
@@ -81,14 +95,14 @@ export default function OrdersAdminPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <PageContainer variant="admin" maxWidth="5xl">
+        <TableSkeleton rows={5} columns={5} />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="订单管理"
         description="查看和管理用户订单"
@@ -101,9 +115,11 @@ export default function OrdersAdminPage() {
       />
 
       {orders.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-xl border border-dashed border-gray-200 dark:border-zinc-800">
-          暂无订单
-        </div>
+        <EmptyState
+          icon={<ClipboardList className="w-12 h-12" />}
+          title="暂无订单"
+          description="还没有收到任何订单"
+        />
       ) : (
             <>
               {/* 桌面端表格 */}
@@ -150,7 +166,7 @@ export default function OrdersAdminPage() {
                                 variant="destructive"
                                 size="sm"
                                 className="h-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/40"
-                                onClick={() => handleCancel(order.id)}
+                                onClick={() => setCancelTarget(order.id)}
                                 disabled={cancelling === order.id}
                               >
                                 {cancelling === order.id ? (
@@ -195,7 +211,7 @@ export default function OrdersAdminPage() {
                           variant="outline"
                           size="sm"
                           className="w-full h-9 text-destructive border-destructive/30 hover:bg-destructive/10"
-                          onClick={() => handleCancel(order.id)}
+                          onClick={() => setCancelTarget(order.id)}
                           disabled={cancelling === order.id}
                         >
                           {cancelling === order.id ? (
@@ -242,6 +258,27 @@ export default function OrdersAdminPage() {
           </Button>
         </div>
       )}
-    </div>
+
+      {/* 取消订单确认对话框 */}
+      <AlertDialog open={cancelTarget !== null} onOpenChange={(open) => !open && setCancelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认取消订单？</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要取消这个订单吗？库存将自动恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              确认取消
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageContainer>
   );
 }

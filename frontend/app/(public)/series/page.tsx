@@ -10,6 +10,7 @@ import { Library, BookOpen, ChevronRight, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cookies } from 'next/headers';
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 强制动态渲染，避免构建时预渲染空结果
 export const dynamic = 'force-dynamic';
@@ -58,7 +59,7 @@ export default async function SeriesListPage() {
   const { series: seriesList, isAdmin } = await getAllSeries() as { series: Series[], isAdmin: boolean };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
+    <PageContainer variant="public" maxWidth="5xl">
       {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl mb-4">
@@ -74,10 +75,11 @@ export default async function SeriesListPage() {
 
       {/* Series Grid */}
       {seriesList.length === 0 ? (
-        <div className="text-center py-16">
-          <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">暂无系列文章</p>
-        </div>
+        <EmptyState
+          icon={<BookOpen className="w-12 h-12" />}
+          title="暂无系列文章"
+          description="还没有创建任何系列"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {seriesList.map((series) => (
@@ -121,6 +123,6 @@ export default async function SeriesListPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

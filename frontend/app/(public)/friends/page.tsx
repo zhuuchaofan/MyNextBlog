@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Users, UserPlus } from 'lucide-react';
 import { FriendCard } from './_components/FriendCard';
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 强制动态渲染，确保获取最新数据
 export const dynamic = 'force-dynamic';
@@ -57,7 +58,7 @@ export default async function FriendsPage() {
   const onlineCount = friends.filter(f => f.isOnline).length;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
+    <PageContainer variant="public" maxWidth="5xl">
       {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl mb-4">
@@ -87,13 +88,11 @@ export default async function FriendsPage() {
 
       {/* Grid */}
       {friends.length === 0 ? (
-        <div className="text-center py-16">
-          <UserPlus className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">暂无友链</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-            欢迎互换友链，一起交流学习
-          </p>
-        </div>
+        <EmptyState
+          icon={<UserPlus className="w-12 h-12" />}
+          title="暂无友链"
+          description="欢迎互换友链，一起交流学习"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {friends.map(friend => (
@@ -125,6 +124,6 @@ export default async function FriendsPage() {
           申请友链
         </Link>
       </div>
-    </div>
+    </PageContainer>
   );
 }

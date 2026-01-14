@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMounted } from "@/hooks/useMounted";
 
 // 切换语言的函数
 function setLocaleCookie(locale: string) {
@@ -18,6 +19,22 @@ function setLocaleCookie(locale: string) {
 }
 
 export function LocaleSwitcher() {
+  const mounted = useMounted();
+
+  // 避免 hydration 不匹配: 服务端渲染时只显示按钮占位
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full hover:bg-orange-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400"
+        aria-label="切换语言"
+      >
+        <Globe className="w-5 h-5" />
+      </Button>
+    );
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

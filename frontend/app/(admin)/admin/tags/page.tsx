@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageContainer, EmptyState } from "@/components/common";
 
 // 标签类型定义
 interface TagItem {
@@ -160,7 +161,7 @@ export default function TagsManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+    <PageContainer variant="admin" maxWidth="5xl">
       <AdminPageHeader
         title="标签管理"
         icon={<Tag className="w-5 h-5 text-blue-500" />}
@@ -224,8 +225,13 @@ export default function TagsManagementPage() {
                  </TableRow>
               ) : tags.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-40 text-center text-gray-500">
-                    暂无标签数据
+                  <TableCell colSpan={3} className="h-40 p-0">
+                    <EmptyState
+                      icon={<Tag className="w-12 h-12" />}
+                      title="暂无标签"
+                      description="开始创建您的第一个标签"
+                      variant="compact"
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -273,9 +279,12 @@ export default function TagsManagementPage() {
                 <span className="text-sm">加载中...</span>
              </div>
           ) : tags.length === 0 ? (
-             <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-                暂无标签数据
-             </div>
+             <EmptyState
+               icon={<Tag className="w-12 h-12" />}
+               title="暂无标签"
+               description="开始创建您的第一个标签"
+               variant="compact"
+             />
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-zinc-800">
               {tags.map(tag => (
@@ -373,6 +382,6 @@ export default function TagsManagementPage() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

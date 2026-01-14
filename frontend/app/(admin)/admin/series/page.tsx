@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageContainer, EmptyState, TableSkeleton } from "@/components/common";
 
 export default function SeriesManagementPage() {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
@@ -118,7 +119,7 @@ export default function SeriesManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
+    <PageContainer variant="admin" maxWidth="6xl">
       <AdminPageHeader
         title="系列管理"
         icon={<Layers className="w-5 h-5 text-purple-500" />}
@@ -186,8 +187,13 @@ export default function SeriesManagementPage() {
                  </TableRow>
               ) : seriesList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-40 text-center text-gray-500">
-                    暂无系列数据
+                  <TableCell colSpan={4} className="h-40 p-0">
+                    <EmptyState
+                      icon={<Layers className="w-12 h-12" />}
+                      title="暂无系列"
+                      description="还没有创建任何系列"
+                      variant="compact"
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -233,9 +239,12 @@ export default function SeriesManagementPage() {
                 <span className="text-sm">加载中...</span>
              </div>
           ) : seriesList.length === 0 ? (
-             <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-                暂无系列数据
-             </div>
+             <EmptyState
+               icon={<Layers className="w-12 h-12" />}
+               title="暂无系列"
+               description="还没有创建任何系列"
+               variant="compact"
+             />
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-zinc-800">
               {seriesList.map(series => (
@@ -332,6 +341,6 @@ export default function SeriesManagementPage() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }
