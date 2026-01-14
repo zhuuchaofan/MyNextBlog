@@ -71,13 +71,13 @@ public class PostsApiController(IPostService postService, ICommentService commen
         // 不论访问者是谁（游客或管理员），公开页面都应该显示相同的内容
         // 管理员想查看草稿请访问 /api/posts/admin
         
-        var (allPosts, totalCount) = await postService.GetAllPostsAsync(
+        var (allPosts, totalCount) = await postService.GetAllPostsAsync(new PostQueryDto(
             page, pageSize, 
-            includeHidden: false,  // 永远不包含隐藏文章
-            categoryId: categoryId, 
-            searchTerm: search, 
-            tagName: tag
-        );
+            IncludeHidden: false,
+            CategoryId: categoryId, 
+            SearchTerm: search, 
+            TagName: tag
+        ));
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -110,10 +110,10 @@ public class PostsApiController(IPostService postService, ICommentService commen
         pageSize = Math.Clamp(pageSize, 1, 50);
         
         // 直接调用支持分页的接口
-        var (allPosts, totalCount) = await postService.GetAllPostsAsync(
+        var (allPosts, totalCount) = await postService.GetAllPostsAsync(new PostQueryDto(
             page, pageSize, 
-            includeHidden: true
-        );
+            IncludeHidden: true
+        ));
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 

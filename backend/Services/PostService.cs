@@ -43,9 +43,12 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// <summary>
     /// 获取文章列表 (数据库级分页)
     /// </summary>
-    public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetAllPostsAsync(int page, int pageSize, bool includeHidden = false, int? categoryId = null, string? searchTerm = null, string? tagName = null)
+    public async Task<(List<PostSummaryDto> Posts, int TotalCount)> GetAllPostsAsync(PostQueryDto query)
     {
-        // 0. 判断是否为“纯净首页”请求 (只有这种情况才值得缓存)
+        // 解构查询参数
+        var (page, pageSize, includeHidden, categoryId, searchTerm, tagName) = query;
+        
+        // 0. 判断是否为"纯净首页"请求 (只有这种情况才值得缓存)
         // 防御性检查：防止负数导致 Skip() 抛出异常
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
@@ -82,21 +85,21 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
         // 内部查询函数 (复用逻辑)
         async Task<(List<PostSummaryDto>, int)> QueryPostsFromDbAsync()
         {
-            var query = context.Posts.AsNoTracking().AsQueryable();
+            var dbQuery = context.Posts.AsNoTracking().AsQueryable();
             
             // 排除已软删除的文章
-            query = query.Where(p => !p.IsDeleted);
+            dbQuery = dbQuery.Where(p => !p.IsDeleted);
 
-            if (!includeHidden) query = query.Where(p => !p.IsHidden);
-            if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
-            if (!string.IsNullOrWhiteSpace(searchTerm)) query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
-            if (!string.IsNullOrWhiteSpace(tagName)) query = query.Where(p => p.Tags.Any(t => t.Name == tagName));
+            if (!includeHidden) dbQuery = dbQuery.Where(p => !p.IsHidden);
+            if (categoryId.HasValue) dbQuery = dbQuery.Where(p => p.CategoryId == categoryId.Value);
+            if (!string.IsNullOrWhiteSpace(searchTerm)) dbQuery = dbQuery.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
+            if (!string.IsNullOrWhiteSpace(tagName)) dbQuery = dbQuery.Where(p => p.Tags.Any(t => t.Name == tagName));
 
-            var total = await query.CountAsync();
+            var total = await dbQuery.CountAsync();
             
             // 1. 先查出数据 (Projection to Anonymous Type)
             // 这样既能避免 SELECT 全字段，又能享受 EF Core 的部分转换能力
-            var data = await query
+            var data = await dbQuery
                 .OrderByDescending(p => p.CreateTime)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

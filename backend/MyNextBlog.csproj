@@ -9,6 +9,8 @@
     <!-- 忽略 XML 注释相关警告: 
          1591=缺少 XML 注释, 1570=格式错误, 1573=缺少参数注释 -->
     <NoWarn>$(NoWarn);1591;1570;1573</NoWarn>
+    <!-- 排除 Tests 目录，避免编译测试代码 -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests/**/*</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

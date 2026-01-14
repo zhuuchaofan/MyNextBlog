@@ -15,6 +15,7 @@
 // `using` 语句用于导入必要的命名空间
 using Microsoft.AspNetCore.Mvc;       // ASP.NET Core MVC
 using MyNextBlog.Services;            // 业务服务
+using MyNextBlog.DTOs;                // 数据传输对象
 using Microsoft.Extensions.Logging;   // 日志
 
 // `namespace` 声明了当前文件所属的命名空间
@@ -73,7 +74,7 @@ public class HomeController(
             // 原因：PostService 和 TagService 共享同一个 Scoped 的 DbContext 实例，
             // 而 EF Core 的 DbContext 不是线程安全的，并行访问会导致：
             // "A second operation was started on this context instance before a previous operation completed"
-            var (posts, totalCount) = await postService.GetAllPostsAsync(page, pageSize, includeHidden: isAdmin);
+            var (posts, totalCount) = await postService.GetAllPostsAsync(new PostQueryDto(page, pageSize, IncludeHidden: isAdmin));
             var tags = await tagService.GetPopularTagsAsync(10, includeHidden: false);
 
             // 2. 批量获取 SiteContent（通过 Service 层）
