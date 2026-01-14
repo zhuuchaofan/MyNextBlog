@@ -10,6 +10,7 @@ import { ShoppingCart, Trash2, Minus, Plus, Package, ArrowRight } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CartItem } from "@/lib/api";
+import { PageContainer, EmptyState } from "@/components/common";
 
 // 购物车本地存储 Key
 const CART_STORAGE_KEY = "shopping_cart";
@@ -106,7 +107,7 @@ export default function CartPage() {
   // 避免 SSR/CSR 不一致
   if (!mounted) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <PageContainer variant="public" maxWidth="4xl">
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded w-1/4 mb-8" />
           <div className="space-y-4">
@@ -115,12 +116,12 @@ export default function CartPage() {
             ))}
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* 页面标题 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
@@ -136,16 +137,16 @@ export default function CartPage() {
       </div>
 
       {cart.length === 0 ? (
-        /* 空购物车 */
-        <Card className="text-center py-12">
-          <CardContent>
-            <Package className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground text-lg mb-4">购物车是空的</p>
+        <EmptyState
+          icon={<Package className="w-12 h-12" />}
+          title="购物车是空的"
+          description="去商店挑选商品吧"
+          action={
             <Button asChild>
               <Link href="/shop">去逛逛</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 商品列表 */}
@@ -254,6 +255,6 @@ export default function CartPage() {
           </Card>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

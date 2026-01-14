@@ -164,6 +164,85 @@ className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-{size}"
 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 ```
 
+### 3.4.1 UI 组件标准化规范 ✨ (2026-01 新增)
+
+本项目使用标准化 UI 组件确保页面布局和状态显示一致性。
+
+**组件路径**: `frontend/components/common/`
+
+| 组件            | 用途                                           | 导入方式                                                        |
+| --------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| `PageContainer` | 统一页面容器 padding 和 max-width              | `import { PageContainer } from '@/components/common'`           |
+| `EmptyState`    | 统一空状态显示 (图标 + 标题 + 描述 + 操作按钮) | `import { EmptyState } from '@/components/common'`              |
+| `TableSkeleton` | 表格骨架屏加载                                 | `import { TableSkeleton } from '@/components/common/skeletons'` |
+| `PageSkeleton`  | 页面骨架屏加载                                 | `import { PageSkeleton } from '@/components/common/skeletons'`  |
+
+**PageContainer 使用规范**:
+
+```tsx
+// ✅ Admin 页面
+<PageContainer variant="admin" maxWidth="5xl">
+  <AdminPageHeader ... />
+  {/* 页面内容 */}
+</PageContainer>
+
+// ✅ Public 页面
+<PageContainer variant="public" maxWidth="4xl">
+  {/* 页面内容 */}
+</PageContainer>
+
+// ❌ 禁止 - 手写容器样式
+<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
+```
+
+**EmptyState 使用规范**:
+
+```tsx
+// ✅ 正确
+<EmptyState
+  icon={<Package className="w-12 h-12" />}
+  title="暂无商品"
+  description="点击上方按钮添加商品"
+  action={<Button onClick={handleAdd}>添加</Button>}
+/>
+
+// ❌ 禁止 - 手写空状态样式
+<div className="text-center py-12 text-gray-500 ...">暂无数据</div>
+```
+
+**Link 包裹卡片规范**:
+
+```tsx
+// ✅ 正确 - Link 必须添加 block 类
+<div className="space-y-4">
+  {items.map(item => (
+    <Link key={item.id} href={`/item/${item.id}`} className="block">
+      <Card>...</Card>
+    </Link>
+  ))}
+</div>
+
+// ❌ 错误 - 缺少 block 导致 space-y 间距失效
+<Link key={item.id} href={`/item/${item.id}`}>
+  <Card>...</Card>
+</Link>
+```
+
+**原生弹窗禁止使用**:
+
+```tsx
+// ❌ 禁止 - 使用原生 alert/confirm
+if (!confirm("确定要删除吗？")) return;
+alert("操作失败");
+
+// ✅ 正确 - 使用 Shadcn AlertDialog 或 toast
+<AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+  <AlertDialogContent>...</AlertDialogContent>
+</AlertDialog>;
+
+toast.error("操作失败");
+```
+
 ### 3.5 API 类型自动生成规范 ✨ (2026-01 新增)
 
 本项目使用 **openapi-typescript** 从后端 Swagger 自动生成 TypeScript 类型，消除前后端 DTO 的人工同步负担。

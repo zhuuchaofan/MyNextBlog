@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Calendar, PawPrint, ArrowRight, Tag } from "lucide-react";
 import { EndOfList } from "@/components/EndOfList";
+import { PageContainer } from '@/components/common';
 
 // 定义文章数据的接口
 interface Post {
@@ -56,7 +57,7 @@ export default function ArchivePage() {
   const sortedYears = Object.keys(groupedPosts).map(Number).sort((a, b) => b - a);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-12">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* 页面头部：标题和文章总数统计 */}
       <header className="mb-16 text-center space-y-4">
         <div className="inline-block p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full mb-2">
@@ -158,6 +159,6 @@ export default function ArchivePage() {
           )}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

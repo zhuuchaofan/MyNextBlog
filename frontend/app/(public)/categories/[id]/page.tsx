@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Folder } from "lucide-react";
 import { cookies } from 'next/headers'; // 导入 cookies 用于获取 Token
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 定义文章数据的接口 (精简版，用于分类列表展示)
 interface Post {
@@ -105,7 +106,7 @@ export default async function CategoryPage({ params }: { params: { id: string } 
   // }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-8">
+    <PageContainer variant="public" maxWidth="5xl">
       {/* 页面头部：显示分类名称和文章数量 */}
       <div className="mb-10 flex items-center gap-4">
         <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center text-orange-600 dark:text-orange-400">
@@ -120,15 +121,18 @@ export default async function CategoryPage({ params }: { params: { id: string } 
       {/* 文章列表 */}
       <div className="grid gap-6">
         {posts.length === 0 ? (
-          // 如果该分类下没有文章，显示提示信息
-          <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
-            <p className="text-gray-400 dark:text-gray-500">该分类下暂时没有文章 🍂</p>
-            <Link href="/">
-              <Button variant="link" className="mt-2 text-orange-600 dark:text-orange-400">
-                <ArrowRight className="w-4 h-4 mr-1 rotate-180" /> 浏览其他文章
-              </Button>
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Folder className="w-12 h-12" />}
+            title="该分类下暂时没有文章 🍂"
+            description="还没有发布任何文章"
+            action={
+              <Link href="/">
+                <Button variant="link" className="text-orange-600 dark:text-orange-400">
+                  <ArrowRight className="w-4 h-4 mr-1 rotate-180" />浏览其他文章
+                </Button>
+              </Link>
+            }
+          />
         ) : (
           // 遍历并渲染文章卡片
           posts.map((post) => (
@@ -182,6 +186,6 @@ export default async function CategoryPage({ params }: { params: { id: string } 
           ))
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG, PETS, SKILL_CATEGORIES, BOOKS, TIMELINE, GEARS } from "@/lib/constants"; 
+import { PageContainer } from '@/components/common'; 
 
 // 扩展图标映射
 const iconMap: Record<string, React.ReactNode> = {
@@ -135,7 +136,7 @@ export default async function AboutPage() {
     <div className="relative min-h-screen">
       {/* 背景装饰：已移至全局 Layout */}
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-12 space-y-16 relative z-10">
+      <PageContainer variant="public" maxWidth="6xl" className="space-y-16 relative z-10">
         
         {/* 1. Hero 区域 */}
         <section className="flex flex-col md:flex-row items-center gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -366,7 +367,7 @@ export default async function AboutPage() {
   
           </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

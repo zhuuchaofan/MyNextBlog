@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Search as SearchIcon, Frown } from "lucide-react";
+import { PageContainer, EmptyState } from '@/components/common';
 
 // 定义文章数据的接口 (精简版，用于搜索结果展示)
 interface Post {
@@ -97,10 +98,11 @@ function SearchResults() {
   // 1. 如果没有搜索关键词和标签，显示提示用户输入的界面
   if (!query && !tag) {
     return (
-      <div className="text-center py-20">
-        <SearchIcon className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">请输入关键词或选择标签开始搜索</h2>
-      </div>
+      <EmptyState
+        icon={<SearchIcon className="w-12 h-12" />}
+        title="请输入关键词或选择标签开始搜索"
+        description="在上方搜索框输入关键词"
+      />
     );
   }
 
@@ -127,12 +129,11 @@ function SearchResults() {
           ))}
         </div>
       ) : posts.length === 0 ? (
-        // 没有搜索结果时的提示
-        <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
-          <Frown className="w-12 h-12 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 text-lg">抱歉，没有找到相关文章</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">换个关键词试试？</p>
-        </div>
+        <EmptyState
+          icon={<Frown className="w-12 h-12" />}
+          title="抱歉，没有找到相关文章"
+          description="换个关键词试试？"
+        />
       ) : (
         // 搜索结果列表
         <div className="grid gap-6">
@@ -197,10 +198,10 @@ function SearchResults() {
  */
 export default function SearchPage() {
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-12 min-h-[60vh]">
+    <PageContainer variant="public" maxWidth="5xl" className="min-h-[60vh]">
       <Suspense fallback={<div className="text-center py-20 text-gray-400 dark:text-gray-500">正在搜索...</div>}>
         <SearchResults />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

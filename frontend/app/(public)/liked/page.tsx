@@ -12,6 +12,7 @@ import { Heart, ChevronLeft, LogIn, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { EndOfList } from '@/components/EndOfList';
+import { PageContainer, EmptyState } from '@/components/common';
 
 export default function LikedPostsPage() {
   const router = useRouter();
@@ -54,28 +55,25 @@ export default function LikedPostsPage() {
   // 未登录状态
   if (!authLoading && !user) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
-        <div className="text-center py-16">
-          <Heart className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-            登录后查看点赞的文章
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            登录账户后，您可以查看所有点赞过的文章
-          </p>
-          <Link href="/login?redirect=/liked">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-              <LogIn className="w-4 h-4 mr-2" />
-              立即登录
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <PageContainer variant="public" maxWidth="4xl">
+        <EmptyState
+          icon={<Heart className="w-12 h-12" />}
+          title="登录后查看点赞的文章"
+          description="登录账户后，您可以查看所有点赞过的文章"
+          action={
+            <Link href="/login?redirect=/liked">
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                <LogIn className="w-4 h-4 mr-2" />立即登录
+              </Button>
+            </Link>
+          }
+        />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+    <PageContainer variant="public" maxWidth="4xl">
       {/* 页面标题 */}
       <div className="flex items-center gap-4 mb-8">
         <Button
@@ -111,26 +109,21 @@ export default function LikedPostsPage() {
           ))}
         </div>
       ) : posts.length === 0 ? (
-        /* 空状态 */
-        <div className="text-center py-16">
-          <Heart className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
-            还没有点赞过文章
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            浏览文章时点击❤️按钮，收藏喜欢的内容
-          </p>
-          <Link href="/">
-            <Button variant="outline">
-              去逛逛
-            </Button>
-          </Link>
-        </div>
+        <EmptyState
+          icon={<Heart className="w-12 h-12" />}
+          title="还没有点赞过文章"
+          description="浏览文章时点击❤️按钮，收藏喜欢的内容"
+          action={
+            <Link href="/">
+              <Button variant="outline">去逛逛</Button>
+            </Link>
+          }
+        />
       ) : (
         /* 文章列表 */
         <div className="space-y-4">
           {posts.map(post => (
-            <Link key={post.id} href={`/posts/${post.id}`}>
+            <Link key={post.id} href={`/posts/${post.id}`} className="block">
               <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
                 <CardContent className="p-4">
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-orange-500 transition-colors line-clamp-2 mb-2">
@@ -181,6 +174,6 @@ export default function LikedPostsPage() {
           )}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
