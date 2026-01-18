@@ -5,12 +5,14 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import type { LucideIcon } from 'lucide-react';
 import { TodoTask } from '@/lib/api-todo';
 import { TodoCard } from './TodoCard';
 
 interface TodoColumnProps {
   id: string;
   title: string;
+  icon: LucideIcon;
   color: string;
   tasks: TodoTask[];
   onEdit: (task: TodoTask) => void;
@@ -23,6 +25,7 @@ interface TodoColumnProps {
 export function TodoColumn({
   id,
   title,
+  icon: Icon,
   color,
   tasks,
   onEdit,
@@ -42,7 +45,10 @@ export function TodoColumn({
     >
       {/* 列标题 */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
-        <h3 className="font-semibold text-base">{title}</h3>
+        <h3 className="font-semibold text-base flex items-center gap-2">
+          <Icon className="w-4 h-4" />
+          {title}
+        </h3>
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
           {tasks.length}
         </span>

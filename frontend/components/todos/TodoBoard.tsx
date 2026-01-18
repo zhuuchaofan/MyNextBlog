@@ -13,7 +13,7 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, ClipboardList, Rocket, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { 
@@ -29,9 +29,9 @@ import { TodoCard } from './TodoCard';
  * 阶段配置
  */
 const STAGES = [
-  { id: 'todo', title: '📋 待办', color: 'border-yellow-500' },
-  { id: 'in_progress', title: '🚀 进行中', color: 'border-blue-500' },
-  { id: 'done', title: '✅ 已完成', color: 'border-green-500' },
+  { id: 'todo', title: '待办', icon: ClipboardList, color: 'border-yellow-500' },
+  { id: 'in_progress', title: '进行中', icon: Rocket, color: 'border-blue-500' },
+  { id: 'done', title: '已完成', icon: CheckCircle2, color: 'border-green-500' },
 ] as const;
 
 /**
@@ -221,6 +221,7 @@ export function TodoBoard() {
               key={stage.id}
               id={stage.id}
               title={stage.title}
+              icon={stage.icon}
               color={stage.color}
               tasks={getTasksByStage(stage.id)}
               onEdit={handleEdit}

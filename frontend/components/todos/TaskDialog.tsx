@@ -25,6 +25,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { 
+  ClipboardList, 
+  Rocket, 
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Circle,
+} from 'lucide-react';
 import { TodoTask, createTodo, updateTodo } from '@/lib/api-todo';
 
 // 表单验证 Schema
@@ -196,9 +204,24 @@ export function TaskDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">📋 待办</SelectItem>
-                  <SelectItem value="in_progress">🚀 进行中</SelectItem>
-                  <SelectItem value="done">✅ 已完成</SelectItem>
+                  <SelectItem value="todo">
+                    <span className="flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4" />
+                      待办
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="in_progress">
+                    <span className="flex items-center gap-2">
+                      <Rocket className="w-4 h-4" />
+                      进行中
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="done">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      已完成
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -212,9 +235,24 @@ export function TaskDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="high">🔴 高</SelectItem>
-                  <SelectItem value="medium">🟡 中</SelectItem>
-                  <SelectItem value="low">🟢 低</SelectItem>
+                  <SelectItem value="high">
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      高
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <span className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                      中
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="low">
+                    <span className="flex items-center gap-2">
+                      <Circle className="w-4 h-4 text-green-500" />
+                      低
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
