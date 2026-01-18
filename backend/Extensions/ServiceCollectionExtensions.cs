@@ -99,6 +99,7 @@ public static class ServiceCollectionExtensions
         // --- 待办任务服务 ---
         services.AddScoped<ITodoService, TodoService>();
         services.AddScoped<ITodoReminderService, TodoReminderService>();
+        services.AddHostedService<TodoReminderHostedService>();  // 每分钟检查到期任务
 
         // --- 用户状态服务 (Digital Presence) ---
         services.AddSingleton<IPresenceService, PresenceService>();  // Singleton: 共享缓存状态

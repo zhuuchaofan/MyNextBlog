@@ -82,9 +82,7 @@ public class AnniversaryReminderHostedService(
         var planReminderService = scope.ServiceProvider.GetRequiredService<IPlanReminderService>();
         await planReminderService.CheckAndSendRemindersAsync();
         
-        // 3. 检查待办任务提醒
-        var todoReminderService = scope.ServiceProvider.GetRequiredService<ITodoReminderService>();
-        await todoReminderService.CheckAndSendRemindersAsync();
+        // 注意：Todo 提醒由独立的 TodoReminderHostedService 处理（每分钟检查）
         
         logger.LogInformation("提醒检查完成");
     }
