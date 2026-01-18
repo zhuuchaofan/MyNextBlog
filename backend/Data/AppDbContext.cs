@@ -53,6 +53,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     // --- 社交功能 ---
     public DbSet<FriendLink> FriendLinks { get; set; } // 友情链接
     public DbSet<Memo> Memos { get; set; } // 碎片化动态/说说
+    
+    // --- 待办事项 ---
+    public DbSet<TodoTask> TodoTasks { get; set; } // 待办任务看板
 
     /// <summary>
     /// `OnModelCreating` 方法是 EF Core 的一个**核心配置方法**。

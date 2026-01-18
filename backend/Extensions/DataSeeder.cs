@@ -367,6 +367,35 @@ public static class DataSeederExtensions
                 AvailablePlaceholders = """{\"OrderNo\":\"订单号\",\"PaidTime\":\"付款时间\",\"TotalAmount\":\"支付金额\",\"DownloadLinks\":\"下载链接HTML\",\"RedeemCodes\":\"兑换码HTML\"}""",
                 Description = "用户付款成功后，发送包含下载链接和兑换码的邮件",
                 IsEnabled = true
+            },
+
+            // 8. 待办任务到期提醒
+            new EmailTemplate
+            {
+                TemplateKey = "todo_due_remind",
+                Name = "待办任务提醒",
+                SubjectTemplate = "📋 待办提醒：「{{TaskTitle}}」",
+                BodyTemplate = $@"
+<div style='{baseStyle}'>
+    <div style='border-bottom: 2px solid #f59e0b; padding-bottom: 15px; margin-bottom: 20px;'>
+        <h2 style='margin: 0; color: #f59e0b; font-size: 20px;'>📋 {{{{TaskTitle}}}}</h2>
+    </div>
+    <div style='color: #24292e; line-height: 1.6;'>
+        <div style='background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 15px 0; border-radius: 8px;'>
+            <p style='margin: 8px 0;'><strong>📝 描述：</strong>{{{{TaskDescription}}}}</p>
+            <p style='margin: 8px 0;'><strong>🔥 优先级：</strong>{{{{Priority}}}}</p>
+            <p style='margin: 8px 0;'><strong>📊 状态：</strong>{{{{Stage}}}}</p>
+            <p style='margin: 8px 0;'><strong>📅 开始日期：</strong>{{{{StartDate}}}}</p>
+            <p style='margin: 8px 0;'><strong>⏰ 截止日期：</strong>{{{{DueDate}}}}</p>
+        </div>
+    </div>
+    <div style='{footerStyle}'>
+        —— 来自 MyNextBlog 的温馨提醒
+    </div>
+</div>",
+                AvailablePlaceholders = """{\"TaskTitle\":\"任务标题\",\"TaskDescription\":\"任务描述\",\"Priority\":\"优先级\",\"Stage\":\"当前阶段\",\"StartDate\":\"开始日期\",\"DueDate\":\"截止日期\"}""",
+                Description = "当待办任务到达提醒时间时，发送邮件提醒管理员",
+                IsEnabled = true
             }
         };
 

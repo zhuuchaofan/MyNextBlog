@@ -95,6 +95,10 @@ public static class ServiceCollectionExtensions
         
         // --- Memo 动态服务 ---
         services.AddScoped<IMemoService, MemoService>();
+        
+        // --- 待办任务服务 ---
+        services.AddScoped<ITodoService, TodoService>();
+        services.AddScoped<ITodoReminderService, TodoReminderService>();
 
         // --- 用户状态服务 (Digital Presence) ---
         services.AddSingleton<IPresenceService, PresenceService>();  // Singleton: 共享缓存状态
