@@ -4,7 +4,7 @@
 // 用于 API 请求/响应的数据结构和输入验证。
 //
 // **DTO 分类**:
-//   - 输出 DTO: TodoTaskDto (API 响应)
+//   - 输出 DTO: TodoTaskDto (API 响应，支持嵌套子任务)
 //   - 输入 DTO: CreateTodoDto, UpdateTodoDto (API 请求，带验证)
 //   - 拖拽 DTO: MoveTodoDto, BatchUpdateTodoSortDto
 
@@ -15,22 +15,25 @@ namespace MyNextBlog.DTOs;
 // ========== 输出 DTO ==========
 
 /// <summary>
-/// 待办任务返回的 DTO
+/// 待办任务返回的 DTO (支持层级嵌套)
 /// </summary>
 public record TodoTaskDto(
     int Id,
     string Title,
     string? Description,
+    string TaskType,          // epic/story/task
     string Stage,
     string Priority,
     int SortOrder,
     DateTime? StartDate,
     DateTime? DueDate,
+    int? ParentId,            // 父任务 ID
     bool ReminderEnabled,
-    DateTime? ReminderTime,
-    bool ReminderSent,
+    string ReminderDays,      // "7,3,1,0"
+    string? SentReminderDays, // 已发送的提醒天数
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    List<TodoTaskDto>? Children = null  // 子任务列表 (可选)
 );
 
 // ========== 输入 DTO ==========
@@ -46,14 +49,17 @@ public record CreateTodoDto(
     [StringLength(500, ErrorMessage = "描述不能超过500个字符")]
     string? Description = null,
     
+    string TaskType = "task",  // epic/story/task
     string Stage = "todo",
     string Priority = "medium",
+    
+    int? ParentId = null,      // 父任务 ID
     
     DateTime? StartDate = null,
     DateTime? DueDate = null,
     
     bool ReminderEnabled = false,
-    DateTime? ReminderTime = null
+    string ReminderDays = "7,3,1,0"
 );
 
 /// <summary>
@@ -66,6 +72,7 @@ public record UpdateTodoDto(
     [StringLength(500, ErrorMessage = "描述不能超过500个字符")]
     string? Description = null,
     
+    string? TaskType = null,
     string? Stage = null,
     string? Priority = null,
     
@@ -73,7 +80,7 @@ public record UpdateTodoDto(
     DateTime? DueDate = null,
     
     bool? ReminderEnabled = null,
-    DateTime? ReminderTime = null
+    string? ReminderDays = null
 );
 
 // ========== 拖拽操作 DTO ==========

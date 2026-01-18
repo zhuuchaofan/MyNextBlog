@@ -11,6 +11,10 @@ import {
   Trash2, 
   Bell,
   BellOff,
+  Layers,
+  BookOpen,
+  ListTodo,
+  ChevronRight,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { TodoTask, deleteTodo } from '@/lib/api-todo';
+import { TodoTask, deleteTodo, countChildren } from '@/lib/api-todo';
 
 interface TodoCardProps {
   task: TodoTask;
@@ -42,6 +46,15 @@ const PRIORITY_CONFIG = {
   high: { label: '高', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   medium: { label: '中', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   low: { label: '低', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+};
+
+/**
+ * 任务类型图标配置
+ */
+const TASK_TYPE_ICONS = {
+  epic: { icon: Layers, color: 'text-purple-500' },
+  story: { icon: BookOpen, color: 'text-blue-500' },
+  task: { icon: ListTodo, color: 'text-green-500' },
 };
 
 /**

@@ -32,19 +32,30 @@ import {
   AlertCircle,
   AlertTriangle,
   Circle,
+  Layers,
+  BookOpen,
+  ListTodo,
 } from 'lucide-react';
-import { TodoTask, createTodo, updateTodo } from '@/lib/api-todo';
+import { 
+  TodoTask, 
+  TaskType, 
+  TaskStage, 
+  TaskPriority,
+  createTodo, 
+  updateTodo,
+} from '@/lib/api-todo';
 
 // 表单验证 Schema
 const formSchema = z.object({
   title: z.string().min(1, '标题不能为空').max(100, '标题不能超过100个字符'),
   description: z.string().max(500, '描述不能超过500个字符').optional(),
+  taskType: z.enum(['epic', 'story', 'task']),
   stage: z.enum(['todo', 'in_progress', 'done']),
   priority: z.enum(['low', 'medium', 'high']),
   startDate: z.string().optional(),
   dueDate: z.string().optional(),
   reminderEnabled: z.boolean(),
-  reminderTime: z.string().optional(),
+  reminderDays: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -53,6 +64,7 @@ interface TaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task?: TodoTask | null;
+  parentId?: number;  // 创建子任务时传入
   onSuccess: () => void;
 }
 
@@ -63,6 +75,7 @@ export function TaskDialog({
   open,
   onOpenChange,
   task,
+  parentId,
   onSuccess,
 }: TaskDialogProps) {
   const isEditing = !!task;
@@ -80,16 +93,18 @@ export function TaskDialog({
     defaultValues: {
       title: '',
       description: '',
+      taskType: parentId ? 'task' : 'epic',  // 子任务默认是 task
       stage: 'todo',
       priority: 'medium',
       startDate: '',
       dueDate: '',
       reminderEnabled: false,
-      reminderTime: '',
+      reminderDays: '7,3,1,0',
     },
   });
 
   const reminderEnabled = watch('reminderEnabled');
+  const taskType = watch('taskType');
 
   // 编辑时填充数据
   useEffect(() => {
@@ -97,28 +112,28 @@ export function TaskDialog({
       reset({
         title: task.title,
         description: task.description || '',
+        taskType: task.taskType as TaskType,
         stage: task.stage,
         priority: task.priority,
         startDate: task.startDate ? format(new Date(task.startDate), 'yyyy-MM-dd') : '',
         dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
         reminderEnabled: task.reminderEnabled,
-        reminderTime: task.reminderTime 
-          ? format(new Date(task.reminderTime), "yyyy-MM-dd'T'HH:mm")
-          : '',
+        reminderDays: task.reminderDays || '7,3,1,0',
       });
     } else {
       reset({
         title: '',
         description: '',
+        taskType: parentId ? 'task' : 'epic',
         stage: 'todo',
         priority: 'medium',
         startDate: '',
         dueDate: '',
         reminderEnabled: false,
-        reminderTime: '',
+        reminderDays: '7,3,1,0',
       });
     }
-  }, [task, reset]);
+  }, [task, parentId, reset]);
 
   // 提交表单
   const onSubmit = async (data: FormData) => {
@@ -133,12 +148,14 @@ export function TaskDialog({
       const payload = {
         title: data.title,
         description: data.description || undefined,
-        stage: data.stage,
-        priority: data.priority,
+        taskType: data.taskType,
+        stage: data.stage as TaskStage,
+        priority: data.priority as TaskPriority,
+        parentId: parentId,
         startDate: data.startDate ? new Date(data.startDate).toISOString() : undefined,
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
         reminderEnabled: data.reminderEnabled,
-        reminderTime: data.reminderTime ? new Date(data.reminderTime).toISOString() : undefined,
+        reminderDays: data.reminderDays || '7,3,1,0',
       };
 
       if (isEditing && task) {
@@ -157,11 +174,18 @@ export function TaskDialog({
     }
   };
 
+  // 获取对话框标题
+  const getDialogTitle = () => {
+    if (isEditing) return '编辑任务';
+    if (parentId) return '添加子任务';
+    return '新建任务';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEditing ? '编辑任务' : '新建任务'}</DialogTitle>
+          <DialogTitle>{getDialogTitle()}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -184,13 +208,45 @@ export function TaskDialog({
             <Textarea
               id="description"
               placeholder="输入任务描述（可选）"
-              rows={3}
+              rows={2}
               {...register('description')}
             />
-            {errors.description && (
-              <p className="text-xs text-destructive">{errors.description.message}</p>
-            )}
           </div>
+
+          {/* 任务类型（仅顶级任务可选） */}
+          {!parentId && (
+            <div className="space-y-2">
+              <Label>任务类型</Label>
+              <Select
+                value={taskType}
+                onValueChange={(v) => setValue('taskType', v as TaskType)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="epic">
+                    <span className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-purple-500" />
+                      史诗 (Epic)
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="story">
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-blue-500" />
+                      故事 (Story)
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="task">
+                    <span className="flex items-center gap-2">
+                      <ListTodo className="w-4 h-4 text-green-500" />
+                      任务 (Task)
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* 阶段和优先级 */}
           <div className="grid grid-cols-2 gap-4">
@@ -290,12 +346,15 @@ export function TaskDialog({
             </div>
             {reminderEnabled && (
               <div className="space-y-2">
-                <Label htmlFor="reminderTime">提醒时间</Label>
+                <Label htmlFor="reminderDays">提醒天数（截止前 N 天，逗号分隔）</Label>
                 <Input
-                  id="reminderTime"
-                  type="datetime-local"
-                  {...register('reminderTime')}
+                  id="reminderDays"
+                  placeholder="7,3,1,0"
+                  {...register('reminderDays')}
                 />
+                <p className="text-xs text-muted-foreground">
+                  例如：7,3,1,0 表示截止前 7、3、1、0 天各发一次提醒
+                </p>
               </div>
             )}
           </div>
