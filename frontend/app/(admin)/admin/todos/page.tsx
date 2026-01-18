@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { PageContainer } from '@/components/common';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
 import { TodoBoard } from '@/components/todos';
+import { ClipboardList } from 'lucide-react';
 
 export const metadata = {
   title: '待办任务 | 管理后台',
@@ -15,7 +16,8 @@ export default function TodosPage() {
   return (
     <PageContainer variant="admin" maxWidth="7xl">
       <AdminPageHeader
-        title="📋 待办任务"
+        title="待办任务"
+        icon={<ClipboardList className="w-5 h-5 text-yellow-500" />}
         description="Kanban 看板式任务管理，支持拖拽调整阶段和排序"
       />
       
