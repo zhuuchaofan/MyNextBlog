@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// 注册所有应用程序业务服务到 DI 容器
     /// </summary>
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         // --- 基础设施服务 ---
         services.AddTransient<GlobalExceptionMiddleware>();
@@ -66,8 +66,22 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrderNotificationService, OrderNotificationService>(); // 订单通知服务
         services.AddScoped<IPaymentGateway, MockPaymentGateway>(); // 支付网关（模拟）
         
-        // --- 单例服务 ---
-        services.AddSingleton<IEmailService, SmtpEmailService>();
+        // --- 邮件服务 (可配置同步/异步模式) ---
+        // EmailSettings:UseBackgroundQueue = true  → Channel 异步模式
+        // EmailSettings:UseBackgroundQueue = false → SMTP 同步模式
+        var useBackgroundQueue = configuration.GetValue<bool>("EmailSettings:UseBackgroundQueue");
+        if (useBackgroundQueue)
+        {
+            // 异步模式：邮件入队后立即返回，后台服务发送
+            services.AddSingleton<IEmailChannel, EmailChannel>();
+            services.AddSingleton<IEmailService, ChannelEmailService>();
+            services.AddHostedService<BackgroundEmailService>();
+        }
+        else
+        {
+            // 同步模式：直接通过 SMTP 发送（阻塞等待）
+            services.AddSingleton<IEmailService, SmtpEmailService>();
+        }
         
         // --- 后台服务 ---
         // PostgreSQL 备份服务 (每天 03:00 UTC 自动备份到 R2)

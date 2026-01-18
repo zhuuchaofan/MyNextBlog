@@ -76,7 +76,7 @@ builder.Services.AddSwaggerGen(options =>
 // 3. **应用程序业务服务**
 // 具体服务注册拆分到 Extensions/ServiceCollectionExtensions.cs
 // 包括: IPostService, ICommentService, IImageService 等
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 
 // 4. **健康检查端点**
 // 用于 Docker/Kubernetes 的存活探针 (Liveness Probe)
