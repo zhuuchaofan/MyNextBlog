@@ -70,6 +70,7 @@ export function createPost(postData: {
   tags?: string[];
   seriesId?: number;
   seriesOrder?: number;
+  isHidden?: boolean; // true = 保存为草稿, false = 发布
 }) {
   return fetchClient("/api/backend/posts", {
     method: "POST",

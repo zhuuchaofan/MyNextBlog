@@ -95,7 +95,7 @@ public record PostLinkDto(
 /// 它定义了创建文章所需的最小且必要的字段，并包含输入验证规则。
 /// </summary>
 public record CreatePostDto(
-    // `[Required(ErrorMessage = "...")`: 数据注解，表示此字段在 HTTP 请求体中是必填的。
+    // `[Required(ErrorMessage = "...\")`: 数据注解，表示此字段在 HTTP 请求体中是必填的。
     // 如果客户端没有提供 `Title` 或 `Content`，ASP.NET Core 会自动返回 `400 Bad Request` 响应，
     // 包含指定的错误消息。
     [Required(ErrorMessage = "标题不能为空")]
@@ -108,7 +108,8 @@ public record CreatePostDto(
     int? CategoryId,                                         // 可选：新文章所属分类的 ID
     List<string>? Tags,                                      // 可选：新文章关联的标签名称列表
     int? SeriesId,                                           // 可选：所属系列 ID
-    int SeriesOrder = 0                                      // 可选：在系列中的顺序
+    int SeriesOrder = 0,                                     // 可选：在系列中的顺序
+    bool IsHidden = false                                    // 可选：是否保存为草稿 (true=草稿/隐藏, false=发布)
 );
 
 /// <summary>

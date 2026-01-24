@@ -1,6 +1,6 @@
 'use client'; // 标记为客户端组件，因为需要状态管理、事件处理和 useEffect
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext'; // 导入认证上下文钩子
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,29 @@ import TagInput from '@/components/TagInput';             // 自定义标签输�
 import CreateCategoryDialog from '@/components/CreateCategoryDialog'; // 创建分类对话框组件
 import CreateSeriesDialog from '@/components/CreateSeriesDialog'; // Create Series Dialog
 import { fetchCategories, createPost, Category, Series } from '@/lib/api'; // 导入 API 请求函数和类型
-import { ChevronLeft, Save, Plus } from 'lucide-react'; // 图标库
+import { ChevronLeft, Save, FileText, AlertTriangle } from 'lucide-react'; // 图标库
 import { toast } from "sonner"; // Toast 通知组件
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * NewPostPage 组件：新建文章页面
  * --------------------------------------------------------------------------------
  * 这是一个客户端组件，提供了一个表单界面供管理员撰写和发布新文章。
  * 它集成了 Markdown 编辑器、标签输入和分类选择功能。
+ * 
+ * 功能增强:
+ * - 支持保存草稿 (isHidden = true)
+ * - 支持直接发布 (isHidden = false)
+ * - 离开页面时提示未保存内容
  */
 export default function NewPostPage() {
   const { user } = useAuth(); // 获取当前登录用户（用于权限检查，非严格必要，因为路由已被中间件保护）
@@ -38,6 +53,31 @@ export default function NewPostPage() {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [seriesId, setSeriesId] = useState<number | undefined>(undefined);
   const [seriesOrder, setSeriesOrder] = useState<number>(0);
+  
+  // 离开提醒相关状态
+  const [isDirty, setIsDirty] = useState(false); // 表单是否被修改
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false); // 显示离开确认对话框
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null); // 待执行的导航
+
+  // 追踪表单是否被修改
+  useEffect(() => {
+    if (title || content || tags.length > 0 || categoryId || seriesId) {
+      setIsDirty(true);
+    }
+  }, [title, content, tags, categoryId, seriesId]);
+
+  // 浏览器标签关闭/刷新提醒
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ''; // Chrome 需要设置这个
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   // `useEffect` 钩子，在组件挂载后执行一次，用于：
   // 1. 权限检查（尽管路由已被 middleware 保护，这里可作为额外确认或用于非管理员提示）
@@ -77,8 +117,29 @@ export default function NewPostPage() {
     }
   };
 
-  // 处理文章提交（发布）
-  const handleSubmit = async () => {
+  // 处理返回按钮点击
+  const handleBack = useCallback(() => {
+    if (isDirty) {
+      setPendingNavigation('back');
+      setShowLeaveDialog(true);
+    } else {
+      router.back();
+    }
+  }, [isDirty, router]);
+
+  // 确认离开
+  const confirmLeave = () => {
+    setShowLeaveDialog(false);
+    setIsDirty(false); // 清除脏标记，防止 beforeunload 再次触发
+    if (pendingNavigation === 'back') {
+      router.back();
+    } else if (pendingNavigation) {
+      router.push(pendingNavigation);
+    }
+  };
+
+  // 处理文章提交（发布或保存草稿）
+  const handleSubmit = async (asDraft: boolean) => {
     if (!title.trim()) {
       toast.warning('请输入文章标题'); // 标题为空的验证
       return;
@@ -93,16 +154,18 @@ export default function NewPostPage() {
         categoryId,
         tags, // 传递标签列表
         seriesId, // Optional Series
-        seriesOrder: seriesId ? seriesOrder : 0
+        seriesOrder: seriesId ? seriesOrder : 0,
+        isHidden: asDraft // true = 草稿, false = 发布
       });
       
       if (res.success) {
-        toast.success('发布成功！正在跳转到文章管理列表...'); // 显示成功通知
+        setIsDirty(false); // 清除脏标记
+        toast.success(asDraft ? '草稿已保存！' : '发布成功！');
         setTimeout(() => {
             router.push('/admin/posts'); // 成功后跳转到文章管理列表页
-        }, 1500);
+        }, 1000);
       } else {
-        toast.error('发布失败: ' + res.message); // 显示失败通知
+        toast.error('操作失败: ' + res.message); // 显示失败通知
       }
     } catch (error: unknown) {
       console.error('Create post error:', error);
@@ -114,19 +177,34 @@ export default function NewPostPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      {/* 顶部操作栏：返回按钮和发布文章按钮 */}
-      <div className="flex items-center justify-between mb-6">
-         <div className="flex items-center gap-4">
+      {/* 顶部操作栏：返回按钮和操作按钮 */}
+      <div className="flex items-center justify-between mb-6 gap-2">
+         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
            {/* 返回上一页 */}
-           <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-gray-400">
-             <ChevronLeft className="w-4 h-4 mr-1" /> 返回
+           <Button variant="ghost" size="icon" onClick={handleBack} className="text-gray-500 dark:text-gray-400 h-9 w-9">
+             <ChevronLeft className="w-5 h-5" />
            </Button>
-           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">撰写新文章</h1>
+           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">新文章</h1>
          </div>
-         {/* 发布文章按钮 */}
-         <Button onClick={handleSubmit} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-white">
-           {loading ? '发布中...' : <><Save className="w-4 h-4 mr-2" /> 发布文章</>}
-         </Button>
+         {/* 操作按钮组 */}
+         <div className="flex gap-1 sm:gap-2">
+           {/* 保存草稿按钮 */}
+           <Button 
+             variant="outline" 
+             size="sm"
+             onClick={() => handleSubmit(true)} 
+             disabled={loading}
+             className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950 px-2 sm:px-4"
+           >
+             <FileText className="w-4 h-4 sm:mr-1" />
+             <span className="hidden sm:inline">保存草稿</span>
+           </Button>
+           {/* 发布文章按钮 */}
+           <Button size="sm" onClick={() => handleSubmit(false)} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-white px-2 sm:px-4">
+             <Save className="w-4 h-4 sm:mr-1" />
+             <span className="hidden sm:inline">发布</span>
+           </Button>
+         </div>
       </div>
 
       {/* 文章编辑表单区域 */}
@@ -175,7 +253,7 @@ export default function NewPostPage() {
                    className="rounded-full border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-500 dark:hover:text-orange-400"
                    onClick={() => setIsCreateCategoryOpen(true)} // 打开新建分类对话框
                  >
-                   <Plus className="w-4 h-4 mr-1" /> 新建
+                   + 新建
                  </Button>
                </div>
             </div>
@@ -208,7 +286,7 @@ export default function NewPostPage() {
                    onClick={() => setIsCreateSeriesOpen(true)}
                    title="新建系列"
                 >
-                   <Plus className="w-4 h-4" />
+                   +
                 </Button>
 
                 {seriesId && (
@@ -259,6 +337,28 @@ export default function NewPostPage() {
            <MarkdownEditor value={content} onChange={setContent} /> {/* Markdown 编辑器组件 */}
         </div>
       </div>
+
+      {/* 离开确认对话框 */}
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              确定要离开吗？
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              您有未保存的内容，离开后将会丢失。建议先保存草稿再离开。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>继续编辑</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave} className="bg-red-500 hover:bg-red-600">
+              放弃并离开
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

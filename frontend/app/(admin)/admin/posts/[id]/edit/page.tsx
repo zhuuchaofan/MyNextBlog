@@ -234,16 +234,14 @@ export default function EditPostPage({
         </div>
 
         {/* 文章可见性控制 */}
-        <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
-          <div className="space-y-0.5">
+        <div className="flex items-center justify-between gap-4 p-4 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
+          <div className="space-y-0.5 min-w-0">
             <Label className="font-semibold dark:text-gray-200">文章状态</Label>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {isHidden
-                ? "此文章当前为隐藏状态，仅管理员可见"
-                : "此文章当前为公开状态"}
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+              {isHidden ? "隐藏中，仅管理员可见" : "已公开"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <span
               className={`text-sm ${
                 !isHidden

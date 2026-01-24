@@ -299,6 +299,7 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
             UserId = userId,
             SeriesId = dto.SeriesId,
             SeriesOrder = dto.SeriesOrder,
+            IsHidden = dto.IsHidden, // 支持保存为草稿
             CreateTime = DateTime.UtcNow
         };
 
