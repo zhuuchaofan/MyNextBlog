@@ -14,7 +14,7 @@ import {
   Layers,
   BookOpen,
   ListTodo,
-  ChevronRight,
+  GitBranch,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -134,10 +134,17 @@ export function TodoCard({ task, isDragging, onEdit, onRefresh }: TodoCardProps)
         </div>
       </div>
 
-      {/* 标题 */}
-      <h4 className="font-medium text-sm leading-tight mb-2 line-clamp-2">
-        {task.title}
-      </h4>
+      {/* 任务类型 + 标题 */}
+      <div className="flex items-start gap-1.5 mb-2">
+        {(() => {
+          const typeConfig = TASK_TYPE_ICONS[task.taskType] || TASK_TYPE_ICONS.task;
+          const TypeIcon = typeConfig.icon;
+          return <TypeIcon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${typeConfig.color}`} />;
+        })()}
+        <h4 className="font-medium text-sm leading-tight line-clamp-2">
+          {task.title}
+        </h4>
+      </div>
 
       {/* 描述 */}
       {task.description && (
@@ -146,45 +153,56 @@ export function TodoCard({ task, isDragging, onEdit, onRefresh }: TodoCardProps)
         </p>
       )}
 
-      {/* 日期信息 */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        {task.startDate && (
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            <span>{formatDate(task.startDate)}</span>
-          </div>
-        )}
-        {task.dueDate && (
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{formatDate(task.dueDate)}</span>
+      {/* 底部：日期 + 子任务计数 */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center gap-3">
+          {task.startDate && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              <span>{formatDate(task.startDate)}</span>
+            </div>
+          )}
+          {task.dueDate && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{formatDate(task.dueDate)}</span>
+            </div>
+          )}
+        </div>
+        {countChildren(task) > 0 && (
+          <div className="flex items-center gap-1 text-primary">
+            <GitBranch className="w-3 h-3" />
+            <span>{countChildren(task)}</span>
           </div>
         )}
       </div>
 
-      {/* 删除按钮 */}
-      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* 删除按钮 - 移动端常驻显示，桌面端悬浮显示 */}
+      <div className="absolute -top-2 -right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
               variant="destructive"
               size="icon"
-              className="h-6 w-6 rounded-full shadow"
+              className="h-7 w-7 md:h-6 md:w-6 rounded-full shadow touch-manipulation"
               onClick={e => e.stopPropagation()}
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="w-3.5 h-3.5 md:w-3 md:h-3" />
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent onClick={e => e.stopPropagation()}>
+          <AlertDialogContent 
+            onClick={e => e.stopPropagation()}
+            className="max-w-[calc(100%-2rem)] sm:max-w-lg"
+          >
             <AlertDialogHeader>
               <AlertDialogTitle>确认删除？</AlertDialogTitle>
               <AlertDialogDescription>
                 确定要删除任务「{task.title}」吗？此操作无法撤销。
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+              <AlertDialogCancel className="w-full sm:w-auto">取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="w-full sm:w-auto">
                 删除
               </AlertDialogAction>
             </AlertDialogFooter>

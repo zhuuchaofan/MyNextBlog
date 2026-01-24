@@ -23,26 +23,35 @@ import {
 } from '@/lib/api-todo';
 import { TodoColumn } from './TodoColumn';
 import { TaskDialog } from './TaskDialog';
+import { TaskDetailDrawer } from './TaskDetailDrawer';
 import { TodoCard } from './TodoCard';
 
 /**
  * 阶段配置
  */
 const STAGES = [
-  { id: 'todo', title: '待办', icon: ClipboardList, color: 'border-yellow-500' },
-  { id: 'in_progress', title: '进行中', icon: Rocket, color: 'border-blue-500' },
-  { id: 'done', title: '已完成', icon: CheckCircle2, color: 'border-green-500' },
+  { id: 'todo', title: '待办', icon: ClipboardList, color: 'border-yellow-500', tabColor: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  { id: 'in_progress', title: '进行中', icon: Rocket, color: 'border-blue-500', tabColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  { id: 'done', title: '已完成', icon: CheckCircle2, color: 'border-green-500', tabColor: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
 ] as const;
+
+type StageId = typeof STAGES[number]['id'];
 
 /**
  * Kanban 看板组件
+ * - 桌面端: 三列并排显示
+ * - 移动端: Tab 切换阶段显示
  */
 export function TodoBoard() {
   const [tasks, setTasks] = useState<TodoTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<TodoTask | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<TodoTask | null>(null);
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TodoTask | null>(null);
+  
+  // 移动端当前选中的阶段
+  const [activeStage, setActiveStage] = useState<StageId>('todo');
 
   // 拖拽 sensors
   const sensors = useSensors(
@@ -170,16 +179,15 @@ export function TodoBoard() {
     }
   };
 
-  // 打开编辑弹窗
-  const handleEdit = (task: TodoTask) => {
-    setEditingTask(task);
-    setDialogOpen(true);
+  // 点击卡片打开详情侧边栏
+  const handleCardClick = (task: TodoTask) => {
+    setSelectedTask(task);
+    setDetailDrawerOpen(true);
   };
 
   // 创建成功后刷新
   const handleSuccess = () => {
     setDialogOpen(false);
-    setEditingTask(null);
     loadTasks();
   };
 
@@ -198,13 +206,44 @@ export function TodoBoard() {
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            刷新
+            <span className="hidden sm:inline">刷新</span>
           </Button>
           <Button size="sm" onClick={() => setDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-1" />
-            新建任务
+            <span className="hidden sm:inline">新建</span>任务
           </Button>
         </div>
+      </div>
+
+      {/* 移动端 Tab 切换 */}
+      <div className="flex md:hidden gap-1 p-1 bg-muted/50 rounded-lg">
+        {STAGES.map(stage => {
+          const count = getTasksByStage(stage.id).length;
+          const isActive = activeStage === stage.id;
+          const Icon = stage.icon;
+          return (
+            <button
+              key={stage.id}
+              onClick={() => setActiveStage(stage.id)}
+              className={`
+                flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md
+                text-sm font-medium transition-all
+                ${isActive 
+                  ? `${stage.tabColor} shadow-sm` 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'}
+              `}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{stage.title}</span>
+              <span className={`
+                text-xs px-1.5 py-0.5 rounded-full min-w-[1.25rem]
+                ${isActive ? 'bg-white/50 dark:bg-black/20' : 'bg-muted-foreground/20'}
+              `}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* 看板 */}
@@ -215,7 +254,8 @@ export function TodoBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 桌面端: 三列并排 */}
+        <div className="hidden md:grid md:grid-cols-3 gap-4">
           {STAGES.map(stage => (
             <TodoColumn
               key={stage.id}
@@ -224,7 +264,23 @@ export function TodoBoard() {
               icon={stage.icon}
               color={stage.color}
               tasks={getTasksByStage(stage.id)}
-              onEdit={handleEdit}
+              onEdit={handleCardClick}
+              onRefresh={loadTasks}
+            />
+          ))}
+        </div>
+
+        {/* 移动端: 单列显示当前阶段 */}
+        <div className="md:hidden">
+          {STAGES.filter(s => s.id === activeStage).map(stage => (
+            <TodoColumn
+              key={stage.id}
+              id={stage.id}
+              title={stage.title}
+              icon={stage.icon}
+              color={stage.color}
+              tasks={getTasksByStage(stage.id)}
+              onEdit={handleCardClick}
               onRefresh={loadTasks}
             />
           ))}
@@ -236,16 +292,21 @@ export function TodoBoard() {
         </DragOverlay>
       </DndContext>
 
-      {/* 任务弹窗 */}
+      {/* 新建任务弹窗 */}
       <TaskDialog
         open={dialogOpen}
-        onOpenChange={(open: boolean) => {
-          setDialogOpen(open);
-          if (!open) setEditingTask(null);
-        }}
-        task={editingTask}
+        onOpenChange={setDialogOpen}
         onSuccess={handleSuccess}
+      />
+
+      {/* 任务详情侧边栏 */}
+      <TaskDetailDrawer
+        open={detailDrawerOpen}
+        onOpenChange={setDetailDrawerOpen}
+        task={selectedTask}
+        onRefresh={loadTasks}
       />
     </div>
   );
 }
+
