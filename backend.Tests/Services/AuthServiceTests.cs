@@ -283,4 +283,55 @@ public class AuthServiceTests : IDisposable
 
         BCrypt.Net.BCrypt.Verify(password, hash).Should().BeTrue();
     }
+
+    // ========== 宽限期并发测试 ==========
+
+    [Fact]
+    public async Task RefreshTokenAsync_ShouldAllowConcurrentRefreshWithinGracePeriod()
+    {
+        // Arrange: 登录获取 Token
+        var loginResult = await _authService.LoginAsync(new LoginDto("testuser", "password123"));
+        loginResult.Should().NotBeNull();
+        
+        // 模拟 Token 即将过期以触发轮换 (剩余 < 3 天)
+        var token = await _context.RefreshTokens.FirstAsync(rt => rt.UserId == 1);
+        token.ExpiryTime = DateTime.UtcNow.AddDays(1);
+        await _context.SaveChangesAsync();
+        
+        var dto = new RefreshTokenRequestDto(loginResult!.Token, loginResult!.RefreshToken);
+        
+        // Act: 第一次刷新 (触发轮换，标记 RevokedAt)
+        var result1 = await _authService.RefreshTokenAsync(dto);
+        // Act: 第二次刷新 (宽限期内，应成功生成并行链)
+        var result2 = await _authService.RefreshTokenAsync(dto);
+        
+        // Assert
+        result1.Should().NotBeNull();
+        result2.Should().NotBeNull();
+        // 两次刷新应生成不同的 Refresh Token (并行链)
+        result1!.RefreshToken.Should().NotBe(result2!.RefreshToken);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_ShouldRejectAfterGracePeriod()
+    {
+        // Arrange: 登录获取 Token
+        var loginResult = await _authService.LoginAsync(new LoginDto("testuser", "password123"));
+        loginResult.Should().NotBeNull();
+        
+        var token = await _context.RefreshTokens.FirstAsync(rt => rt.UserId == 1);
+        
+        // 模拟撤销已超过 10 秒宽限期
+        token.RevokedAt = DateTime.UtcNow.AddSeconds(-15);
+        token.ExpiryTime = DateTime.UtcNow.AddDays(1); // 未过期
+        await _context.SaveChangesAsync();
+        
+        var dto = new RefreshTokenRequestDto(loginResult!.Token, loginResult!.RefreshToken);
+        
+        // Act
+        var result = await _authService.RefreshTokenAsync(dto);
+        
+        // Assert: 宽限期已过，应拒绝
+        result.Should().BeNull();
+    }
 }

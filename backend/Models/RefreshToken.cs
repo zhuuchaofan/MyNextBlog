@@ -43,6 +43,23 @@ public class RefreshToken
     /// </summary>
     public DateTime LastUsedAt { get; set; }
     
+    /// <summary>
+    /// 软删除：撤销时间戳（轮换时标记，非物理删除）
+    /// 用于支持并发刷新的 10 秒宽限期
+    /// </summary>
+    public DateTime? RevokedAt { get; set; }
+    
+    /// <summary>
+    /// 检查 Token 是否有效（含 10 秒宽限期）
+    /// </summary>
+    /// <param name="now">当前时间</param>
+    /// <returns>有效条件：未过期 AND (未撤销 OR 撤销后 10 秒内)</returns>
+    public bool IsActive(DateTime now)
+    {
+        return now < ExpiryTime && 
+               (RevokedAt == null || now < RevokedAt.Value.AddSeconds(10));
+    }
+    
     // 导航属性
     public User User { get; set; } = null!;
 }

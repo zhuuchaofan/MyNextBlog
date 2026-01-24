@@ -102,68 +102,83 @@ public class AuthService(
 
     public async Task<AuthResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto dto)
     {
-        // 方案 B 重构：不再依赖 Access Token 提取用户信息
-        // 直接通过 Refresh Token 查找关联的 User 和 Session
-        
         var tokenHash = HashToken(dto.RefreshToken);
+        var now = DateTime.UtcNow;
         
+        // 1. 查询 Token（包括已软删除的，用于宽限期检查）
         var storedToken = await context.RefreshTokens
-            .Include(rt => rt.User)             // 级联加载 User (基础信息)
-            .ThenInclude(u => u.UserProfile)    // 级联加载 UserProfile (详细信息)
+            .Include(rt => rt.User)
+            .ThenInclude(u => u.UserProfile)
             .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
 
-        // 1. 验证 Token 是否存在且未过期
-        if (storedToken == null || storedToken.ExpiryTime <= DateTime.UtcNow)
+        // 2. 验证 Token 有效性（含 10 秒宽限期）
+        if (storedToken == null || !storedToken.IsActive(now))
         {
-            logger.LogWarning("Token refresh failed: Invalid or expired refresh token");
-            return null; // 无效或已过期
+            if (storedToken?.RevokedAt != null)
+            {
+                logger.LogWarning(
+                    "Token refresh rejected: Revoked at {RevokedAt}, grace period expired (>10s)",
+                    storedToken.RevokedAt);
+            }
+            else
+            {
+                logger.LogWarning("Token refresh failed: Invalid or expired refresh token");
+            }
+            return null;
         }
 
         var user = storedToken.User;
-        if (user == null) return null; // 极端情况：用户已被删除
+        if (user == null) return null;
 
-        // 2. 轮换策略 (Rotation Strategy)
-        // 避免"惊群效应"：如果 Refresh Token 还有较长的有效期（> 3天），则**不**进行轮换。
-        string newRefreshToken = dto.RefreshToken; // 默认使用旧的
+        // 3. 轮换策略（软删除 + 并行链支持）
+        string newRefreshToken = dto.RefreshToken;
+        var remainingTime = storedToken.ExpiryTime - now;
         
-        var remainingTime = storedToken.ExpiryTime - DateTime.UtcNow;
         if (remainingTime < TimeSpan.FromDays(3))
         {
-            // 剩余不足3天 -> 进行轮换：删除旧 Token，创建新 Token
-            context.RefreshTokens.Remove(storedToken);
+            // 首次轮换：标记撤销时间（软删除）
+            if (storedToken.RevokedAt == null)
+            {
+                storedToken.RevokedAt = now;
+                logger.LogInformation(
+                    "Token marked for rotation: UserId={UserId}, TokenId={TokenId}",
+                    user.Id, storedToken.Id);
+            }
+            // 宽限期内再次刷新：允许生成并行 Token 链（不更新 RevokedAt）
             
             newRefreshToken = GenerateRefreshToken();
             var newTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
                 TokenHash = HashToken(newRefreshToken),
-                ExpiryTime = DateTime.UtcNow.AddDays(7), // 重置为7天
+                ExpiryTime = now.AddDays(7),
                 DeviceInfo = storedToken.DeviceInfo,
-                CreatedAt = DateTime.UtcNow,
-                LastUsedAt = DateTime.UtcNow
+                CreatedAt = now,
+                LastUsedAt = now
             };
             context.RefreshTokens.Add(newTokenEntity);
         }
         else
         {
-            // 只更新最后使用时间
-            storedToken.LastUsedAt = DateTime.UtcNow;
+            storedToken.LastUsedAt = now;
         }
 
-        // 3. 生成新的 Access Token
+        // 4. 懒惰清理：删除该用户的过期/已撤销超过 1 分钟的 Token
+        await CleanupExpiredTokensAsync(user.Id, now);
+
+        // 5. 生成新的 Access Token
         var newAccessToken = GenerateJwtToken(user);
         
         await context.SaveChangesAsync();
 
         logger.LogInformation(
-            "Token refreshed successfully: UserId={UserId}, Username={Username}, Rotated={Rotated}",
-            user.Id, user.Username, newRefreshToken != dto.RefreshToken
-        );
+            "Token refreshed: UserId={UserId}, Username={Username}, Rotated={Rotated}",
+            user.Id, user.Username, newRefreshToken != dto.RefreshToken);
 
         return new AuthResponseDto(
             Token: newAccessToken,
-            RefreshToken: newRefreshToken, // 返回决定使用的那个 (旧的或新的)
-            Expiration: DateTime.UtcNow.AddMinutes(15), // 15 分钟
+            RefreshToken: newRefreshToken,
+            Expiration: now.AddMinutes(15),
             Username: user.Username,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl,
@@ -190,6 +205,29 @@ public class AuthService(
         using var sha256 = SHA256.Create();
         var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(bytes);
+    }
+
+    /// <summary>
+    /// 懒惰清理：删除用户的过期/已撤销 Token
+    /// 清理条件：已过期 OR 撤销超过 1 分钟
+    /// </summary>
+    private async Task CleanupExpiredTokensAsync(int userId, DateTime now)
+    {
+        var cleanupThreshold = now.AddMinutes(-1);
+        
+        var expiredTokens = await context.RefreshTokens
+            .Where(rt => rt.UserId == userId &&
+                         (rt.ExpiryTime < now || 
+                          (rt.RevokedAt != null && rt.RevokedAt < cleanupThreshold)))
+            .ToListAsync();
+        
+        if (expiredTokens.Count != 0)
+        {
+            context.RefreshTokens.RemoveRange(expiredTokens);
+            logger.LogDebug(
+                "Cleaned up {Count} expired tokens for user {UserId}", 
+                expiredTokens.Count, userId);
+        }
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(string username, string password, string email)
