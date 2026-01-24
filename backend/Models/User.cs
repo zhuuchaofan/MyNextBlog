@@ -42,9 +42,9 @@ public class User
     [MaxLength(254)] // RFC 5321 邮箱地址标准最大长度
     public string? Email { get; set; }
     
-    // 密码重置相关
+    // 密码重置相关 (存储 SHA256 哈希，非明文)
     [MaxLength(256)]
-    public string? PasswordResetToken { get; set; }
+    public string? PasswordResetTokenHash { get; set; }
     public DateTime? ResetTokenExpires { get; set; }
 
     // 扩展资料

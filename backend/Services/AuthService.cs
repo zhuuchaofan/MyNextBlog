@@ -276,8 +276,8 @@ public class AuthService(
             return new AuthResult(true, "如果您的邮箱已注册，重置链接将发送到您的邮箱。", null, null);
         }
 
-        var token = Guid.NewGuid().ToString("N");
-        user.PasswordResetToken = token;
+        var token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"); // 64字符随机 Token
+        user.PasswordResetTokenHash = HashToken(token); // 存储 SHA256 哈希
         user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(30);
 
         await context.SaveChangesAsync();
@@ -308,13 +308,14 @@ public class AuthService(
             return new AuthResult(false, "无效的请求", null, null);
         }
 
-        if (user.PasswordResetToken != token || user.ResetTokenExpires < DateTime.UtcNow)
+        // 使用哈希比对验证 Token (数据库存储的是哈希值)
+        if (user.PasswordResetTokenHash != HashToken(token) || user.ResetTokenExpires < DateTime.UtcNow)
         {
             return new AuthResult(false, "重置链接无效或已过期", null, null);
         }
 
         user.PasswordHash = HashPassword(newPassword);
-        user.PasswordResetToken = null;
+        user.PasswordResetTokenHash = null;
         user.ResetTokenExpires = null;
         
         // 重置密码后，为了安全，废弃所有设备的 Refresh Token，让所有设备重新登录

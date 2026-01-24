@@ -899,7 +899,7 @@ namespace MyNextBlog.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("PasswordResetToken")
+                    b.Property<string>("PasswordResetTokenHash")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
