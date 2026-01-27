@@ -150,12 +150,10 @@ export default function EditPostPage({
         // 跳转回文章管理列表页，并保留原始页码
         router.push(`/admin/posts?page=${returnPage}`);
       } else {
-        toast.error("更新失败: " + res.message);
+        toast.error(res.message || '操作失败');
       }
     } catch (error: unknown) {
-      toast.error(
-        "操作失败: " + ((error as Error).message || "请检查网络连接")
-      );
+      toast.error((error as Error).message || '请检查网络连接');
     } finally {
       setLoading(false);
     }

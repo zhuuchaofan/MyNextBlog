@@ -165,11 +165,11 @@ export default function NewPostPage() {
             router.push('/admin/posts'); // 成功后跳转到文章管理列表页
         }, 1000);
       } else {
-        toast.error('操作失败: ' + res.message); // 显示失败通知
+        toast.error(res.message || '操作失败');
       }
     } catch (error: unknown) {
       console.error('Create post error:', error);
-      toast.error('操作失败: ' + ((error as Error).message || "请检查网络连接")); // 捕获异常
+      toast.error((error as Error).message || '请检查网络连接');
     } finally {
       setLoading(false); // 结束加载状态
     }
