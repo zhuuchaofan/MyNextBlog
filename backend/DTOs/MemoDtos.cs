@@ -44,9 +44,9 @@ public record MemoAdminDto(
 /// <param name="Source">来源</param>
 /// <param name="IsPublic">是否公开</param>
 public record CreateMemoDto(
-    [property: Required(ErrorMessage = "内容不能为空")]
-    [property: MinLength(1, ErrorMessage = "内容不能为空")]
-    [property: StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
+    [Required(ErrorMessage = "内容不能为空")]
+    [MinLength(1, ErrorMessage = "内容不能为空")]
+    [StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
     string Content,
     List<string>? ImageUrls = null,
     string Source = "Web",
@@ -57,9 +57,9 @@ public record CreateMemoDto(
 /// 更新 Memo DTO
 /// </summary>
 public record UpdateMemoDto(
-    [property: Required(ErrorMessage = "内容不能为空")]
-    [property: MinLength(1, ErrorMessage = "内容不能为空")]
-    [property: StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
+    [Required(ErrorMessage = "内容不能为空")]
+    [MinLength(1, ErrorMessage = "内容不能为空")]
+    [StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
     string Content,
     List<string>? ImageUrls = null,
     bool IsPublic = true

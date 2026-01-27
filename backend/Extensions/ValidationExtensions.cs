@@ -7,8 +7,8 @@
 //   dto.ValidateAndThrow();  // 验证失败时抛出 ValidationException
 //
 // **背景**:
-//   C# record 主构造函数的 Data Annotations 默认对 Validator.ValidateObject 不可见，
-//   必须使用 [property:] 前缀。此扩展方法统一验证逻辑，简化 Service 层代码。
+//   .NET 8+ 要求 record 主构造函数参数的验证特性直接放在参数上，
+//   不能使用 [property:] 前缀，否则 ASP.NET Core MVC 模型绑定会抛出 InvalidOperationException。
 
 using System.ComponentModel.DataAnnotations;
 
