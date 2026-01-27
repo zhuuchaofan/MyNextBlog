@@ -30,7 +30,8 @@ public record CreateCommentDto(
     [StringLength(1000, ErrorMessage = "评论内容不能超过1000个字符")]
     string Content,
 
-    [StringLength(50, ErrorMessage = "昵称不能超过50个字符")]
+    [StringLength(50)]
+    [RegularExpression(@"^[\p{L}\p{N}_\- ]{0,50}$", ErrorMessage = "昵称包含非法字符")]
     string? GuestName,
 
     int? ParentId

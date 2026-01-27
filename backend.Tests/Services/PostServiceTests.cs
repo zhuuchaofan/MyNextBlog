@@ -104,7 +104,7 @@ public class PostServiceTests : IDisposable
         int pageSize = 5;
 
         // Act
-        var (posts, totalCount) = await _postService.GetAllPostsAsync(page, pageSize, includeHidden: false);
+        var (posts, totalCount) = await _postService.GetAllPostsAsync(new PostQueryDto(page, pageSize, IncludeHidden: false));
 
         // Assert
         posts.Should().HaveCount(5);
@@ -119,7 +119,7 @@ public class PostServiceTests : IDisposable
         int pageSize = 20;
 
         // Act
-        var (posts, totalCount) = await _postService.GetAllPostsAsync(page, pageSize, includeHidden: true);
+        var (posts, totalCount) = await _postService.GetAllPostsAsync(new PostQueryDto(page, pageSize, IncludeHidden: true));
 
         // Assert
         totalCount.Should().Be(15); // 包含所有文章
@@ -133,7 +133,7 @@ public class PostServiceTests : IDisposable
         int pageSize = 5;
 
         // Act
-        var (posts, totalCount) = await _postService.GetAllPostsAsync(page, pageSize, includeHidden: false);
+        var (posts, totalCount) = await _postService.GetAllPostsAsync(new PostQueryDto(page, pageSize, IncludeHidden: false));
 
         // Assert
         posts.Should().HaveCount(5);
@@ -284,6 +284,40 @@ public class PostServiceTests : IDisposable
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
             .WithMessage("*文章不存在*");
+    }
+
+    // ========== 负面测试：防御性验证 ==========
+
+    [Fact]
+    public async Task AddPostAsync_ShouldThrow_WhenTitleIsEmpty()
+    {
+        // Arrange: 空标题 DTO（模拟绕过 Controller 验证的场景）
+        var dto = new CreatePostDto("", "Content", null, null, null, 0);
+        _mockTagService.Setup(s => s.GetOrCreateTagsAsync(It.IsAny<string[]>()))
+            .ReturnsAsync(new List<Tag>());
+
+        // Act
+        Func<Task> act = async () => await _postService.AddPostAsync(dto, 1);
+
+        // Assert: Service 层防御性验证应抛出 ValidationException
+        await act.Should().ThrowAsync<System.ComponentModel.DataAnnotations.ValidationException>()
+            .WithMessage("*标题*");
+    }
+
+    [Fact]
+    public async Task AddPostAsync_ShouldThrow_WhenContentIsEmpty()
+    {
+        // Arrange: 空内容 DTO
+        var dto = new CreatePostDto("Valid Title", "", null, null, null, 0);
+        _mockTagService.Setup(s => s.GetOrCreateTagsAsync(It.IsAny<string[]>()))
+            .ReturnsAsync(new List<Tag>());
+
+        // Act
+        Func<Task> act = async () => await _postService.AddPostAsync(dto, 1);
+
+        // Assert
+        await act.Should().ThrowAsync<System.ComponentModel.DataAnnotations.ValidationException>()
+            .WithMessage("*内容*");
     }
 
     // ========== 软删除测试 ==========

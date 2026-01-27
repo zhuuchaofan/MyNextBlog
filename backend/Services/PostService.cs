@@ -1,4 +1,5 @@
 // `using` 语句用于导入必要的命名空间，以便在当前文件中使用其中定义的类型。
+using System.ComponentModel.DataAnnotations; // 数据注解验证 (Validator.ValidateObject)
 using Microsoft.EntityFrameworkCore; // 引入 Entity Framework Core，用于数据库操作
 using Microsoft.Extensions.Caching.Memory; // 引入内存缓存命名空间
 using Microsoft.Extensions.Logging; // 引入日志命名空间
@@ -286,6 +287,9 @@ public class PostService(AppDbContext context, IImageService imageService, IMemo
     /// </summary>
     public async Task<Post> AddPostAsync(CreatePostDto dto, int? userId)
     {
+        // 防御性验证：防止非 Controller 入口（如后台任务）绕过 Data Annotations 验证
+        Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
+        
         logger.LogInformation(
             "Creating post: {Title} by UserId={UserId}, CategoryId={CategoryId}, Tags={TagCount}",
             dto.Title, userId ?? 0, dto.CategoryId, dto.Tags?.Count ?? 0

@@ -23,21 +23,24 @@ namespace MyNextBlog.DTOs;
 /// </summary>
 public record LoginDto(
     [Required(ErrorMessage = "用户名不能为空")]
-    [StringLength(50, ErrorMessage = "用户名长度不能超过50个字符")]
+    [StringLength(50)]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "用户名格式不正确")]
     string Username,
     
     [Required(ErrorMessage = "密码不能为空")]
-    [StringLength(100, ErrorMessage = "密码长度不能超过100个字符")]
+    [StringLength(100)]
     string Password
 );
 
 public record RegisterDto(
     [Required(ErrorMessage = "用户名不能为空")]
     [StringLength(20, MinimumLength = 3, ErrorMessage = "用户名长度必须在3-20个字符之间")]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "用户名只能包含字母、数字、下划线和连字符")]
     string Username,
     
     [Required(ErrorMessage = "密码不能为空")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度至少需要6个字符")]
+    [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d).{6,}$", ErrorMessage = "密码需同时包含字母和数字")]
     string Password,
 
     [Required(ErrorMessage = "邮箱不能为空")]

@@ -93,17 +93,20 @@ public record PostLinkDto(
 /// <summary>
 /// `CreatePostDto` 是用于创建新文章时，接收客户端请求体的数据传输对象。
 /// 它定义了创建文章所需的最小且必要的字段，并包含输入验证规则。
+/// 注意：使用 [property:] 前缀确保 Validator.ValidateObject 能识别验证特性
 /// </summary>
 public record CreatePostDto(
-    // `[Required(ErrorMessage = "...\")`: 数据注解，表示此字段在 HTTP 请求体中是必填的。
-    // 如果客户端没有提供 `Title` 或 `Content`，ASP.NET Core 会自动返回 `400 Bad Request` 响应，
-    // 包含指定的错误消息。
-    [Required(ErrorMessage = "标题不能为空")]
-    [StringLength(200, ErrorMessage = "标题不能超过200个字符")]
+    // `[Required(ErrorMessage = "...\")`
+    // 如果客户端没有提供 `Title` 或 `Content`，ASP.NET Core 会自动返回 `400 Bad Request` 响应。
+    // [property:] 前缀确保 Validator.ValidateObject 能在运行时验证
+    [property: Required(ErrorMessage = "标题不能为空")]
+    [property: MinLength(1, ErrorMessage = "标题不能为空")]
+    [property: StringLength(200, ErrorMessage = "标题不能超过200个字符")]
     string Title,    // 必填：新文章的标题
     
-    [Required(ErrorMessage = "内容不能为空")]
-    [StringLength(100000, ErrorMessage = "内容不能超过100000个字符")]
+    [property: Required(ErrorMessage = "内容不能为空")]
+    [property: MinLength(1, ErrorMessage = "内容不能为空")]
+    [property: StringLength(100000, ErrorMessage = "内容不能超过100000个字符")]
     string Content,  // 必填：新文章的正文内容
     int? CategoryId,                                         // 可选：新文章所属分类的 ID
     List<string>? Tags,                                      // 可选：新文章关联的标签名称列表
