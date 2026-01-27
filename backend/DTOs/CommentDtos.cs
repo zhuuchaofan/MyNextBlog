@@ -23,15 +23,16 @@ namespace MyNextBlog.DTOs;
 ///   - ParentId: 可选，用于回复评论
 /// </summary>
 public record CreateCommentDto(
-    [Required]
+    [property: Required]
     int PostId,
 
-    [Required(ErrorMessage = "评论内容不能为空")]
-    [StringLength(1000, ErrorMessage = "评论内容不能超过1000个字符")]
+    [property: Required(ErrorMessage = "评论内容不能为空")]
+    [property: MinLength(1, ErrorMessage = "评论内容不能为空")]
+    [property: StringLength(1000, ErrorMessage = "评论内容不能超过1000个字符")]
     string Content,
 
-    [StringLength(50)]
-    [RegularExpression(@"^[\p{L}\p{N}_\- ]{0,50}$", ErrorMessage = "昵称包含非法字符")]
+    [property: StringLength(50)]
+    [property: RegularExpression(@"^[\p{L}\p{N}_\- ]{0,50}$", ErrorMessage = "昵称包含非法字符")]
     string? GuestName,
 
     int? ParentId

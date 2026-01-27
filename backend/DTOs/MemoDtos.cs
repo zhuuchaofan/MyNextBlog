@@ -3,6 +3,8 @@
 // ============================================================================
 // 定义 Memo 相关的 DTO，包含 Keyset Pagination 支持。
 
+using System.ComponentModel.DataAnnotations;
+
 namespace MyNextBlog.DTOs;
 
 /// <summary>
@@ -42,6 +44,9 @@ public record MemoAdminDto(
 /// <param name="Source">来源</param>
 /// <param name="IsPublic">是否公开</param>
 public record CreateMemoDto(
+    [property: Required(ErrorMessage = "内容不能为空")]
+    [property: MinLength(1, ErrorMessage = "内容不能为空")]
+    [property: StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
     string Content,
     List<string>? ImageUrls = null,
     string Source = "Web",
@@ -52,6 +57,9 @@ public record CreateMemoDto(
 /// 更新 Memo DTO
 /// </summary>
 public record UpdateMemoDto(
+    [property: Required(ErrorMessage = "内容不能为空")]
+    [property: MinLength(1, ErrorMessage = "内容不能为空")]
+    [property: StringLength(5000, ErrorMessage = "内容不能超过5000个字符")]
     string Content,
     List<string>? ImageUrls = null,
     bool IsPublic = true

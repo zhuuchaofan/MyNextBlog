@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using MyNextBlog.Data;
 using MyNextBlog.DTOs;
+using MyNextBlog.Extensions;
 using MyNextBlog.Models;
 
 namespace MyNextBlog.Services;
@@ -142,6 +143,9 @@ public class MemoService(
     /// </summary>
     public async Task<MemoAdminDto> CreateAsync(CreateMemoDto dto)
     {
+        // 防御性验证
+        dto.ValidateAndThrow();
+        
         // 限制图片数量为 9 张
         var imageUrls = dto.ImageUrls?.Take(9).ToList() ?? [];
         
@@ -178,6 +182,9 @@ public class MemoService(
     /// </summary>
     public async Task<MemoAdminDto?> UpdateAsync(int id, UpdateMemoDto dto)
     {
+        // 防御性验证
+        dto.ValidateAndThrow();
+        
         var memo = await context.Memos.FindAsync(id);
         if (memo == null) return null;
         
