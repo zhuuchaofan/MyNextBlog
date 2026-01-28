@@ -113,4 +113,66 @@ public class TestGcpController : ControllerBase
             });
         }
     }
+
+    /// <summary>
+    /// 发送文章内容获取摘要
+    /// </summary>
+    [HttpPost("summarize")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SummarizeArticle([FromBody] SummarizeRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Content))
+            {
+                return BadRequest(new { success = false, message = "文章内容不能为空" });
+            }
+
+            // 1. 获取默认凭据
+            var credential = await GoogleCredential.GetApplicationDefaultAsync();
+
+            // 2. 生成 OIDC Token
+            var oidcToken = await credential.GetOidcTokenAsync(OidcTokenOptions.FromTargetAudience(CloudRunUrl));
+            var tokenString = await oidcToken.GetAccessTokenAsync();
+
+            _logger.LogInformation("发送文章到 Cloud Run (长度: {Length})", request.Content.Length);
+
+            // 3. 发送 POST 请求
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenString);
+
+            var jsonContent = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(new { content = request.Content }),
+                System.Text.Encoding.UTF8,
+                "application/json");
+
+            var response = await client.PostAsync(CloudRunUrl, jsonContent);
+            var content = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Cloud Run 摘要响应: {StatusCode}", response.StatusCode);
+
+            return Ok(new
+            {
+                success = response.IsSuccessStatusCode,
+                statusCode = (int)response.StatusCode,
+                summary = content,
+                targetUrl = CloudRunUrl
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取文章摘要失败");
+            return Ok(new
+            {
+                success = false,
+                message = $"请求失败: {ex.Message}",
+                targetUrl = CloudRunUrl
+            });
+        }
+    }
 }
+
+/// <summary>
+/// 文章摘要请求
+/// </summary>
+public record SummarizeRequest(string Content);
