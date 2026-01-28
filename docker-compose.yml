@@ -45,6 +45,8 @@ services:
       - CloudflareR2__SecretKey=${R2_SECRET_KEY}
       - CloudflareR2__BucketName=${R2_BUCKET_NAME}
       - CloudflareR2__PublicDomain=${R2_PUBLIC_DOMAIN}
+      # GCP Auth
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/gcp-service-account.json
       # JWT
       - JwtSettings__SecretKey=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
@@ -64,6 +66,8 @@ services:
       - ./backend/wwwroot/uploads:/app/wwwroot/uploads
       # 挂载日志目录 (Serilog)
       - ./logs:/app/logs
+      # Mount GCP Secrets
+      - ./secrets/gcp-service-account.json:/app/secrets/gcp-service-account.json:ro
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
