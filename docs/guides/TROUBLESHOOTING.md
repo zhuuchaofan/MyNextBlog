@@ -292,4 +292,97 @@ async rewrites() {
 
 ---
 
-_最后更新：2025-12-28_
+## 问题 #4：Record DTO 验证特性导致 500 错误
+
+### 📅 发现时间
+
+2026-01-27
+
+### 🔍 问题描述
+
+**现象**：
+
+- 发布文章时，API 返回 500 Internal Server Error
+- 错误弹框显示原始 JSON：`{"StatusCode":500,"Message":"Internal Server Error..."}`
+
+**后端错误日志**：
+
+```
+System.InvalidOperationException: Record type 'MyNextBlog.DTOs.CreatePostDto' has
+validation metadata defined on property 'Content' that will be ignored. 'Content'
+is a parameter in the record primary constructor and validation metadata must be
+associated with the constructor parameter.
+```
+
+### 🎯 根因分析
+
+**问题原因**：.NET 8+ 对 record 类型验证特性的处理方式发生了变更。
+
+**错误写法**：
+
+```csharp
+// ❌ 使用 [property:] 前缀会导致 ASP.NET Core MVC 模型绑定报错
+public record CreatePostDto(
+    [property: Required(ErrorMessage = "标题不能为空")]
+    string Title,
+
+    [property: Required(ErrorMessage = "内容不能为空")]
+    string Content
+);
+```
+
+**问题机制**：
+
+1. record 主构造函数参数会自动生成对应的属性
+2. `[property:]` 前缀将验证特性应用到生成的**属性**上
+3. ASP.NET Core MVC 模型绑定器期望验证特性在**构造函数参数**上
+4. 检测到不一致时，抛出 `InvalidOperationException`
+
+### 💡 解决方案
+
+**正确写法**：
+
+```csharp
+// ✅ 直接把验证特性放在参数上，不使用 [property:] 前缀
+public record CreatePostDto(
+    [Required(ErrorMessage = "标题不能为空")]
+    [StringLength(200, ErrorMessage = "标题不能超过200个字符")]
+    string Title,
+
+    [Required(ErrorMessage = "内容不能为空")]
+    [StringLength(100000, ErrorMessage = "内容不能超过100000个字符")]
+    string Content,
+
+    int? CategoryId,
+    List<string>? Tags
+);
+```
+
+**修复的 DTO**：
+
+| DTO                | 文件                  |
+| ------------------ | --------------------- |
+| `CreatePostDto`    | `DTOs/PostDtos.cs`    |
+| `CreateCommentDto` | `DTOs/CommentDtos.cs` |
+| `CreateMemoDto`    | `DTOs/MemoDtos.cs`    |
+| `UpdateMemoDto`    | `DTOs/MemoDtos.cs`    |
+
+### 🤔 为什么单元测试没有发现这个问题？
+
+| 测试类型     | 调用路径                                                 | 能否捕获         |
+| ------------ | -------------------------------------------------------- | ---------------- |
+| **单元测试** | 直接调用 `Service.CreatePostAsync(dto)`                  | ❌ 绕过 MVC 管道 |
+| **集成测试** | `WebApplicationFactory` + `HttpClient.PostAsJsonAsync()` | ✅ 触发完整管道  |
+| **E2E 测试** | Playwright 发送真实 HTTP 请求                            | ✅ 触发完整管道  |
+
+**建议**：对关键 API 端点添加集成测试，使用 `WebApplicationFactory` 发送真实 HTTP 请求。
+
+### 📚 经验教训
+
+1. **.NET 8+ record 验证规范**：验证特性必须直接放在构造函数参数上，不能使用 `[property:]` 前缀
+2. **单元测试的局限性**：无法覆盖 MVC 模型绑定管道，需要集成测试补充
+3. **错误消息要友好**：前端应提供中文错误消息，不要直接暴露 JSON 给用户
+
+---
+
+_最后更新：2026-01-28_
