@@ -4,6 +4,15 @@ import { SITE_CONFIG } from '@/lib/constants';
 // 强制动态渲染，保证获取最新文章
 export const dynamic = 'force-dynamic';
 
+type FeedPost = {
+  id: number | string;
+  title: string;
+  excerpt?: string | null;
+  authorName?: string | null;
+  createTime: string;
+  categoryName?: string | null;
+};
+
 // 获取站点配置
 async function getSiteContent(key: string): Promise<string | null> {
   const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
@@ -54,7 +63,7 @@ export async function GET() {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        json.data.forEach((post: any) => {
+        json.data.forEach((post: FeedPost) => {
           feed.item({
             title: post.title,
             description: post.excerpt || '点击阅读全文...',

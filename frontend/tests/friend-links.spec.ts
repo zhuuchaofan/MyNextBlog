@@ -5,6 +5,10 @@
 
 import { test, expect } from "@playwright/test";
 
+type FriendLink = {
+    id: number | string;
+    name: string;
+};
 
 test.describe("友链管理功能 (Admin Friend Links)", () => {
     // 使用 fixtures 自动登录
@@ -70,8 +74,8 @@ test.describe("友链管理功能 (Admin Friend Links)", () => {
         const listRes = await page.request.get('/api/backend/friend-links/admin');
         const listJson = await listRes.json();
         const createdIds = listJson.data
-            .filter((f: any) => f.name === name1 || f.name === name2)
-            .map((f: any) => f.id);
+            .filter((f: FriendLink) => f.name === name1 || f.name === name2)
+            .map((f: FriendLink) => f.id);
         
         for (const id of createdIds) {
             await page.request.delete(`/api/backend/admin/friend-links/${id}`);

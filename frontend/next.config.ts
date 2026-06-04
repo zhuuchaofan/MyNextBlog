@@ -7,6 +7,9 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true, // 开启 SourceMap 以定位生产环境报错
   output: "standalone", // 开启 Docker 优化模式
+  turbopack: {
+    root: process.cwd(),
+  },
   images: {
     remotePatterns: [
       // 仅允许可信的头像服务

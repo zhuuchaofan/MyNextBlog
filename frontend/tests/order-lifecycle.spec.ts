@@ -202,7 +202,7 @@ test.describe("订单完整生命周期 (Order Lifecycle)", () => {
   // Step 5: UI 全链路验证
   // ========================================================================
 
-  test("5.1 UI 验证 - 我的订单页面显示新订单", async ({ page, context }) => {
+  test("5.1 UI 验证 - 我的订单页面显示新订单", async ({ page }) => {
     if (!orderId) {
       test.skip(true, "无订单 ID");
       return;

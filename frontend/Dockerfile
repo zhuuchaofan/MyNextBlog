@@ -1,5 +1,5 @@
 # === 基础镜像 ===
-FROM node:20-alpine AS base
+FROM public.ecr.aws/docker/library/node:20-alpine AS base
 
 # === 依赖安装阶段 ===
 FROM base AS deps
@@ -17,6 +17,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# 构建镜像时后端服务尚未运行；使用本地地址让 Server Component 数据预取快速降级。
+# 运行阶段会由 docker-compose 注入真实的 BACKEND_URL=http://backend:8080。
+ENV BACKEND_URL=http://127.0.0.1:8080
 RUN npm run build
 
 # === 运行阶段 ===

@@ -19,7 +19,6 @@ import type {
   Series, 
   PaginatedResponse, 
   SimpleResponse, 
-  ApiResponse,
   AdminComment 
 } from "./types";
 
@@ -1188,5 +1187,4 @@ export function deleteMemo(id: number) {
     }
   );
 }
-
 

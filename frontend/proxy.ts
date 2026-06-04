@@ -4,10 +4,10 @@ import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE, COOKIE_OPTIONS } from '@/l
 import { refreshTokenSingleton } from '@/lib/tokenRefresh';
 
 /**
- * Next.js Middleware
+ * Next.js Proxy
  * 职责：1. 为 /api/backend 注入 Authorization 头；2. 保护 /admin 路由；3. 自动刷新过期 Token
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   let accessToken = request.cookies.get('token')?.value;
@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
 
   if ((!accessToken || isExpired) && refreshToken) {
     const backendUrl = process.env.BACKEND_URL || 'http://backend:8080';
-    
+
     const result = await refreshTokenSingleton(accessToken, refreshToken, backendUrl);
     if (result.success && result.accessToken && result.refreshToken) {
       newAccessToken = result.accessToken;

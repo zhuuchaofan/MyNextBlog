@@ -34,6 +34,31 @@ export default function CommentsSection({
   // 回复状态：当前正在回复哪个评论 ID
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
 
+  // 递归插入新评论
+  const addCommentToTree = useCallback((nodes: Comment[], newComment: Comment): Comment[] => {
+    // 如果是根评论，直接插到最前面
+    if (!newComment.parentId) {
+        return [newComment, ...nodes];
+    }
+
+    // 否则递归查找父节点
+    return nodes.map(node => {
+        if (node.id === newComment.parentId) {
+            return {
+                ...node,
+                children: [...(node.children || []), newComment]
+            };
+        }
+        if (node.children && node.children.length > 0) {
+             return {
+                 ...node,
+                 children: addCommentToTree(node.children, newComment)
+             };
+        }
+        return node;
+    });
+  }, []);
+
   // 监听 MobileBottomBar 发出的评论成功事件
   useEffect(() => {
     const handleCommentAdded = (e: CustomEvent<Comment>) => {
@@ -45,7 +70,7 @@ export default function CommentsSection({
     return () => {
       window.removeEventListener('comment-added', handleCommentAdded as EventListener);
     };
-  }, []);
+  }, [addCommentToTree]);
 
   // 加载更多评论（仅在用户点击时触发）
   const loadMore = useCallback(async () => {
@@ -70,31 +95,6 @@ export default function CommentsSection({
       setLoading(false);
     }
   }, [postId, page]);
-
-  // 递归插入新评论
-  const addCommentToTree = (nodes: Comment[], newComment: Comment): Comment[] => {
-    // 如果是根评论，直接插到最前面
-    if (!newComment.parentId) {
-        return [newComment, ...nodes];
-    }
-
-    // 否则递归查找父节点
-    return nodes.map(node => {
-        if (node.id === newComment.parentId) {
-            return {
-                ...node,
-                children: [...(node.children || []), newComment]
-            };
-        }
-        if (node.children && node.children.length > 0) {
-             return {
-                 ...node,
-                 children: addCommentToTree(node.children, newComment)
-             };
-        }
-        return node;
-    });
-  };
 
   const handleCommentSuccess = (newComment: Comment) => {
     setAllComments(prev => addCommentToTree(prev, newComment));

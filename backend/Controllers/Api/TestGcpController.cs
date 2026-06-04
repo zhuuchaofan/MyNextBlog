@@ -10,6 +10,7 @@ namespace MyNextBlog.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class TestGcpController : ControllerBase
 {
     private readonly ILogger<TestGcpController> _logger;
@@ -28,7 +29,6 @@ public class TestGcpController : ControllerBase
     /// 测试 GCP 凭据是否加载成功
     /// </summary>
     [HttpGet("credentials")]
-    [AllowAnonymous]
     public async Task<IActionResult> TestCredentials()
     {
         try
@@ -70,7 +70,6 @@ public class TestGcpController : ControllerBase
     /// 测试访问受保护的 Cloud Run 服务
     /// </summary>
     [HttpGet("call-cloud-run")]
-    [AllowAnonymous]
     public async Task<IActionResult> CallCloudRun()
     {
         try
@@ -118,7 +117,6 @@ public class TestGcpController : ControllerBase
     /// 发送消息到 Gradio Chat API
     /// </summary>
     [HttpPost("chat")]
-    [AllowAnonymous]
     public async Task<IActionResult> GradioChat([FromBody] GradioChatRequest request)
     {
         try

@@ -377,7 +377,13 @@ FodyWeavers.xsd
 appsettings.Development.json
 
 .env
+.env.*
+!.env.example
+frontend/.env*.local
 secrets/
+data/keys/
+backend/Data/keys/
+**/*service-account*.json
 
 # Next.js
 .next/

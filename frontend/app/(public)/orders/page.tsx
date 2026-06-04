@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Package, Loader2, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
+import { ShoppingBag, Package, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -7,7 +7,6 @@
 import { test as setup } from "@playwright/test";
 import { loginAsAdmin } from "./utils/test-helpers";
 import fs from "fs";
-import path from "path";
 
 // 认证状态文件路径
 const authFile = "tests/.auth/admin.json";

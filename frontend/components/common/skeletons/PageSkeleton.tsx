@@ -3,7 +3,6 @@
 // =============================================================================
 // 用于整页加载状态，替代中心 Loader2
 
-import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageContainer } from "../PageContainer";
 import type { ContainerVariant, MaxWidthKey } from "@/lib/design-tokens";

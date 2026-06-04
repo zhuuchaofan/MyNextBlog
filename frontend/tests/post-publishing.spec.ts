@@ -22,7 +22,6 @@ import {
   loginAndGetToken,
   PageValidator,
   expectApiSuccess,
-  E2E_PREFIX,
   generateTestName,
 } from "./utils/test-helpers";
 import * as fs from "fs";
@@ -600,4 +599,3 @@ test.describe("文章发布异常流程", () => {
     console.log(`📭 [异常 12] 空回收站页面截图完成`);
   });
 });
-

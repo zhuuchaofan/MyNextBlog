@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PageContainer, EmptyState, TableSkeleton } from "@/components/common";
+import { PageContainer, EmptyState } from "@/components/common";
 
 export default function SeriesManagementPage() {
   const [seriesList, setSeriesList] = useState<Series[]>([]);

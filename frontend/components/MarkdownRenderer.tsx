@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import type { Components } from 'react-markdown';
 import { useTocHighlight } from '@/hooks/useTocHighlight';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -34,17 +35,19 @@ interface TocItem {
 }
 
 // 从 React Node 中提取纯文本
-const extractText = (children: any): string => {
+const extractText = (children: React.ReactNode): string => {
   if (typeof children === 'string') return children;
   if (Array.isArray(children)) return children.map(extractText).join('');
-  if (typeof children === 'object' && children?.props?.children) return extractText(children.props.children);
+  if (React.isValidElement<{ children?: React.ReactNode }>(children)) {
+    return extractText(children.props.children);
+  }
   return '';
 };
 
 // ===========================================================================
 // 新的 PreBlock 组件，处理 <pre> 标签的渲染 (包括复制按钮和外部容器)
 // ===========================================================================
-const PreBlock = ({ children, ...props }: any) => {
+const PreBlock: Components['pre'] = ({ children, ...props }) => {
   const preRef = useRef<HTMLPreElement>(null);
   const [copied, setCopied] = useState(false);
 
@@ -64,7 +67,7 @@ const PreBlock = ({ children, ...props }: any) => {
   if (React.isValidElement(child)) {
     // 不再检查 type === 'code'，因为可能是自定义组件
     if (typeof child.props === 'object' && child.props !== null && 'className' in child.props) {
-      languageClassName = (child.props as any).className;
+      languageClassName = String(child.props.className);
     }
   }
 
@@ -177,17 +180,19 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           components={{
             pre: PreBlock, // 使用新的 PreBlock 组件处理 <pre>
             code: CodeBlock, // 使用修改后的 CodeBlock 组件处理 <code>
-            img: ({node, ...props}) => {
-               const src = props.src || '';
-               return (
+            img: ({ node, ...props }) => {
+              void node;
+              const src = props.src || '';
+              return (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   {...props} 
-                                     onClick={() => {
-                                       const srcString = String(src); // 确保 src 是字符串类型
-                                       const index = images.indexOf(srcString);                    if (index >= 0) {
-                        setLightboxIndex(index);
-                        setLightboxOpen(true);
+                  onClick={() => {
+                    const srcString = String(src);
+                    const index = images.indexOf(srcString);
+                    if (index >= 0) {
+                      setLightboxIndex(index);
+                      setLightboxOpen(true);
                     }
                   }}
                   className="rounded-xl shadow-md mx-auto my-6 max-h-[500px] object-contain bg-gray-50 dark:bg-zinc-800 cursor-zoom-in hover:opacity-95 transition-opacity" 
@@ -196,25 +201,32 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 />
               );
             },
-            a: ({node, ...props}) => (
-              <a {...props} className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-orange-300 dark:decoration-orange-700 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />
-            ),
+            a: ({ node, ...props }) => {
+              void node;
+              return <a {...props} className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-orange-300 dark:decoration-orange-700 underline-offset-4 transition-colors" target="_blank" rel="noopener noreferrer" />;
+            },
             h2: (props) => <HeadingRenderer level={2} {...props} />,
             h3: (props) => <HeadingRenderer level={3} {...props} />,
-            table: ({node, ...props}) => (
-              <div className="overflow-x-auto my-6 rounded-lg border border-gray-200 dark:border-zinc-800">
-                <table {...props} className="w-full text-sm text-left" />
-              </div>
-            ),
-            thead: ({node, ...props}) => (
-              <thead {...props} className="bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-medium" />
-            ),
-            th: ({node, ...props}) => (
-              <th {...props} className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 whitespace-nowrap" />
-            ),
-            td: ({node, ...props}) => (
-              <td {...props} className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800" />
-            ),
+            table: ({ node, ...props }) => {
+              void node;
+              return (
+                <div className="overflow-x-auto my-6 rounded-lg border border-gray-200 dark:border-zinc-800">
+                  <table {...props} className="w-full text-sm text-left" />
+                </div>
+              );
+            },
+            thead: ({ node, ...props }) => {
+              void node;
+              return <thead {...props} className="bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-medium" />;
+            },
+            th: ({ node, ...props }) => {
+              void node;
+              return <th {...props} className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 whitespace-nowrap" />;
+            },
+            td: ({ node, ...props }) => {
+              void node;
+              return <td {...props} className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800" />;
+            },
           }}
         >
           {content}

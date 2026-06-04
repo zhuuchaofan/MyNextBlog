@@ -172,10 +172,13 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
               rehypePlugins={[rehypeHighlight]}
               components={{
                  // 自定义图片渲染，限制最大高度
-                 img: ({node, ...props}) => (
-                   // eslint-disable-next-line @next/next/no-img-element
-                   <img {...props} className="rounded-lg shadow-sm max-h-[400px] mx-auto dark:bg-zinc-800" alt={props.alt || ''} />
-                 )
+                 img: ({ node, ...props }) => {
+                   void node;
+                   return (
+	                   // eslint-disable-next-line @next/next/no-img-element
+	                   <img {...props} className="rounded-lg shadow-sm max-h-[400px] mx-auto dark:bg-zinc-800" alt={props.alt || ''} />
+                   );
+                 }
               }}
             >
               {value || '*暂无内容*'}
